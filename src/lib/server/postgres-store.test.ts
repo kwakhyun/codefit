@@ -15,6 +15,8 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
     admin = postgres(url!, { max: 1, prepare: false, onnotice: () => {} });
     await admin.unsafe(`CREATE SCHEMA ${schema}`);
     sql = postgres(url!, { max: 5, prepare: false, connection: { search_path: schema }, onnotice: () => {} });
+    // Some hosted poolers ignore startup search_path; never write fixtures to public.
+    expect((await sql`SELECT current_schema() AS schema`)[0].schema).toBe(schema);
     store = new PostgresStore(sql);
     await store.initialize();
   }, 60_000);
