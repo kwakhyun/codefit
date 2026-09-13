@@ -122,6 +122,8 @@ export type ProblemSummary = Omit<
 export type ProgressSummary = Omit<Progress, "code">;
 export type AttemptSummary = Omit<Attempt, "code">;
 export interface Workspace {
+  account: import("./auth-types").AccountState;
+  scope: string;
   stats: {
     total: number;
     ai: number;

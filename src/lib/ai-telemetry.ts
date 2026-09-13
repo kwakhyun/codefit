@@ -12,6 +12,7 @@ export interface AiRun {
   createdAt: string;
 }
 export interface AiUsage {
+  canGenerate: boolean;
   allowance: { generate: number; review: number };
   remaining: { generate: number; review: number };
   resetsAt: { generate: string | null; review: string | null };
@@ -40,11 +41,18 @@ export function estimateCost(
   cached: number,
   output: number,
 ): number | null {
-  if (model !== PRICING.model && !/^gpt-5\.4-mini-\d{4}-\d{2}-\d{2}$/.test(model)) return null;
+  // Sol standard-context promotional prices verified 2026-09-13.
+  // https://developers.openai.com/api/docs/models/gpt-5.6-sol
+  const pricing = /^gpt-5\.6-sol(?:-\d{4}-\d{2}-\d{2})?$/.test(model)
+    ? { input: 4, cachedInput: 0.4, output: 20 }
+    : /^gpt-5\.4-mini(?:-\d{4}-\d{2}-\d{2})?$/.test(model)
+      ? PRICING
+      : null;
+  if (!pricing) return null;
   return (
-    (Math.max(0, input - cached) * PRICING.input +
-      cached * PRICING.cachedInput +
-      output * PRICING.output) /
+    (Math.max(0, input - cached) * pricing.input +
+      cached * pricing.cachedInput +
+      output * pricing.output) /
     1_000_000
   );
 }

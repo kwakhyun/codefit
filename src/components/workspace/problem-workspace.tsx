@@ -35,6 +35,7 @@ const CodeEditor = dynamic(() => import("@/components/code-editor").then((m) => 
 });
 export function ProblemWorkspace({
   id,
+  scope,
   onProgress,
   fontSize,
   focus,
@@ -44,6 +45,7 @@ export function ProblemWorkspace({
   initialAttemptId,
 }: {
   id: string;
+  scope: string;
   onProgress: (p: Progress, attempt?: Attempt) => void;
   fontSize: number;
   focus: boolean;
@@ -84,7 +86,7 @@ export function ProblemWorkspace({
     bookmark,
     replaceCode,
     saveNow,
-  } = useProblemController({ id, onProgress, aiReady, initialAttemptId });
+  } = useProblemController({ id, scope, onProgress, aiReady, initialAttemptId });
   if (loading)
     return (
       <div className="content-loader" role="status">

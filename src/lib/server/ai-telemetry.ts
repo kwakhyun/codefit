@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { aiModel } from "./ai-models";
 import { estimateCost, type AiRun } from "../ai-telemetry";
 import type { Response } from "openai/resources/responses/responses";
 export type RunRecorder = (run: AiRun) => Promise<void> | void;
@@ -14,7 +15,7 @@ export async function withAiTelemetry<T>(
     id: randomUUID(),
     operation,
     promptVersion,
-    model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
+    model: aiModel(operation),
     outcome: "error",
     latencyMs: 0,
     inputTokens: null,

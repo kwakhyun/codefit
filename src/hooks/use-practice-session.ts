@@ -1,6 +1,6 @@
 "use client";
 
-import { api, errorMessage } from "@/lib/client-api";
+import { api, errorMessage, setWorkspaceScope } from "@/lib/client-api";
 import type { Attempt, Progress, Workspace } from "@/lib/problem";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -18,6 +18,7 @@ export function usePracticeSession(activeId?: string) {
         `/api/workspace${activeId ? `?problem=${encodeURIComponent(activeId)}` : ""}`,
       );
       if (version !== requestVersion.current) return;
+      setWorkspaceScope(workspace.scope);
       setData(workspace);
       setLoadError("");
       try {

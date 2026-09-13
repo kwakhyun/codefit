@@ -1,8 +1,9 @@
 import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
 import type { UsageLimit } from "./store-contract";
+import { DAILY_GENERATIONS } from "./generation-quota";
 
-export const AI_ALLOWANCE = { generate: 5, review: 20 } as const;
+export const AI_ALLOWANCE = { generate: DAILY_GENERATIONS, review: 20 } as const;
 const day = 86_400_000;
 
 /** Vercel supplies this header at its edge. Never trust client IP headers on other hosts. */
@@ -25,8 +26,10 @@ export function aiLimits(
   kind: keyof typeof AI_ALLOWANCE,
 ): UsageLimit[] {
   return [
-    { key: `ai:${kind}:${owner}`, max: AI_ALLOWANCE[kind], windowMs: day },
-    { key: `ai:network:${kind}:${network}`, max: AI_ALLOWANCE[kind] * 2, windowMs: day },
+    ...(kind === "review"
+      ? [{ key: `ai:${kind}:${owner}`, max: AI_ALLOWANCE[kind], windowMs: day }]
+      : []),
+    { key: `ai:network:${kind}:${network}`, max: kind === "generate" ? 30 : 40, windowMs: day },
     { key: "ai:global:hour", max: 40, windowMs: 3_600_000 },
     { key: "ai:global:day", max: 100, windowMs: day },
   ];

@@ -1,4 +1,6 @@
 import { StoreQueries } from "./store-queries";
+import { authSchema } from "./auth-schema.mjs";
+import { DAILY_GENERATIONS, GENERATION_LEASE_MS, generationDay } from "./generation-quota";
 import { catalogColumns, catalogValues } from "./catalog-record";
 import { validateLimits } from "./usage-policy";
 import { mkdirSync } from "node:fs";
@@ -37,6 +39,7 @@ export class SqliteStore implements ProblemStore {
     this.db = new DatabaseSync(location);
     this.db.exec("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; PRAGMA foreign_keys=ON;");
     this.db.exec(storageSchema);
+    this.db.exec(authSchema("sqlite"));
     this.db.exec("PRAGMA user_version=1;");
     const insert = this.db.prepare(
       "INSERT OR IGNORE INTO problems (id,content,created_at) VALUES (?,?,?)",
@@ -113,6 +116,7 @@ export class SqliteStore implements ProblemStore {
     this.transaction(() => {
       this.addProblem(problem);
       this.finishJob(jobId, problem.id);
+      this.db.prepare("UPDATE generation_usage SET state='done' WHERE request_id=?").run(jobId);
     });
   }
   progress(owner: string): Record<string, Progress> {
@@ -214,6 +218,28 @@ export class SqliteStore implements ProblemStore {
       return true;
     });
   }
+  reserveGeneration(owner: string, requestId: string, now = Date.now()) {
+    return this.transaction(() => {
+      const existing = this.db
+        .prepare("SELECT * FROM generation_usage WHERE request_id=?")
+        .get(requestId);
+      if (existing && existing.owner !== owner) return false;
+      if (existing && (existing.state === "done" || Number(existing.expires) > now)) return true;
+      const day = generationDay(now).key;
+      const used = this.db
+        .prepare(
+          "SELECT COUNT(*) AS count FROM generation_usage WHERE owner=? AND day=? AND (state='done' OR expires>?)",
+        )
+        .get(owner, day, now);
+      if (Number(used?.count) >= DAILY_GENERATIONS) return false;
+      this.db
+        .prepare(
+          "INSERT INTO generation_usage VALUES (?,?,?,'pending',?) ON CONFLICT(request_id) DO UPDATE SET day=excluded.day,state='pending',expires=excluded.expires",
+        )
+        .run(requestId, owner, day, now + GENERATION_LEASE_MS);
+      return true;
+    });
+  }
   startJob(owner: string, id: string, kind: string): JobClaim {
     return this.transaction(() => {
       const row = this.db.prepare("SELECT * FROM jobs WHERE id=?").get(id);
@@ -232,7 +258,12 @@ export class SqliteStore implements ProblemStore {
     this.db.prepare("UPDATE jobs SET state='done',result=? WHERE id=?").run(result, id);
   }
   failJob(id: string) {
-    this.db.prepare("DELETE FROM jobs WHERE id=? AND state='pending'").run(id);
+    this.transaction(() => {
+      this.db
+        .prepare("DELETE FROM generation_usage WHERE request_id=? AND state='pending'")
+        .run(id);
+      this.db.prepare("DELETE FROM jobs WHERE id=? AND state='pending'").run(id);
+    });
   }
   importBackup(owner: string, backup: Backup) {
     return this.transaction(() => {

@@ -1,41 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { editor, setCode, readCode } from "./editor-helpers";
 
 async function home(page: Page) {
   await page.goto("/");
   await expect(
     page.getByRole("heading", { name: "검색 결과가 뒤바뀌는 버그 수정하기" }),
   ).toBeVisible();
-}
-async function editor(page: Page) {
-  await page.goto("/problems/be-pagination");
-  await expect(page.locator(".monaco-editor").first()).toBeVisible();
-  await page.waitForFunction(
-    () =>
-      (
-        window as unknown as { monaco?: { editor: { getModels(): unknown[] } } }
-      ).monaco?.editor.getModels().length,
-  );
-}
-async function setCode(page: Page, code: string) {
-  await page.evaluate((value) => {
-    (
-      window as unknown as {
-        monaco: { editor: { getModels(): { setValue(value: string): void }[] } };
-      }
-    ).monaco.editor
-      .getModels()[0]
-      .setValue(value);
-  }, code);
-}
-async function readCode(page: Page) {
-  return page.evaluate(() =>
-    (
-      window as unknown as { monaco: { editor: { getModels(): { getValue(): string }[] } } }
-    ).monaco.editor
-      .getModels()[0]
-      .getValue(),
-  );
 }
 async function accessible(page: Page) {
   const results = await new AxeBuilder({ page })

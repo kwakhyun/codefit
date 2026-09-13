@@ -17,7 +17,10 @@ export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
             <span>01</span>
             <div>
               <strong>유지하고 싶은 코딩 감각을 고르세요.</strong>
-              <p>분야, 언어, 난이도와 유형으로 찾거나 AI로 직접 만들 수 있습니다.</p>
+              <p>
+                분야, 언어, 난이도와 유형으로 찾으세요. 로그인하면 AI 문제를 하루 3회 만들 수
+                있습니다.
+              </p>
             </div>
           </li>
           <li>

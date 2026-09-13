@@ -1,4 +1,4 @@
 {
   "$schema": "https://unpkg.com/knip/schema.json",
-  "ignore": ["src/lib/server/storage-schema.d.mts"]
+  "ignore": ["src/lib/server/*-schema.d.mts"]
 }

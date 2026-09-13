@@ -1,4 +1,5 @@
 import { withAiTelemetry, type RunRecorder } from "./ai-telemetry";
+import { aiModel } from "./ai-models";
 import { GENERATION_PROMPT, REVIEW_PROMPT, PROMPT_VERSION, REVIEW_REASONING } from "./ai-prompts";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
@@ -31,7 +32,7 @@ export async function generateProblem(
     PROMPT_VERSION,
     async (capture) => {
       const response = await client().responses.parse({
-        model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
+        model: aiModel("generate"),
         store: false,
         max_output_tokens: 10000,
         input: [
@@ -76,7 +77,7 @@ export async function reviewCode(problem: Problem, code: string, record?: RunRec
     PROMPT_VERSION,
     async (capture) => {
       const response = await client().responses.parse({
-        model: process.env.OPENAI_MODEL || "gpt-5.4-mini",
+        model: aiModel("review"),
         store: false,
         max_output_tokens: 6500,
         reasoning: { effort: REVIEW_REASONING },

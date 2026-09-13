@@ -15,7 +15,7 @@ import { useWorkspaceActions } from "@/hooks/use-workspace-actions";
 import { type DomainId } from "@/lib/catalog";
 import { defaultFilters, problemUrl, type LibraryFilters } from "@/lib/library-state";
 import { AlertCircle, Check, RotateCcw, Terminal, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Generator } from "./library/problem-generator";
 import { ProblemWorkspace } from "./workspace/problem-workspace";
@@ -38,8 +38,9 @@ export function PracticeApp({
   initialAttemptId?: string;
 }) {
   const router = useRouter();
+  const params = useSearchParams();
 
-  const [generatorOpen, setGeneratorOpen] = useState(false);
+  const [generatorOpen, setGeneratorOpen] = useState(params.get("generate") === "1");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -158,8 +159,9 @@ export function PracticeApp({
             </div>
           ) : initialProblemId ? (
             <ProblemWorkspace
-              key={`${initialProblemId}:${initialAttemptId || ""}`}
+              key={`${data.scope}:${initialProblemId}:${initialAttemptId || ""}`}
               id={initialProblemId}
+              scope={data.scope}
               returnTo={returnTo}
               initialAttemptId={initialAttemptId}
               onProgress={onProgress}
@@ -193,6 +195,7 @@ export function PracticeApp({
         initialDomain={
           initialDomain === "all" ? activeProblem?.domain || "frontend" : initialDomain
         }
+        account={data?.account || { user: null, providers: [] }}
         aiReady={Boolean(data?.aiReady)}
         onCreated={(problem) => {
           void load();

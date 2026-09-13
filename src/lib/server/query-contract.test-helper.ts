@@ -6,6 +6,45 @@ import type { Problem, Review } from "../problem";
 import type { AiRun } from "../ai-telemetry";
 
 export function queryContract(getStore: () => ProblemStore & { addProblem(p: Problem): unknown }) {
+  it("reserves three generations concurrently, refunds failures and isolates accounts", async () => {
+    const store = getStore(),
+      owner = `user:${randomUUID()}`,
+      now = Date.now();
+    const ids = Array.from({ length: 8 }, () => randomUUID());
+    const claims = await Promise.all(ids.map((id) => store.reserveGeneration(owner, id, now)));
+    expect(claims.filter(Boolean)).toHaveLength(3);
+    expect((await store.queries.usage(owner, now)).remaining.generate).toBe(0);
+    const first = ids[claims.indexOf(true)];
+    expect(await store.reserveGeneration(owner, first, now)).toBe(true);
+    expect(await store.reserveGeneration("user:someone-else", first, now)).toBe(false);
+    await store.failJob(first);
+    expect((await store.queries.usage(owner, now)).remaining.generate).toBe(1);
+    expect(await store.reserveGeneration(owner, randomUUID(), now)).toBe(true);
+    expect(await store.reserveGeneration(`user:${randomUUID()}`, randomUUID(), now)).toBe(true);
+    expect((await store.queries.usage(owner, now + 150001)).remaining.generate).toBe(3);
+  }, 30000);
+  it("persists completed usage and resets at Korean midnight", async () => {
+    const store = getStore(),
+      owner = `user:${randomUUID()}`,
+      now = Date.parse("2026-09-13T14:59:59Z");
+    for (let i = 0; i < 3; i++) {
+      const id = randomUUID();
+      await store.startJob(owner, id, "generate");
+      expect(await store.reserveGeneration(owner, id, now)).toBe(true);
+      await store.completeGeneration(
+        { ...seedProblems[0], id: `ai-${randomUUID()}`, source: "ai" },
+        id,
+      );
+      expect(await store.reserveGeneration(owner, id, now + 200000)).toBe(true);
+      await store.failJob(id);
+    }
+    const usage = await store.queries.usage(owner, now);
+    expect(usage.remaining.generate).toBe(0);
+    expect(usage.resetsAt.generate).toBe("2026-09-13T15:00:00.000Z");
+    expect(await store.reserveGeneration(owner, randomUUID(), now)).toBe(false);
+    expect((await store.queries.usage(owner, now + 1000)).remaining.generate).toBe(3);
+    expect(await store.reserveGeneration(owner, randomUUID(), now + 1000)).toBe(true);
+  }, 30000);
   it("filters and pages summaries on the server, with stable order and no answer/draft disclosure", async () => {
     const store = getStore();
     const prefix = `query-${randomUUID()}`;

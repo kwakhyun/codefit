@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
 import { HttpError } from "./http";
 import { isAllowedOrigin } from "./request-origin";
+import { accountUser } from "./auth";
 
 /** Anonymous, browser-scoped ownership. Preserve the cookie name and hash for existing records. */
 export async function session(request: Request) {
@@ -23,5 +24,26 @@ export async function session(request: Request) {
       maxAge: 365 * 86400,
     });
   }
-  return { owner: createHash("sha256").update(token).digest("hex") };
+  const guestOwner = createHash("sha256").update(token).digest("hex");
+  const user = await accountUser(request.headers);
+  const owner = user ? `user:${user.id}` : guestOwner;
+  const scope = user ? owner : `guest:${guestOwner}`;
+  const expected = request.headers.get("x-codefit-workspace");
+  if (expected && expected !== scope && url.pathname !== "/api/workspace") {
+    throw new HttpError(
+      409,
+      "로그인 계정이 변경되었습니다. 새로고침한 뒤 다시 이용해 주세요. 미저장 코드는 이전 연습실에 보관됩니다.",
+    );
+  }
+  return { owner, scope, guestOwner, user };
+}
+
+export async function requireUser(request: Request) {
+  const current = await session(request);
+  if (!current.user)
+    throw new HttpError(
+      401,
+      "로그인하면 하루 3회 AI 문제를 만들 수 있습니다. 문제 풀이는 로그인 없이 이용할 수 있습니다.",
+    );
+  return { ...current, user: current.user };
 }

@@ -15,7 +15,7 @@ if (!process.argv.includes("--live")) {
 }
 try {
   const env = parseEnv(readFileSync(".env.local", "utf8"));
-  for (const key of ["OPENAI_API_KEY", "OPENAI_MODEL"])
+  for (const key of ["OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_REVIEW_MODEL"])
     if (!process.env[key] && env[key]) process.env[key] = env[key];
 } catch {
   /* CI may supply the key directly. */

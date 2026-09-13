@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { seedProblems } from "../src/data/problems";
 
@@ -8,7 +9,19 @@ if (!process.argv.includes("--live"))
 const base = process.env.VERIFY_BASE_URL || "http://127.0.0.1:3010";
 if (!["127.0.0.1", "localhost"].includes(new URL(base).hostname))
   throw new Error("Live integration fixtures are restricted to a local server.");
-const cookies = new Map<string, string>();
+if (!process.env.VERIFY_COOKIE_FILE)
+  throw new Error(
+    "Set VERIFY_COOKIE_FILE to a private file containing a local test-account cookie.",
+  );
+const cookies = new Map<string, string>(
+  readFileSync(process.env.VERIFY_COOKIE_FILE, "utf8")
+    .trim()
+    .split("; ")
+    .map((pair) => {
+      const index = pair.indexOf("=");
+      return [pair.slice(0, index), pair.slice(index + 1)];
+    }),
+);
 async function request(path: string, body?: unknown, method = "POST") {
   const response = await fetch(base + path, {
     method: body === undefined ? "GET" : method,
@@ -57,7 +70,7 @@ assert.equal(usage.last30Days.requests, 2);
 assert.equal(usage.last30Days.failures, 0);
 assert.ok(usage.last30Days.inputTokens > 0);
 assert.ok(usage.last30Days.outputTokens > 0);
-assert.deepEqual(usage.remaining, { generate: 4, review: 19 });
+assert.deepEqual(usage.remaining, { generate: 2, review: 19 });
 console.log(
   JSON.stringify({
     status: "PASS",

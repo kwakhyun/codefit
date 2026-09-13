@@ -1,4 +1,6 @@
 import { StoreQueries } from "./store-queries";
+import { authSchema } from "./auth-schema.mjs";
+import { DAILY_GENERATIONS, GENERATION_LEASE_MS, generationDay } from "./generation-quota";
 import { catalogColumns, catalogValues } from "./catalog-record";
 import { validateLimits } from "./usage-policy";
 import postgres, { type Sql, type TransactionSql } from "postgres";
@@ -48,6 +50,7 @@ export class PostgresStore implements ProblemStore {
       // Serialize cold-start migrations across serverless instances.
       await store.sql`SELECT pg_advisory_xact_lock(704712001)`;
       await store.sql.unsafe(storageSchema);
+      await store.sql.unsafe(authSchema("postgres"));
       for (const problem of seedProblems)
         await store.sql`INSERT INTO problems(id,content,created_at) VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt}) ON CONFLICT(id) DO NOTHING`;
       while (true) {
@@ -86,6 +89,7 @@ export class PostgresStore implements ProblemStore {
     await this.transaction(async (store) => {
       await store.addProblem(problem);
       await store.finishJob(jobId, problem.id);
+      await store.sql`UPDATE generation_usage SET state='done' WHERE request_id=${jobId}`;
     });
   }
   async progress(owner: string): Promise<Record<string, Progress>> {
@@ -172,11 +176,30 @@ export class PostgresStore implements ProblemStore {
       return { state: "new" };
     });
   }
+  async reserveGeneration(owner: string, requestId: string, now = Date.now()) {
+    return this.transaction(async (store) => {
+      // One lock per account also serializes concurrent requests on different deployments.
+      await store.sql`SELECT pg_advisory_xact_lock(hashtextextended(${`generation:${owner}`},0))`;
+      const [existing] =
+        await store.sql`SELECT * FROM generation_usage WHERE request_id=${requestId}`;
+      if (existing && existing.owner !== owner) return false;
+      if (existing && (existing.state === "done" || Number(existing.expires) > now)) return true;
+      const day = generationDay(now).key;
+      const [used] =
+        await store.sql`SELECT COUNT(*) AS count FROM generation_usage WHERE owner=${owner} AND day=${day} AND (state='done' OR expires>${now})`;
+      if (Number(used.count) >= DAILY_GENERATIONS) return false;
+      await store.sql`INSERT INTO generation_usage VALUES(${requestId},${owner},${day},'pending',${now + GENERATION_LEASE_MS}) ON CONFLICT(request_id) DO UPDATE SET day=EXCLUDED.day,state='pending',expires=EXCLUDED.expires`;
+      return true;
+    });
+  }
   async finishJob(id: string, result: string) {
     await this.sql`UPDATE jobs SET state='done',result=${result} WHERE id=${id}`;
   }
   async failJob(id: string) {
-    await this.sql`DELETE FROM jobs WHERE id=${id} AND state='pending'`;
+    await this.transaction(async (store) => {
+      await store.sql`DELETE FROM generation_usage WHERE request_id=${id} AND state='pending'`;
+      await store.sql`DELETE FROM jobs WHERE id=${id} AND state='pending'`;
+    });
   }
   async importBackup(owner: string, backup: Backup) {
     return this.transaction(async (store) => {

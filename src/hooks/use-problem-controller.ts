@@ -17,11 +17,13 @@ type Detail = {
 
 export function useProblemController({
   id,
+  scope,
   onProgress,
   aiReady,
   initialAttemptId,
 }: {
   id: string;
+  scope: string;
   onProgress: (p: Progress, attempt?: Attempt) => void;
   aiReady: boolean;
   initialAttemptId?: string;
@@ -65,7 +67,7 @@ export function useProblemController({
     saveBeforeReview,
     restoreImportedCode,
     getCode,
-  } = useCodeDraft({ id, mounted, onSaved, onError: setError });
+  } = useCodeDraft({ id, scope, mounted, onSaved, onError: setError });
   const load = useCallback(async () => {
     try {
       const next = await api<Detail>(

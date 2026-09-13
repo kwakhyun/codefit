@@ -1,5 +1,6 @@
 import type { AiRun, AiUsage } from "../ai-telemetry";
 import { AI_ALLOWANCE } from "./usage-policy";
+import { generationDay } from "./generation-quota";
 import { z } from "zod";
 import { DOMAIN_IDS } from "../catalog";
 import { readFilters } from "../library-state";
@@ -105,7 +106,7 @@ export class StoreQueries {
   async workspace(
     owner: string,
     activeId?: string | null,
-  ): Promise<Omit<Workspace, "aiReady" | "storage" | "legacyCount">> {
+  ): Promise<Omit<Workspace, "aiReady" | "storage" | "legacyCount" | "account" | "scope">> {
     const passed =
       this.dialect === "sqlite"
         ? "json_extract(review,'$.passed')=1"
@@ -228,7 +229,8 @@ export class StoreQueries {
       this.dialect === "sqlite"
         ? "json_extract(content,'$.outcome')"
         : "content::jsonb->>'outcome'";
-    const [limits, [totals]] = await Promise.all([
+    const day = generationDay(now);
+    const [limits, [totals], [generation]] = await Promise.all([
       this.query("SELECT key,count,expires FROM limits WHERE key IN (?,?) AND expires>?", [
         `ai:generate:${owner}`,
         `ai:review:${owner}`,
@@ -238,6 +240,10 @@ export class StoreQueries {
         `SELECT COUNT(*) AS requests,SUM(CASE WHEN ${outcome}='error' THEN 1 ELSE 0 END) AS failures,SUM(${numeric("inputTokens")}) AS input,SUM(${numeric("outputTokens")}) AS output,AVG(${numeric("latencyMs")}) AS latency,SUM(${numeric("estimatedCostUsd")}) AS cost,SUM(CASE WHEN ${numeric("estimatedCostUsd")} IS NULL THEN 1 ELSE 0 END) AS unmetered FROM ai_runs WHERE owner=? AND created_at>=?`,
         [owner, new Date(now - 30 * 86400000).toISOString()],
       ),
+      this.query(
+        "SELECT COUNT(*) AS count FROM generation_usage WHERE owner=? AND day=? AND (state='done' OR expires>?)",
+        [owner, day.key, now],
+      ),
     ]);
     const remaining: AiUsage["remaining"] = { ...AI_ALLOWANCE };
     const resetsAt: AiUsage["resetsAt"] = { generate: null, review: null };
@@ -246,7 +252,13 @@ export class StoreQueries {
       remaining[kind] = Math.max(0, AI_ALLOWANCE[kind] - Number(row?.count || 0));
       resetsAt[kind] = row ? new Date(Number(row.expires)).toISOString() : null;
     }
+    const canGenerate = owner.startsWith("user:");
+    remaining.generate = canGenerate
+      ? Math.max(0, AI_ALLOWANCE.generate - Number(generation.count))
+      : 0;
+    resetsAt.generate = new Date(day.resetsAt).toISOString();
     return {
+      canGenerate,
       allowance: AI_ALLOWANCE,
       remaining,
       resetsAt,

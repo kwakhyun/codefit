@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import { resolve } from "node:path";
+import { TEST_AUTH_SECRET } from "./scripts/lib/test-account";
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -28,6 +29,12 @@ export default defineConfig({
           DATABASE_URL: "",
           OPENAI_API_KEY: "",
           VERCEL: "",
+          AUTH_BASE_URL: "http://127.0.0.1:3010",
+          BETTER_AUTH_SECRET: TEST_AUTH_SECRET,
+          GOOGLE_CLIENT_ID: "",
+          GOOGLE_CLIENT_SECRET: "",
+          GITHUB_CLIENT_ID: "",
+          GITHUB_CLIENT_SECRET: "",
         },
       },
 });

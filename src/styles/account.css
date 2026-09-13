@@ -1,0 +1,258 @@
+.account-page {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 32px 32px 80px;
+}
+.account-page > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 64px;
+}
+.account-page > header .brand-logo {
+  padding: 0;
+  gap: 10px;
+}
+.account-page .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.auth-card {
+  max-width: 550px;
+  margin: 0 auto;
+  background: #0c0c0e;
+  border: 1px solid #303036;
+  border-radius: 9px;
+  overflow: hidden;
+}
+.account-terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 1px solid #2b2b30;
+  background: #151518;
+  padding: 14px 20px;
+}
+.account-terminal-bar > span {
+  width: 7px;
+  height: 7px;
+  border: 1px solid #666;
+  border-radius: 50%;
+}
+.account-terminal-bar small {
+  color: #a0a0aa;
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.auth-card-content {
+  padding: 38px;
+}
+.account-page h1 {
+  font-size: clamp(25px, 4vw, 34px);
+  line-height: 1.5;
+  letter-spacing: -1.3px;
+  margin: 12px 0 16px;
+}
+.auth-card-content > p,
+.auth-public-note p {
+  color: #a8a8b2;
+  font-size: 13px;
+  line-height: 1.85;
+}
+.oauth-providers {
+  display: grid;
+  gap: 12px;
+  margin: 28px 0 20px;
+}
+.oauth-button {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 49px;
+  background: #18181b;
+}
+.oauth-button > span:not(.google-symbol) {
+  flex: 1;
+  text-align: left;
+}
+.oauth-button small {
+  font-size: 11px;
+}
+.google-symbol {
+  font:
+    700 20px/1 Arial,
+    sans-serif;
+  color: #8fb2ff;
+  width: 19px;
+}
+.auth-card-content .auth-privacy {
+  font-size: 11px;
+  color: #9999a5;
+}
+.auth-privacy a,
+.privacy-copy a {
+  color: #9abaff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.auth-public-note {
+  text-align: center;
+  margin: 30px auto 0;
+  max-width: 520px;
+  padding: 0 20px;
+}
+.auth-public-note strong {
+  font-size: 13px;
+}
+.profile-stats {
+  display: flex;
+  gap: 40px;
+  padding: 25px 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #2b2b30;
+}
+.profile-stats > div {
+  display: grid;
+  gap: 8px;
+}
+.profile-stats strong {
+  font: 600 30px/1 var(--mono);
+}
+.profile-stats span {
+  font-size: 12px;
+  color: #a8a8b2;
+}
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+.profile-panel {
+  background: #101012;
+  border: 1px solid #303036;
+  border-radius: 8px;
+  padding: 25px;
+}
+.profile-panel h2 {
+  font-size: 16px;
+  margin: 0 0 22px;
+}
+.profile-panel label {
+  display: grid;
+  gap: 9px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+.profile-panel input,
+.profile-panel textarea {
+  width: 100%;
+  background: #09090b;
+  border: 1px solid #393941;
+  border-radius: 5px;
+  padding: 11px 12px;
+  color: #e7e7ee;
+  font: inherit;
+  resize: vertical;
+}
+.profile-panel label small {
+  color: #9696a1;
+  text-align: right;
+}
+.profile-saved {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #8dd7a8;
+  font-size: 12px;
+}
+.profile-content .usage-panel {
+  margin-top: 24px;
+}
+.profile-content > .muted {
+  overflow-wrap: anywhere;
+}
+.profile-signout {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 30px;
+}
+.privacy-copy {
+  max-width: 760px;
+  margin: auto;
+}
+.privacy-copy h2 {
+  font-size: 19px;
+  margin-top: 36px;
+}
+.privacy-copy p {
+  color: #b5b5bf;
+  font-size: 14px;
+  line-height: 1.9;
+}
+.generation-allowance {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #353544;
+  border-radius: 6px;
+  padding: 12px 15px;
+  margin: 18px 0;
+  font-size: 12px;
+}
+.generation-allowance strong {
+  color: #b6caff;
+}
+.generation-allowance small {
+  color: #a8a8b2;
+}
+.generator-login {
+  padding: 24px;
+}
+.generator-login h2 {
+  font-size: 24px;
+  line-height: 1.5;
+}
+.generator-login p {
+  color: #aaaab5;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.generator-login .primary-button {
+  margin-top: 20px;
+  width: 100%;
+}
+.sidebar-workspace a {
+  color: inherit;
+}
+@media (max-width: 640px) {
+  .account-page {
+    padding: 22px 20px 50px;
+  }
+  .account-page > header {
+    margin-bottom: 35px;
+  }
+  .auth-card-content {
+    padding: 28px 22px;
+  }
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-panel {
+    padding: 22px;
+  }
+  .profile-stats {
+    gap: 25px;
+  }
+  .profile-signout {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .generation-allowance {
+    flex-wrap: wrap;
+  }
+}

@@ -10,7 +10,10 @@ import {
   type DomainId,
   type Language,
 } from "@/lib/catalog";
-import { api, errorMessage } from "@/lib/client-api";
+import { api, ApiError, errorMessage } from "@/lib/client-api";
+import Link from "next/link";
+import type { AccountState } from "@/lib/auth-types";
+import type { AiUsage } from "@/lib/ai-telemetry";
 import type { PublicProblem } from "@/lib/problem";
 import { ArrowRight, Check, Database, LoaderCircle, Sparkles, Terminal } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -32,12 +35,14 @@ export function Generator({
   onCreated,
   initialDomain,
   aiReady,
+  account,
 }: {
   open: boolean;
   onClose: () => void;
   onCreated: (problem: PublicProblem) => void;
   initialDomain: DomainId;
   aiReady: boolean;
+  account: AccountState;
 }) {
   const [domain, setDomain] = useState<DomainId>(initialDomain);
   const [language, setLanguage] = useState<Language>(
@@ -48,6 +53,23 @@ export function Generator({
   const [topic, setTopic] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [usage, setUsage] = useState<AiUsage | null>(null);
+  const [usageError, setUsageError] = useState("");
+  const [usageRetry, setUsageRetry] = useState(0);
+  useEffect(() => {
+    if (!open || !account.user) return;
+    const controller = new AbortController();
+    api<AiUsage>("/api/usage", { signal: controller.signal })
+      .then((value) => {
+        setUsage(value);
+        setUsageError("");
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) setUsageError(errorMessage(error));
+      });
+    return () => controller.abort();
+  }, [open, account.user, usageRetry]);
   const requestRef = useRef<{ fingerprint: string; id: string } | null>(null);
   useEffect(() => {
     if (!busy) return;
@@ -74,10 +96,41 @@ export function Generator({
       onCreated(problem);
     } catch (e) {
       setError(errorMessage(e));
+      if (e instanceof ApiError && e.status === 401) setNeedsLogin(true);
     } finally {
       setBusy(false);
+      setUsageRetry((value) => value + 1);
     }
   }
+  if (!account.user || needsLogin)
+    return (
+      <Modal open={open} onClose={onClose} title="NEW CHALLENGE" className="generator-modal">
+        <div className="generator-login">
+          <span className="eyebrow">THREE NEW CHALLENGES A DAY</span>
+          <h2>
+            로그인하고,
+            <br />
+            내게 필요한 문제를 만드세요.
+          </h2>
+          <p>
+            Google 또는 GitHub 계정으로 시작하면 하루 3회 AI 문제를 생성할 수 있어요. 한국 시간
+            자정에 횟수가 갱신됩니다.
+          </p>
+          <div className="generation-note">
+            <Database size={16} />
+            <span>생성한 문제는 모두가 풀 수 있는 보관함에 쌓입니다.</span>
+          </div>
+          <Link
+            className="primary-button"
+            href={`/login?returnTo=${encodeURIComponent(`/?domain=${initialDomain}&generate=1`)}`}
+          >
+            로그인 / 가입하고 생성하기
+            <ArrowRight size={16} />
+          </Link>
+          <p>보관함의 문제 풀이, 힌트, 정답, AI 풀이 검토는 로그인 없이도 이용할 수 있어요.</p>
+        </div>
+      </Modal>
+    );
   return (
     <Modal
       open={open}
@@ -87,6 +140,29 @@ export function Generator({
       busy={busy}
     >
       <form onSubmit={generate}>
+        <div className="generation-allowance" aria-live="polite">
+          <strong>
+            {usage ? `오늘 ${usage.remaining.generate} / 3회 남음` : "생성 가능 횟수 확인 중…"}
+          </strong>
+          <small>00:00 KST 갱신 · GPT-5.6 Sol</small>
+        </div>
+        {usageError && (
+          <p className="inline-error" role="alert">
+            {usageError}{" "}
+            <button
+              className="text-button"
+              type="button"
+              onClick={() => setUsageRetry(usageRetry + 1)}
+            >
+              다시 확인
+            </button>
+          </p>
+        )}
+        {usage?.remaining.generate === 0 && (
+          <p className="inline-warning">
+            오늘 3회를 모두 사용했습니다. 다음 문제는 한국 시간 자정부터 만들 수 있어요.
+          </p>
+        )}
         <div className="generator-intro">
           <div className="terminal-icon">
             <Sparkles size={25} />
@@ -206,7 +282,14 @@ export function Generator({
         )}
         <button
           className="primary-button generate-submit"
-          disabled={busy || !aiReady || topic.trim().length < 2}
+          disabled={
+            busy ||
+            !aiReady ||
+            !usage ||
+            Boolean(usageError) ||
+            usage.remaining.generate === 0 ||
+            topic.trim().length < 2
+          }
         >
           {busy ? <LoaderCircle className="spin" size={17} /> : <Sparkles size={17} />}
           {busy ? "문제 생성 중" : "문제 생성하기"}

@@ -5,7 +5,7 @@ import { DomainIcon } from "@/components/ui/problem-badges";
 import { DOMAINS, type DomainId } from "@/lib/catalog";
 import type { LibraryView } from "@/lib/library-state";
 import type { ProblemSummary, Workspace } from "@/lib/problem";
-import { Bookmark, History, LayoutGrid, Settings2, Terminal, X } from "lucide-react";
+import { Bookmark, History, LayoutGrid, Settings2, Terminal, UserRound, X } from "lucide-react";
 import Link from "next/link";
 interface SidebarProps {
   mobileMenu: boolean;
@@ -66,9 +66,10 @@ export function Sidebar({
         <X size={20} />
       </button>
       <div className="sidebar-workspace">
-        <span className="workspace-avatar">F</span>
+        <span className="workspace-avatar">{data?.account.user?.name.slice(0, 1) || "F"}</span>
         <span>
-          개인 연습실<small>Personal workspace</small>
+          {data?.account.user?.name || "게스트 연습실"}
+          <small>{data?.account.user ? "계정에 기록 저장 중" : "로그인 없이 연습 중"}</small>
         </span>
         <span className="status-dot" />
       </div>
@@ -112,6 +113,13 @@ export function Sidebar({
         ))}
       </nav>
       <div className="sidebar-bottom">
+        <a
+          className="nav-item"
+          href={data?.account.user ? "/profile" : "/login?returnTo=%2Fprofile"}
+        >
+          <UserRound size={17} />
+          <span>{data?.account.user ? "내 프로필" : "로그인 / 가입"}</span>
+        </a>
         <div className="sidebar-note">
           <Terminal size={17} />
           <span>

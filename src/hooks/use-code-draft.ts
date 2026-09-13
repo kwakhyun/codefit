@@ -6,11 +6,13 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 
 export function useCodeDraft({
   id,
+  scope,
   mounted,
   onSaved,
   onError,
 }: {
   id: string;
+  scope: string;
   mounted: RefObject<boolean>;
   onSaved: (progress: Progress) => void;
   onError: (message: string) => void;
@@ -21,7 +23,7 @@ export function useCodeDraft({
   const version = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const queue = useRef<Promise<void>>(Promise.resolve());
-  const draftKey = `recode-draft:${id}`;
+  const draftKey = `codefit-draft:${scope}:${id}`;
 
   const save = useCallback(
     (value: string, savedVersion: number) => {
@@ -34,6 +36,7 @@ export function useCodeDraft({
               `/api/progress/${encodeURIComponent(id)}`,
               {
                 method: "PUT",
+                scope,
                 body: { code: value },
                 keepalive: new TextEncoder().encode(value).length < 45000,
               },
@@ -56,7 +59,7 @@ export function useCodeDraft({
         });
       return queue.current;
     },
-    [id, mounted, draftKey, onSaved],
+    [id, scope, mounted, draftKey, onSaved],
   );
 
   const initialize = useCallback(
@@ -64,6 +67,16 @@ export function useCodeDraft({
       let draft = progress?.code ?? starterCode;
       let localNewer = false;
       try {
+        // Recover pre-account guest drafts only into the anonymous workspace.
+        const oldKey = `recode-draft:${id}`;
+        if (
+          scope.startsWith("guest:") &&
+          !localStorage.getItem(draftKey) &&
+          localStorage.getItem(oldKey)
+        ) {
+          localStorage.setItem(draftKey, localStorage.getItem(oldKey)!);
+          localStorage.removeItem(oldKey);
+        }
         const local = JSON.parse(localStorage.getItem(draftKey) || "null");
         if (
           local &&
@@ -82,7 +95,7 @@ export function useCodeDraft({
       setSaveState(localNewer ? "local" : "saved");
       return localNewer;
     },
-    [draftKey],
+    [draftKey, id, scope],
   );
 
   const changeCode = useCallback(

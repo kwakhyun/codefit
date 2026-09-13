@@ -69,4 +69,13 @@ CREATE TABLE IF NOT EXISTS legacy (
   owner TEXT PRIMARY KEY,
   content TEXT NOT NULL,
   created_at TEXT NOT NULL
-);`;
+);
+CREATE TABLE IF NOT EXISTS generation_usage (
+  request_id TEXT PRIMARY KEY,
+  owner TEXT NOT NULL,
+  day TEXT NOT NULL,
+  state TEXT NOT NULL CHECK(state IN ('pending','done')),
+  expires BIGINT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS generation_usage_owner_day ON generation_usage(owner,day);
+`;

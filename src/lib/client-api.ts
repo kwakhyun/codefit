@@ -1,4 +1,4 @@
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
@@ -6,15 +6,30 @@ class ApiError extends Error {
     super(message);
   }
 }
+let workspaceScope: string | undefined;
+export function setWorkspaceScope(scope: string) {
+  workspaceScope = scope;
+}
 export async function api<T>(
   url: string,
-  options?: { method?: string; body?: unknown; signal?: AbortSignal; keepalive?: boolean },
+  options?: {
+    method?: string;
+    body?: unknown;
+    signal?: AbortSignal;
+    keepalive?: boolean;
+    scope?: string;
+  },
 ): Promise<T> {
   const response = await fetch(url, {
     method: options?.method || "GET",
     credentials: "same-origin",
     cache: "no-store",
-    headers: options?.body !== undefined ? { "Content-Type": "application/json" } : undefined,
+    headers: {
+      ...(options?.body !== undefined && { "Content-Type": "application/json" }),
+      ...((options?.scope || workspaceScope) && {
+        "X-Codefit-Workspace": options?.scope || workspaceScope!,
+      }),
+    },
     body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
     signal: options?.signal || AbortSignal.timeout(115_000),
     keepalive: options?.keepalive,

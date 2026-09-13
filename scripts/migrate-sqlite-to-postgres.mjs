@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 import postgres from "postgres";
+import { authSchema } from "../src/lib/server/auth-schema.mjs";
 import { storageSchema } from "../src/lib/server/storage-schema.mjs";
 
 const sourcePath = process.argv[2] || "data/recode.sqlite";
@@ -14,6 +15,23 @@ if (!url)
 const source = new DatabaseSync(sourcePath, { readOnly: true });
 const sql = postgres(url, { max: 1, prepare: false, onnotice: () => {} });
 const tables = {
+  auth_user: ["id", "name", "email", "emailVerified", "image", "createdAt", "updatedAt", "bio"],
+  auth_account: [
+    "id",
+    "accountId",
+    "providerId",
+    "userId",
+    "accessToken",
+    "refreshToken",
+    "idToken",
+    "accessTokenExpiresAt",
+    "refreshTokenExpiresAt",
+    "scope",
+    "password",
+    "createdAt",
+    "updatedAt",
+  ],
+  generation_usage: ["request_id", "owner", "day", "state", "expires"],
   problems: ["id", "content", "created_at"],
   progress: [
     "owner",
@@ -33,17 +51,26 @@ try {
   const counts = await sql.begin(async (tx) => {
     await tx`SELECT pg_advisory_xact_lock(704712001)`;
     await tx.unsafe(storageSchema);
+    await tx.unsafe(authSchema("postgres"));
     const result = {};
     for (const [table, columns] of Object.entries(tables)) {
       if (!source.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table))
         continue;
-      const rows = source.prepare(`SELECT ${columns.join(",")} FROM ${table}`).all();
+      const rows = source
+        .prepare(`SELECT ${columns.map((key) => `"${key}"`).join(",")} FROM ${table}`)
+        .all();
       let inserted = 0;
       for (const row of rows) {
-        const values = columns.map((key) => row[key]);
+        const values = columns.map((key) => {
+          const value = row[key];
+          if (value == null) return null;
+          if (key === "emailVerified") return Boolean(value);
+          if (table.startsWith("auth_") && key.endsWith("At")) return new Date(value).toISOString();
+          return value;
+        });
         const placeholders = columns.map((_, index) => `$${index + 1}`).join(",");
         const changes = await tx.unsafe(
-          `INSERT INTO ${table} (${columns.join(",")}) VALUES (${placeholders}) ON CONFLICT DO NOTHING RETURNING 1`,
+          `INSERT INTO ${table} (${columns.map((key) => `"${key}"`).join(",")}) VALUES (${placeholders}) ON CONFLICT DO NOTHING RETURNING 1`,
           values,
         );
         inserted += changes.length;

@@ -2,10 +2,11 @@ import { getStore } from "@/lib/server/database";
 import { failure, json, readBody } from "@/lib/server/http";
 import { session } from "@/lib/server/session";
 import { z } from "zod";
+import { configuredProviders } from "@/lib/server/auth-config";
 export const runtime = "nodejs";
 export async function GET(request: Request) {
   try {
-    const { owner } = await session(request);
+    const { owner, user, scope } = await session(request);
     const store = await getStore();
     const [legacyValue, workspace] = await Promise.all([
       store.legacy(owner),
@@ -14,6 +15,8 @@ export async function GET(request: Request) {
     const legacy = legacyValue as { generatedLessons?: unknown[] } | null;
     return json({
       ...workspace,
+      account: { user, providers: configuredProviders() },
+      scope,
       aiReady: Boolean(process.env.OPENAI_API_KEY),
       storage: "서버 저장소",
       legacyCount: legacy?.generatedLessons?.length || 0,

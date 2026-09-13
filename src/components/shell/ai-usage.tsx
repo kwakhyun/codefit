@@ -39,13 +39,19 @@ export function AiUsage() {
               <div key={kind}>
                 <span>{kind === "generate" ? "문제 생성" : "풀이 검토"}</span>
                 <strong>
-                  {usage.remaining[kind]}
-                  <small> / {usage.allowance[kind]}회 남음</small>
+                  {kind === "generate" && !usage.canGenerate
+                    ? "로그인 필요"
+                    : usage.remaining[kind]}
+                  {(kind !== "generate" || usage.canGenerate) && (
+                    <small> / {usage.allowance[kind]}회 남음</small>
+                  )}
                 </strong>
                 <small>
-                  {usage.resetsAt[kind]
-                    ? `${dateLabel(usage.resetsAt[kind]!)} 갱신`
-                    : "첫 이용부터 24시간"}
+                  {kind === "generate"
+                    ? "매일 00:00 KST 갱신 · 실패 시 횟수 반환"
+                    : usage.resetsAt[kind]
+                      ? `${dateLabel(usage.resetsAt[kind]!)} 갱신`
+                      : "첫 이용부터 24시간"}
                 </small>
               </div>
             ))}

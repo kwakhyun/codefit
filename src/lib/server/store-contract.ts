@@ -27,6 +27,7 @@ export interface ProblemStore {
     jobId?: string,
   ): Stored<Attempt>;
   consumeLimits(entries: UsageLimit[], now?: number): Stored<boolean>;
+  reserveGeneration(owner: string, requestId: string, now?: number): Stored<boolean>;
   startJob(owner: string, id: string, kind: string): Stored<JobClaim>;
   failJob(id: string): Stored<void>;
   importBackup(owner: string, backup: Backup): Stored<{ problems: number; attempts: number }>;

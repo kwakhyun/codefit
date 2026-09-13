@@ -5,6 +5,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { seedProblems } from "../../data/problems";
 import type { Review } from "../problem";
 import { PostgresStore } from "./postgres-store";
+import { Pool } from "pg";
+import { createAuth } from "./auth-config";
+import { serializeSignedCookie } from "better-call";
+import { getMigrations } from "better-auth/db/migration";
 
 const url = process.env.TEST_DATABASE_URL;
 describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
@@ -34,6 +38,42 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
     }
   }, 30_000);
   queryContract(() => store);
+  it("stores and revokes authenticated sessions with the hosted PostgreSQL driver", async () => {
+    const pool = new Pool({ connectionString: url, max: 1, options: `-c search_path=${schema}` });
+    try {
+      expect((await pool.query("SELECT current_schema() AS schema")).rows[0].schema).toBe(schema);
+      const secret = "postgres-test-secret-with-at-least-32-characters";
+      const auth = createAuth({ database: pool, baseURL: "http://localhost:3010", secret });
+      const migrations = await getMigrations(auth.options);
+      expect(migrations.toBeCreated).toEqual([]);
+      expect(migrations.toBeAdded).toEqual([]);
+      const context = await auth.$context;
+      const user = await context.internalAdapter.createUser(
+        { name: "Hosted Developer", email: `${randomUUID()}@example.com`, emailVerified: true },
+        { method: "test" },
+      );
+      const session = (await context.internalAdapter.createSession(user.id))!;
+      const cookie = (
+        await serializeSignedCookie("codefit.session_token", session.token, secret)
+      ).split(";", 1)[0];
+      const read = () =>
+        auth.handler(
+          new Request("http://localhost:3010/api/auth/get-session", { headers: { cookie } }),
+        );
+      expect((await (await read()).json()).user.id).toBe(user.id);
+      const response = await auth.handler(
+        new Request("http://localhost:3010/api/auth/sign-out", {
+          method: "POST",
+          headers: { cookie, origin: "http://localhost:3010", "content-type": "application/json" },
+          body: "{}",
+        }),
+      );
+      expect(response.status).toBe(200);
+      expect(await (await read()).json()).toBeNull();
+    } finally {
+      await pool.end();
+    }
+  }, 30000);
   it("seeds without exposing answers and keeps owners separate", async () => {
     expect((await store.summaries()).filter((p) => p.source === "curated").length).toBe(12);
     expect((await store.summaries())[0]).not.toHaveProperty("solution");
