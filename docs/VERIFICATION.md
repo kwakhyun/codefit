@@ -50,8 +50,12 @@
 - ESLint, TypeScript 검사와 프로덕션 빌드 통과. 확인 후 로컬 서버 종료.
 - 화면 캡처: `artifacts/codefit-desktop.png`, `artifacts/codefit-mobile.png`.
 
-## Vercel 배포 준비
+## Vercel 운영 배포
 
+- 운영 주소: https://codefit-five.vercel.app. Git 푸시로 생성된 운영 배포가 READY 상태임을 확인.
+- 운영 환경에서 접근 암호 로그인, 이전 문제 조회, 실제 AI 문제 생성과 오류 코드 검토, 초안 저장/재조회, 힌트와 정답 공개를 확인. 생성된 문제는 보관함에 유지함.
+- 운영 런타임 오류 조회 결과 오류 없음.
+- Next.js 16.3의 standalone/플랫폼 어댑터 충돌을 피하도록 Vercel에서는 기본 출력 방식을 사용하고 로컬/Docker에서는 standalone을 유지함.
 - GitHub 비공개 저장소 `kwakhyun/codefit`과 Vercel `codefit`의 Git 연동 완료. `main` 푸시는 운영 배포 대상.
 - GitHub Actions에서 실제 PostgreSQL 서비스를 사용한 테스트 27개, 린트와 프로덕션 빌드 통과.
 - 운영용 `codefit-db`와 미리보기용 `codefit-preview-db`를 분리하고 암호화된 환경변수를 등록함.
