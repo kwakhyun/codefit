@@ -10,11 +10,10 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const { id } = await context.params;
     const problem = await requireProblem(id);
     const store = await getStore();
-    const [allProgress, attempts] = await Promise.all([
-      store.progress(owner),
-      store.attempts(owner, id),
+    const [progress, attempts] = await Promise.all([
+      store.progressFor(owner, id),
+      store.queries.recentAttempts(owner, id, new URL(request.url).searchParams.get("attempt")),
     ]);
-    const progress = allProgress[id];
     return json({
       problem: publicProblem(problem),
       progress: progress || null,

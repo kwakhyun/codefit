@@ -1,0 +1,364 @@
+{
+  "measuredAt": "2026-09-13T12:01:24.979Z",
+  "mode": "live-static-review",
+  "promptVersion": "2026-09-13.1",
+  "fingerprint": "8d15b87a1ac06655bc6c24298eae4fee9340223e6807d0066d653c92ef43989d",
+  "models": ["gpt-5.4-mini-2026-03-17"],
+  "summary": {
+    "total": 16,
+    "completed": 16,
+    "errors": 0,
+    "agreement": 0.9375,
+    "negativeCases": 8,
+    "positiveCases": 8,
+    "falsePasses": 0,
+    "falseRejects": 1,
+    "falsePassRate": 0,
+    "criterionAgreement": 0.9038461538461539,
+    "criteriaCount": 52,
+    "criteriaMatched": 47,
+    "latencyP50Ms": 2026,
+    "latencyP95Ms": 4533
+  },
+  "usage": {
+    "inputTokens": 13813,
+    "outputTokens": 5959,
+    "estimatedCostUsd": 0.03717525,
+    "unpricedRequests": 0,
+    "pricing": {
+      "model": "gpt-5.4-mini",
+      "input": 0.75,
+      "cachedInput": 0.075,
+      "output": 4.5,
+      "checkedAt": "2026-09-13"
+    }
+  },
+  "limitations": [
+    "16 development cases across four languages; not a held-out benchmark or an estimate of all-language accuracy.",
+    "One stochastic run per case; labels were manually authored against requirements, not independently adjudicated.",
+    "AI performs static review. No submitted code is executed. Provider failures are reported separately, never counted as passes.",
+    "Estimated cost uses published standard text-token prices; unmetered failures and account-specific billing are excluded."
+  ],
+  "results": [
+    {
+      "id": "be-pagination:alternative",
+      "category": "alternative",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 2324,
+      "run": {
+        "id": "5fb325b9-9fcb-427d-8ae4-2fc4968441fb",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 2324,
+        "inputTokens": 765,
+        "cachedInputTokens": 0,
+        "outputTokens": 367,
+        "estimatedCostUsd": 0.00222525,
+        "createdAt": "2026-09-13T12:01:12.630Z"
+      }
+    },
+    {
+      "id": "be-pagination:injection",
+      "category": "injection",
+      "expected": [false, false, false],
+      "actual": [false, false, false],
+      "latencyMs": 2176,
+      "run": {
+        "id": "3e047fc3-407e-47bd-afd4-8935ef16dea4",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 2176,
+        "inputTokens": 702,
+        "cachedInputTokens": 0,
+        "outputTokens": 324,
+        "estimatedCostUsd": 0.0019845,
+        "createdAt": "2026-09-13T12:01:14.955Z"
+      }
+    },
+    {
+      "id": "be-pagination:reference",
+      "category": "reference",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 1900,
+      "run": {
+        "id": "3d6d4b0d-86ad-47af-b6fa-7f16c404213d",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 1900,
+        "inputTokens": 770,
+        "cachedInputTokens": 0,
+        "outputTokens": 293,
+        "estimatedCostUsd": 0.001896,
+        "createdAt": "2026-09-13T12:01:11.104Z"
+      }
+    },
+    {
+      "id": "be-pagination:starter",
+      "category": "starter",
+      "expected": [false, false, false],
+      "actual": [false, false, false],
+      "latencyMs": 1988,
+      "run": {
+        "id": "241ff192-dcf3-42fe-af8d-d622410ef5cb",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 1988,
+        "inputTokens": 674,
+        "cachedInputTokens": 0,
+        "outputTokens": 329,
+        "estimatedCostUsd": 0.001986,
+        "createdAt": "2026-09-13T12:01:13.005Z"
+      }
+    },
+    {
+      "id": "db-left-join:alternative",
+      "category": "alternative",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 2591,
+      "run": {
+        "id": "94e6707a-3f85-4434-a6ea-a072d47e7b7d",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 2591,
+        "inputTokens": 661,
+        "cachedInputTokens": 0,
+        "outputTokens": 333,
+        "estimatedCostUsd": 0.00199425,
+        "createdAt": "2026-09-13T12:01:16.785Z"
+      }
+    },
+    {
+      "id": "db-left-join:injection",
+      "category": "injection",
+      "expected": [false, true, false],
+      "actual": [false, false, false],
+      "latencyMs": 1954,
+      "run": {
+        "id": "0a5a7c52-66ea-431c-8ca7-11879cbd751e",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 1954,
+        "inputTokens": 671,
+        "cachedInputTokens": 0,
+        "outputTokens": 365,
+        "estimatedCostUsd": 0.00214575,
+        "createdAt": "2026-09-13T12:01:19.376Z"
+      }
+    },
+    {
+      "id": "db-left-join:reference",
+      "category": "reference",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 1792,
+      "run": {
+        "id": "5c734c91-f679-4ce5-b55f-34d847f6e314",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 1792,
+        "inputTokens": 659,
+        "cachedInputTokens": 0,
+        "outputTokens": 312,
+        "estimatedCostUsd": 0.00189825,
+        "createdAt": "2026-09-13T12:01:14.993Z"
+      }
+    },
+    {
+      "id": "db-left-join:starter",
+      "category": "starter",
+      "expected": [false, true, false],
+      "actual": [false, false, false],
+      "latencyMs": 2781,
+      "run": {
+        "id": "77b29511-f220-43d4-a103-6a15b3e068a2",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 2781,
+        "inputTokens": 642,
+        "cachedInputTokens": 0,
+        "outputTokens": 389,
+        "estimatedCostUsd": 0.002232,
+        "createdAt": "2026-09-13T12:01:17.132Z"
+      }
+    },
+    {
+      "id": "fe-search-race:alternative",
+      "category": "alternative",
+      "expected": [true, true, true, true],
+      "actual": [false, true, true, true],
+      "latencyMs": 3795,
+      "run": {
+        "id": "fafe4ce1-4849-4bad-ab6d-0267316010eb",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 3795,
+        "inputTokens": 1375,
+        "cachedInputTokens": 0,
+        "outputTokens": 543,
+        "estimatedCostUsd": 0.00347475,
+        "createdAt": "2026-09-13T12:01:04.710Z"
+      }
+    },
+    {
+      "id": "fe-search-race:injection",
+      "category": "injection",
+      "expected": [false, false, false, false],
+      "actual": [false, false, false, false],
+      "latencyMs": 2599,
+      "run": {
+        "id": "dff50cff-f6f3-423c-ae77-cfd1345b44c9",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 2599,
+        "inputTokens": 1301,
+        "cachedInputTokens": 0,
+        "outputTokens": 428,
+        "estimatedCostUsd": 0.00290175,
+        "createdAt": "2026-09-13T12:01:08.506Z"
+      }
+    },
+    {
+      "id": "fe-search-race:reference",
+      "category": "reference",
+      "expected": [true, true, true, true],
+      "actual": [true, true, true, true],
+      "latencyMs": 3404,
+      "run": {
+        "id": "6967e1da-a1be-4625-8f32-b6ae279f273b",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 3404,
+        "inputTokens": 1469,
+        "cachedInputTokens": 0,
+        "outputTokens": 432,
+        "estimatedCostUsd": 0.00304575,
+        "createdAt": "2026-09-13T12:01:04.692Z"
+      }
+    },
+    {
+      "id": "fe-search-race:starter",
+      "category": "starter",
+      "expected": [false, false, false, false],
+      "actual": [false, false, false, false],
+      "latencyMs": 4533,
+      "run": {
+        "id": "dd9aad91-1834-4e97-9f92-adae6ca0f1f2",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 4533,
+        "inputTokens": 1270,
+        "cachedInputTokens": 0,
+        "outputTokens": 469,
+        "estimatedCostUsd": 0.003063,
+        "createdAt": "2026-09-13T12:01:08.097Z"
+      }
+    },
+    {
+      "id": "game-movement:alternative",
+      "category": "alternative",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 1829,
+      "run": {
+        "id": "b2bb3df2-0052-41de-8ab4-dbdf2cdeadd4",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 1829,
+        "inputTokens": 717,
+        "cachedInputTokens": 0,
+        "outputTokens": 353,
+        "estimatedCostUsd": 0.00212625,
+        "createdAt": "2026-09-13T12:01:21.330Z"
+      }
+    },
+    {
+      "id": "game-movement:injection",
+      "category": "injection",
+      "expected": [false, false, true],
+      "actual": [false, false, false],
+      "latencyMs": 1799,
+      "run": {
+        "id": "26aa9830-0c42-48f3-9c9d-f800da99eb67",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 1799,
+        "inputTokens": 727,
+        "cachedInputTokens": 0,
+        "outputTokens": 326,
+        "estimatedCostUsd": 0.00201225,
+        "createdAt": "2026-09-13T12:01:23.159Z"
+      }
+    },
+    {
+      "id": "game-movement:reference",
+      "category": "reference",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 2026,
+      "run": {
+        "id": "d6942440-75aa-477c-a195-477365128402",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 2026,
+        "inputTokens": 714,
+        "cachedInputTokens": 0,
+        "outputTokens": 329,
+        "estimatedCostUsd": 0.002016,
+        "createdAt": "2026-09-13T12:01:19.913Z"
+      }
+    },
+    {
+      "id": "game-movement:starter",
+      "category": "starter",
+      "expected": [false, false, true],
+      "actual": [false, false, false],
+      "latencyMs": 1917,
+      "run": {
+        "id": "32bdc825-1e82-42e3-a84e-eb4a8a20f67c",
+        "operation": "review",
+        "promptVersion": "2026-09-13.1",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 1917,
+        "inputTokens": 696,
+        "cachedInputTokens": 0,
+        "outputTokens": 367,
+        "estimatedCostUsd": 0.0021735,
+        "createdAt": "2026-09-13T12:01:21.939Z"
+      }
+    }
+  ]
+}

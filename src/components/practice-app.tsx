@@ -7,8 +7,6 @@ import { ProblemLibrary } from "@/components/library/problem-library";
 import { AppFooter } from "@/components/shell/app-footer";
 import { AppHeader } from "@/components/shell/app-header";
 import { HelpDialog } from "@/components/shell/help-dialog";
-import { LoginScreen } from "@/components/shell/login-screen";
-import { SessionDialog } from "@/components/shell/session-dialog";
 import { SettingsDialog } from "@/components/shell/settings-dialog";
 import { Sidebar } from "@/components/shell/sidebar";
 import { usePracticeSession } from "@/hooks/use-practice-session";
@@ -18,7 +16,7 @@ import { type DomainId } from "@/lib/catalog";
 import { defaultFilters, problemUrl, type LibraryFilters } from "@/lib/library-state";
 import { AlertCircle, Check, RotateCcw, Terminal, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Generator } from "./library/problem-generator";
 import { ProblemWorkspace } from "./workspace/problem-workspace";
 
@@ -79,27 +77,8 @@ export function PracticeApp({
     };
   }, [mobileMenu]);
 
-  const onSessionExpired = useCallback(() => {
-    setSettingsOpen(false);
-    setHelpOpen(false);
-    setGeneratorOpen(false);
-  }, []);
-  const session = usePracticeSession(onSessionExpired);
-  const {
-    data,
-    setData,
-    loadError,
-    locked,
-    password,
-    setPassword,
-    reauth,
-    refreshing,
-    loginBusy,
-    load,
-    onProgress,
-    login,
-  } = session;
-  const actions = useWorkspaceActions({ data, load, onProgress });
+  const { data, loadError, refreshing, load, onProgress } = usePracticeSession(initialProblemId);
+  const actions = useWorkspaceActions({ load, onProgress });
   const {
     toast,
     setToast,
@@ -121,17 +100,7 @@ export function PracticeApp({
     initialProblemId,
   });
   const { libraryHref, saved, title } = library;
-  const activeProblem = data?.problems.find((p) => p.id === initialProblemId);
-  if (locked)
-    return (
-      <LoginScreen
-        login={login}
-        password={password}
-        setPassword={setPassword}
-        loadError={loadError}
-        loginBusy={loginBusy}
-      />
-    );
+  const activeProblem = data?.activeProblem || undefined;
   return (
     <div className={`lab-shell ${focus && initialProblemId ? "focus-mode" : ""}`}>
       <a className="skip-link" href="#main-content">
@@ -226,9 +195,7 @@ export function PracticeApp({
         }
         aiReady={Boolean(data?.aiReady)}
         onCreated={(problem) => {
-          setData((d) =>
-            d ? { ...d, problems: [problem, ...d.problems.filter((p) => p.id !== problem.id)] } : d,
-          );
+          void load();
           setGeneratorOpen(false);
           router.push(problemUrl(problem.id, initialProblemId ? returnTo : libraryHref));
         }}
@@ -247,14 +214,6 @@ export function PracticeApp({
         settingsNotice={settingsNotice}
       />
       <HelpDialog helpOpen={helpOpen} setHelpOpen={setHelpOpen} />
-      <SessionDialog
-        reauth={reauth}
-        login={login}
-        password={password}
-        setPassword={setPassword}
-        loadError={loadError}
-        loginBusy={loginBusy}
-      />
       {toast && (
         <div
           className={`toast ${toastError ? "toast-error" : ""}`}

@@ -1,3 +1,4 @@
+import { queryContract } from "./query-contract.test-helper";
 import { randomUUID } from "node:crypto";
 import postgres, { type Sql } from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -17,7 +18,7 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
     sql = postgres(url!, {
       max: 5,
       prepare: false,
-      connection: { search_path: schema },
+      connection: { options: `-c search_path=${schema}` },
       onnotice: () => {},
     });
     // Some hosted poolers ignore startup search_path; never write fixtures to public.
@@ -32,8 +33,9 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
       await admin.end();
     }
   }, 30_000);
+  queryContract(() => store);
   it("seeds without exposing answers and keeps owners separate", async () => {
-    expect((await store.summaries()).length).toBe(12);
+    expect((await store.summaries()).filter((p) => p.source === "curated").length).toBe(12);
     expect((await store.summaries())[0]).not.toHaveProperty("solution");
     await store.saveProgress("alice", "be-pagination", { code: "my draft", bookmarked: true });
     expect((await store.progress("alice"))["be-pagination"].code).toBe("my draft");

@@ -475,7 +475,7 @@
   .app-footer {
     padding-left: 24px;
     padding-right: 24px;
-    font-size: 8px;
+    font-size: 10px;
   }
   .toast {
     left: calc(50% + 90px);
@@ -968,11 +968,11 @@
     gap: 9px;
   }
   .app-footer > .mono {
-    font-size: 6px;
+    font-size: 10px;
     letter-spacing: 0.2px;
   }
   .app-footer > span:last-child {
-    font-size: 7px;
+    font-size: 10px;
     gap: 6px;
   }
   .topbar {
@@ -1429,15 +1429,6 @@
   .empty-state p {
     font-size: 10px;
     line-height: 1.9;
-  }
-  .login-page > form {
-    padding: 28px 23px;
-  }
-  .login-page h1 {
-    font-size: 20px;
-  }
-  .login-page .eyebrow {
-    font-size: 9px;
   }
 }
 

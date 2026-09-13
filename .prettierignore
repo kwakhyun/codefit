@@ -9,3 +9,6 @@ package-lock.json
 next-env.d.ts
 AGENTS.md
 CLAUDE.md
+
+/playwright-report/
+/test-results/

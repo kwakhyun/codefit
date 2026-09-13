@@ -1,0 +1,64 @@
+{
+  "measuredAt": "2026-09-13T12:21:34.838Z",
+  "browser": "153.0.8010.12",
+  "node": "v22.21.0",
+  "cpu": "Apple M2",
+  "environment": "Local production build, no CPU/network throttling, three fresh contexts per viewport, 1 second observation after rows and fonts are ready",
+  "limitations": "Lab samples only. Layout shift is the observed sum during this short load window, not the full CLS session-window metric. These results are not field Core Web Vitals, INP, Lighthouse scores or production latency.",
+  "measurements": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "samples": [
+        {
+          "lcpMs": 584,
+          "observedLayoutShift": 0.07810140537591628,
+          "domContentLoadedMs": 546,
+          "pageBytes": 51536
+        },
+        {
+          "lcpMs": 432,
+          "observedLayoutShift": 0.027576593771098577,
+          "domContentLoadedMs": 387,
+          "pageBytes": 51536
+        },
+        {
+          "lcpMs": 464,
+          "observedLayoutShift": 0.03274999245726032,
+          "domContentLoadedMs": 432,
+          "pageBytes": 51536
+        }
+      ],
+      "lcpP50Ms": 464
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "samples": [
+        {
+          "lcpMs": 824,
+          "observedLayoutShift": 0.5523812663388935,
+          "domContentLoadedMs": 796,
+          "pageBytes": 51475
+        },
+        {
+          "lcpMs": 956,
+          "observedLayoutShift": 0.5367587680393299,
+          "domContentLoadedMs": 926,
+          "pageBytes": 51536
+        },
+        {
+          "lcpMs": 428,
+          "observedLayoutShift": 0.5605073711928439,
+          "domContentLoadedMs": 391,
+          "pageBytes": 51536
+        }
+      ],
+      "lcpP50Ms": 824
+    }
+  ]
+}

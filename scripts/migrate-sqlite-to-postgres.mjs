@@ -27,6 +27,7 @@ const tables = {
   ],
   attempts: ["id", "owner", "problem_id", "code", "review", "assisted", "created_at"],
   legacy: ["owner", "content", "created_at"],
+  ai_runs: ["id", "owner", "operation", "created_at", "content"],
 };
 try {
   const counts = await sql.begin(async (tx) => {
@@ -34,6 +35,8 @@ try {
     await tx.unsafe(storageSchema);
     const result = {};
     for (const [table, columns] of Object.entries(tables)) {
+      if (!source.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table))
+        continue;
       const rows = source.prepare(`SELECT ${columns.join(",")} FROM ${table}`).all();
       let inserted = 0;
       for (const row of rows) {

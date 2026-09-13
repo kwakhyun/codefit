@@ -28,7 +28,7 @@ interface ProblemLibraryProps {
   library: LibraryController;
   onGenerate: () => void;
   bookmarking: string | null;
-  bookmark: (p: ProblemSummary) => Promise<void>;
+  bookmark: (p: ProblemSummary, bookmarked: boolean) => Promise<void>;
   exportData: () => Promise<void>;
   exporting: boolean;
 }
@@ -51,7 +51,7 @@ export function ProblemLibrary({
     inProgress,
     aiCount,
     title,
-    filtered,
+    total,
     search,
     setSearch,
     setPage,
@@ -87,7 +87,7 @@ export function ProblemLibrary({
             전체 문제
           </span>
           <strong>
-            {data.problems.length}
+            {data.stats.total}
             <small>문제</small>
           </strong>
           <span className="stat-note">차곡차곡 쌓이는 문제 은행</span>
@@ -99,10 +99,10 @@ export function ProblemLibrary({
           </span>
           <strong className="accent">
             {solved}
-            <small>/ {data.problems.length}</small>
+            <small>/ {data.stats.total}</small>
           </strong>
           <div className="stat-progress">
-            <i style={{ width: `${(solved / Math.max(1, data.problems.length)) * 100}%` }} />
+            <i style={{ width: `${(solved / Math.max(1, data.stats.total)) * 100}%` }} />
           </div>
         </div>
         <div>
@@ -136,7 +136,7 @@ export function ProblemLibrary({
           <div>
             <h2>
               {title}
-              <span>{filtered.length}</span>
+              <span>{total}</span>
             </h2>
             <p>오늘은 어떤 코딩 근력을 단련할까요?</p>
           </div>
@@ -202,16 +202,13 @@ export function ProblemLibrary({
         <ProblemTable
           library={library}
           initialView={initialView}
-          data={data}
           bookmarking={bookmarking}
           bookmark={bookmark}
         />
         <div className="table-footer">
           <span>
-            {filtered.length > 0
-              ? `${(currentPage - 1) * 8 + 1}–${Math.min(currentPage * 8, filtered.length)}`
-              : "0"}{" "}
-            <span className="muted">/ {filtered.length}개 문제</span>
+            {total > 0 ? `${(currentPage - 1) * 8 + 1}–${Math.min(currentPage * 8, total)}` : "0"}{" "}
+            <span className="muted">/ {total}개 문제</span>
           </span>
           <div className="pagination">
             <button
@@ -223,13 +220,12 @@ export function ProblemLibrary({
               <ChevronLeft size={16} />
             </button>
             <span>
-              {currentPage}{" "}
-              <span className="muted">/ {Math.max(1, Math.ceil(filtered.length / 8))}</span>
+              {currentPage} <span className="muted">/ {Math.max(1, Math.ceil(total / 8))}</span>
             </span>
             <button
               className="icon-button"
               aria-label="다음 페이지"
-              disabled={currentPage * 8 >= filtered.length}
+              disabled={currentPage * 8 >= total}
               onClick={() => setPage(currentPage + 1)}
             >
               <ChevronRight size={16} />

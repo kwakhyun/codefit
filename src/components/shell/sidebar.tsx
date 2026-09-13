@@ -80,7 +80,7 @@ export function Sidebar({
         >
           <LayoutGrid size={17} />
           <span>문제 보관함</span>
-          <small>{data?.problems.length ?? "—"}</small>
+          <small>{data?.stats.total ?? "—"}</small>
         </Link>
         <Link
           className={`nav-item ${!initialProblemId && initialView === "bookmarks" ? "active" : ""}`}

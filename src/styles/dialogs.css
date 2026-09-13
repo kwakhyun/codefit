@@ -478,60 +478,6 @@
   flex-shrink: 0;
 }
 
-.login-page {
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: radial-gradient(ellipse at 50% 40%, #2d2d2d 0%, transparent 60%), #161616;
-}
-
-.login-page > form {
-  max-width: 410px;
-  width: 100%;
-  padding: 34px;
-  border: 1px solid #4a4a4a;
-  border-radius: 0;
-  background: #1a1a1aeb;
-}
-
-.login-page .brand-logo {
-  margin-bottom: 35px;
-  color: #e0e0e0;
-}
-
-.login-page .brand-logo > svg {
-  color: var(--accent);
-}
-
-.login-page h1 {
-  font-size: 21px;
-  letter-spacing: -1px;
-  margin: 14px 0;
-}
-
-.login-page p {
-  color: #a5a5a5;
-  font-size: 12px;
-  line-height: 1.8;
-}
-
-.login-page label {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-size: 11px;
-  color: #cdcdcd;
-  margin: 28px 0 18px;
-}
-
-.login-page input {
-  padding: 12px;
-  border-color: #5e5e5e;
-  background: #151515;
-}
-
 .sidebar-backdrop {
   display: none;
 }

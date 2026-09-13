@@ -1,4 +1,4 @@
-export class ApiError extends Error {
+class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
@@ -25,8 +25,6 @@ export async function api<T>(
   } catch {
     throw new ApiError("서버 응답을 읽지 못했습니다. 연결 상태를 확인해 주세요.", response.status);
   }
-  if (response.status === 401 && url !== "/api/session" && typeof window !== "undefined")
-    window.dispatchEvent(new Event("codefit:session-expired"));
   if (!response.ok) throw new ApiError(data.error || "요청에 실패했습니다.", response.status);
   return data as T;
 }

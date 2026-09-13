@@ -99,7 +99,7 @@
 }
 
 .nav-caption > span {
-  color: #636363;
+  color: var(--muted);
   font-size: 10px;
 }
 

@@ -13,6 +13,8 @@ export default defineConfig([
     "coverage/**",
     "public/monaco/**",
     "artifacts/**",
+    "playwright-report/**",
+    "test-results/**",
     "data/**",
   ]),
 ]);

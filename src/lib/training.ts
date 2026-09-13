@@ -9,16 +9,9 @@ export function trainingSummary(attempts: AttemptSummary[], now = Date.now()) {
   const days = new Set(
     attempts.map((a) => dayIndex(a.createdAt)).filter((d) => Number.isFinite(d) && d <= today),
   );
-  let cursor = days.has(today) ? today : today - 1,
-    streak = 0;
-  while (days.has(cursor)) {
-    streak++;
-    cursor--;
-  }
-  return {
-    streak,
-    activeDays: [...days].filter((d) => d >= today - 6).length,
-    independentSolved: new Set(
+  return trainingFromDays(
+    [...days],
+    new Set(
       attempts
         .filter(
           (a) =>
@@ -29,6 +22,22 @@ export function trainingSummary(attempts: AttemptSummary[], now = Date.now()) {
         )
         .map((a) => a.problemId),
     ).size,
+    now,
+  );
+}
+export function trainingFromDays(dayValues: number[], independentSolved: number, now = Date.now()) {
+  const today = dayIndex(now);
+  const days = new Set(dayValues.filter((d) => Number.isFinite(d) && d <= today));
+  let cursor = days.has(today) ? today : today - 1,
+    streak = 0;
+  while (days.has(cursor)) {
+    streak++;
+    cursor--;
+  }
+  return {
+    streak,
+    activeDays: [...days].filter((d) => d >= today - 6).length,
+    independentSolved,
     week: Array.from({ length: 7 }, (_, i) => ({
       label: new Intl.DateTimeFormat("ko-KR", {
         timeZone: "Asia/Seoul",

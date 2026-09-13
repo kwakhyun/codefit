@@ -20,16 +20,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const job = await store.startJob(owner, input.requestId, `review:${id}`);
     if (job.state === "done")
       return json({
-        attempt: (await store.attempts(owner, id)).find((a) => a.id === job.result),
-        progress: (await store.progress(owner))[id],
+        attempt: (await store.queries.recentAttempts(owner, id, job.result)).find(
+          (a) => a.id === job.result,
+        ),
+        progress: await store.progressFor(owner, id),
       });
     if (job.state === "pending")
       throw new HttpError(409, "이 풀이를 검토하고 있습니다. 잠시 후 기록을 확인해 주세요.");
     jobId = input.requestId;
-    await aiLimit(owner, "review");
-    const review = await reviewCode(problem, input.code);
+    await aiLimit(request, owner, "review");
+    const review = await reviewCode(problem, input.code, (run) =>
+      store.queries.recordAiRun(owner, run),
+    );
     const attempt = await store.saveAttempt(owner, id, input.code, review, input.requestId);
-    return json({ attempt, progress: (await store.progress(owner))[id] });
+    return json({ attempt, progress: await store.progressFor(owner, id) });
   } catch (error) {
     if (jobId) {
       try {

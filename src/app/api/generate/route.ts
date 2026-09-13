@@ -18,10 +18,9 @@ export async function POST(request: Request) {
     if (job.state === "pending")
       throw new HttpError(409, "같은 문제를 생성하고 있습니다. 잠시 후 보관함을 확인해 주세요.");
     jobId = input.requestId;
-    await aiLimit(owner, "generate");
-    const content = await generateProblem(
-      input,
-      (await store.summaries()).filter((p) => p.domain === input.domain).map((p) => p.title),
+    await aiLimit(request, owner, "generate");
+    const content = await generateProblem(input, await store.queries.titles(input.domain), (run) =>
+      store.queries.recordAiRun(owner, run),
     );
     const problem = problemSchema.parse({
       ...content,

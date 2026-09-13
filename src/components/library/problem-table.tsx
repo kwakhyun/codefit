@@ -5,23 +5,16 @@ import type { LibraryController } from "@/hooks/use-library-controller";
 import { DifficultyBadge, DomainIcon, KindBadge } from "@/components/ui/problem-badges";
 import { domainLabel, LANGUAGES } from "@/lib/catalog";
 import { problemUrl } from "@/lib/library-state";
-import type { ProblemSummary, Workspace } from "@/lib/problem";
+import type { ProblemSummary } from "@/lib/problem";
 import { Bookmark, CheckCircle2, Clock3, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 interface ProblemTableProps {
   library: LibraryController;
   initialView: "library" | "bookmarks";
-  data: Workspace;
   bookmarking: string | null;
-  bookmark: (p: ProblemSummary) => Promise<void>;
+  bookmark: (p: ProblemSummary, bookmarked: boolean) => Promise<void>;
 }
-export function ProblemTable({
-  library,
-  initialView,
-  data,
-  bookmarking,
-  bookmark,
-}: ProblemTableProps) {
+export function ProblemTable({ library, initialView, bookmarking, bookmark }: ProblemTableProps) {
   const { pageProblems, hasFilters, resetFilters, libraryHref } = library;
   return (
     <div className="problem-table">
@@ -33,7 +26,18 @@ export function ProblemTable({
         <span>예상 시간</span>
         <span className="sr-only">북마크</span>
       </div>
-      {pageProblems.length === 0 ? (
+      {library.loadError ? (
+        <div className="empty-state" role="alert">
+          <p>{library.loadError}</p>
+          <button className="secondary-button" onClick={library.retry}>
+            다시 불러오기
+          </button>
+        </div>
+      ) : library.loading ? (
+        <div className="empty-state" role="status">
+          조건에 맞는 문제를 불러오는 중입니다.
+        </div>
+      ) : pageProblems.length === 0 ? (
         <div className="empty-state">
           <Search size={32} />
           <h3>
@@ -58,7 +62,7 @@ export function ProblemTable({
         </div>
       ) : (
         pageProblems.map((p) => {
-          const progress = data.progress[p.id];
+          const progress = library.progress[p.id];
           return (
             <div className="problem-row" key={p.id}>
               <span
@@ -111,7 +115,7 @@ export function ProblemTable({
                 className={`bookmark-button icon-button ${progress?.bookmarked ? "active" : ""}`}
                 aria-label={`${p.title} ${progress?.bookmarked ? "북마크 해제" : "북마크"}`}
                 disabled={bookmarking === p.id}
-                onClick={() => bookmark(p)}
+                onClick={() => bookmark(p, Boolean(progress?.bookmarked))}
               >
                 <Bookmark size={17} fill={progress?.bookmarked ? "currentColor" : "none"} />
               </button>

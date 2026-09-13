@@ -1,14 +1,12 @@
 "use client";
 
 import { api, errorMessage } from "@/lib/client-api";
-import type { ProblemSummary, Progress, Workspace } from "@/lib/problem";
+import type { ProblemSummary, Progress } from "@/lib/problem";
 import { useEffect, useRef, useState } from "react";
 export function useWorkspaceActions({
-  data,
   load,
   onProgress,
 }: {
-  data: Workspace | null;
   load: () => Promise<void>;
   onProgress: (progress: Progress) => void;
 }) {
@@ -27,13 +25,13 @@ export function useWorkspaceActions({
       return () => clearTimeout(id);
     }
   }, [toast]);
-  async function bookmark(problem: ProblemSummary) {
+  async function bookmark(problem: ProblemSummary, bookmarked: boolean) {
     if (bookmarking) return;
     setBookmarking(problem.id);
     try {
       const { progress } = await api<{ progress: Progress }>(`/api/progress/${problem.id}`, {
         method: "PUT",
-        body: { bookmarked: !data?.progress[problem.id]?.bookmarked },
+        body: { bookmarked: !bookmarked },
       });
       onProgress(progress);
     } catch (e) {

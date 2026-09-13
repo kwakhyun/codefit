@@ -1,5 +1,6 @@
 "use client";
 
+import { useLearningHistory } from "@/hooks/use-learning-history";
 import type { LibraryController } from "@/hooks/use-library-controller";
 
 import { dateLabel } from "@/lib/client-api";
@@ -21,6 +22,7 @@ interface LearningHistoryProps {
   library: LibraryController;
 }
 export function LearningHistory({ data, library }: LearningHistoryProps) {
+  const history = useLearningHistory(data);
   const { solved, inProgress, saved, training, libraryHref } = library;
   return (
     <>
@@ -46,7 +48,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
             검토한 풀이
           </span>
           <strong>
-            {data.attempts.length}
+            {data.stats.attempts}
             <small>회</small>
           </strong>
         </div>
@@ -99,11 +101,13 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
       <section className="history-section">
         <div className="section-heading">
           <h2>
-            풀이 타임라인 <span>{data.attempts.length}</span>
+            풀이 타임라인 <span>{data.stats.attempts}</span>
           </h2>
           <span className="muted">최근 검토 순</span>
         </div>
-        {data.attempts.length === 0 ? (
+        {history.loading && !history.attempts.length ? (
+          <p role="status">풀이 기록을 불러오는 중입니다.</p>
+        ) : !history.error && data.stats.attempts === 0 ? (
           <div className="empty-state bordered">
             <History size={36} />
             <h2>첫 번째 기록을 남겨 보세요.</h2>
@@ -115,8 +119,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
           </div>
         ) : (
           <div className="timeline">
-            {data.attempts.map((a) => {
-              const p = data.problems.find((p) => p.id === a.problemId);
+            {history.attempts.map((a) => {
               return (
                 <Link
                   href={problemUrl(a.problemId, libraryHref, a.id)}
@@ -131,7 +134,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
                       <span className="mono">{dateLabel(a.createdAt)}</span>
                       <span>{a.assisted ? "힌트 / 정답 참고" : "직접 풀이"}</span>
                     </div>
-                    <h3>{p?.title || "문제 풀이"}</h3>
+                    <h3>{a.problemTitle}</h3>
                     <p>{a.review.summary}</p>
                   </div>
                   <strong className={a.review.passed ? "success-text" : "muted"}>
@@ -142,6 +145,24 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
               );
             })}
           </div>
+        )}
+        {history.error && (
+          <p className="inline-error" role="alert">
+            {history.error}
+          </p>
+        )}
+        {(history.nextCursor || history.error) && (
+          <button
+            className="secondary-button"
+            onClick={history.loadMore}
+            disabled={history.loading}
+          >
+            {history.loading
+              ? "불러오는 중…"
+              : history.error
+                ? "다시 불러오기"
+                : "이전 풀이 더 보기"}
+          </button>
         )}
       </section>
     </>

@@ -2,35 +2,42 @@
 
 **AI가 코드를 짜도, 내 실력은 녹슬지 않게.**
 
-운영 서비스: [CODE:FIT](https://codefit-five.vercel.app) — 접근 암호가 필요합니다. `main`에 푸시하면 Vercel이 자동 배포합니다.
+[바로 사용하기](https://codefit-five.vercel.app) · [AI 검증 결과](https://codefit-five.vercel.app/quality) · [설계와 검증 근거](docs/engineering.md)
 
-AI 에이전트에게 코딩을 맡기는 개발자가 직접 구현하고, 오류의 원인을 찾고, 코드를 개선하는 감각을 유지하도록 만든 코딩 훈련 서비스입니다. AI가 출제한 실전 문제를 직접 풀고, 단계별 힌트와 코드 리뷰로 부족한 부분을 돌아봅니다.
+가입이나 암호 없이 사용할 수 있는 코딩 훈련 서비스입니다. AI에게 구현을 맡기는 개발자가 자신의 문제 해결 감각을 유지하도록 만들었습니다. 예제를 따라 쓰는 대신 기능 구현, 버그 수정, 리팩터링 문제를 직접 풀고 요구사항별 피드백을 받습니다.
 
-CODE:FIT은 코딩 실력을 꾸준히 관리한다는 뜻입니다. 검정 터미널 테마, 문제 보관함, Monaco 편집기로 훈련에 집중할 수 있도록 구성했습니다.
+![검정 터미널 테마의 문제 보관함](docs/images/library.png)
 
-## 제공 기능
+## 사용 흐름
 
-- 10개 분야: 프론트엔드, 백엔드, 게임 개발, 네트워크, 데이터베이스, 인프라 / DevOps, 모바일, 데이터 / AI, 보안, 시스템 / 알고리즘
-- 26개 언어와 형식: JavaScript, TypeScript, React / TSX, HTML, CSS, Python, Java, Go, C#, C++, C, Rust, PHP, Ruby, Kotlin, Swift, Dart, Lua, GDScript, SQL, Shell, Dockerfile, YAML, Terraform / HCL, R, Julia
-- 기능 구현, 오류 수정, 리팩터링 유형과 상 / 중 / 하 난이도
-- 요구사항과 입출력 예시를 갖춘 내장 문제 12개
-- OpenAI Responses API와 구조화된 출력으로 맞춤 문제 생성
-- 단계별 힌트 3개, 참고 정답, 해설. 처음에는 정답과 힌트를 클라이언트로 보내지 않음
-- 실제 요구사항에 따라 대체 구현도 검토하는 AI 코드 리뷰. 모든 요구사항을 충족할 때만 해결 완료 처리
-- PostgreSQL(클라우드) 또는 SQLite(로컬)에 생성 문제, 개인별 코드 초안, 힌트 사용, 북마크, 제출 코드, 피드백 영구 저장
-- 제목과 키워드 검색, 분야 / 언어 / 난이도 / 유형 / 출처 / 풀이 상태 필터, 정렬과 페이지 이동
-- 자동 저장, 미저장 코드 복구, 로그인 만료 후 재연결, 저장 실패 재시도, 집중 모드, 글자 크기, 줄바꿈과 저장/검토 단축키
-- 검색 조건과 페이지가 유지되는 문제 이동, 특정 제출본 바로 열기, 이전 제출본 복원과 초기화 취소
-- 최근 7일 훈련 현황, 연속 훈련 일수, 도움 없이 해결한 문제 수와 미완료 풀이 우선 추천
-- 모바일 화면, 모달 포커스 관리, 키보드 탭 탐색, 모션 감소 설정 대응
-- 전체 문제와 개인 기록 JSON 내보내기 / 가져오기, 실행 중 DB의 안전한 스냅샷 백업
-- 기존 `recode-progress-v1` 데이터는 삭제하지 않고 서버에 별도 보관. 내보내기 `legacy` 항목에서 확인 가능
+1. 분야와 난이도로 문제를 고르거나 원하는 주제로 AI 문제를 생성합니다.
+2. Monaco 편집기에서 직접 풉니다. 코드는 자동 저장되며 연결이 끊기면 브라우저에 보관합니다.
+3. 막히면 단계별 힌트 3개를 확인하고, 참고 정답과 자신의 풀이를 비교합니다.
+4. AI가 요구사항별로 검토합니다. 이전 제출본을 다시 열고 수정하거나 변경을 취소할 수 있습니다.
 
-**AI 검토는 정적 코드 리뷰입니다.** 서버에서 학습자 코드를 실행하지 않으며 컴파일 성공, 테스트 통과, 성능 측정을 주장하지 않습니다. 외부 의존성이 있는 문제는 설명에 해당 실행 환경을 명시합니다. GDScript 편집기는 Python 기반 문법 강조를 사용하고 전용 언어 서버는 포함하지 않습니다.
+10개 분야와 26개 언어/기술, 상/중/하 난이도, 내장 문제 12개를 제공합니다. 생성한 문제는 PostgreSQL에 계속 쌓이며, 풀이와 북마크는 개인 브라우저별로 구분합니다. 검색 조건이 유지되는 탐색, 모바일 화면, 집중 모드, 글자 크기, 키보드 단축키, 최근 7일 훈련 기록, JSON 백업 복원을 지원합니다.
 
-## 로컬 개발
+**AI 검토는 정적 코드 리뷰입니다.** 제출 코드를 실행하거나 컴파일하지 않습니다. 통과 표시는 실행 결과를 보장하지 않으며 다른 올바른 구현도 오판할 수 있습니다.
 
-Node.js **22.13 이상**이 필요합니다. Docker는 22.21을 사용합니다. 내장 `node:sqlite`를 사용하므로 추가 DB 서버가 필요하지 않습니다.
+![문제와 코드를 함께 보는 풀이 화면](docs/images/workspace.png)
+
+[모바일 화면 보기](docs/images/mobile.png)
+
+## 직접 확인할 구현과 근거
+
+| 영역       | 구현                                                                                   | 검증 근거                                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 프론트엔드 | 요청 취소와 오래된 응답 무시, 저장 대기열, 오프라인 복구, URL 상태, 포커스 복원        | [Playwright와 axe 테스트](e2e/practice.spec.ts)                                                               |
+| 백엔드     | 공통 저장소 인터페이스, 원자적 제출/생성, 멱등 요청, 서버 검색, 커서 이력 조회         | [SQLite/실제 PostgreSQL 공통 검증](src/lib/server/query-contract.test-helper.ts)                              |
+| 조회 성능  | 검색용 테이블과 인덱스, 페이지당 8개 응답, 코드 단건 조회                              | [5,012개 문제 실험](reports/storage-benchmark.json): 목록 1,993,608 → 3,354 bytes                             |
+| AI 활용    | Responses API 구조화된 출력, 요구사항 검증, 프롬프트 버전, 추론 수준 비교, 사용량 계측 | [16개 고정 사례와 실제 응답](reports/ai-evaluation.json), [변경 전 결과](reports/ai-evaluation-baseline.json) |
+| 운영       | Vercel 자동 배포, 별도 Preview DB, GitHub Actions, 세션/접속망/전체 AI 한도            | [CI](.github/workflows/ci.yml), [공개 이용 정책](src/lib/server/usage-policy.ts)                              |
+
+최종 AI 평가에서는 16/16개 통과 여부와 52/52개 요구사항 판정이 작성한 기준과 일치했습니다. 작은 개발용 데이터에 대한 한 번의 측정이며, 모든 언어의 정확도나 독립적인 외부 평가 결과로 해석하지 않습니다. 실패했던 중간 결과와 비용/지연의 변화도 [설계 문서](docs/engineering.md)에 남겼습니다.
+
+## 로컬 실행
+
+Node.js 22.13 이상이 필요합니다. Docker 없이 SQLite로 실행할 수 있습니다.
 
 ```bash
 npm ci
@@ -38,82 +45,27 @@ cp .env.example .env.local
 npm run dev
 ```
 
-이미 `.env.local`이 있으면 복사하지 않고 기존 설정을 유지하세요. 기본 주소는 [localhost:3000](http://localhost:3000)이며 이번 작업의 검증 화면은 [127.0.0.1:3010](http://127.0.0.1:3010)입니다.
+기존 `.env.local`이 있으면 덮어쓰지 마세요. 기본 주소는 `http://localhost:3000`입니다. API 키 없이도 내장 문제, 코드 작성/저장, 힌트, 정답, 백업을 사용할 수 있습니다.
 
-환경 변수:
+| 환경 변수         | 용도                                                                                   |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| `OPENAI_API_KEY`  | 서버 전용 AI 키. 생성과 검토에 사용                                                    |
+| `OPENAI_MODEL`    | 기본 `gpt-5.4-mini`. 검토 시 `medium` 추론을 사용하므로 해당 옵션을 지원하는 모델 필요 |
+| `DATABASE_URL`    | PostgreSQL 연결 주소. Vercel에서 필수                                                  |
+| `DATABASE_PATH`   | SQLite 절대 경로. 기본 `data/recode.sqlite`                                            |
+| `RATE_LIMIT_SALT` | Vercel에서 접속 IP를 HMAC으로 변환할 비밀 값. 32바이트 이상 난수 권장                  |
+| `APP_ORIGIN`      | 프록시 운영 시 실제 HTTPS origin. 끝의 `/` 제외                                        |
 
-| 이름               | 용도                                                                                                        |
-| ------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `OPENAI_API_KEY`   | AI 생성과 코드 검토에 사용하는 서버 전용 키                                                                 |
-| `OPENAI_MODEL`     | 사용할 모델. 기존 프로젝트 기본값 `gpt-5.4-mini` 유지                                                       |
-| `DATABASE_URL`     | 클라우드 PostgreSQL 연결 주소. Vercel에서는 필수이며 설정 시 SQLite 대신 사용                               |
-| `DATABASE_PATH`    | SQLite 파일의 절대 경로. 미설정 시 `data/recode.sqlite`                                                     |
-| `LAB_ACCESS_TOKEN` | 연습실 접근 암호. **프로덕션 실행 시 필수**                                                                 |
-| `APP_ORIGIN`       | 외부에서 접속하는 정확한 origin. 프록시 운영 시 `https://lab.example.com`처럼 설정하며 끝에 `/`를 넣지 않음 |
-
-API 키 없이도 내장 문제, 편집, 저장, 힌트와 정답은 동작합니다. 생성과 AI 검토는 비활성화되고 필요한 설정을 안내합니다. 키 값은 브라우저에 전달하지 않습니다.
-
-## 프로덕션 운영
-
-**Vercel + Neon PostgreSQL** 배포와 로컬 SQLite 실행을 지원합니다. `DATABASE_URL`이 있으면 중앙 PostgreSQL을 사용하며, Vercel에서 이 값이 없으면 임시 SQLite로 저장하지 않고 설정 오류를 반환합니다. SQLite로 운영할 때는 영구 디스크가 있는 단일 서버나 컨테이너를 사용하세요.
-
-GitHub의 `main` 브랜치가 Vercel 프로덕션 배포 소스입니다. 변경 사항 미리보기는 별도의 PostgreSQL 저장소를 사용합니다. `.github/workflows/ci.yml`은 PostgreSQL 테스트 서비스에서 저장과 동시 요청 검증, 서식, 타입, 미사용 코드 검사와 빌드를 수행합니다.
-
-Vercel 환경 변수는 Production과 Preview 각각에 `DATABASE_URL`, `OPENAI_API_KEY`, `LAB_ACCESS_TOKEN`을 등록합니다. 호스팅 연결 정보, API 키, 접근 암호, 로컬 DB는 Git에 포함하지 않습니다.
+비밀 값은 `NEXT_PUBLIC_*`나 Git에 넣지 않습니다. `.env.local`, `.vercel`, 데이터베이스, 테스트 임시 데이터는 Git에서 제외됩니다.
 
 ```bash
 npm run build
 npm start
 ```
 
-`npm start`는 독립 실행 빌드에 정적 파일을 복사하고, DB 경로를 빌드 폴더 외부의 `data/recode.sqlite`로 고정한 뒤 시작합니다. 재빌드해도 기록이 사라지지 않습니다. 위 실행에는 `.env.local`의 `LAB_ACCESS_TOKEN`이 필요합니다. 접속하면 암호 입력 화면이 표시됩니다. Vercel의 자동 배포는 Git 연동을 사용하며 이 로컬 실행 명령과 별개입니다.
+독립 실행 빌드 외부에 SQLite 파일을 두므로 재빌드 후에도 기록이 유지됩니다. 운영 사이트는 GitHub `main`에 푸시하면 Vercel이 자동 배포합니다. Production과 Preview는 별도의 PostgreSQL을 사용하며 각각 서버 키와 `RATE_LIMIT_SALT`를 설정합니다. 접근 암호는 사용하지 않습니다.
 
-Docker 예시:
-
-```bash
-docker build -t codefit-lab .
-docker volume create recode-data
-docker run --name codefit-lab --restart unless-stopped \
-  --env-file .env.local \
-  -p 127.0.0.1:3000:3000 \
-  -v recode-data:/data \
-  codefit-lab
-```
-
-공개 운영 시 HTTPS 리버스 프록시를 앞에 두고 `APP_ORIGIN`을 실제 HTTPS origin으로 설정하세요. 요청 URL과 Origin 검증, JSON 입력 및 바이트 제한, 세션 쿠키, AI 호출 제한, 구조 검증, 멱등 요청 처리, 기본 보안 헤더를 적용했습니다. 접근 암호는 환경 변수로 관리하고 `.env.local`은 이미지와 Git에 포함하지 않습니다.
-
-- 문제 은행은 연습실 전체에서 공유합니다.
-- 개인 진도는 무작위 HttpOnly 쿠키로 식별하며 DB에는 쿠키의 해시를 저장합니다. 별도의 이메일 계정과 기기 간 자동 동기화는 포함하지 않습니다.
-- 다른 브라우저에서 이어 풀려면 환경 설정에서 백업을 내보낸 뒤 가져오세요. 새 문제와 기록을 추가하며 이미 작성한 코드는 덮어쓰지 않습니다.
-- 개인 AI 한도: 24시간 창 기준 생성 20회, 검토 60회. 서버 전체 한도: 1시간 창 기준 100회. 실패 요청도 한도에 포함합니다. DB에 기록하므로 재시작으로 초기화되지 않습니다.
-- 접근 암호 변경은 기존 접근 인증을 무효화합니다. 로그인 시도는 서버 전체 10분당 30회로 제한합니다.
-- AI 피드백은 확정적인 실행 검증이 아닙니다. 문제 은행이 커지면 전문 실행 샌드박스, 계정 인증, 서버 측 목록 검색과 페이지 조회를 별도 확장할 수 있습니다.
-
-## 백업과 복구
-
-설정의 JSON 내보내기는 **전체 문제(정답 포함)**와 현재 브라우저의 학습 기록을 포함합니다. 가져오기는 최대 10 MB, 문제 2,500개, 풀이 10,000개를 지원합니다. 이전 버전 예제는 별도 원본 보관이며 새 문제로 자동 변환하지 않습니다.
-
-로컬 SQLite의 모든 사용자 데이터와 호출 제한, 작업 이력을 포함한 백업:
-
-```bash
-npm run backup
-# 또는 대상 파일 지정
-npm run backup -- /safe-backups/recode-2026-09-13.sqlite
-```
-
-SQLite backup API로 실행 중인 WAL DB를 일관된 스냅샷으로 저장합니다. DB 파일 하나를 단순 복사하는 방식 대신 이 명령을 사용하세요. 저장된 백업은 다른 디스크나 외부 보관소에도 복제하세요.
-
-복구 시 앱을 종료하고, 현재 DB와 연결된 `-wal`, `-shm` 파일을 함께 별도 위치에 보관한 뒤 백업 파일을 `DATABASE_PATH` 위치로 복사하고 재시작합니다. 기존 데이터를 지우거나 덮어쓰는 복구 작업은 자동 실행하지 않습니다.
-
-PostgreSQL은 호스팅 제공자의 백업과 `pg_dump`를 사용하세요. 기존 SQLite 데이터를 클라우드로 옮길 때는 다음 명령을 사용합니다. 연결 설정 파일은 Git에서 제외된 경로에 둡니다.
-
-```bash
-npm run migrate:postgres -- data/recode.sqlite .vercel/.env.production.local
-```
-
-이전은 트랜잭션으로 처리하며 기존 클라우드 문제와 기록을 덮어쓰지 않습니다. 브라우저 쿠키는 도메인별이므로, 로컬 진도를 새 도메인에서 사용하려면 개인 기록 백업을 가져오세요.
-
-## 검증
+## 검증 재현
 
 ```bash
 npm run format:check
@@ -122,44 +74,37 @@ npm run typecheck
 npm run check:unused
 npm test
 npm run build
+npx playwright install chromium
+npm run test:e2e
+npm run benchmark
 ```
 
-자동 테스트는 분야와 문제 구조, 입력 검증, 정답 비노출, 검토 기준 완결성, 사용자별 저장 격리, DB 재시작 후 보존, 초안 덮어쓰기 방지, 힌트 상한, 멱등 요청, 요청 제한과 Origin 검증을 확인합니다. 초기 MVP의 미사용 예제와 비교 코드는 제거했으며, 기존 사용자 기록을 보관하는 호환 처리는 유지합니다.
+브라우저 테스트는 자동으로 별도 SQLite 서버를 시작합니다. 실행 중인 서버를 임의로 재사용하지 않으며 API 키도 비웁니다. 직접 검증 서버를 준비한 경우에만 `CODEFIT_E2E_EXTERNAL_SERVER=1`을 지정하세요. PostgreSQL 검증은 **테스트 전용 DB**를 `TEST_DATABASE_URL`에 지정합니다. 매번 임시 스키마를 만들고, 스키마 격리를 확인한 후 테스트합니다. GitHub Actions는 별도 PostgreSQL 16 서비스를 사용합니다.
 
-프로덕션 API 통합 검증은 별도의 임시 DB로 서버를 실행한 뒤 `VERIFY_BASE_URL`과 테스트 암호 `VERIFY_ACCESS_TOKEN`을 지정해 `npm run test:api`로 실행합니다. 인증, 세션 격리, 입력 제한, 힌트, 정답, 백업 복원을 확인하며 현재 사용자 DB를 대상으로 실행하지 않습니다.
+```bash
+# 유료 API 호출: 최대 16회, 동시 2회. .env.local의 기존 키 사용
+npm run eval:ai -- --live
+```
 
-실제 AI 호출은 자동 테스트에 포함하지 않아 반복 검증 시 과금되지 않습니다. 실제 생성과 풀이 검토는 실행 중 앱에서 확인합니다.
+키를 설정한 임시 로컬 서버에서는 `npm run test:ai-live -- --live`로 생성, 검토, 영구 저장, 멱등 재요청과 사용량 기록을 함께 검증할 수 있습니다. 실제 유료 요청은 2회입니다.
 
-## 주요 구조
+일반 테스트와 CI는 유료 AI를 호출하지 않습니다. 평가 명령은 실제 결과를 `reports/ai-evaluation.json`에 기록하며 오답 통과, 정답 거절, 제공자 오류가 있으면 실패 종료합니다. API 통합 검증은 임시 서버에 `VERIFY_BASE_URL=http://127.0.0.1:3010 npm run test:api`로 실행합니다. 이 명령은 운영 URL에 테스트 데이터를 쓰지 못하도록 제한했습니다.
 
-| 위치                                                     | 책임                                                                 |
-| -------------------------------------------------------- | -------------------------------------------------------------------- |
-| `src/app`                                                | 페이지 진입점, API 라우팅과 전역 스타일 진입점                       |
-| `src/components/practice-app.tsx`                        | 인증 상태에 따른 화면 조합과 앱 탐색                                 |
-| `src/components/shell`                                   | 메뉴, 헤더, 로그인, 설정과 도움말                                    |
-| `src/components/library`                                 | 문제 탐색, 필터, 목록, 생성과 학습 기록                              |
-| `src/components/workspace`                               | 문제 자료, 편집 화면, 검토 결과와 확인 창                            |
-| `src/components/ui`                                      | 공용 모달과 문제 배지                                                |
-| `src/components/code-editor.tsx`                         | 편집기 도구 모음과 Monaco 연결                                       |
-| `src/hooks`                                              | 탐색 상태, 인증, 백업, 문제 풀이와 자동 저장                         |
-| `src/lib/editor/monaco-setup.ts`                         | Monaco 테마와 언어 설정                                              |
-| `src/lib/catalog.ts`, `problem.ts`                       | 분야와 언어의 기준 목록, 문제와 리뷰 검증                            |
-| `src/lib/library-state.ts`, `training.ts`, `progress.ts` | 탐색 URL, 훈련 집계와 최신 진도 선택                                 |
-| `src/lib/server/session.ts`                              | 접근 인증, 쿠키와 요청 출처 확인                                     |
-| `src/lib/server/http.ts`, `problem-access.ts`            | 입력과 오류 응답, 문제 조회와 AI 요청 한도                           |
-| `src/lib/server/ai.ts`                                   | AI 생성과 검토                                                       |
-| `src/lib/server/database.ts`                             | 실행 환경에 맞는 저장소 선택                                         |
-| `src/lib/server/store-contract.ts`                       | 두 저장소가 준수하는 공통 인터페이스                                 |
-| `src/lib/server/sqlite-store.ts`, `postgres-store.ts`    | 각 DB의 쿼리, 트랜잭션과 동시 요청 처리                              |
-| `src/lib/server/storage-schema.mjs`, `store-records.ts`  | 공통 테이블 정의와 저장 레코드 변환                                  |
-| `src/data/problems.ts`                                   | 내장 실전 문제                                                       |
-| `src/styles`                                             | 기본 요소, 앱 틀, 보관함, 풀이, 대화상자, 반응형, 색상과 훈련 스타일 |
-| `scripts`                                                | 편집기 자산 준비, 운영 실행, 백업, DB 이전과 API 검증                |
+## 공개 이용과 보관
 
-화면 컴포넌트는 표시와 사용자 입력을 담당하고, 서버 호출 및 상태 전이는 훅에서 관리합니다. 초안의 변경 순서, 저장 대기열, 브라우저 복구와 재연결은 `use-code-draft.ts`에 모여 있습니다. API는 `getStore()`와 공통 인터페이스를 통해 저장소에 접근하며 DB별 잠금과 SQL은 각 구현에 둡니다. 전체 백업은 문제를 한 번에 조회합니다.
+- 문제는 공유되고 코드는 개인 브라우저의 무작위 HttpOnly 쿠키로 구분됩니다. DB에는 쿠키 원문 대신 해시를 저장합니다. 기존 쿠키와 기록은 유지됩니다.
+- 기기 간 자동 동기화나 이메일 계정은 없습니다. 쿠키를 삭제하기 전 환경 설정에서 백업을 내보내세요.
+- 개인 AI 한도는 첫 요청부터 24시간 동안 생성 5회, 검토 20회입니다. 같은 접속망은 각각 10/40회, 서비스 전체는 시간당 40회와 24시간당 100회입니다. 실패 요청도 차감하며 재시작해도 초기화되지 않습니다.
+- 이용 현황에서 개인 잔여 횟수, 갱신 시각, 최근 30일 처리 시간과 토큰 사용량을 확인할 수 있습니다. 제공자에게 보낸 코드 원문은 사용량 로그에 남기지 않습니다.
+- 백업은 최대 10MB, 문제 2,500개와 풀이 10,000개를 읽습니다. 공개 복원 한도는 하루 신규 문제 총 100개, 제출 기록 총 10,000개이며 개인 5회, 접속망 10회, 서비스 전체 20회입니다. 기존 문제와 작성 코드는 덮어쓰지 않습니다.
 
-서식은 `npm run format`으로 통일합니다. TypeScript의 미사용 변수 검사와 Knip의 파일, 의존성, 내보내기 검사를 CI에서도 실행합니다. `storage-schema.d.mts`는 JS 스키마 모듈의 타입 선언이며 Knip의 파일 검사만 제외합니다. DB 이전 스크립트는 `migrate:postgres` 명령으로 등록한 운영 진입점입니다.
+## 백업과 구조
 
-스타일은 `globals.css`의 가져오기 순서가 적용 순서입니다. 같은 선택자의 뒤쪽 규칙이 우선하므로 변경 시 데스크톱과 모바일을 함께 확인하세요. `data`, `artifacts`, 생성된 Monaco 자산, 환경 설정 파일은 운영 데이터 또는 생성 결과로서 코드 검사와 Git에서 제외합니다. `recode-*` 저장 키와 쿠키 이름은 기존 기록 호환을 위해 유지합니다.
+```bash
+npm run backup -- /safe-backups/codefit.sqlite
+npm run migrate:postgres -- data/recode.sqlite .vercel/.env.production.local
+```
 
-구현 참고: [OpenAI 구조화된 응답](https://github.com/openai/openai-node/blob/main/docs/structured-outputs.md), [Node.js SQLite](https://nodejs.org/api/sqlite.html). Next.js 동작은 프로젝트에 설치된 `node_modules/next/dist/docs/` 문서를 기준으로 확인했습니다.
+SQLite backup API로 실행 중인 WAL 데이터베이스의 일관된 스냅샷을 만듭니다. 복원은 앱을 종료하고 현재 DB와 `-wal`, `-shm` 파일을 별도 보관한 뒤 진행합니다. PostgreSQL은 제공자의 백업이나 `pg_dump`를 사용합니다. 이전 스크립트는 기존 대상 기록을 덮어쓰지 않으며 검색 테이블은 앱 시작 시 원본 문제로 채워집니다.
+
+`src/components`는 화면, `src/hooks`는 상태와 저장 흐름, `src/lib`는 공통 모델, `src/lib/server`는 요청 검증, 저장소와 AI를 담당합니다. 핵심 파일의 책임과 선택한 설계의 한계는 [engineering.md](docs/engineering.md)에 정리했습니다.

@@ -17,7 +17,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:unused": "knip",
-    "migrate:postgres": "node scripts/migrate-sqlite-to-postgres.mjs"
+    "migrate:postgres": "node scripts/migrate-sqlite-to-postgres.mjs",
+    "eval:ai": "node --import tsx scripts/evaluate-ai.ts",
+    "test:e2e": "playwright test",
+    "benchmark": "node --import tsx scripts/benchmark-storage.ts",
+    "measure:browser": "node --import tsx scripts/measure-browser.ts",
+    "test:ai-live": "node --import tsx scripts/verify-live-ai.ts"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -31,6 +36,8 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^26.4.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
@@ -38,6 +45,7 @@
     "eslint-config-next": "^16.3.4",
     "knip": "^6.35.1",
     "prettier": "^3.9.6",
+    "tsx": "^4.23.13",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"
   },

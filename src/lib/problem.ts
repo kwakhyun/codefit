@@ -122,10 +122,35 @@ export type ProblemSummary = Omit<
 export type ProgressSummary = Omit<Progress, "code">;
 export type AttemptSummary = Omit<Attempt, "code">;
 export interface Workspace {
-  problems: ProblemSummary[];
-  progress: Record<string, ProgressSummary>;
-  attempts: AttemptSummary[];
+  stats: {
+    total: number;
+    ai: number;
+    solved: number;
+    inProgress: number;
+    bookmarked: number;
+    attempts: number;
+  };
+  recommended: ProblemSummary | null;
+  resume: ProgressSummary | null;
+  activeProblem: ProblemSummary | null;
+  training: {
+    streak: number;
+    activeDays: number;
+    independentSolved: number;
+    week: { label: string; active: boolean }[];
+  };
   aiReady: boolean;
   storage: string;
   legacyCount: number;
+}
+export interface LibraryPage {
+  problems: ProblemSummary[];
+  progress: Record<string, ProgressSummary>;
+  total: number;
+  page: number;
+  pageSize: number;
+}
+export interface HistoryPage {
+  attempts: (AttemptSummary & { problemTitle: string })[];
+  nextCursor: string | null;
 }

@@ -5,6 +5,7 @@ export class HttpError extends Error {
   constructor(
     public status: number,
     message: string,
+    public retryAfter?: number,
   ) {
     super(message);
   }
@@ -47,7 +48,11 @@ export function json(data: unknown, status = 200) {
   return Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
 }
 export function failure(error: unknown) {
-  if (error instanceof HttpError) return json({ error: error.message }, error.status);
+  if (error instanceof HttpError) {
+    const response = json({ error: error.message }, error.status);
+    if (error.retryAfter) response.headers.set("Retry-After", String(error.retryAfter));
+    return response;
+  }
   if (error instanceof OpenAI.APIError) {
     const status = error.status;
     // Never log request bodies, provider errors or credentials.

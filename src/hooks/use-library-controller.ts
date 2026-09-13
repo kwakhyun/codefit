@@ -1,11 +1,12 @@
 "use client";
 
-import { domainLabel, LANGUAGES, LEVELS, type DomainId } from "@/lib/catalog";
+import { domainLabel, type DomainId } from "@/lib/catalog";
 import type { LibraryView } from "@/lib/library-state";
 import { libraryUrl, type LibraryFilters } from "@/lib/library-state";
-import type { Workspace } from "@/lib/problem";
-import { recommendProblem, trainingSummary } from "@/lib/training";
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import type { LibraryPage, Workspace } from "@/lib/problem";
+import { trainingSummary } from "@/lib/training";
+import { api, errorMessage } from "@/lib/client-api";
+import { useEffect, useState } from "react";
 export function useLibraryController({
   data,
   initialFilters,
@@ -20,7 +21,6 @@ export function useLibraryController({
   initialProblemId?: string;
 }) {
   const [search, setSearch] = useState(initialFilters.search);
-  const query = useDeferredValue(search);
   const [level, setLevel] = useState(initialFilters.level);
   const [kind, setKind] = useState(initialFilters.kind);
   const [language, setLanguage] = useState(initialFilters.language);
@@ -41,41 +41,41 @@ export function useLibraryController({
     )
       window.history.replaceState(null, "", libraryHref);
   }, [initialProblemId, libraryHref]);
-  const progressList = useMemo(() => Object.values(data?.progress || {}), [data?.progress]);
-  const solved = progressList.filter((p) => p.status === "solved").length;
-  const inProgress = progressList.filter((p) => p.status === "in-progress").length;
-  const saved = progressList.filter((p) => p.bookmarked).length;
-  const aiCount = data?.problems.filter((p) => p.source === "ai").length || 0;
-  const filtered = useMemo(() => {
-    const list = (data?.problems || []).filter((p) => {
-      const progress = data?.progress[p.id];
-      return (
-        (initialDomain === "all" || p.domain === initialDomain) &&
-        (level === "all" || p.difficulty === level) &&
-        (kind === "all" || p.kind === kind) &&
-        (language === "all" || p.language === language) &&
-        (source === "all" || p.source === source) &&
-        (status === "all" || (progress?.status || "new") === status) &&
-        (initialView !== "bookmarks" || progress?.bookmarked) &&
-        (!query.trim() ||
-          [p.title, p.summary, p.tags.join(" "), LANGUAGES[p.language].label, domainLabel(p.domain)]
-            .join(" ")
-            .toLowerCase()
-            .includes(query.trim().toLowerCase()))
-      );
-    });
-    return list.sort((a, b) => {
-      if (sort === "easy") return LEVELS.indexOf(a.difficulty) - LEVELS.indexOf(b.difficulty);
-      if (sort === "short") return a.minutes - b.minutes;
-      if (sort === "newest") return b.createdAt.localeCompare(a.createdAt);
-      if (a.id === "fe-search-race") return -1;
-      if (b.id === "fe-search-race") return 1;
-      if (a.source !== b.source) return a.source === "ai" ? -1 : 1;
-      return a.createdAt.localeCompare(b.createdAt);
-    });
-  }, [data, initialDomain, initialView, kind, language, level, query, sort, source, status]);
-  const currentPage = Math.min(page, Math.max(1, Math.ceil(filtered.length / 8)));
-  const pageProblems = filtered.slice((currentPage - 1) * 8, currentPage * 8);
+  const [result, setResult] = useState<{ href: string; value: LibraryPage } | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [pending, setPending] = useState(true);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    if (!data || initialProblemId || initialView === "history") return;
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setPending(true);
+      setLoadError("");
+      try {
+        const value = await api<LibraryPage>(`/api/library${libraryHref.slice(1)}`, {
+          signal: controller.signal,
+        });
+        if (!controller.signal.aborted) setResult({ href: libraryHref, value });
+      } catch (error) {
+        if (!controller.signal.aborted) setLoadError(errorMessage(error));
+      } finally {
+        if (!controller.signal.aborted) setPending(false);
+      }
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [data, initialProblemId, initialView, libraryHref, retry]);
+  const loading = pending || (result?.href !== libraryHref && !loadError);
+  const currentPage = result?.value.page || page;
+  const total = result?.value.total || 0;
+  const pageProblems = result?.value.problems || [];
+  const progress = result?.value.progress || {};
+  const solved = data?.stats.solved || 0;
+  const inProgress = data?.stats.inProgress || 0;
+  const saved = data?.stats.bookmarked || 0;
+  const aiCount = data?.stats.ai || 0;
   const hasFilters = Boolean(
     search ||
     level !== "all" ||
@@ -85,11 +85,9 @@ export function useLibraryController({
     status !== "all" ||
     sort !== "recommended",
   );
-  const resume = progressList
-    .filter((p) => p.status === "in-progress")
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
-  const recommended = data ? recommendProblem(data.problems, data.progress) : undefined;
-  const training = useMemo(() => trainingSummary(data?.attempts || []), [data?.attempts]);
+  const resume = data?.resume || undefined;
+  const recommended = data?.recommended || undefined;
+  const training = data?.training || trainingSummary([]);
   const title =
     initialView === "bookmarks"
       ? "북마크"
@@ -130,7 +128,11 @@ export function useLibraryController({
     inProgress,
     saved,
     aiCount,
-    filtered,
+    total,
+    progress,
+    loading,
+    loadError,
+    retry: () => setRetry((value) => value + 1),
     currentPage,
     pageProblems,
     hasFilters,

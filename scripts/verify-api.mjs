@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
 const base = process.env.VERIFY_BASE_URL || "http://127.0.0.1:3011";
-const password = process.env.VERIFY_ACCESS_TOKEN;
-if (!password)
+if (!["127.0.0.1", "localhost"].includes(new URL(base).hostname))
   throw new Error(
-    "VERIFY_ACCESS_TOKEN is required. Run against a disposable verification database.",
+    "This writes fixtures. Use a disposable local server, never the production site.",
   );
 function browser() {
   const cookies = new Map();
@@ -30,19 +29,14 @@ function browser() {
 }
 const a = browser(),
   b = browser();
-assert.equal((await a("/api/workspace")).status, 401);
-assert.equal(
-  (await a("/api/session", { method: "POST", body: { password: "wrong-test-password" } })).status,
-  401,
-);
-for (const user of [a, b])
-  assert.equal((await user("/api/session", { method: "POST", body: { password } })).status, 200);
 const workspace = await a("/api/workspace");
 assert.equal(workspace.status, 200);
-assert.ok(workspace.data.problems.length >= 12);
+assert.ok(workspace.data.stats.total >= 12);
 assert.equal(workspace.headers.get("cache-control"), "no-store");
 assert.equal(workspace.headers.get("x-content-type-options"), "nosniff");
-assert.ok(workspace.data.problems.every((p) => !("solution" in p) && !("hints" in p)));
+const library = await a("/api/library");
+assert.ok(library.data.problems.length <= 8);
+assert.ok(library.data.problems.every((p) => !("solution" in p) && !("hints" in p)));
 const id = "be-pagination";
 assert.equal((await a("/api/problems/missing")).status, 404);
 assert.equal(
@@ -115,5 +109,5 @@ assert.equal(
   400,
 );
 console.log(
-  "PASS: production access gate, sessions, 12+ problems, hidden answers, origin protection, malformed/oversized inputs, autosave, per-user isolation, hints, solution, backup export/import and generation validation.",
+  "PASS: public access, anonymous sessions, 12+ problems, hidden answers, origin protection, malformed/oversized inputs, autosave, per-user isolation, hints, solution, backup export/import and generation validation.",
 );

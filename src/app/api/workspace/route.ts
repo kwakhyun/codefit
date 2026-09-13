@@ -7,27 +7,13 @@ export async function GET(request: Request) {
   try {
     const { owner } = await session(request);
     const store = await getStore();
-    const [legacyValue, problems, progress, attempts] = await Promise.all([
+    const [legacyValue, workspace] = await Promise.all([
       store.legacy(owner),
-      store.summaries(),
-      store.progress(owner),
-      store.attempts(owner),
+      store.queries.workspace(owner, new URL(request.url).searchParams.get("problem")),
     ]);
     const legacy = legacyValue as { generatedLessons?: unknown[] } | null;
     return json({
-      problems,
-      progress: Object.fromEntries(
-        Object.entries(progress).map(([id, value]) => {
-          const { code: _code, ...summary } = value;
-          void _code;
-          return [id, summary];
-        }),
-      ),
-      attempts: attempts.map((value) => {
-        const { code: _code, ...summary } = value;
-        void _code;
-        return summary;
-      }),
+      ...workspace,
       aiReady: Boolean(process.env.OPENAI_API_KEY),
       storage: "서버 저장소",
       legacyCount: legacy?.generatedLessons?.length || 0,

@@ -145,12 +145,10 @@ export function useCodeDraft({
       }
     };
     window.addEventListener("online", retry);
-    window.addEventListener("codefit:session-restored", retry);
     document.addEventListener("visibilitychange", hide);
     window.addEventListener("beforeunload", beforeUnload);
     return () => {
       window.removeEventListener("online", retry);
-      window.removeEventListener("codefit:session-restored", retry);
       document.removeEventListener("visibilitychange", hide);
       window.removeEventListener("beforeunload", beforeUnload);
     };

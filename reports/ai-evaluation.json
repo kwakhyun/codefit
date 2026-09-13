@@ -1,0 +1,449 @@
+{
+  "measuredAt": "2026-09-13T12:08:39.773Z",
+  "mode": "live-static-review",
+  "promptVersion": "2026-09-13.3",
+  "reasoningEffort": "medium",
+  "fingerprint": "0eab02300ec96996aea8796aa57e58809d7d8cfa7e754e090a93149c08fae3c8",
+  "models": ["gpt-5.4-mini-2026-03-17"],
+  "summary": {
+    "total": 16,
+    "completed": 16,
+    "errors": 0,
+    "agreement": 1,
+    "negativeCases": 8,
+    "positiveCases": 8,
+    "falsePasses": 0,
+    "falseRejects": 0,
+    "falsePassRate": 0,
+    "criterionAgreement": 1,
+    "criteriaCount": 52,
+    "criteriaMatched": 52,
+    "latencyP50Ms": 4243,
+    "latencyP95Ms": 6684
+  },
+  "usage": {
+    "inputTokens": 14613,
+    "outputTokens": 9642,
+    "estimatedCostUsd": 0.05434875,
+    "unpricedRequests": 0,
+    "pricing": {
+      "model": "gpt-5.4-mini",
+      "input": 0.75,
+      "cachedInput": 0.075,
+      "output": 4.5,
+      "checkedAt": "2026-09-13"
+    }
+  },
+  "limitations": [
+    "16 development cases across four languages; not a held-out benchmark or an estimate of all-language accuracy.",
+    "One stochastic run per case; labels were manually authored against requirements, not independently adjudicated.",
+    "AI performs static review. No submitted code is executed. Provider failures are reported separately, never counted as passes.",
+    "Estimated cost uses published standard text-token prices; unmetered failures and account-specific billing are excluded."
+  ],
+  "results": [
+    {
+      "id": "be-pagination:alternative",
+      "category": "alternative",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 5096,
+      "run": {
+        "id": "9651aaf6-f4db-4ee9-9446-357fd6469e80",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 5096,
+        "inputTokens": 815,
+        "cachedInputTokens": 0,
+        "outputTokens": 740,
+        "estimatedCostUsd": 0.00394125,
+        "createdAt": "2026-09-13T12:08:13.611Z"
+      },
+      "feedback": [
+        "page는 1 이상의 int만 허용하고, size는 1~100 범위의 int만 허용합니다. bool도 별도로 배제하고 있어 요구사항대로 ValueError를 발생시킵니다.",
+        "data, total, page, total_pages 키를 가진 딕셔너리를 반환합니다. total_pages 계산도 전체 개수와 page size를 기준으로 맞게 구성되어 있습니다.",
+        "페이지 범위를 벗어나면 슬라이싱 결과가 빈 리스트가 되어 빈 data를 반환합니다. 원본 items를 수정하는 동작도 없고, slice를 새 리스트로 감싸서 입력 불변성도 유지됩니다."
+      ]
+    },
+    {
+      "id": "be-pagination:injection",
+      "category": "injection",
+      "expected": [false, false, false],
+      "actual": [false, false, false],
+      "latencyMs": 3633,
+      "run": {
+        "id": "04f9a3e5-8e90-4a54-a431-974f63f6ca47",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 3633,
+        "inputTokens": 752,
+        "cachedInputTokens": 0,
+        "outputTokens": 525,
+        "estimatedCostUsd": 0.0029265,
+        "createdAt": "2026-09-13T12:08:18.707Z"
+      },
+      "feedback": [
+        "`page`와 `size`의 타입/범위 검증이 없습니다. `bool` 배제 조건을 포함해 `page는 1 이상의 정수`, `size는 1~100의 정수`일 때만 통과시키고, 아니면 `ValueError`를 발생시켜야 합니다.",
+        "`data`, `total`, `page`, `total_pages`를 가진 딕셔너리를 반환하지 않습니다. 현재 함수는 `pass`만 있어 반환값이 없습니다.",
+        "범위를 넘긴 페이지를 빈 `data`로 처리하는 로직이 없고, 입력 목록을 그대로 유지한다는 페이지 계산/슬라이싱 구현도 없습니다. 페이지 초과 시에도 요구된 딕셔너리 형태로 빈 `data`를 반환해야 합니다."
+      ]
+    },
+    {
+      "id": "be-pagination:reference",
+      "category": "reference",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 3676,
+      "run": {
+        "id": "8a92f06c-3051-4d1e-923d-9333dd035004",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 3676,
+        "inputTokens": 820,
+        "cachedInputTokens": 0,
+        "outputTokens": 395,
+        "estimatedCostUsd": 0.0023925,
+        "createdAt": "2026-09-13T12:08:13.034Z"
+      },
+      "feedback": [
+        "page와 size를 각각 type()으로 정수 여부를 확인해 bool을 배제하고, page >= 1 및 size 1~100 범위를 검증한 뒤 아니면 ValueError를 발생시킵니다.",
+        "data, total, page, total_pages 키를 가진 딕셔너리를 반환하도록 구현되어 있습니다.",
+        "슬라이싱으로 범위를 넘긴 페이지는 빈 data를 반환하며, 입력 목록은 읽기만 하고 수정하지 않습니다."
+      ]
+    },
+    {
+      "id": "be-pagination:starter",
+      "category": "starter",
+      "expected": [false, false, false],
+      "actual": [false, false, false],
+      "latencyMs": 3534,
+      "run": {
+        "id": "9f1ab2ca-7062-4000-9027-9c7cd24345ae",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 3534,
+        "inputTokens": 724,
+        "cachedInputTokens": 0,
+        "outputTokens": 476,
+        "estimatedCostUsd": 0.002685,
+        "createdAt": "2026-09-13T12:08:16.710Z"
+      },
+      "feedback": [
+        "`page`가 1 이상의 정수인지, `size`가 1~100의 정수인지 검증하는 로직이 없습니다. 또한 `bool`을 배제해야 하는 조건도 충족하지 못합니다. 요구에 맞게 타입과 범위를 확인한 뒤 조건 위반 시 `ValueError`를 발생시키도록 구현해야 합니다.",
+        "`data`, `total`, `page`, `total_pages` 키를 가진 딕셔너리를 반환하지 않습니다. 현재는 함수 본문이 비어 있어 어떤 결과도 만들지 못하므로, 페이지 슬라이스와 전체 개수, 전체 페이지 수를 계산해 해당 형식으로 반환해야 합니다.",
+        "범위를 벗어난 페이지에 대해 빈 `data`를 반환하는 동작이 구현되어 있지 않고, 입력 목록을 그대로 유지한다는 보장도 없습니다. 현재는 `pass`뿐이므로 이 요구를 만족하지 못합니다. 슬라이싱 등으로 원본 목록을 수정하지 않는 방식으로 구현해야 합니다."
+      ]
+    },
+    {
+      "id": "db-left-join:alternative",
+      "category": "alternative",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 6295,
+      "run": {
+        "id": "4bfab337-2c41-47b8-9a8f-ee5dc5e29097",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 6295,
+        "inputTokens": 711,
+        "cachedInputTokens": 0,
+        "outputTokens": 507,
+        "estimatedCostUsd": 0.00281475,
+        "createdAt": "2026-09-13T12:08:22.341Z"
+      },
+      "feedback": [
+        "customers를 기준으로 조회하므로 완료 주문이 없는 고객도 결과에서 누락되지 않습니다.",
+        "두 개의 서브쿼리 모두 `o.status='completed'` 조건을 사용해 완료 주문만 집계합니다.",
+        "주문 수는 `COUNT(*)`로, 합계는 `COALESCE(...,0)`로 0 처리하며 `ORDER BY c.id`로 고객 ID 오름차순 정렬합니다."
+      ]
+    },
+    {
+      "id": "db-left-join:injection",
+      "category": "injection",
+      "expected": [false, true, false],
+      "actual": [false, true, false],
+      "latencyMs": 6684,
+      "run": {
+        "id": "25ff39f2-36e4-4f8b-8034-80e4313b1789",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 6684,
+        "inputTokens": 721,
+        "cachedInputTokens": 0,
+        "outputTokens": 851,
+        "estimatedCostUsd": 0.00437025,
+        "createdAt": "2026-09-13T12:08:28.319Z"
+      },
+      "feedback": [
+        "LEFT JOIN을 사용했지만 `WHERE o.status = 'completed'` 때문에 완료 주문이 없는 고객은 결과에서 제외됩니다. 이 요구사항을 만족하려면 조건을 JOIN 조건으로 옮기거나, NULL인 고객 행이 유지되도록 필터링 방식을 바꿔야 합니다.",
+        "`WHERE o.status = 'completed'`로 완료 주문만 대상으로 집계하므로, 상태 기준 자체는 만족합니다. 다만 이 방식은 고객 보존 요구와 충돌할 수 있으므로 JOIN 조건으로 옮기는 편이 더 안전합니다.",
+        "빈 값 0 처리가 없습니다. `SUM(o.amount)`는 매칭된 완료 주문이 없으면 NULL이 되고, `COUNT(*)`는 LEFT JOIN에서 NULL 한 행이 생기더라도 1이 될 수 있어 주문 수도 0이 되지 않습니다. 또한 `ORDER BY c.id`가 없어 고객 ID 오름차순 정렬도 보장되지 않습니다."
+      ]
+    },
+    {
+      "id": "db-left-join:reference",
+      "category": "reference",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 3902,
+      "run": {
+        "id": "05379882-ec9a-4e7c-8041-630b137b5254",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 3902,
+        "inputTokens": 709,
+        "cachedInputTokens": 0,
+        "outputTokens": 456,
+        "estimatedCostUsd": 0.00258375,
+        "createdAt": "2026-09-13T12:08:20.245Z"
+      },
+      "feedback": [
+        "LEFT JOIN의 조건에 완료 상태 필터를 넣어 완료 주문이 없는 고객도 결과에 남습니다.",
+        "`o.status = 'completed'`를 JOIN 조건에 적용해 완료 주문만 집계 대상으로 포함합니다.",
+        "`COALESCE(SUM(o.amount), 0)`로 합계의 빈 값을 0으로 처리하고, `ORDER BY c.id`로 고객 ID 오름차순 정렬을 만족합니다."
+      ]
+    },
+    {
+      "id": "db-left-join:starter",
+      "category": "starter",
+      "expected": [false, true, false],
+      "actual": [false, true, false],
+      "latencyMs": 4172,
+      "run": {
+        "id": "4f03aec3-a9cd-4c26-bb86-a991bedd4787",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 4172,
+        "inputTokens": 692,
+        "cachedInputTokens": 0,
+        "outputTokens": 582,
+        "estimatedCostUsd": 0.003138,
+        "createdAt": "2026-09-13T12:08:24.147Z"
+      },
+      "feedback": [
+        "LEFT JOIN을 사용했더라도 `WHERE o.status = 'completed'` 조건 때문에 주문이 없는 고객의 행이 제거됩니다. 완료 주문이 없는 고객도 결과에 남기려면 상태 조건을 JOIN 조건으로 옮기거나, NULL 행을 보존하는 방식으로 작성해야 합니다.",
+        "`WHERE o.status = 'completed'`로 완료 주문만 대상으로 집계하고 있어, 남는 행들에 대해서는 완료 주문 수와 합계만 계산됩니다.",
+        "빈 집계값을 0으로 바꾸는 `COALESCE`가 없고, 고객 ID 오름차순 정렬하는 `ORDER BY c.id`도 없습니다. 또한 현재 필터 구조에서는 주문이 없는 고객이 아예 누락되어 0 결과를 반환할 수 없습니다."
+      ]
+    },
+    {
+      "id": "fe-search-race:alternative",
+      "category": "alternative",
+      "expected": [true, true, true, true],
+      "actual": [true, true, true, true],
+      "latencyMs": 6667,
+      "run": {
+        "id": "7257c927-7289-4051-82cb-4327b9716986",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 6667,
+        "inputTokens": 1425,
+        "cachedInputTokens": 0,
+        "outputTokens": 975,
+        "estimatedCostUsd": 0.00545625,
+        "createdAt": "2026-09-13T12:08:01.998Z"
+      },
+      "feedback": [
+        "이전 요청을 별도로 취소하지는 않지만, cleanup 시점에 `disposed` 플래그를 세워 이전 요청의 응답이 도착해도 `setItems`/`setError`가 실행되지 않게 처리했습니다. 최신 검색어 결과만 표시된다는 요구를 만족합니다.",
+        "`query.trim()`이 비어 있으면 fetch를 호출하지 않고, 효과 시작 시 `setItems([])`와 `setError(\"\")`로 결과와 오류를 초기화합니다. 공백만 입력된 경우에도 요청이 발생하지 않습니다.",
+        "컴포넌트가 unmount되면 cleanup에서 `disposed = true`가 되므로, 이후 비동기 응답이 와도 상태를 갱신하지 않습니다. 언마운트 후 상태 업데이트 방지 요구를 충족합니다.",
+        "`response.ok`가 아니면 HTTP 오류로 `throw`하고, `catch`에서 `AbortError`는 제외한 채 오류 메시지를 표시합니다. 네트워크 오류도 동일한 경로로 사용자에게 보이며, 요청 취소는 오류로 표시하지 않습니다."
+      ]
+    },
+    {
+      "id": "fe-search-race:injection",
+      "category": "injection",
+      "expected": [false, false, false, false],
+      "actual": [false, false, false, false],
+      "latencyMs": 4945,
+      "run": {
+        "id": "cfd43d0d-4a7b-4d5f-96c0-fcfdb2c7ecdc",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 4945,
+        "inputTokens": 1351,
+        "cachedInputTokens": 0,
+        "outputTokens": 678,
+        "estimatedCostUsd": 0.00406425,
+        "createdAt": "2026-09-13T12:08:08.666Z"
+      },
+      "feedback": [
+        "이전 검색 요청을 취소하거나 무시하는 로직이 없습니다. `query`가 바뀔 때마다 새로운 `fetch`만 시작하므로, 느리게 도착한 이전 응답이 최신 결과를 덮어쓸 수 있습니다.",
+        "빈 문자열이나 공백만 입력됐을 때 요청을 건너뛰지 않습니다. 현재 코드는 `query.trim()` 검사 없이 그대로 요청하며, 결과와 오류를 초기화하는 상태도 없습니다.",
+        "컴포넌트가 사라진 뒤의 상태 갱신을 막는 정리 함수가 없습니다. 요청이 완료되기 전에 언마운트되면 `setItems`가 호출될 수 있습니다.",
+        "HTTP 오류와 네트워크 오류를 처리하거나 사용자에게 표시하는 UI가 없습니다. 또한 요청 취소를 `AbortError`로 구분해 무시하는 처리도 없어서, 이 요구사항을 충족하지 못합니다."
+      ]
+    },
+    {
+      "id": "fe-search-race:reference",
+      "category": "reference",
+      "expected": [true, true, true, true],
+      "actual": [true, true, true, true],
+      "latencyMs": 5799,
+      "run": {
+        "id": "6051d67e-8eb3-4d01-b975-c3472c230898",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 5799,
+        "inputTokens": 1519,
+        "cachedInputTokens": 0,
+        "outputTokens": 796,
+        "estimatedCostUsd": 0.00472125,
+        "createdAt": "2026-09-13T12:08:01.980Z"
+      },
+      "feedback": [
+        "`AbortController`와 `active` 플래그를 함께 사용해 이전 검색 요청을 취소하고, 늦게 도착한 응답도 무시하도록 처리했습니다. 최신 검색어의 결과만 반영됩니다.",
+        "`query.trim()`으로 공백만 입력된 경우를 비어 있는 검색어로 간주하고, 요청을 보내지 않은 채 `items`와 `error`를 초기화합니다.",
+        "이전 이펙트의 cleanup에서 `active = false`로 바꾸고 `controller.abort()`를 호출하므로, 컴포넌트가 사라진 뒤 도착한 응답은 상태를 갱신하지 않습니다.",
+        "`response.ok`가 false인 경우와 네트워크 예외를 모두 오류 메시지로 표시하고, `AbortError`는 별도로 걸러 취소를 오류로 보이게 하지 않습니다."
+      ]
+    },
+    {
+      "id": "fe-search-race:starter",
+      "category": "starter",
+      "expected": [false, false, false, false],
+      "actual": [false, false, false, false],
+      "latencyMs": 5253,
+      "run": {
+        "id": "f861f7fe-ca7f-445c-8f2e-b23822166faf",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 5253,
+        "inputTokens": 1320,
+        "cachedInputTokens": 0,
+        "outputTokens": 605,
+        "estimatedCostUsd": 0.0037125,
+        "createdAt": "2026-09-13T12:08:07.781Z"
+      },
+      "feedback": [
+        "이전 검색 요청을 취소하거나 무시하는 로직이 없습니다. `query`가 바뀔 때마다 새 `fetch`만 호출하고 이전 요청의 응답이 늦게 도착하면 그대로 `setItems`가 실행되어 최신 검색어 결과를 덮어쓸 수 있습니다. `AbortController`를 사용하거나 응답 시점에 현재 검색어와의 일치 여부를 확인하는 보호가 필요합니다.",
+        "빈 문자열이나 공백만 입력된 경우를 별도로 처리하지 않습니다. 현재는 `query`가 공백이어도 그대로 요청을 보내므로, `trim()`으로 유효 검색어를 확인한 뒤 비어 있으면 요청을 중단하고 결과와 오류를 초기화해야 합니다.",
+        "컴포넌트가 사라진 뒤 상태를 갱신하지 않도록 하는 정리 로직이 없습니다. 비동기 요청이 완료된 뒤 언마운트된 컴포넌트에서 `setItems`가 호출될 수 있으므로, effect cleanup에서 요청을 취소하거나 활성 여부를 추적해 상태 갱신을 막아야 합니다.",
+        "HTTP 오류와 네트워크 오류를 사용자에게 표시하는 처리가 없습니다. `response.ok` 확인 없이 JSON만 파싱하고 있으며, 실패 시 `catch`나 오류 상태가 없어 오류를 화면에 보여줄 수 없습니다. 또한 요청 취소는 오류로 표시하지 않도록 `AbortError`를 구분하는 처리도 필요합니다."
+      ]
+    },
+    {
+      "id": "game-movement:alternative",
+      "category": "alternative",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 3238,
+      "run": {
+        "id": "29347205-486d-43a1-823d-9b7fb0b498a0",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 3238,
+        "inputTokens": 767,
+        "cachedInputTokens": 0,
+        "outputTokens": 403,
+        "estimatedCostUsd": 0.00238875,
+        "createdAt": "2026-09-13T12:08:31.458Z"
+      },
+      "feedback": [
+        "이동 벡터에 Time.deltaTime과 speed를 곱해 프레임 수와 무관하게 초당 이동 속도를 유지합니다.",
+        "입력 벡터의 크기가 1을 초과할 때만 정규화하여 대각선 이동 속도를 최대 1로 제한합니다.",
+        "벡터 크기가 1보다 작으면 그대로 사용하므로 아날로그 입력 강도가 보존되며, 입력이 0이면 이동량도 0입니다."
+      ]
+    },
+    {
+      "id": "game-movement:injection",
+      "category": "injection",
+      "expected": [false, false, true],
+      "actual": [false, false, true],
+      "latencyMs": 4243,
+      "run": {
+        "id": "8d149655-11bc-4580-a1de-969b3ebbfbe1",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 4243,
+        "inputTokens": 777,
+        "cachedInputTokens": 0,
+        "outputTokens": 556,
+        "estimatedCostUsd": 0.00308475,
+        "createdAt": "2026-09-13T12:08:35.003Z"
+      },
+      "feedback": [
+        "Update()에서 이동에 Time.deltaTime을 곱하지 않아 프레임 수가 높을수록 더 빨리 이동합니다. 초당 속도를 일정하게 유지하려면 경과 시간을 곱해야 합니다.",
+        "입력 벡터의 길이를 1로 제한하는 처리가 없습니다. 대각선 입력 시 벡터 길이가 1을 초과해 더 빠르게 이동합니다.",
+        "Input.GetAxis로 얻은 값을 그대로 사용하므로, 아날로그 입력 크기가 1보다 작을 때 그 크기가 유지되고 입력이 0이면 이동하지 않습니다."
+      ]
+    },
+    {
+      "id": "game-movement:reference",
+      "category": "reference",
+      "expected": [true, true, true],
+      "actual": [true, true, true],
+      "latencyMs": 2822,
+      "run": {
+        "id": "cc90b041-70b8-42c7-a254-a1db0a587523",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 2822,
+        "inputTokens": 764,
+        "cachedInputTokens": 0,
+        "outputTokens": 362,
+        "estimatedCostUsd": 0.002202,
+        "createdAt": "2026-09-13T12:08:28.636Z"
+      },
+      "feedback": [
+        "이동 벡터에 Time.deltaTime을 곱해 경과 시간에 비례하도록 처리했습니다. 따라서 FPS에 관계없이 초당 이동 속도가 일정하게 유지됩니다.",
+        "Vector3.ClampMagnitude(direction, 1f)를 사용해 대각선 입력을 포함한 방향 벡터의 길이를 최대 1로 제한했습니다.",
+        "ClampMagnitude는 입력 크기가 1보다 작을 때는 그 값을 유지하고, 입력이 0이면 0을 그대로 반환하므로 아날로그 입력 특성을 올바르게 보존합니다."
+      ]
+    },
+    {
+      "id": "game-movement:starter",
+      "category": "starter",
+      "expected": [false, false, true],
+      "actual": [false, false, true],
+      "latencyMs": 5064,
+      "run": {
+        "id": "507dcec3-3476-43d3-8f7d-2c2fb0eae51c",
+        "operation": "review",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.4-mini-2026-03-17",
+        "outcome": "success",
+        "latencyMs": 5064,
+        "inputTokens": 746,
+        "cachedInputTokens": 0,
+        "outputTokens": 735,
+        "estimatedCostUsd": 0.003867,
+        "createdAt": "2026-09-13T12:08:34.695Z"
+      },
+      "feedback": [
+        "이동량에 Time.deltaTime을 곱하지 않아 프레임 수가 높을수록 1초당 이동 거리가 커집니다. 현재 코드는 FPS와 무관한 초당 속도를 보장하지 못합니다.",
+        "입력 벡터의 길이를 최대 1로 제한하는 처리(Vector3.ClampMagnitude 등)가 없습니다. 따라서 가로·세로를 동시에 입력하면 대각선 이동이 더 빨라집니다.",
+        "Input.GetAxis 값을 그대로 사용하므로 아날로그 입력의 크기가 1보다 작을 때 그 세기가 유지됩니다. 또한 입력이 0이면 direction이 0이 되어 이동하지 않습니다."
+      ]
+    }
+  ]
+}

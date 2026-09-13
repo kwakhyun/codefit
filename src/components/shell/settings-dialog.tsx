@@ -3,6 +3,7 @@
 import type { RefObject } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
+import { AiUsage } from "./ai-usage";
 import { Modal } from "@/components/ui/modal";
 import type { Workspace } from "@/lib/problem";
 import { ArrowDownToLine, LoaderCircle, ShieldCheck, Upload } from "lucide-react";
@@ -54,6 +55,7 @@ export function SettingsDialog({
         <div className="font-preview mono" style={{ fontSize }}>
           const practice = () =&gt; progress++;
         </div>
+        {settingsOpen && <AiUsage />}
         <div className="settings-info">
           <span>
             <span className={`status-dot ${!data?.aiReady ? "waiting" : ""}`} />

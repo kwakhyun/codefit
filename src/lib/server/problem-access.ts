@@ -1,17 +1,13 @@
+import { aiLimits, networkIdentity } from "./usage-policy";
 import { getStore } from "./database";
 import { HttpError } from "./http";
 
-export async function aiLimit(owner: string, kind: "generate" | "review") {
-  const ok = await (
-    await getStore()
-  ).consumeLimits([
-    { key: `ai:${kind}:${owner}`, max: kind === "generate" ? 20 : 60, windowMs: 86400_000 },
-    { key: "ai:global", max: 100, windowMs: 3600_000 },
-  ]);
-  if (!ok)
+export async function aiLimit(request: Request, owner: string, kind: "generate" | "review") {
+  if (!(await (await getStore()).consumeLimits(aiLimits(owner, networkIdentity(request), kind))))
     throw new HttpError(
       429,
-      "AI 요청 한도에 도달했습니다. 개인 한도는 24시간, 전체 한도는 1시간 후 갱신됩니다.",
+      "AI 이용 한도에 도달했습니다. 최대 24시간 후 다시 이용할 수 있습니다. 문제 풀이와 기록 조회는 계속 사용할 수 있습니다.",
+      86400,
     );
 }
 export async function requireProblem(id: string) {

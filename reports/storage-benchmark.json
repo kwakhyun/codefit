@@ -1,0 +1,38 @@
+{
+  "measuredAt": "2026-09-13T12:04:31.983Z",
+  "runtime": "v22.21.0",
+  "platform": "darwin",
+  "cpu": "Apple M2",
+  "database": "SQLite / disposable local fixture",
+  "rows": 5012,
+  "warmups": 10,
+  "iterations": 100,
+  "query": {
+    "domain": "frontend",
+    "source": "ai",
+    "sort": "newest",
+    "page": 1,
+    "pageSize": 8
+  },
+  "before": {
+    "description": "Read and parse every summary, as the previous workspace API did",
+    "p50Ms": 79.63045799999963,
+    "p95Ms": 168.40441599999986,
+    "payloadBytes": 1993608
+  },
+  "after": {
+    "description": "Count and retrieve one filtered page with the same ordering",
+    "p50Ms": 3.1646660000005795,
+    "p95Ms": 11.856708999999682,
+    "payloadBytes": 3354
+  },
+  "plan": [
+    {
+      "id": 5,
+      "parent": 0,
+      "notused": 62,
+      "detail": "SEARCH problem_catalog USING INDEX catalog_source_date (source=?)"
+    }
+  ],
+  "limitations": "Local warm-cache read timings, excluding HTTP and network latency. This is a bounded-response comparison, not production PostgreSQL throughput or load capacity."
+}

@@ -1,0 +1,105 @@
+.usage-panel {
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #090909;
+  margin: 20px 0;
+}
+.usage-panel h3 {
+  margin: 0 0 15px;
+  font-size: 15px;
+}
+.usage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.usage-grid > div {
+  display: grid;
+  gap: 8px;
+}
+.usage-grid strong {
+  font-size: 22px;
+}
+.usage-grid small {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.usage-panel p {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.quality-page {
+  max-width: 940px;
+  padding: 48px 28px 80px;
+  margin: auto;
+}
+.quality-page header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 60px;
+  gap: 20px;
+}
+.quality-page h1 {
+  font-size: clamp(30px, 5vw, 46px);
+  letter-spacing: -1.5px;
+  margin: 16px 0;
+  line-height: 1.25;
+}
+.quality-page h2 {
+  font-size: 22px;
+  margin: 0 0 18px;
+}
+.quality-page p,
+.quality-page li {
+  color: var(--muted);
+  line-height: 1.9;
+}
+.quality-page section {
+  border-top: 1px solid var(--line);
+  padding-top: 28px;
+  margin-top: 40px;
+}
+.quality-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 24px 0;
+}
+.quality-metrics > div {
+  padding: 24px 18px;
+  background: #0c0c0c;
+  border: 1px solid var(--line);
+}
+.quality-metrics strong {
+  display: block;
+  font-size: 32px;
+  margin: 14px 0 8px;
+  font-family: var(--mono);
+}
+.quality-metrics small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.quality-page a {
+  text-underline-offset: 4px;
+}
+@media (max-width: 640px) {
+  .quality-page {
+    padding: 24px 20px 60px;
+  }
+  .quality-page header {
+    margin-bottom: 36px;
+  }
+  .quality-metrics {
+    grid-template-columns: 1fr;
+  }
+  .quality-metrics > div {
+    padding: 18px;
+  }
+  .app-footer {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+}

@@ -68,7 +68,9 @@ export function useProblemController({
   } = useCodeDraft({ id, mounted, onSaved, onError: setError });
   const load = useCallback(async () => {
     try {
-      const next = await api<Detail>(`/api/problems/${encodeURIComponent(id)}`);
+      const next = await api<Detail>(
+        `/api/problems/${encodeURIComponent(id)}${initialAttemptId ? `?attempt=${encodeURIComponent(initialAttemptId)}` : ""}`,
+      );
       if (!mounted.current) return;
       setLoadError("");
       const localNewer = initialize(next.progress, next.problem.starterCode);
@@ -98,7 +100,9 @@ export function useProblemController({
   useEffect(() => {
     const refreshImported = async () => {
       try {
-        const next = await api<Detail>(`/api/problems/${encodeURIComponent(id)}`);
+        const next = await api<Detail>(
+          `/api/problems/${encodeURIComponent(id)}${initialAttemptId ? `?attempt=${encodeURIComponent(initialAttemptId)}` : ""}`,
+        );
         if (!mounted.current) return;
         restoreImportedCode(next.progress?.code);
         setDetail((prev) => ({
@@ -118,7 +122,7 @@ export function useProblemController({
     };
     window.addEventListener("codefit:backup-imported", refreshImported);
     return () => window.removeEventListener("codefit:backup-imported", refreshImported);
-  }, [id, restoreImportedCode]);
+  }, [id, initialAttemptId, restoreImportedCode]);
   async function review(value: string) {
     if (pending.current || value.trim().length < 5 || !aiReady) return;
     pending.current = true;

@@ -1,3 +1,4 @@
+import { importLimits, networkIdentity } from "@/lib/server/usage-policy";
 import { backupSchema } from "@/lib/backup";
 import { getStore } from "@/lib/server/database";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
@@ -7,12 +8,19 @@ export async function POST(request: Request) {
   try {
     const { owner } = await session(request);
     const backup = await readBody(request, backupSchema, 10_000_000);
+    const store = await getStore();
+    let newProblems = 0;
+    for (const problem of backup.problems) if (!(await store.problem(problem.id))) newProblems++;
     if (
-      !(await (
-        await getStore()
-      ).consumeLimits([{ key: "import:global", max: 10, windowMs: 3600_000 }]))
+      !(await store.consumeLimits(
+        importLimits(owner, networkIdentity(request), newProblems, backup.attempts.length),
+      ))
     )
-      throw new HttpError(429, "백업 가져오기 요청이 많습니다. 잠시 후 다시 시도해 주세요.");
+      throw new HttpError(
+        429,
+        "백업 가져오기 한도에 도달했습니다. 최대 24시간 후 다시 시도해 주세요. 한 번에 새 문제는 100개까지 복원할 수 있습니다.",
+        86400,
+      );
     try {
       return json(await (await getStore()).importBackup(owner, backup));
     } catch {

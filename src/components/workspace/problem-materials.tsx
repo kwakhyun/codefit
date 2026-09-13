@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import type { ConfirmationAction } from "@/components/workspace/types";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -261,14 +262,18 @@ export function ProblemMaterials({
               </div>
             ) : (
               <div className="attempts-list">
-                {attempts.map((a, i) => (
+                <p className="muted">
+                  최근 20개와 선택한 제출본을 표시합니다. 더 오래된 풀이는{" "}
+                  <Link href="/?view=history">전체 학습 기록</Link>에서 열 수 있습니다.
+                </p>
+                {attempts.map((a) => (
                   <button
                     key={a.id}
                     className={selectedAttempt?.id === a.id ? "selected" : ""}
                     onClick={() => setSelectedAttempt(a)}
                   >
                     <span>
-                      <strong>시도 #{attempts.length - i}</strong>
+                      <strong>풀이 기록</strong>
                       <small>
                         {dateLabel(a.createdAt)}
                         {a.assisted ? " · 도움 사용" : " · 직접 풀이"}

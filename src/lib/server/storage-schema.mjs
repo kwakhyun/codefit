@@ -5,6 +5,30 @@ CREATE TABLE IF NOT EXISTS problems (
   content TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS problem_catalog (
+  id TEXT PRIMARY KEY REFERENCES problems(id),
+  title TEXT NOT NULL,
+  summary TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  language TEXT NOT NULL,
+  difficulty TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  source TEXT NOT NULL,
+  minutes INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  search_text TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS catalog_domain_date ON problem_catalog(domain,created_at DESC,id DESC);
+CREATE INDEX IF NOT EXISTS catalog_date ON problem_catalog(created_at DESC,id DESC);
+CREATE INDEX IF NOT EXISTS catalog_source_date ON problem_catalog(source,created_at DESC,id DESC);
+CREATE TABLE IF NOT EXISTS ai_runs (
+  id TEXT PRIMARY KEY,
+  owner TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  content TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ai_runs_owner_date ON ai_runs(owner,created_at DESC);
 CREATE TABLE IF NOT EXISTS progress (
   owner TEXT NOT NULL,
   problem_id TEXT NOT NULL REFERENCES problems(id),
@@ -25,7 +49,9 @@ CREATE TABLE IF NOT EXISTS attempts (
   assisted INTEGER NOT NULL,
   created_at TEXT NOT NULL
 );
-CREATE INDEX IF NOT EXISTS attempts_owner_date ON attempts(owner, created_at DESC);
+DROP INDEX IF EXISTS attempts_owner_date;
+CREATE INDEX IF NOT EXISTS attempts_owner_cursor ON attempts(owner, created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS attempts_problem_cursor ON attempts(owner,problem_id,created_at DESC,id DESC);
 CREATE TABLE IF NOT EXISTS limits (
   key TEXT PRIMARY KEY,
   count INTEGER NOT NULL,

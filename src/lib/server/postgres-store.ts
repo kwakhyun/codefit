@@ -1,3 +1,6 @@
+import { StoreQueries } from "./store-queries";
+import { catalogColumns, catalogValues } from "./catalog-record";
+import { validateLimits } from "./usage-policy";
 import postgres, { type Sql, type TransactionSql } from "postgres";
 import { seedProblems } from "../../data/problems";
 import type { Backup } from "../backup";
@@ -19,6 +22,23 @@ export class PostgresStore implements ProblemStore {
     private readonly sql: Sql | TransactionSql,
     private readonly inTransaction = false,
   ) {}
+  get queries() {
+    return new StoreQueries(async (text, values = []) => {
+      let index = 0;
+      return this.sql.unsafe(
+        text.replace(/\?/g, () => `$${++index}`),
+        values,
+      );
+    }, "postgres");
+  }
+  private async addCatalog(problem: Problem) {
+    await this.sql.unsafe(
+      `INSERT INTO problem_catalog (${catalogColumns}) VALUES (${catalogValues(problem)
+        .map((_, i) => `$${i + 1}`)
+        .join(",")}) ON CONFLICT(id) DO NOTHING`,
+      catalogValues(problem),
+    );
+  }
   private async transaction<T>(fn: (store: PostgresStore) => Promise<T>): Promise<T> {
     if (this.inTransaction) return fn(this);
     return (await (this.sql as Sql).begin(async (tx) => fn(new PostgresStore(tx, true)))) as T;
@@ -30,6 +50,12 @@ export class PostgresStore implements ProblemStore {
       await store.sql.unsafe(storageSchema);
       for (const problem of seedProblems)
         await store.sql`INSERT INTO problems(id,content,created_at) VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt}) ON CONFLICT(id) DO NOTHING`;
+      while (true) {
+        const rows =
+          await store.sql`SELECT content FROM problems p WHERE NOT EXISTS (SELECT 1 FROM problem_catalog c WHERE c.id=p.id) LIMIT 100`;
+        if (!rows.length) break;
+        for (const row of rows) await store.addCatalog(JSON.parse(row.content));
+      }
     });
   }
   async problem(id: string): Promise<Problem | null> {
@@ -47,8 +73,14 @@ export class PostgresStore implements ProblemStore {
     return rows.map((row) => ({ ...row.summary, hintCount: Number(row.hint_count) }));
   }
   async addProblem(problem: Problem) {
-    await this
-      .sql`INSERT INTO problems(id,content,created_at) VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt})`;
+    await this.transaction(async (store) => {
+      await store.sql`INSERT INTO problems(id,content,created_at) VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt})`;
+      await store.addCatalog(problem);
+    });
+  }
+  async progressFor(owner: string, id: string): Promise<Progress | null> {
+    const [row] = await this.sql`SELECT * FROM progress WHERE owner=${owner} AND problem_id=${id}`;
+    return row ? toProgress(row) : null;
   }
   async completeGeneration(problem: Problem, jobId: string) {
     await this.transaction(async (store) => {
@@ -76,7 +108,7 @@ export class PostgresStore implements ProblemStore {
         await store.sql`UPDATE progress SET code=${patch.code},status=CASE WHEN status='solved' THEN status ELSE 'in-progress' END,updated_at=${now} WHERE owner=${owner} AND problem_id=${id}`;
       if (patch.bookmarked !== undefined)
         await store.sql`UPDATE progress SET bookmarked=${Number(patch.bookmarked)},updated_at=${now} WHERE owner=${owner} AND problem_id=${id}`;
-      return (await store.progress(owner))[id];
+      return (await store.progressFor(owner, id))!;
     });
   }
   async reveal(owner: string, problem: Problem, kind: "hint" | "solution") {
@@ -86,7 +118,7 @@ export class PostgresStore implements ProblemStore {
         await store.sql`UPDATE progress SET hints_viewed=LEAST(hints_viewed+1,${problem.hints.length}),updated_at=${new Date().toISOString()} WHERE owner=${owner} AND problem_id=${problem.id}`;
       else
         await store.sql`UPDATE progress SET solution_viewed=1,updated_at=${new Date().toISOString()} WHERE owner=${owner} AND problem_id=${problem.id}`;
-      return (await store.progress(owner))[problem.id];
+      return (await store.progressFor(owner, problem.id))!;
     });
   }
   async attempts(owner: string, problemId?: string): Promise<Attempt[]> {
@@ -116,15 +148,16 @@ export class PostgresStore implements ProblemStore {
     });
   }
   async consumeLimits(entries: UsageLimit[], now = Date.now()) {
+    validateLimits(entries);
     return this.transaction(async (store) => {
       await store.sql`SELECT pg_advisory_xact_lock(704712002)`;
       await store.sql`DELETE FROM limits WHERE expires<=${now}`;
       for (const entry of entries) {
         const [row] = await store.sql`SELECT count FROM limits WHERE key=${entry.key}`;
-        if (row && Number(row.count) >= entry.max) return false;
+        if (Number(row?.count || 0) + (entry.cost ?? 1) > entry.max) return false;
       }
       for (const entry of entries)
-        await store.sql`INSERT INTO limits VALUES(${entry.key},1,${now + entry.windowMs}) ON CONFLICT(key) DO UPDATE SET count=limits.count+1`;
+        await store.sql`INSERT INTO limits VALUES(${entry.key},${entry.cost ?? 1},${now + entry.windowMs}) ON CONFLICT(key) DO UPDATE SET count=limits.count+EXCLUDED.count`;
       return true;
     });
   }
@@ -153,6 +186,7 @@ export class PostgresStore implements ProblemStore {
       for (const problem of backup.problems) {
         const rows =
           await store.sql`INSERT INTO problems VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt}) ON CONFLICT(id) DO NOTHING RETURNING id`;
+        if (rows.length) await store.addCatalog(problem);
         problems += rows.length;
       }
       for (const p of Object.values(backup.progress)) {

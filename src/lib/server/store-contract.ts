@@ -1,13 +1,16 @@
+import type { StoreQueries } from "./store-queries";
 import type { Backup } from "../backup";
 import type { Attempt, Problem, ProblemSummary, Progress, Review } from "../problem";
 
 type Stored<T> = T | Promise<T>;
 export type ProgressPatch = { code?: string; bookmarked?: boolean };
-export type UsageLimit = { key: string; max: number; windowMs: number };
+export type UsageLimit = { key: string; max: number; windowMs: number; cost?: number };
 export type JobClaim = { state: "new" | "pending" | "done"; result?: string };
 
 /** The API uses the same operations with local SQLite and hosted PostgreSQL. */
 export interface ProblemStore {
+  readonly queries: StoreQueries;
+  progressFor(owner: string, id: string): Stored<Progress | null>;
   problem(id: string): Stored<Problem | null>;
   problems(): Stored<Problem[]>;
   summaries(): Stored<ProblemSummary[]>;
