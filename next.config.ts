@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: "standalone",
+  // Vercel packages its own functions; standalone is only for local/Docker hosting.
+  // Next 16.3 adapter compatibility: https://github.com/vercel/next.js/issues/96646
+  output: process.env.VERCEL ? undefined : "standalone",
   devIndicators: false,
   async headers() {
     return [{ source: "/:path*", headers: [
