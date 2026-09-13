@@ -24,14 +24,10 @@
   flex-shrink: 0;
 }
 
-.brand-symbol {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  background: var(--accent);
-  color: #232323;
-  border-radius: 0;
+.brand-icon {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
 }
 
 .brand-logo small {

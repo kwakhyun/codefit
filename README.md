@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="public/brand/codefit-icon.png" alt="CODE:FIT 로고" width="88" height="88" />
+
 # CODE:FIT_
 
 ### AI가 코드를 짜도, 내 실력은 녹슬지 않게.

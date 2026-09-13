@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, Terminal } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { BrandIcon } from "@/components/ui/brand-icon";
 import report from "../../../reports/ai-review-luna.json";
 export const metadata = { title: "AI 검토 방식과 검증 결과 | CODE:FIT" };
 export default function QualityPage() {
@@ -8,7 +9,7 @@ export default function QualityPage() {
     <main className="quality-page">
       <header>
         <Link href="/" className="brand-logo">
-          <Terminal size={22} />
+          <BrandIcon />
           CODE:FIT_
         </Link>
         <Link href="/" className="text-button">

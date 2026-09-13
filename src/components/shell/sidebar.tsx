@@ -6,6 +6,7 @@ import { DOMAINS, type DomainId } from "@/lib/catalog";
 import type { LibraryView } from "@/lib/library-state";
 import type { ProblemSummary, Workspace } from "@/lib/problem";
 import { Bookmark, History, LayoutGrid, Settings2, Terminal, UserRound, X } from "lucide-react";
+import { BrandIcon } from "../ui/brand-icon";
 import Link from "next/link";
 interface SidebarProps {
   mobileMenu: boolean;
@@ -50,9 +51,7 @@ export function Sidebar({
       }}
     >
       <Link href="/" className="brand-logo">
-        <span className="brand-symbol">
-          <Terminal size={22} />
-        </span>
+        <BrandIcon />
         <span>
           CODE:FIT<span className="brand-cursor">_</span>
           <small>AI 시대의 코딩 근력</small>

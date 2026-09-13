@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft, Terminal } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { BrandIcon } from "../ui/brand-icon";
 export function AccountShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="account-page" id="main-content">
       <header>
         <Link href="/" className="brand-logo">
-          <Terminal size={23} />
+          <BrandIcon />
           CODE:FIT_
         </Link>
         <Link href="/" className="text-button">
