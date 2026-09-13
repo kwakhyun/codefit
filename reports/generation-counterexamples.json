@@ -1,0 +1,87 @@
+{
+  "runtime": "3.11.4",
+  "mode": "isolated interpreter, reviewed pinned sources, 3-second timeout",
+  "limits": "Focused counterexamples only; Python 3.12-only source, React, SQL and Unity were inspected statically, not executed here. Not a sandbox for arbitrary code.",
+  "checks": [
+    {
+      "sample": "terra:network-frames:1:solution",
+      "sourceSha256": "37605937bcd3c6b98a2a4405c5acd5708d211cfc4a1c7a1b48e6a567fb15f5d3",
+      "check": "Published payload-split example lacks the fourth length byte (run 2 uses t=116, likewise exceeds 1024).",
+      "exitCode": 0,
+      "observed": "Example's first feed raises ValueError: header is 1121, not 4",
+      "assertionPassed": true
+    },
+    {
+      "sample": "terra:network-frames:2:solution",
+      "sourceSha256": "84858f76c1f5f75cb72ff6c91b74c8041b418926e07298794fbf86855efc9be8",
+      "check": "Published payload-split example lacks the fourth length byte (run 2 uses t=116, likewise exceeds 1024).",
+      "exitCode": 0,
+      "observed": "Example's first feed raises ValueError: header is 1140, not 4",
+      "assertionPassed": true
+    },
+    {
+      "sample": "terra:infra-config:1:solution",
+      "sourceSha256": "dd87a9ebfc8d0f166cc71cef424ba1b55828d5859ad2a58e5b77b351babe8a01",
+      "check": "5000-digit PORT and two invalid fields should report all field names, but int() aborts before aggregation (default digit limit).",
+      "exitCode": 0,
+      "observed": "Uncaught int conversion limit prevents collecting DEBUG, PORT, WORKERS",
+      "assertionPassed": true
+    },
+    {
+      "sample": "terra:infra-config:2:solution",
+      "sourceSha256": "280a38eabee1b6689c7df07fc49a4af6a3b4034601e57c04d9ba0cb26cffaffc",
+      "check": "5000-digit PORT and two invalid fields should report all field names, but int() aborts before aggregation (default digit limit).",
+      "exitCode": 0,
+      "observed": "Uncaught int conversion limit prevents collecting DEBUG, PORT, WORKERS",
+      "assertionPassed": true
+    },
+    {
+      "sample": "sol:infra-config:2:solution",
+      "sourceSha256": "323ffa9e409b854e5f10f4281a0b02a15da8427ff3171964adc5e0bf362f7258",
+      "check": "5000-digit PORT and two invalid fields should report all field names, but int() aborts before aggregation (default digit limit).",
+      "exitCode": 0,
+      "observed": "Uncaught int conversion limit prevents collecting DEBUG, PORT, WORKERS",
+      "assertionPassed": true
+    },
+    {
+      "sample": "luna:infra-config:1:starterCode",
+      "sourceSha256": "5b387a6e93a1f2313722b4450e5737b611ff3ab763c312e931e2c5a422162b8d",
+      "check": "Refactoring starter violates the required aggregate-error behavior.",
+      "exitCode": 0,
+      "observed": "Starter stops before collecting all invalid fields; fixing behavior is required",
+      "assertionPassed": true
+    },
+    {
+      "sample": "luna:infra-config:2:starterCode",
+      "sourceSha256": "c82b0500ce5d8bf1556f1366931eea818877e0bba293a06182add1b590f4a5b3",
+      "check": "Refactoring starter violates the required aggregate-error behavior.",
+      "exitCode": 0,
+      "observed": "Starter stops before collecting all invalid fields; fixing behavior is required",
+      "assertionPassed": true
+    },
+    {
+      "sample": "terra:infra-config:1:starterCode",
+      "sourceSha256": "92393e8689c7cb7af0d7451be771e6892a6ae9943f30313660c2473811a80acf",
+      "check": "Refactoring starter violates the required aggregate-error behavior.",
+      "exitCode": 0,
+      "observed": "Starter stops before collecting all invalid fields; fixing behavior is required",
+      "assertionPassed": true
+    },
+    {
+      "sample": "terra:infra-config:2:starterCode",
+      "sourceSha256": "5f7df3dce9112d0b185961ed063ee7399bfdd983bec1529e338a26eab7b42098",
+      "check": "Refactoring starter violates the required aggregate-error behavior.",
+      "exitCode": 0,
+      "observed": "Starter stops before collecting all invalid fields; fixing behavior is required",
+      "assertionPassed": true
+    },
+    {
+      "sample": "sol:infra-config:2:starterCode",
+      "sourceSha256": "7880ef7cc81c043c0926fec1470bfedb8179c6ae4149df71ecbc154f103ac7a8",
+      "check": "Refactoring starter violates the required aggregate-error behavior.",
+      "exitCode": 0,
+      "observed": "Starter stops before collecting all invalid fields; fixing behavior is required",
+      "assertionPassed": true
+    }
+  ]
+}

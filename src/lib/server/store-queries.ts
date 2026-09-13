@@ -14,7 +14,7 @@ export type Query = (
   values?: (string | number)[],
 ) => Promise<Record<string, unknown>[]>;
 const progressColumns =
-  "g.problem_id,g.bookmarked,g.hints_viewed,g.solution_viewed,g.status,g.updated_at";
+  "g.problem_id,g.code_revision,g.bookmarked,g.hints_viewed,g.solution_viewed,g.status,g.updated_at";
 const cursorSchema = z.object({
   date: z.iso.datetime(),
   id: z

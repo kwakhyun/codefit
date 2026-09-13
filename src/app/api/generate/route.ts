@@ -1,3 +1,5 @@
+import type { JobLease } from "@/lib/server/store-contract";
+import { requestFingerprint } from "@/lib/server/write-conflicts";
 import { generationSchema, problemSchema, publicProblem } from "@/lib/problem";
 import { generateProblem } from "@/lib/server/ai";
 import { getStore } from "@/lib/server/database";
@@ -8,18 +10,23 @@ import { generationDay } from "@/lib/server/generation-quota";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 export async function POST(request: Request) {
-  let jobId: string | undefined;
+  let lease: JobLease | undefined;
   try {
     const { owner } = await requireUser(request);
     const input = await readBody(request, generationSchema, 4000);
     const store = await getStore();
-    const job = await store.startJob(owner, input.requestId, "generate");
+    const job = await store.startJob(
+      owner,
+      input.requestId,
+      "generate",
+      requestFingerprint(input.domain, input.language, input.difficulty, input.kind, input.topic),
+    );
     if (job.state === "done")
       return json({ problem: publicProblem((await store.problem(job.result!))!) });
     if (job.state === "pending")
       throw new HttpError(409, "같은 문제를 생성하고 있습니다. 잠시 후 보관함을 확인해 주세요.");
-    jobId = input.requestId;
-    if (!(await store.reserveGeneration(owner, input.requestId))) {
+    lease = job.lease;
+    if (!(await store.reserveGeneration(lease))) {
       throw new HttpError(
         429,
         "오늘의 문제 생성 3회를 모두 사용했습니다. 한국 시간 자정에 다시 3회가 제공됩니다.",
@@ -40,12 +47,12 @@ export async function POST(request: Request) {
       source: "ai",
       createdAt: new Date().toISOString(),
     });
-    await store.completeGeneration(problem, input.requestId);
+    await store.completeGeneration(problem, lease);
     return json({ problem: publicProblem(problem) }, 201);
   } catch (error) {
-    if (jobId) {
+    if (lease) {
       try {
-        await (await getStore()).failJob(jobId);
+        await (await getStore()).failJob(lease);
       } catch {
         /* Preserve the original error; pending jobs expire. */
       }

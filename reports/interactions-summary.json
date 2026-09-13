@@ -1,0 +1,240 @@
+{
+  "before": {
+    "desktop-local": {
+      "listMedian": 942.8000000715256,
+      "listRange": [925, 1055.5],
+      "editorMedian": 902.8999999761581,
+      "editorRange": [890.7000000476837, 963.8000000715256],
+      "typingP95": 16.399999976158142,
+      "typingMax": 17.600000023841858,
+      "longTasks": [],
+      "typingCommits": [34, 34, 34, 34, 34],
+      "typingRequests": [1, 1, 1, 1, 1],
+      "searchCommits": [8, 8, 8, 8, 8],
+      "searchRequests": [1, 1, 1, 1, 1],
+      "initialRequests": [
+        {
+          "path": "/api/workspace",
+          "start": 547,
+          "end": 552.8000000715256,
+          "duration": 5.800000071525574
+        },
+        {
+          "path": "/api/library",
+          "start": 763.4000000953674,
+          "end": 767.6000000238419,
+          "duration": 4.199999928474426
+        }
+      ],
+      "editorRequests": [
+        {
+          "path": "/api/workspace",
+          "start": 243.70000004768372,
+          "end": 248.70000004768372,
+          "duration": 5
+        },
+        {
+          "path": "/api/problems/be-pagination",
+          "start": 251.60000002384186,
+          "end": 257.89999997615814,
+          "duration": 6.299999952316284
+        }
+      ],
+      "largestTraceDispatches": [
+        {
+          "type": "keypress",
+          "durationMs": 10.355
+        },
+        {
+          "type": "textInput",
+          "durationMs": 10.143
+        },
+        {
+          "type": "input",
+          "durationMs": 8.823
+        }
+      ],
+      "traceFile": "reports/traces/before-desktop-local-typing.trace.json.gz",
+      "traceSHA256": "d5f615ae8dda5889553f321aa9ec1fffb9d5c6776ab328f9d08f07b0c3b48db4"
+    },
+    "mobile-constrained": {
+      "listMedian": 2127.100000023842,
+      "listRange": [1719.3999999761581, 2195.7000000476837],
+      "editorMedian": 3645.3000000715256,
+      "editorRange": [3633.899999976158, 3712.100000023842],
+      "typingP95": 17.799999952316284,
+      "typingMax": 54.5,
+      "longTasks": [
+        {
+          "start": 5631.399999976158,
+          "duration": 50
+        },
+        {
+          "start": 5596.5,
+          "duration": 54
+        }
+      ],
+      "typingCommits": [34, 34, 34, 34, 34],
+      "typingRequests": [1, 1, 1, 1, 1],
+      "searchCommits": [8, 8, 8, 8, 8],
+      "searchRequests": [1, 1, 1, 1, 1],
+      "initialRequests": [
+        {
+          "path": "/api/workspace",
+          "start": 1087.5,
+          "end": 1194.2999999523163,
+          "duration": 106.79999995231628
+        },
+        {
+          "path": "/api/library",
+          "start": 1544.7999999523163,
+          "end": 1654,
+          "duration": 109.20000004768372
+        }
+      ],
+      "editorRequests": [
+        {
+          "path": "/api/workspace",
+          "start": 681.8999999761581,
+          "end": 806.3999999761581,
+          "duration": 124.5
+        },
+        {
+          "path": "/api/problems/be-pagination",
+          "start": 828,
+          "end": 933.6999999284744,
+          "duration": 105.69999992847443
+        }
+      ],
+      "largestTraceDispatches": [
+        {
+          "type": "keypress",
+          "durationMs": 42.899
+        },
+        {
+          "type": "textInput",
+          "durationMs": 42.334
+        },
+        {
+          "type": "input",
+          "durationMs": 39.555
+        }
+      ],
+      "traceFile": "reports/traces/before-mobile-constrained-typing.trace.json.gz",
+      "traceSHA256": "a99deb7fa599cc274b21096cde2db167f4a505e972e80f6c686794648095c2a2"
+    }
+  },
+  "after": {
+    "desktop-local": {
+      "listMedian": 836,
+      "listRange": [789.5, 874],
+      "editorMedian": 902.8999999761581,
+      "editorRange": [888.5, 937.3000000715256],
+      "typingP95": 16.399999976158142,
+      "typingMax": 18,
+      "longTasks": [],
+      "typingCommits": [34, 34, 34, 34, 34],
+      "typingRequests": [1, 1, 1, 1, 1],
+      "searchCommits": [8, 8, 8, 8, 8],
+      "searchRequests": [1, 1, 1, 1, 1],
+      "initialRequests": [
+        {
+          "path": "/api/workspace",
+          "start": 563.8000000715256,
+          "end": 569.7000000476837,
+          "duration": 5.899999976158142
+        }
+      ],
+      "editorRequests": [
+        {
+          "path": "/api/workspace",
+          "start": 239.90000009536743,
+          "end": 247,
+          "duration": 7.099999904632568
+        }
+      ],
+      "largestTraceDispatches": [
+        {
+          "type": "keypress",
+          "durationMs": 9.511
+        },
+        {
+          "type": "textInput",
+          "durationMs": 9.315
+        },
+        {
+          "type": "input",
+          "durationMs": 8.609
+        }
+      ],
+      "traceFile": "reports/traces/after-desktop-local-typing.trace.json.gz",
+      "traceSHA256": "f89bc724fa1f88dfa92fbc57d5ca185c44f09a011d7a3262c3816b287fedacf3"
+    },
+    "mobile-constrained": {
+      "listMedian": 1579.6000000238419,
+      "listRange": [1416.3000000715256, 2776.7000000476837],
+      "editorMedian": 3677.7999999523163,
+      "editorRange": [3494.7000000476837, 5469.399999976158],
+      "typingP95": 38,
+      "typingMax": 77.89999997615814,
+      "longTasks": [
+        {
+          "start": 5450.900000095367,
+          "duration": 51
+        },
+        {
+          "start": 5632.399999976158,
+          "duration": 54
+        },
+        {
+          "start": 5590.799999952316,
+          "duration": 55
+        },
+        {
+          "start": 7678.5,
+          "duration": 77
+        },
+        {
+          "start": 7492,
+          "duration": 51
+        }
+      ],
+      "typingCommits": [34, 34, 34, 34, 34],
+      "typingRequests": [1, 1, 1, 1, 1],
+      "searchCommits": [8, 8, 8, 8, 8],
+      "searchRequests": [1, 1, 1, 1, 1],
+      "initialRequests": [
+        {
+          "path": "/api/workspace",
+          "start": 1291.5,
+          "end": 1399.6000000238419,
+          "duration": 108.10000002384186
+        }
+      ],
+      "editorRequests": [
+        {
+          "path": "/api/workspace",
+          "start": 701.6999999284744,
+          "end": 842.1999999284744,
+          "duration": 140.5
+        }
+      ],
+      "largestTraceDispatches": [
+        {
+          "type": "keypress",
+          "durationMs": 46.388
+        },
+        {
+          "type": "textInput",
+          "durationMs": 45.123
+        },
+        {
+          "type": "input",
+          "durationMs": 41.557
+        }
+      ],
+      "traceFile": "reports/traces/after-mobile-constrained-typing.trace.json.gz",
+      "traceSHA256": "c354979379a176931d4ff15058c47f752ff14b97f0f31584482d3ae756b41b35"
+    }
+  }
+}

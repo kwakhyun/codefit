@@ -128,7 +128,14 @@ export function Sidebar({
             <strong>코딩 근력을 지키는 시간.</strong>
           </span>
         </div>
-        <button className="nav-item" onClick={() => setSettingsOpen(true)}>
+        <button
+          className="nav-item"
+          onClick={(event) => {
+            // Safari does not focus buttons on pointer activation; retain a dialog return target.
+            event.currentTarget.focus();
+            setSettingsOpen(true);
+          }}
+        >
           <Settings2 size={17} />
           <span>환경 설정</span>
         </button>

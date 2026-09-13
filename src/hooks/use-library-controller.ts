@@ -6,7 +6,7 @@ import { libraryUrl, type LibraryFilters } from "@/lib/library-state";
 import type { LibraryPage, Workspace } from "@/lib/problem";
 import { trainingSummary } from "@/lib/training";
 import { api, errorMessage } from "@/lib/client-api";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 export function useLibraryController({
   data,
   initialFilters,
@@ -45,8 +45,18 @@ export function useLibraryController({
   const [loadError, setLoadError] = useState("");
   const [pending, setPending] = useState(true);
   const [retry, setRetry] = useState(0);
+  const bootstrapped = useRef(false);
   useEffect(() => {
     if (!data || initialProblemId || initialView === "history") return;
+    if (!bootstrapped.current && data.bootstrap?.library?.href === libraryHref && retry === 0) {
+      bootstrapped.current = true;
+      const initial = data.bootstrap.library;
+      void Promise.resolve().then(() => {
+        setResult(initial);
+        setPending(false);
+      });
+      return;
+    }
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       setPending(true);

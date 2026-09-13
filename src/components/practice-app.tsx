@@ -13,7 +13,7 @@ import { usePracticeSession } from "@/hooks/use-practice-session";
 import { useWorkspaceActions } from "@/hooks/use-workspace-actions";
 
 import { type DomainId } from "@/lib/catalog";
-import { defaultFilters, problemUrl, type LibraryFilters } from "@/lib/library-state";
+import { defaultFilters, libraryUrl, problemUrl, type LibraryFilters } from "@/lib/library-state";
 import { AlertCircle, Check, RotateCcw, Terminal, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -78,7 +78,11 @@ export function PracticeApp({
     };
   }, [mobileMenu]);
 
-  const { data, loadError, refreshing, load, onProgress } = usePracticeSession(initialProblemId);
+  const { data, loadError, refreshing, load, onProgress } = usePracticeSession(
+    initialProblemId,
+    libraryUrl(initialFilters, initialDomain, initialView),
+    initialAttemptId,
+  );
   const actions = useWorkspaceActions({ load, onProgress });
   const {
     toast,
@@ -160,6 +164,7 @@ export function PracticeApp({
           ) : initialProblemId ? (
             <ProblemWorkspace
               key={`${data.scope}:${initialProblemId}:${initialAttemptId || ""}`}
+              initialDetail={data.bootstrap?.detail}
               id={initialProblemId}
               scope={data.scope}
               returnTo={returnTo}

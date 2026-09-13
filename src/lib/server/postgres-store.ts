@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+import { checkCodeRevision, existingClaim, ownsJob, StaleJob } from "./write-conflicts";
 import { StoreQueries } from "./store-queries";
 import { authSchema } from "./auth-schema.mjs";
 import { DAILY_GENERATIONS, GENERATION_LEASE_MS, generationDay } from "./generation-quota";
@@ -14,10 +16,10 @@ import {
   type Progress,
   type Review,
 } from "../problem";
-import type { JobClaim, ProblemStore, ProgressPatch, UsageLimit } from "./store-contract";
+import type { JobLease, JobClaim, ProblemStore, ProgressPatch, UsageLimit } from "./store-contract";
 import { createAttempt, importedAttemptId, toAttempt, toProgress } from "./store-records";
 
-import { storageSchema } from "./storage-schema.mjs";
+import { storageSchema, storageColumns } from "./storage-schema.mjs";
 
 export class PostgresStore implements ProblemStore {
   constructor(
@@ -50,6 +52,10 @@ export class PostgresStore implements ProblemStore {
       // Serialize cold-start migrations across serverless instances.
       await store.sql`SELECT pg_advisory_xact_lock(704712001)`;
       await store.sql.unsafe(storageSchema);
+      for (const [table, column, definition] of storageColumns)
+        await store.sql.unsafe(
+          `ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${column} ${definition}`,
+        );
       await store.sql.unsafe(authSchema("postgres"));
       for (const problem of seedProblems)
         await store.sql`INSERT INTO problems(id,content,created_at) VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt}) ON CONFLICT(id) DO NOTHING`;
@@ -85,11 +91,15 @@ export class PostgresStore implements ProblemStore {
     const [row] = await this.sql`SELECT * FROM progress WHERE owner=${owner} AND problem_id=${id}`;
     return row ? toProgress(row) : null;
   }
-  async completeGeneration(problem: Problem, jobId: string) {
+  async completeGeneration(problem: Problem, lease: JobLease) {
     await this.transaction(async (store) => {
+      await store.requireJob(lease, "generate");
+      const reservation =
+        await store.sql`SELECT 1 FROM generation_usage WHERE request_id=${lease.id} AND token=${lease.token} AND state='pending'`;
+      if (!reservation.length) throw new StaleJob();
       await store.addProblem(problem);
-      await store.finishJob(jobId, problem.id);
-      await store.sql`UPDATE generation_usage SET state='done' WHERE request_id=${jobId}`;
+      await store.finishJob(lease, problem.id);
+      await store.sql`UPDATE generation_usage SET state='done' WHERE request_id=${lease.id} AND token=${lease.token}`;
     });
   }
   async progress(owner: string): Promise<Record<string, Progress>> {
@@ -108,8 +118,12 @@ export class PostgresStore implements ProblemStore {
     return this.transaction(async (store) => {
       await store.ensureProgress(owner, id);
       const now = new Date().toISOString();
-      if (patch.code !== undefined)
-        await store.sql`UPDATE progress SET code=${patch.code},status=CASE WHEN status='solved' THEN status ELSE 'in-progress' END,updated_at=${now} WHERE owner=${owner} AND problem_id=${id}`;
+      const [row] =
+        await store.sql`SELECT * FROM progress WHERE owner=${owner} AND problem_id=${id} FOR UPDATE`;
+      const current = toProgress(row);
+      checkCodeRevision(current, patch);
+      if (patch.code !== undefined && patch.code !== current.code)
+        await store.sql`UPDATE progress SET code=${patch.code},code_revision=code_revision+1,status=CASE WHEN status='solved' THEN status ELSE 'in-progress' END,updated_at=${now} WHERE owner=${owner} AND problem_id=${id} AND code_revision=${current.codeRevision}`;
       if (patch.bookmarked !== undefined)
         await store.sql`UPDATE progress SET bookmarked=${Number(patch.bookmarked)},updated_at=${now} WHERE owner=${owner} AND problem_id=${id}`;
       return (await store.progressFor(owner, id))!;
@@ -137,9 +151,10 @@ export class PostgresStore implements ProblemStore {
     id: string,
     code: string,
     review: Review,
-    jobId?: string,
+    lease?: JobLease,
   ): Promise<Attempt> {
     return this.transaction(async (store) => {
+      if (lease) await store.requireJob(lease, `review:${id}`, owner);
       await store.ensureProgress(owner, id);
       const [row] =
         await store.sql`SELECT * FROM progress WHERE owner=${owner} AND problem_id=${id} FOR UPDATE`;
@@ -147,7 +162,7 @@ export class PostgresStore implements ProblemStore {
       const attempt = createAttempt(id, code, review, p);
       await store.sql`INSERT INTO attempts VALUES(${attempt.id},${owner},${id},${code},${JSON.stringify(review)},${Number(attempt.assisted)},${attempt.createdAt})`;
       await store.sql`UPDATE progress SET status=CASE WHEN status='solved' OR ${Number(review.passed)}=1 THEN 'solved' ELSE 'in-progress' END,updated_at=${attempt.createdAt} WHERE owner=${owner} AND problem_id=${id}`;
-      if (jobId) await store.finishJob(jobId, attempt.id);
+      if (lease) await store.finishJob(lease, attempt.id);
       return attempt;
     });
   }
@@ -165,40 +180,47 @@ export class PostgresStore implements ProblemStore {
       return true;
     });
   }
-  async startJob(owner: string, id: string, kind: string): Promise<JobClaim> {
+  private async requireJob(lease: JobLease, kind = lease.kind, owner = lease.owner) {
+    const [row] = await this.sql`SELECT * FROM jobs WHERE id=${lease.id} FOR UPDATE`;
+    if (!ownsJob(row, lease) || lease.kind !== kind || lease.owner !== owner) throw new StaleJob();
+    return row;
+  }
+  async startJob(owner: string, id: string, kind: string, fingerprint: string): Promise<JobClaim> {
     return this.transaction(async (store) => {
       await store.sql`SELECT pg_advisory_xact_lock(hashtextextended(${"codefit-job:" + id},0))`;
-      const [row] = await store.sql`SELECT * FROM jobs WHERE id=${id}`;
-      if (row && (row.owner !== owner || row.kind !== kind)) return { state: "pending" };
-      if (row?.state === "done") return { state: "done", result: String(row.result) };
-      if (row && Number(row.expires) > Date.now()) return { state: "pending" };
-      await store.sql`INSERT INTO jobs VALUES(${id},${owner},${kind},'pending',NULL,${Date.now() + 150_000}) ON CONFLICT(id) DO UPDATE SET state='pending',result=NULL,expires=EXCLUDED.expires`;
-      return { state: "new" };
+      const [row] = await store.sql`SELECT * FROM jobs WHERE id=${id} FOR UPDATE`;
+      const existing = existingClaim(row, owner, kind, fingerprint);
+      if (existing) return existing;
+      const lease = { id, owner, kind, token: randomUUID() };
+      await store.sql`INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES(${id},${owner},${kind},'pending',NULL,${Date.now() + GENERATION_LEASE_MS},${lease.token},${fingerprint}) ON CONFLICT(id) DO UPDATE SET state='pending',result=NULL,expires=EXCLUDED.expires,token=EXCLUDED.token`;
+      return { state: "new", lease };
     });
   }
-  async reserveGeneration(owner: string, requestId: string, now = Date.now()) {
+  async reserveGeneration(lease: JobLease, now = Date.now()) {
     return this.transaction(async (store) => {
-      // One lock per account also serializes concurrent requests on different deployments.
-      await store.sql`SELECT pg_advisory_xact_lock(hashtextextended(${`generation:${owner}`},0))`;
-      const [existing] =
-        await store.sql`SELECT * FROM generation_usage WHERE request_id=${requestId}`;
-      if (existing && existing.owner !== owner) return false;
-      if (existing && (existing.state === "done" || Number(existing.expires) > now)) return true;
+      // Always lock the job before the account quota. No external AI call holds either lock.
+      const job = await store.requireJob(lease, "generate");
+      await store.sql`SELECT pg_advisory_xact_lock(hashtextextended(${`generation:${lease.owner}`},0))`;
       const day = generationDay(now).key;
       const [used] =
-        await store.sql`SELECT COUNT(*) AS count FROM generation_usage WHERE owner=${owner} AND day=${day} AND (state='done' OR expires>${now})`;
+        await store.sql`SELECT COUNT(*) AS count FROM generation_usage WHERE owner=${lease.owner} AND day=${day} AND request_id<>${lease.id} AND (state='done' OR expires>${now})`;
       if (Number(used.count) >= DAILY_GENERATIONS) return false;
-      await store.sql`INSERT INTO generation_usage VALUES(${requestId},${owner},${day},'pending',${now + GENERATION_LEASE_MS}) ON CONFLICT(request_id) DO UPDATE SET day=EXCLUDED.day,state='pending',expires=EXCLUDED.expires`;
+      await store.sql`INSERT INTO generation_usage(request_id,owner,day,state,expires,token) VALUES(${lease.id},${lease.owner},${day},'pending',${Number(job.expires)},${lease.token}) ON CONFLICT(request_id) DO UPDATE SET day=EXCLUDED.day,state='pending',expires=EXCLUDED.expires,token=EXCLUDED.token`;
       return true;
     });
   }
-  async finishJob(id: string, result: string) {
-    await this.sql`UPDATE jobs SET state='done',result=${result} WHERE id=${id}`;
+  private async finishJob(lease: JobLease, result: string) {
+    await this.requireJob(lease);
+    await this
+      .sql`UPDATE jobs SET state='done',result=${result} WHERE id=${lease.id} AND token=${lease.token}`;
   }
-  async failJob(id: string) {
-    await this.transaction(async (store) => {
-      await store.sql`DELETE FROM generation_usage WHERE request_id=${id} AND state='pending'`;
-      await store.sql`DELETE FROM jobs WHERE id=${id} AND state='pending'`;
+  async failJob(lease: JobLease) {
+    return this.transaction(async (store) => {
+      const [row] = await store.sql`SELECT * FROM jobs WHERE id=${lease.id} FOR UPDATE`;
+      if (!ownsJob(row, lease)) return false;
+      await store.sql`DELETE FROM generation_usage WHERE request_id=${lease.id} AND token=${lease.token} AND state='pending'`;
+      await store.sql`UPDATE jobs SET state='failed',expires=0 WHERE id=${lease.id} AND token=${lease.token}`;
+      return true;
     });
   }
   async importBackup(owner: string, backup: Backup) {
@@ -215,7 +237,7 @@ export class PostgresStore implements ProblemStore {
       for (const p of Object.values(backup.progress)) {
         if (!(await store.problem(p.problemId)))
           throw new Error("Backup references an unknown problem");
-        await store.sql`INSERT INTO progress VALUES(${owner},${p.problemId},${p.code},${Number(p.bookmarked)},${p.hintsViewed},${Number(p.solutionViewed)},${p.status},${p.updatedAt}) ON CONFLICT(owner,problem_id) DO NOTHING`;
+        await store.sql`INSERT INTO progress(owner,problem_id,code,bookmarked,hints_viewed,solution_viewed,status,updated_at,code_revision) VALUES(${owner},${p.problemId},${p.code},${Number(p.bookmarked)},${p.hintsViewed},${Number(p.solutionViewed)},${p.status},${p.updatedAt},${p.code === null ? 0 : 1}) ON CONFLICT(owner,problem_id) DO NOTHING`;
       }
       for (const attempt of backup.attempts) {
         const problem = await store.problem(attempt.problemId);

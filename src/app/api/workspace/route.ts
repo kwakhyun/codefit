@@ -1,3 +1,4 @@
+import { problemDetail } from "@/lib/server/problem-detail";
 import { getStore } from "@/lib/server/database";
 import { failure, json, readBody } from "@/lib/server/http";
 import { session } from "@/lib/server/session";
@@ -8,13 +9,26 @@ export async function GET(request: Request) {
   try {
     const { owner, user, scope } = await session(request);
     const store = await getStore();
-    const [legacyValue, workspace] = await Promise.all([
+    const params = new URL(request.url).searchParams;
+    const id = params.get("problem");
+    const libraryHref = params.get("library");
+    const [legacyValue, workspace, bootstrap] = await Promise.all([
       store.legacy(owner),
-      store.queries.workspace(owner, new URL(request.url).searchParams.get("problem")),
+      store.queries.workspace(owner, id),
+      params.get("include") === "initial"
+        ? id
+          ? problemDetail(store, owner, id, params.get("attempt")).then((detail) => ({ detail }))
+          : libraryHref?.startsWith("/")
+            ? store.queries
+                .library(owner, new URLSearchParams(libraryHref.split("?")[1] || ""))
+                .then((value) => ({ library: { href: libraryHref, value } }))
+            : undefined
+        : undefined,
     ]);
     const legacy = legacyValue as { generatedLessons?: unknown[] } | null;
     return json({
       ...workspace,
+      ...(bootstrap && { bootstrap }),
       account: { user, providers: configuredProviders() },
       scope,
       aiReady: Boolean(process.env.OPENAI_API_KEY),

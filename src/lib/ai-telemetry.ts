@@ -26,9 +26,9 @@ export interface AiUsage {
     unmeteredRequests: number;
   };
 }
-// Standard text-token prices per million, verified 2026-09-13. Unknown models remain unpriced.
+// Standard text-token prices per million. Unknown models remain unpriced.
 // https://developers.openai.com/api/docs/models/gpt-5.4-mini
-export const PRICING = {
+const PRICING = {
   model: "gpt-5.4-mini",
   input: 0.75,
   cachedInput: 0.075,
@@ -41,13 +41,8 @@ export function estimateCost(
   cached: number,
   output: number,
 ): number | null {
-  // Sol standard-context promotional prices verified 2026-09-13.
-  // https://developers.openai.com/api/docs/models/gpt-5.6-sol
-  const pricing = /^gpt-5\.6-sol(?:-\d{4}-\d{2}-\d{2})?$/.test(model)
-    ? { input: 4, cachedInput: 0.4, output: 20 }
-    : /^gpt-5\.4-mini(?:-\d{4}-\d{2}-\d{2})?$/.test(model)
-      ? PRICING
-      : null;
+  const alias = model.replace(/-\d{4}-\d{2}-\d{2}$/, "");
+  const pricing = Object.hasOwn(MODEL_PRICING, alias) ? MODEL_PRICING[alias] : null;
   if (!pricing) return null;
   return (
     (Math.max(0, input - cached) * pricing.input +
@@ -56,3 +51,15 @@ export function estimateCost(
     1_000_000
   );
 }
+
+// Standard context (<=272K input), checked against each official model page 2026-09-14.
+// https://developers.openai.com/api/docs/models/gpt-5.6-luna
+// https://developers.openai.com/api/docs/models/gpt-5.6-terra
+// https://developers.openai.com/api/docs/models/gpt-5.6-sol (promotional prices)
+export const MODEL_PRICING: Record<string, { input: number; cachedInput: number; output: number }> =
+  {
+    "gpt-5.4-mini": PRICING,
+    "gpt-5.6-luna": { input: 0.2, cachedInput: 0.02, output: 1.2 },
+    "gpt-5.6-terra": { input: 2, cachedInput: 0.2, output: 12 },
+    "gpt-5.6-sol": { input: 4, cachedInput: 0.4, output: 20 },
+  };

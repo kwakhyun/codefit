@@ -118,7 +118,7 @@ test("queued saves and an offline retry retain the latest code", async ({ page, 
   await page.unroute("**/api/progress/be-pagination");
   await context.setOffline(true);
   await setCode(page, "print('offline draft survives')");
-  await expect(page.getByText(/저장 실패|저장하지 못/).first()).toBeVisible();
+  await expect(page.getByText(/오프라인 보관/).first()).toBeVisible();
   await context.setOffline(false);
   await expect
     .poll(

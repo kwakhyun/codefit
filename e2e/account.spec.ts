@@ -58,7 +58,10 @@ test("profile, account ownership, generation quota and logout work together", as
     await page.setViewportSize({ width: 1280, height: 900 });
     const prior = await context.request.get("/api/workspace");
     expect((await prior.json()).scope).toBe(fixture.owner);
-    for (let i = 0; i < 3; i++) fixture.store.reserveGeneration(fixture.owner, crypto.randomUUID());
+    for (let i = 0; i < 3; i++) {
+      const job = fixture.store.startJob(fixture.owner, crypto.randomUUID(), "generate", "fixture");
+      if (job.state === "new") fixture.store.reserveGeneration(job.lease);
+    }
     const generation = await context.request.post("/api/generate", {
       data: {
         requestId: crypto.randomUUID(),
@@ -80,7 +83,7 @@ test("profile, account ownership, generation quota and logout work together", as
     expect((await context.request.get("/api/profile")).status()).toBe(401);
     const staleSave = await context.request.put("/api/progress/be-pagination", {
       headers: { "X-Codefit-Workspace": fixture.owner },
-      data: { code: "private former account draft" },
+      data: { code: "private former account draft", baseRevision: 0 },
     });
     expect(staleSave.status()).toBe(409);
     expect((await context.request.post("/api/generate", { data: {} })).status()).toBe(401);
@@ -126,8 +129,22 @@ test("queued drafts and stale profiles cannot cross an account switch", async ({
     await expect
       .poll(async () => (await (await context.request.get("/api/workspace")).json()).scope)
       .toBe(second.owner);
+    const rejected = page.waitForResponse(
+      (r) => r.url().endsWith("/api/progress/be-pagination") && r.status() === 409,
+    );
     release();
-    await expect.poll(() => scopes.length).toBeGreaterThanOrEqual(2);
+    await rejected;
+    expect(scopes).toHaveLength(1);
+    expect(
+      await page.evaluate(
+        (owner) =>
+          Object.keys(localStorage)
+            .filter((key) => key.startsWith(`codefit-draft:${owner}:`))
+            .map((key) => localStorage.getItem(key))
+            .join(""),
+        first.owner,
+      ),
+    ).toContain("second queued account draft");
     expect(scopes.every((scope) => scope === first.owner)).toBe(true);
     expect(second.store.progressFor(second.owner, "be-pagination")).toBeNull();
     await page.goto("/profile");

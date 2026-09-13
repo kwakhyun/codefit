@@ -1,15 +1,25 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { parseEnv } from "node:util";
+import { parseArgs, parseEnv } from "node:util";
 import { reviewCases } from "../evals/review-cases";
 import { reviewCode } from "../src/lib/server/ai";
 import { PROMPT_VERSION, REVIEW_PROMPT, REVIEW_REASONING } from "../src/lib/server/ai-prompts";
-import { PRICING, type AiRun } from "../src/lib/ai-telemetry";
+import { MODEL_PRICING, type AiRun } from "../src/lib/ai-telemetry";
 import { evaluationSummary, type EvaluationCaseResult } from "../src/lib/evaluation";
 
-if (!process.argv.includes("--live")) {
+const { values } = parseArgs({
+  options: {
+    live: { type: "boolean" },
+    model: { type: "string" },
+    repeat: { type: "string", default: "1" },
+    output: { type: "string", default: "reports/ai-evaluation.json" },
+  },
+});
+const repeats = Number(values.repeat);
+if (!Number.isInteger(repeats) || repeats < 1 || repeats > 3) throw new Error("repeat must be 1-3");
+if (!values.live) {
   console.log(
-    `${reviewCases.length} fixed cases ready. Use --live to call the configured provider (maximum 16 requests, concurrency 2).`,
+    `${reviewCases.length} fixed cases ready. Use --live to call the configured provider (${reviewCases.length * repeats} requests, concurrency 2).`,
   );
   process.exit(0);
 }
@@ -21,11 +31,18 @@ try {
   /* CI may supply the key directly. */
 }
 if (!process.env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY is required for live evaluation");
+if (values.model) process.env.OPENAI_REVIEW_MODEL = values.model;
+const cases = Array.from({ length: repeats }, (_, repetition) =>
+  reviewCases.map((test) => ({
+    ...test,
+    id: repeats === 1 ? test.id : `${test.id}:run-${repetition + 1}`,
+  })),
+).flat();
 const results: (EvaluationCaseResult & { run: AiRun | null; feedback: string[] })[] = [];
 let index = 0;
 async function worker() {
-  while (index < reviewCases.length) {
-    const test = reviewCases[index++];
+  while (index < cases.length) {
+    const test = cases[index++];
     let run: AiRun | null = null;
     const started = performance.now();
     let actual: boolean[] | null = null;
@@ -60,6 +77,7 @@ const report = {
   mode: "live-static-review",
   promptVersion: PROMPT_VERSION,
   reasoningEffort: REVIEW_REASONING,
+  repeats,
   fingerprint: createHash("sha256")
     .update(
       JSON.stringify({ cases: reviewCases, prompt: REVIEW_PROMPT, reasoning: REVIEW_REASONING }),
@@ -72,18 +90,23 @@ const report = {
     outputTokens: results.reduce((sum, r) => sum + (r.run?.outputTokens || 0), 0),
     estimatedCostUsd: results.reduce((sum, r) => sum + (r.run?.estimatedCostUsd || 0), 0),
     unpricedRequests: results.filter((r) => r.run?.estimatedCostUsd == null).length,
-    pricing: PRICING,
+    pricing: MODEL_PRICING,
   },
   limitations: [
     "16 development cases across four languages; not a held-out benchmark or an estimate of all-language accuracy.",
-    "One stochastic run per case; labels were manually authored against requirements, not independently adjudicated.",
+    `${repeats} stochastic run(s) per case; labels were manually authored against requirements, not independently adjudicated.`,
     "AI performs static review. No submitted code is executed. Provider failures are reported separately, never counted as passes.",
     "Estimated cost uses published standard text-token prices; unmetered failures and account-specific billing are excluded.",
   ],
   results,
 };
 mkdirSync("reports", { recursive: true });
-writeFileSync("reports/ai-evaluation.json", JSON.stringify(report, null, 2) + "\n");
+writeFileSync(values.output!, JSON.stringify(report, null, 2) + "\n");
 console.log(JSON.stringify({ summary: report.summary, usage: report.usage }));
-if (report.summary.errors || report.summary.falsePasses || report.summary.falseRejects)
+if (
+  report.summary.errors ||
+  report.summary.falsePasses ||
+  report.summary.falseRejects ||
+  report.summary.criteriaMatched !== report.summary.criteriaCount
+)
   process.exitCode = 1;

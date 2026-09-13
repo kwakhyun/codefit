@@ -4,16 +4,10 @@ import type { ConfirmationAction, WorkspaceTab } from "@/components/workspace/ty
 
 import { useCodeDraft } from "@/hooks/use-code-draft";
 import { api, errorMessage } from "@/lib/client-api";
-import type { Attempt, Progress, PublicProblem } from "@/lib/problem";
+import type { Attempt, Progress, ProblemDetail } from "@/lib/problem";
 import { latestProgress } from "@/lib/progress";
 import { useCallback, useEffect, useRef, useState } from "react";
-type Detail = {
-  problem: PublicProblem;
-  progress: Progress | null;
-  hints: string[];
-  solution: { code: string; explanation: string } | null;
-  attempts: Attempt[];
-};
+type Detail = ProblemDetail;
 
 export function useProblemController({
   id,
@@ -21,12 +15,14 @@ export function useProblemController({
   onProgress,
   aiReady,
   initialAttemptId,
+  initialDetail,
 }: {
   id: string;
   scope: string;
   onProgress: (p: Progress, attempt?: Attempt) => void;
   aiReady: boolean;
   initialAttemptId?: string;
+  initialDetail?: ProblemDetail;
 }) {
   const [detail, setDetail] = useState<Detail | null>(null);
 
@@ -60,6 +56,10 @@ export function useProblemController({
   const {
     code,
     saveState,
+    draftStatus,
+    localSaved,
+    resolveConflict,
+    recoverable,
     initialize,
     changeCode,
     flush,
@@ -68,11 +68,15 @@ export function useProblemController({
     restoreImportedCode,
     getCode,
   } = useCodeDraft({ id, scope, mounted, onSaved, onError: setError });
+  const bootstrap = useRef(initialDetail);
   const load = useCallback(async () => {
     try {
-      const next = await api<Detail>(
-        `/api/problems/${encodeURIComponent(id)}${initialAttemptId ? `?attempt=${encodeURIComponent(initialAttemptId)}` : ""}`,
-      );
+      const next =
+        bootstrap.current ??
+        (await api<Detail>(
+          `/api/problems/${encodeURIComponent(id)}${initialAttemptId ? `?attempt=${encodeURIComponent(initialAttemptId)}` : ""}`,
+        ));
+      bootstrap.current = undefined;
       if (!mounted.current) return;
       setLoadError("");
       const localNewer = initialize(next.progress, next.problem.starterCode);
@@ -106,13 +110,12 @@ export function useProblemController({
           `/api/problems/${encodeURIComponent(id)}${initialAttemptId ? `?attempt=${encodeURIComponent(initialAttemptId)}` : ""}`,
         );
         if (!mounted.current) return;
-        restoreImportedCode(next.progress?.code);
+        restoreImportedCode(next.progress);
         setDetail((prev) => ({
           ...next,
-          progress:
-            prev?.progress && next.progress && prev.progress.updatedAt > next.progress.updatedAt
-              ? prev.progress
-              : next.progress,
+          progress: next.progress
+            ? latestProgress(prev?.progress, next.progress)
+            : (prev?.progress ?? null),
         }));
         setSelectedAttempt(
           (prev) => next.attempts.find((a) => a.id === prev?.id) || next.attempts[0] || null,
@@ -131,7 +134,7 @@ export function useProblemController({
     setBusy(true);
     setError("");
     try {
-      await saveBeforeReview(value);
+      await saveBeforeReview();
       if (reviewRequest.current?.code !== value)
         reviewRequest.current = { code: value, id: crypto.randomUUID() };
       const result = await api<{ attempt: Attempt; progress: Progress }>(
@@ -230,6 +233,10 @@ export function useProblemController({
     loading,
     setLoading,
     saveState,
+    draftStatus,
+    localSaved,
+    resolveConflict,
+    recoverable,
     busy,
     revealing,
     confirm,

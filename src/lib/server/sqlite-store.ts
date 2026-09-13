@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+import { checkCodeRevision, existingClaim, ownsJob, StaleJob } from "./write-conflicts";
 import { StoreQueries } from "./store-queries";
 import { authSchema } from "./auth-schema.mjs";
 import { DAILY_GENERATIONS, GENERATION_LEASE_MS, generationDay } from "./generation-quota";
@@ -16,8 +18,8 @@ import {
   type Progress,
   type Review,
 } from "../problem";
-import { storageSchema } from "./storage-schema.mjs";
-import type { JobClaim, ProblemStore, ProgressPatch, UsageLimit } from "./store-contract";
+import { storageSchema, storageColumns } from "./storage-schema.mjs";
+import type { JobLease, JobClaim, ProblemStore, ProgressPatch, UsageLimit } from "./store-contract";
 import { createAttempt, importedAttemptId, toAttempt, toProgress } from "./store-records";
 
 export class SqliteStore implements ProblemStore {
@@ -40,7 +42,18 @@ export class SqliteStore implements ProblemStore {
     this.db.exec("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000; PRAGMA foreign_keys=ON;");
     this.db.exec(storageSchema);
     this.db.exec(authSchema("sqlite"));
-    this.db.exec("PRAGMA user_version=1;");
+    this.transaction(() => {
+      for (const [table, column, definition] of storageColumns) {
+        if (
+          !this.db
+            .prepare(`PRAGMA table_info(${table})`)
+            .all()
+            .some((row) => row.name === column)
+        )
+          this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+      }
+      this.db.exec("PRAGMA user_version=2;");
+    });
     const insert = this.db.prepare(
       "INSERT OR IGNORE INTO problems (id,content,created_at) VALUES (?,?,?)",
     );
@@ -112,11 +125,20 @@ export class SqliteStore implements ProblemStore {
       .get(owner, id);
     return row ? toProgress(row) : null;
   }
-  completeGeneration(problem: Problem, jobId: string) {
+  completeGeneration(problem: Problem, lease: JobLease) {
     this.transaction(() => {
+      this.requireJob(lease, "generate");
+      const reservation = this.db
+        .prepare(
+          "SELECT * FROM generation_usage WHERE request_id=? AND token=? AND state='pending'",
+        )
+        .get(lease.id, lease.token);
+      if (!reservation) throw new StaleJob();
       this.addProblem(problem);
-      this.finishJob(jobId, problem.id);
-      this.db.prepare("UPDATE generation_usage SET state='done' WHERE request_id=?").run(jobId);
+      this.finishJob(lease, problem.id);
+      this.db
+        .prepare("UPDATE generation_usage SET state='done' WHERE request_id=? AND token=?")
+        .run(lease.id, lease.token);
     });
   }
   progress(owner: string): Record<string, Progress> {
@@ -136,12 +158,14 @@ export class SqliteStore implements ProblemStore {
     return this.transaction(() => {
       this.ensureProgress(owner, id);
       const now = new Date().toISOString();
-      if (patch.code !== undefined)
+      const current = this.progressFor(owner, id)!;
+      checkCodeRevision(current, patch);
+      if (patch.code !== undefined && patch.code !== current.code)
         this.db
           .prepare(
-            "UPDATE progress SET code=?,status=CASE WHEN status='solved' THEN status ELSE 'in-progress' END,updated_at=? WHERE owner=? AND problem_id=?",
+            "UPDATE progress SET code=?,code_revision=code_revision+1,status=CASE WHEN status='solved' THEN status ELSE 'in-progress' END,updated_at=? WHERE owner=? AND problem_id=? AND code_revision=?",
           )
-          .run(patch.code, now, owner, id);
+          .run(patch.code, now, owner, id, current.codeRevision);
       if (patch.bookmarked !== undefined)
         this.db
           .prepare("UPDATE progress SET bookmarked=?,updated_at=? WHERE owner=? AND problem_id=?")
@@ -175,8 +199,9 @@ export class SqliteStore implements ProblemStore {
       : this.db.prepare("SELECT * FROM attempts WHERE owner=? ORDER BY created_at DESC").all(owner);
     return rows.map(toAttempt);
   }
-  saveAttempt(owner: string, id: string, code: string, review: Review, jobId?: string): Attempt {
+  saveAttempt(owner: string, id: string, code: string, review: Review, lease?: JobLease): Attempt {
     return this.transaction(() => {
+      if (lease) this.requireJob(lease, `review:${id}`, owner);
       this.ensureProgress(owner, id);
       const p = this.progressFor(owner, id)!;
       const attempt = createAttempt(id, code, review, p);
@@ -197,7 +222,7 @@ export class SqliteStore implements ProblemStore {
           "UPDATE progress SET status=CASE WHEN status='solved' OR ?=1 THEN 'solved' ELSE 'in-progress' END,updated_at=? WHERE owner=? AND problem_id=?",
         )
         .run(Number(review.passed), attempt.createdAt, owner, id);
-      if (jobId) this.finishJob(jobId, attempt.id);
+      if (lease) this.finishJob(lease, attempt.id);
       return attempt;
     });
   }
@@ -218,51 +243,61 @@ export class SqliteStore implements ProblemStore {
       return true;
     });
   }
-  reserveGeneration(owner: string, requestId: string, now = Date.now()) {
+  private requireJob(lease: JobLease, kind = lease.kind, owner = lease.owner) {
+    const row = this.db.prepare("SELECT * FROM jobs WHERE id=?").get(lease.id);
+    if (!ownsJob(row, lease) || lease.kind !== kind || lease.owner !== owner) throw new StaleJob();
+    return row!;
+  }
+  reserveGeneration(lease: JobLease, now = Date.now()) {
     return this.transaction(() => {
-      const existing = this.db
-        .prepare("SELECT * FROM generation_usage WHERE request_id=?")
-        .get(requestId);
-      if (existing && existing.owner !== owner) return false;
-      if (existing && (existing.state === "done" || Number(existing.expires) > now)) return true;
+      const job = this.requireJob(lease, "generate");
       const day = generationDay(now).key;
       const used = this.db
         .prepare(
-          "SELECT COUNT(*) AS count FROM generation_usage WHERE owner=? AND day=? AND (state='done' OR expires>?)",
+          "SELECT COUNT(*) AS count FROM generation_usage WHERE owner=? AND day=? AND request_id<>? AND (state='done' OR expires>?)",
         )
-        .get(owner, day, now);
+        .get(lease.owner, day, lease.id, now);
       if (Number(used?.count) >= DAILY_GENERATIONS) return false;
       this.db
         .prepare(
-          "INSERT INTO generation_usage VALUES (?,?,?,'pending',?) ON CONFLICT(request_id) DO UPDATE SET day=excluded.day,state='pending',expires=excluded.expires",
+          "INSERT INTO generation_usage(request_id,owner,day,state,expires,token) VALUES (?,?,?,'pending',?,?) ON CONFLICT(request_id) DO UPDATE SET day=excluded.day,state='pending',expires=excluded.expires,token=excluded.token",
         )
-        .run(requestId, owner, day, now + GENERATION_LEASE_MS);
+        .run(lease.id, lease.owner, day, Number(job.expires), lease.token);
       return true;
     });
   }
-  startJob(owner: string, id: string, kind: string): JobClaim {
+  startJob(owner: string, id: string, kind: string, fingerprint: string): JobClaim {
     return this.transaction(() => {
       const row = this.db.prepare("SELECT * FROM jobs WHERE id=?").get(id);
-      if (row && (row.owner !== owner || row.kind !== kind)) return { state: "pending" };
-      if (row?.state === "done") return { state: "done", result: String(row.result) };
-      if (row && Number(row.expires) > Date.now()) return { state: "pending" };
+      const existing = existingClaim(row, owner, kind, fingerprint);
+      if (existing) return existing;
+      const lease = { id, owner, kind, token: randomUUID() };
       this.db
         .prepare(
-          "INSERT INTO jobs VALUES (?,?,?,'pending',NULL,?) ON CONFLICT(id) DO UPDATE SET state='pending',result=NULL,expires=excluded.expires",
+          "INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES (?,?,?,'pending',NULL,?,?,?) ON CONFLICT(id) DO UPDATE SET state='pending',result=NULL,expires=excluded.expires,token=excluded.token",
         )
-        .run(id, owner, kind, Date.now() + 150_000);
-      return { state: "new" };
+        .run(id, owner, kind, Date.now() + GENERATION_LEASE_MS, lease.token, fingerprint);
+      return { state: "new", lease };
     });
   }
-  finishJob(id: string, result: string) {
-    this.db.prepare("UPDATE jobs SET state='done',result=? WHERE id=?").run(result, id);
+  private finishJob(lease: JobLease, result: string) {
+    this.requireJob(lease);
+    this.db
+      .prepare("UPDATE jobs SET state='done',result=? WHERE id=? AND token=?")
+      .run(result, lease.id, lease.token);
   }
-  failJob(id: string) {
-    this.transaction(() => {
+  failJob(lease: JobLease) {
+    return this.transaction(() => {
+      const row = this.db.prepare("SELECT * FROM jobs WHERE id=?").get(lease.id);
+      if (!ownsJob(row, lease)) return false;
       this.db
-        .prepare("DELETE FROM generation_usage WHERE request_id=? AND state='pending'")
-        .run(id);
-      this.db.prepare("DELETE FROM jobs WHERE id=? AND state='pending'").run(id);
+        .prepare("DELETE FROM generation_usage WHERE request_id=? AND token=? AND state='pending'")
+        .run(lease.id, lease.token);
+      // Retain input identity after failure; only the same payload may retry this ID.
+      this.db
+        .prepare("UPDATE jobs SET state='failed',expires=0 WHERE id=? AND token=?")
+        .run(lease.id, lease.token);
+      return true;
     });
   }
   importBackup(owner: string, backup: Backup) {
@@ -282,7 +317,9 @@ export class SqliteStore implements ProblemStore {
           .get(owner, p.problemId);
         if (!existing)
           this.db
-            .prepare("INSERT INTO progress VALUES (?,?,?,?,?,?,?,?)")
+            .prepare(
+              "INSERT INTO progress(owner,problem_id,code,bookmarked,hints_viewed,solution_viewed,status,updated_at,code_revision) VALUES (?,?,?,?,?,?,?,?,?)",
+            )
             .run(
               owner,
               p.problemId,
@@ -292,6 +329,7 @@ export class SqliteStore implements ProblemStore {
               Number(p.solutionViewed),
               p.status,
               p.updatedAt,
+              p.code === null ? 0 : 1,
             );
       }
       for (const attempt of backup.attempts) {

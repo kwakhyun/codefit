@@ -91,6 +91,7 @@ describe("training insights", () => {
       updatedAt: string,
       status: ProgressSummary["status"],
     ): ProgressSummary => ({
+      codeRevision: 0,
       problemId: id,
       updatedAt,
       status,

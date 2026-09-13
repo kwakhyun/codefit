@@ -11,7 +11,7 @@ Google과 GitHub를 지원합니다. 로그인 성공 시 계정이 자동 생�
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google 웹 OAuth 클라이언트                                           |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | GitHub OAuth 앱                                                      |
 | `OPENAI_GENERATION_MODEL`                  | 기본 `gpt-5.6-sol`                                                   |
-| `OPENAI_REVIEW_MODEL`                      | 기본 `gpt-5.4-mini`, medium 추론                                     |
+| `OPENAI_REVIEW_MODEL`                      | 기본 `gpt-5.6-luna`, medium 추론                                     |
 
 모두 서버 전용입니다. Vercel에서는 비밀키를 **Secret** 유형으로 저장하고 `NEXT_PUBLIC_` 접두사를 사용하지 않습니다. 설정 변경 후 새 배포가 필요합니다. 제공자 키가 누락되면 해당 버튼은 ‘연결 준비 중’으로 표시됩니다. 키가 없는 상태를 정상 로그인으로 표시하지 않습니다.
 

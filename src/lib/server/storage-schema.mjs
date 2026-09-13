@@ -79,3 +79,11 @@ CREATE TABLE IF NOT EXISTS generation_usage (
 );
 CREATE INDEX IF NOT EXISTS generation_usage_owner_day ON generation_usage(owner,day);
 `;
+
+// Applied under the store's migration lock. Defaults preserve existing rows.
+export const storageColumns = [
+  ["progress", "code_revision", "INTEGER NOT NULL DEFAULT 0"],
+  ["jobs", "token", "TEXT NOT NULL DEFAULT ''"],
+  ["jobs", "fingerprint", "TEXT NOT NULL DEFAULT ''"],
+  ["generation_usage", "token", "TEXT NOT NULL DEFAULT ''"],
+];

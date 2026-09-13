@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 import postgres from "postgres";
 import { authSchema } from "../src/lib/server/auth-schema.mjs";
-import { storageSchema } from "../src/lib/server/storage-schema.mjs";
+import { storageSchema, storageColumns } from "../src/lib/server/storage-schema.mjs";
 
 const sourcePath = process.argv[2] || "data/recode.sqlite";
 const vars = process.argv[3] ? parseEnv(readFileSync(process.argv[3], "utf8")) : process.env;
@@ -37,6 +37,7 @@ const tables = {
     "owner",
     "problem_id",
     "code",
+    "code_revision",
     "bookmarked",
     "hints_viewed",
     "solution_viewed",
@@ -51,13 +52,23 @@ try {
   const counts = await sql.begin(async (tx) => {
     await tx`SELECT pg_advisory_xact_lock(704712001)`;
     await tx.unsafe(storageSchema);
+    for (const [table, column, definition] of storageColumns)
+      await tx.unsafe(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${column} ${definition}`);
     await tx.unsafe(authSchema("postgres"));
     const result = {};
     for (const [table, columns] of Object.entries(tables)) {
       if (!source.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table))
         continue;
+      const available = new Set(
+        source
+          .prepare(`PRAGMA table_info(${table})`)
+          .all()
+          .map((row) => row.name),
+      );
       const rows = source
-        .prepare(`SELECT ${columns.map((key) => `"${key}"`).join(",")} FROM ${table}`)
+        .prepare(
+          `SELECT ${columns.map((key) => (key === "code_revision" && !available.has(key) ? "CASE WHEN code IS NULL THEN 0 ELSE 1 END AS code_revision" : `"${key}"`)).join(",")} FROM ${table}`,
+        )
         .all();
       let inserted = 0;
       for (const row of rows) {

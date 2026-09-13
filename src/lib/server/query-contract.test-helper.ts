@@ -1,3 +1,5 @@
+import { claim } from "./concurrency-contract.test-helper";
+import { StaleJob } from "./write-conflicts";
 import { randomUUID } from "node:crypto";
 import { expect, it } from "vitest";
 import type { ProblemStore } from "./store-contract";
@@ -10,40 +12,45 @@ export function queryContract(getStore: () => ProblemStore & { addProblem(p: Pro
     const store = getStore(),
       owner = `user:${randomUUID()}`,
       now = Date.now();
-    const ids = Array.from({ length: 8 }, () => randomUUID());
-    const claims = await Promise.all(ids.map((id) => store.reserveGeneration(owner, id, now)));
+    const ids = await Promise.all(Array.from({ length: 8 }, () => claim(store, owner)));
+    const claims = await Promise.all(ids.map((id) => store.reserveGeneration(id, now)));
     expect(claims.filter(Boolean)).toHaveLength(3);
     expect((await store.queries.usage(owner, now)).remaining.generate).toBe(0);
     const first = ids[claims.indexOf(true)];
-    expect(await store.reserveGeneration(owner, first, now)).toBe(true);
-    expect(await store.reserveGeneration("user:someone-else", first, now)).toBe(false);
+    expect(await store.reserveGeneration(first, now)).toBe(true);
+    await expect(
+      Promise.resolve().then(() =>
+        store.reserveGeneration({ ...first, owner: "user:someone-else" }, now),
+      ),
+    ).rejects.toBeInstanceOf(StaleJob);
     await store.failJob(first);
     expect((await store.queries.usage(owner, now)).remaining.generate).toBe(1);
-    expect(await store.reserveGeneration(owner, randomUUID(), now)).toBe(true);
-    expect(await store.reserveGeneration(`user:${randomUUID()}`, randomUUID(), now)).toBe(true);
-    expect((await store.queries.usage(owner, now + 150001)).remaining.generate).toBe(3);
+    expect(await store.reserveGeneration(await claim(store, owner), now)).toBe(true);
+    expect(await store.reserveGeneration(await claim(store), now)).toBe(true);
+    expect((await store.queries.usage(owner, Date.now() + 150001)).remaining.generate).toBe(3);
   }, 30000);
   it("persists completed usage and resets at Korean midnight", async () => {
     const store = getStore(),
       owner = `user:${randomUUID()}`,
       now = Date.parse("2026-09-13T14:59:59Z");
     for (let i = 0; i < 3; i++) {
-      const id = randomUUID();
-      await store.startJob(owner, id, "generate");
-      expect(await store.reserveGeneration(owner, id, now)).toBe(true);
+      const id = await claim(store, owner);
+      expect(await store.reserveGeneration(id, now)).toBe(true);
       await store.completeGeneration(
         { ...seedProblems[0], id: `ai-${randomUUID()}`, source: "ai" },
         id,
       );
-      expect(await store.reserveGeneration(owner, id, now + 200000)).toBe(true);
+      await expect(
+        Promise.resolve().then(() => store.reserveGeneration(id, now + 200000)),
+      ).rejects.toBeInstanceOf(StaleJob);
       await store.failJob(id);
     }
     const usage = await store.queries.usage(owner, now);
     expect(usage.remaining.generate).toBe(0);
     expect(usage.resetsAt.generate).toBe("2026-09-13T15:00:00.000Z");
-    expect(await store.reserveGeneration(owner, randomUUID(), now)).toBe(false);
+    expect(await store.reserveGeneration(await claim(store, owner), now)).toBe(false);
     expect((await store.queries.usage(owner, now + 1000)).remaining.generate).toBe(3);
-    expect(await store.reserveGeneration(owner, randomUUID(), now + 1000)).toBe(true);
+    expect(await store.reserveGeneration(await claim(store, owner), now + 1000)).toBe(true);
   }, 30000);
   it("filters and pages summaries on the server, with stable order and no answer/draft disclosure", async () => {
     const store = getStore();
@@ -78,6 +85,7 @@ export function queryContract(getStore: () => ProblemStore & { addProblem(p: Pro
     await store.saveProgress("query-a", first.problems[0].id, {
       bookmarked: true,
       code: "private draft",
+      baseRevision: 0,
     });
     const mine = await store.queries.library("query-a", new URLSearchParams({ view: "bookmarks" }));
     expect(mine.total).toBe(1);

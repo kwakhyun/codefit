@@ -1,5 +1,6 @@
 "use client";
 
+import { DraftConflict } from "./draft-conflict";
 import { ProblemMaterials } from "@/components/workspace/problem-materials";
 import { ReviewPanel } from "@/components/workspace/review-panel";
 import { WorkspaceConfirmation } from "@/components/workspace/workspace-confirmation";
@@ -7,7 +8,7 @@ import { useProblemController } from "@/hooks/use-problem-controller";
 
 import { DifficultyBadge, KindBadge } from "@/components/ui/problem-badges";
 import { domainLabel, LANGUAGES } from "@/lib/catalog";
-import type { Attempt, Progress } from "@/lib/problem";
+import type { Attempt, Progress, ProblemDetail } from "@/lib/problem";
 import {
   AlertCircle,
   ArrowLeft,
@@ -43,6 +44,7 @@ export function ProblemWorkspace({
   aiReady,
   returnTo = "/",
   initialAttemptId,
+  initialDetail,
 }: {
   id: string;
   scope: string;
@@ -53,6 +55,7 @@ export function ProblemWorkspace({
   aiReady: boolean;
   returnTo?: string;
   initialAttemptId?: string;
+  initialDetail?: ProblemDetail;
 }) {
   const {
     detail,
@@ -66,6 +69,10 @@ export function ProblemWorkspace({
     loading,
     setLoading,
     saveState,
+    draftStatus,
+    localSaved,
+    resolveConflict,
+    recoverable,
     busy,
     revealing,
     confirm,
@@ -86,7 +93,7 @@ export function ProblemWorkspace({
     bookmark,
     replaceCode,
     saveNow,
-  } = useProblemController({ id, scope, onProgress, aiReady, initialAttemptId });
+  } = useProblemController({ id, scope, onProgress, aiReady, initialAttemptId, initialDetail });
   if (loading)
     return (
       <div className="content-loader" role="status">
@@ -211,13 +218,19 @@ export function ProblemWorkspace({
                 ) : (
                   <Save size={12} />
                 )}
-                {
-                  { saved: "저장됨", saving: "저장 중", local: "저장 대기", failed: "저장 실패" }[
-                    saveState
-                  ]
-                }
+                {!localSaved
+                  ? "브라우저 보관 실패"
+                  : {
+                      saved: "저장됨",
+                      saving: "저장 중",
+                      local: "저장 대기",
+                      failed: "저장 실패",
+                      offline: "오프라인 보관",
+                      conflict: "충돌 · 초안 보관",
+                      resolving: "충돌 확인 중",
+                    }[saveState]}
               </span>
-              {(saveState === "failed" || saveState === "local") && (
+              {(saveState === "failed" || saveState === "local" || saveState === "offline") && (
                 <button className="text-button" onClick={() => void saveNow()}>
                   지금 저장
                 </button>
@@ -232,6 +245,29 @@ export function ProblemWorkspace({
               </button>
             </div>
           </div>
+          <DraftConflict
+            status={draftStatus}
+            localSaved={localSaved}
+            code={code}
+            onChange={changeCode}
+            onResolve={resolveConflict}
+          />
+          {recoverable.length > 0 && (
+            <details className="draft-recovery">
+              <summary>다른 창에서 보관한 초안 {recoverable.length}개</summary>
+              <p>필요한 코드를 복사해 현재 초안에 합칠 수 있습니다. 원본은 계속 보관됩니다.</p>
+              {recoverable.map((draft, index) => (
+                <label key={draft.key}>
+                  보관한 초안 {index + 1}
+                  <textarea
+                    aria-label={`보관한 초안 ${index + 1}`}
+                    value={draft.record.code}
+                    readOnly
+                  />
+                </label>
+              ))}
+            </details>
+          )}
           <CodeEditor
             value={code}
             language={problem.language}
@@ -249,7 +285,13 @@ export function ProblemWorkspace({
             <button
               className="primary-button"
               onClick={() => review(code)}
-              disabled={busy || code.trim().length < 5 || !aiReady}
+              disabled={
+                busy ||
+                code.trim().length < 5 ||
+                !aiReady ||
+                saveState === "conflict" ||
+                saveState === "resolving"
+              }
             >
               {busy ? <LoaderCircle size={16} className="spin" /> : <Sparkles size={16} />}
               {busy ? "풀이 검토 중" : "AI 풀이 검토"}

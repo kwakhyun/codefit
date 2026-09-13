@@ -99,6 +99,7 @@ export function validateReview(
   };
 }
 export interface Progress {
+  codeRevision: number;
   problemId: string;
   code: string | null;
   bookmarked: boolean;
@@ -121,7 +122,15 @@ export type ProblemSummary = Omit<
 >;
 export type ProgressSummary = Omit<Progress, "code">;
 export type AttemptSummary = Omit<Attempt, "code">;
+export interface ProblemDetail {
+  problem: PublicProblem;
+  progress: Progress | null;
+  hints: string[];
+  solution: { code: string; explanation: string } | null;
+  attempts: Attempt[];
+}
 export interface Workspace {
+  bootstrap?: { library?: { href: string; value: LibraryPage }; detail?: ProblemDetail };
   account: import("./auth-types").AccountState;
   scope: string;
   stats: {

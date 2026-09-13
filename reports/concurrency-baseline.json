@@ -1,0 +1,19 @@
+{
+  "baselineCommit": "1eeefc7c3884df3a8061a98cbf8be8fec92a7cff",
+  "staleDraftOverwrite": "A stale draft",
+  "secondClaim": "new",
+  "lateFailureDeletedNewExecution": true,
+  "browserTwoTabs": {
+    "browser": "Chromium",
+    "aDisplayed": "print('A stale delayed save')",
+    "bDisplayed": "print('B newer saved code')",
+    "server": "print('A stale delayed save')",
+    "overwroteB": true
+  },
+  "offlineDeviceReproduction": {
+    "baselineBuild": "original commit rebuilt in isolated temporary folder",
+    "beforeReconnect": "print('online B saved')",
+    "afterReconnect": "print('offline A draft')",
+    "overwroteOtherDevice": true
+  }
+}

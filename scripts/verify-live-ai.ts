@@ -56,7 +56,7 @@ assert.equal(detail.problem.source, "ai");
 assert.equal(detail.solution, null);
 assert.deepEqual(detail.hints, []);
 const problem = seedProblems.find((p) => p.id === "be-pagination")!;
-await request(`/api/progress/${problem.id}`, { code: problem.solution }, "PUT");
+await request(`/api/progress/${problem.id}`, { code: problem.solution, baseRevision: 0 }, "PUT");
 const reviewInput = { code: problem.solution, requestId: crypto.randomUUID() };
 const reviewed = await request(`/api/problems/${problem.id}/review`, reviewInput);
 assert.equal(reviewed.attempt.review.passed, true);

@@ -1,0 +1,147 @@
+{
+  "date": "2026-09-14",
+  "selection": {
+    "review": "gpt-5.6-luna",
+    "reviewReasoning": "medium",
+    "generate": "gpt-5.6-sol"
+  },
+  "review": {
+    "report": "ai-review-luna.json",
+    "summary": {
+      "total": 32,
+      "completed": 32,
+      "errors": 0,
+      "agreement": 1,
+      "negativeCases": 16,
+      "positiveCases": 16,
+      "falsePasses": 0,
+      "falseRejects": 0,
+      "falsePassRate": 0,
+      "criterionAgreement": 1,
+      "criteriaCount": 104,
+      "criteriaMatched": 104,
+      "latencyP50Ms": 5883,
+      "latencyP95Ms": 10433
+    },
+    "costUsd": 0.02338506,
+    "decision": "32/32 case outcomes and 104/104 criteria matched; use Luna without escalation. Not a held-out or all-language accuracy estimate."
+  },
+  "generation": {
+    "cases": 6,
+    "repeats": 2,
+    "models": 3,
+    "paidRequests": 36,
+    "validOutputs": 35,
+    "providerOrValidationErrors": 1,
+    "results": [
+      {
+        "model": "gpt-5.6-sol",
+        "report": "ai-generation-sol.json",
+        "planned": 12,
+        "completed": 11,
+        "errors": 1,
+        "latencyP50Ms": 47459,
+        "latencyP95Ms": 90010,
+        "inputTokens": 5176,
+        "outputTokens": 31119,
+        "estimatedCostUsd": 0.643084,
+        "unpricedRequests": 1,
+        "sourceSha256": "d237839578819617e8a30f8372ba98b66d3d6a1ef8520d428066e7b5eda9b3b6"
+      },
+      {
+        "model": "gpt-5.6-terra",
+        "report": "ai-generation-terra.json",
+        "planned": 12,
+        "completed": 12,
+        "errors": 0,
+        "latencyP50Ms": 19542,
+        "latencyP95Ms": 36921,
+        "inputTokens": 5658,
+        "outputTokens": 29800,
+        "estimatedCostUsd": 0.36891599999999997,
+        "unpricedRequests": 0,
+        "sourceSha256": "84bcb62d76390b91a98e8ddb6265b3017feebbe831dc794d773bafa19b5e5a8e"
+      },
+      {
+        "model": "gpt-5.6-luna",
+        "report": "ai-generation-luna.json",
+        "planned": 12,
+        "completed": 12,
+        "errors": 0,
+        "latencyP50Ms": 20818,
+        "latencyP95Ms": 26905,
+        "inputTokens": 5658,
+        "outputTokens": 29458,
+        "estimatedCostUsd": 0.03648119999999999,
+        "unpricedRequests": 0,
+        "sourceSha256": "655c7959219734911b66a15b140afe19c3a5e5cdc7983979a615fb182b6f2bac"
+      }
+    ],
+    "method": "Production prompts/schema/90s timeout/0 retries; two workers per model, models overlap. Same topics/titles across models. Codex source inspection against predeclared five-part rubric, not blinded or independently human-adjudicated; no numeric semantic accuracy score.",
+    "fixtureCorrection": "Initial infra topic was 216 characters and rejected locally, with no provider call. Shortened to 197 characters and ran only the previously uncalled 2 infra cases/model. Other 30 calls preserved. All fixtures now validated before paid calls. correctedFixtureFailures = 2 per report.",
+    "findings": [
+      {
+        "models": ["sol", "terra", "luna"],
+        "case": "backend-dedupe, frontend-race, database-report, game-movement",
+        "finding": "Core solution algorithms for ordinary topics were broadly comparable by source inspection. This does not establish equivalence or exclude unnoticed defects."
+      },
+      {
+        "model": "terra",
+        "case": "network-frames",
+        "repetitions": [1, 2],
+        "dimensions": ["exampleConsistency"],
+        "finding": "Payload-split examples omit a length byte: 00 00 04 61 or 00 00 04 74 denotes 1121/1140, not 4. Generated solution raises ValueError. Focused executable counterexamples confirmed."
+      },
+      {
+        "model": "terra",
+        "case": "backend-dedupe",
+        "repetitions": [2],
+        "dimensions": ["exampleConsistency", "teachingQuality"],
+        "finding": "Example output ends with ]},{ and note contains an English drafting/schema correction memo despite Korean prose instruction."
+      },
+      {
+        "model": "luna",
+        "case": "infra-config",
+        "repetitions": [1, 2],
+        "dimensions": ["exerciseFit"],
+        "finding": "Refactoring starter mutates input, rejects only the first error, or computes bool(\"false\") incorrectly. Task requires behavior fixes rather than behavior-preserving refactoring."
+      },
+      {
+        "model": "terra",
+        "case": "infra-config",
+        "repetitions": [1, 2],
+        "dimensions": ["exerciseFit", "solutionCorrectness"],
+        "finding": "Starter violates aggregate validation; solution lets int() conversion limit on 5000 digits interrupt collection of remaining errors."
+      },
+      {
+        "model": "sol",
+        "case": "infra-config",
+        "repetitions": [2],
+        "dimensions": ["exerciseFit", "solutionCorrectness"],
+        "finding": "Same refactoring-kind mismatch and uncaught long-int conversion error as cheaper models; premium model is not immune."
+      },
+      {
+        "model": "sol",
+        "case": "infra-config",
+        "repetitions": [1],
+        "dimensions": ["exerciseFit"],
+        "finding": "Common spec/parser loop preserves ordinary starter behavior and is a clearer refactoring exercise. Starter has a long-int edge defect; solution catches that ValueError per field. Python 3.12 type aliases inspected, not executed on local Python 3.11."
+      },
+      {
+        "model": "sol",
+        "case": "database-report",
+        "repetitions": [1],
+        "dimensions": ["availability"],
+        "finding": "No usable output after 90010ms, matching configured 90s timeout; raw error not retained, so provider/validation failure classification only. Token use and billing unknown. Not retried."
+      }
+    ],
+    "decision": "Keep Sol generation for now: lower-cost candidates are promising on ordinary problems but equivalence across required domains/kinds is unproven. This sample does not prove Sol universally superior; Sol also failed. No automatic fallback/routing introduced.",
+    "counterexamples": "generation-counterexamples.json"
+  },
+  "limits": [
+    "Development cases were reused for review; two runs are a small sample.",
+    "Generation scoring is source inspection by the implementing Codex agent, not an independent human benchmark or executable oracle for every language.",
+    "Dollar values are token-price estimates at 2026-09-14 rates; exclude unmetered failed request and actual account billing adjustments.",
+    "No production DB writes; generated artifacts are evaluation-only and not seeded into the service."
+  ]
+}

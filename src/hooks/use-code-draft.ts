@@ -1,8 +1,17 @@
 "use client";
 
-import { api } from "@/lib/client-api";
+import { api, ApiError } from "@/lib/client-api";
+import { browserDraft } from "@/lib/drafts/browser-draft";
+import { DraftController } from "@/lib/drafts/draft-controller";
 import type { Progress } from "@/lib/problem";
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type RefObject,
+} from "react";
 
 export function useCodeDraft({
   id,
@@ -17,133 +26,106 @@ export function useCodeDraft({
   onSaved: (progress: Progress) => void;
   onError: (message: string) => void;
 }) {
-  const [code, setCode] = useState("");
-  const [saveState, setSaveState] = useState<"saved" | "saving" | "local" | "failed">("saved");
-  const latest = useRef({ code: "", dirty: false });
-  const version = useRef(0);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const queue = useRef<Promise<void>>(Promise.resolve());
-  const draftKey = `codefit-draft:${scope}:${id}`;
-
-  const save = useCallback(
-    (value: string, savedVersion: number) => {
-      queue.current = queue.current
-        .catch(() => {})
-        .then(async () => {
-          if (mounted.current) setSaveState("saving");
+  const callbacks = useRef({ onSaved, onError });
+  useEffect(() => {
+    callbacks.current = { onSaved, onError };
+  }, [onSaved, onError]);
+  const handleError = useCallback(
+    (message: string) => {
+      if (mounted.current) callbacks.current.onError(message);
+    },
+    [mounted],
+  );
+  const handleSaved = useCallback(
+    (progress: Progress) => {
+      if (mounted.current) callbacks.current.onSaved(progress);
+    },
+    [mounted],
+  );
+  const [storage] = useState(() => browserDraft(scope, id));
+  const [machine] = useState(
+    () =>
+      new DraftController({
+        online: () => navigator.onLine,
+        persist: storage.write,
+        onSaved: () => {},
+        save: async (code, baseRevision) => {
           try {
             const { progress } = await api<{ progress: Progress }>(
               `/api/progress/${encodeURIComponent(id)}`,
               {
                 method: "PUT",
                 scope,
-                body: { code: value },
-                keepalive: new TextEncoder().encode(value).length < 45000,
+                body: { code, baseRevision },
+                keepalive: new TextEncoder().encode(code).length < 45000,
               },
             );
-            if (!mounted.current) return;
-            if (savedVersion === version.current) {
-              latest.current.dirty = false;
-              setSaveState("saved");
-              try {
-                const draft = JSON.parse(localStorage.getItem(draftKey) || "null");
-                if (draft?.code === value) localStorage.removeItem(draftKey);
-              } catch {
-                /* The server has already saved this version. */
-              }
-            }
-            onSaved(progress);
-          } catch {
-            if (mounted.current) setSaveState("failed");
+            return { saved: progress };
+          } catch (error) {
+            if (
+              error instanceof ApiError &&
+              error.status === 409 &&
+              error.payload?.kind === "code_conflict" &&
+              error.payload.current
+            )
+              return { conflict: error.payload.current as Progress };
+            throw error;
           }
-        });
-      return queue.current;
-    },
-    [id, scope, mounted, draftKey, onSaved],
+        },
+      }),
   );
-
+  useEffect(() => {
+    storage.setErrorHandler(handleError);
+    machine.setSavedHandler(handleSaved);
+  }, [storage, machine, handleError, handleSaved]);
+  const { code, status, localSaved } = useSyncExternalStore(
+    machine.subscribe,
+    machine.getSnapshot,
+    machine.getSnapshot,
+  );
+  const [recoverable, setRecoverable] = useState<ReturnType<typeof storage.remaining>>([]);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const server = useRef<{ progress: Progress | null; starter: string }>({
+    progress: null,
+    starter: "",
+  });
   const initialize = useCallback(
-    (progress: Progress | null, starterCode: string) => {
-      let draft = progress?.code ?? starterCode;
-      let localNewer = false;
-      try {
-        // Recover pre-account guest drafts only into the anonymous workspace.
-        const oldKey = `recode-draft:${id}`;
-        if (
-          scope.startsWith("guest:") &&
-          !localStorage.getItem(draftKey) &&
-          localStorage.getItem(oldKey)
-        ) {
-          localStorage.setItem(draftKey, localStorage.getItem(oldKey)!);
-          localStorage.removeItem(oldKey);
-        }
-        const local = JSON.parse(localStorage.getItem(draftKey) || "null");
-        if (
-          local &&
-          typeof local.code === "string" &&
-          local.code.length <= 30000 &&
-          local.at > Date.parse(progress?.updatedAt || "1970-01-01")
-        ) {
-          draft = local.code;
-          localNewer = draft !== progress?.code;
-        }
-      } catch {
-        /* Fall back to the server when browser storage is unavailable. */
-      }
-      latest.current = { code: draft, dirty: localNewer };
-      setCode(draft);
-      setSaveState(localNewer ? "local" : "saved");
-      return localNewer;
+    (progress: Progress | null, starter: string) => {
+      server.current = { progress, starter };
+      const restored = machine.initialize(progress, starter, storage.read());
+      setRecoverable(storage.remaining());
+      return restored;
     },
-    [draftKey, id, scope],
+    [machine, storage],
   );
-
+  const flush = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current);
+    return machine.flush();
+  }, [machine]);
   const changeCode = useCallback(
     (value: string) => {
       if (value.length > 30000) {
-        onError("코드는 30,000자까지 작성할 수 있습니다.");
+        callbacks.current.onError("코드는 30,000자까지 작성할 수 있습니다.");
         return;
       }
-      setCode(value);
-      latest.current = { code: value, dirty: true };
-      version.current++;
-      setSaveState("local");
-      try {
-        localStorage.setItem(draftKey, JSON.stringify({ code: value, at: Date.now() }));
-      } catch {
-        setSaveState("failed");
-      }
+      machine.change(value);
       if (timer.current) clearTimeout(timer.current);
-      const changedVersion = version.current;
       timer.current = setTimeout(() => {
-        void save(value, changedVersion);
+        void machine.flush();
       }, 700);
     },
-    [draftKey, onError, save],
+    [machine],
   );
-
-  const flush = useCallback(() => {
-    if (timer.current) clearTimeout(timer.current);
-    return latest.current.dirty ? save(latest.current.code, version.current) : queue.current;
-  }, [save]);
-  const saveNow = useCallback(() => {
-    if (timer.current) clearTimeout(timer.current);
-    return save(latest.current.code, version.current);
-  }, [save]);
-  const saveBeforeReview = useCallback(
-    (submittedCode: string) => {
-      if (timer.current) clearTimeout(timer.current);
-      return latest.current.dirty ? save(submittedCode, version.current) : queue.current;
+  const restoreImportedCode = useCallback(
+    (progress: Progress | null) => {
+      if (!machine.hasUnsaved() && progress)
+        machine.initialize(progress, server.current.starter, null);
     },
-    [save],
+    [machine],
   );
-  const restoreImportedCode = useCallback((importedCode: string | null | undefined) => {
-    if (!latest.current.dirty && version.current === 0 && importedCode != null) {
-      latest.current.code = importedCode;
-      setCode(importedCode);
-    }
-  }, []);
-
+  const saveBeforeReview = useCallback(async () => {
+    if (!(await flush())) throw new Error("초안을 먼저 저장하거나 충돌을 해결한 뒤 검토해 주세요.");
+  }, [flush]);
   useEffect(() => {
     const retry = () => {
       void flush();
@@ -152,7 +134,7 @@ export function useCodeDraft({
       if (document.visibilityState === "hidden") retry();
     };
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (latest.current.dirty) {
+      if (machine.hasUnsaved()) {
         retry();
         event.preventDefault();
       }
@@ -161,21 +143,26 @@ export function useCodeDraft({
     document.addEventListener("visibilitychange", hide);
     window.addEventListener("beforeunload", beforeUnload);
     return () => {
+      if (timer.current) clearTimeout(timer.current);
       window.removeEventListener("online", retry);
       document.removeEventListener("visibilitychange", hide);
       window.removeEventListener("beforeunload", beforeUnload);
     };
-  }, [flush]);
-
+  }, [flush, machine]);
   return {
     code,
-    saveState,
+    localSaved,
+    saveState: status.kind,
+    draftStatus: status,
+    recoverable,
+    // Recovery copies into the editor; the existing text can be restored with the usual undo action.
     initialize,
     changeCode,
     flush,
-    saveNow,
+    saveNow: flush,
     saveBeforeReview,
     restoreImportedCode,
-    getCode: () => latest.current.code,
+    resolveConflict: () => machine.resolve(),
+    getCode: () => machine.getSnapshot().code,
   };
 }

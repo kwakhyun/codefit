@@ -857,3 +857,68 @@
 .focus-mode .problem-content {
   max-height: calc(100vh - 215px);
 }
+
+.draft-conflict,
+.draft-recovery {
+  margin: 12px;
+  padding: 16px;
+  border: 1px solid #9a7838;
+  border-radius: 8px;
+  background: #171510;
+  color: #e6e2d8;
+  font-size: 13px;
+}
+.draft-conflict p,
+.draft-recovery p {
+  margin: 0 0 12px;
+  line-height: 1.65;
+}
+.draft-conflict summary,
+.draft-recovery summary {
+  cursor: pointer;
+  padding: 6px 0;
+}
+.draft-conflict small {
+  display: block;
+  margin-top: 10px;
+  color: #c3bba9;
+}
+.draft-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+.draft-comparison label,
+.draft-recovery label {
+  display: block;
+  min-width: 0;
+}
+.draft-comparison textarea,
+.draft-recovery textarea {
+  width: 100%;
+  height: 220px;
+  resize: vertical;
+  margin-top: 8px;
+  padding: 10px;
+  color: #eee;
+  background: #0c0c0d;
+  border: 1px solid #666;
+  border-radius: 4px;
+  font:
+    12px/1.6 Consolas,
+    monospace;
+}
+.draft-conflict :focus-visible,
+.draft-recovery :focus-visible {
+  outline: 2px solid #e3b967;
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .draft-comparison {
+    grid-template-columns: 1fr;
+  }
+  .draft-conflict .secondary-button {
+    white-space: normal;
+  }
+}

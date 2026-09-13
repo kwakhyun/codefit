@@ -1,0 +1,775 @@
+{
+  "measuredAt": "2026-09-13T16:47:44.821Z",
+  "model": "gpt-5.6-luna",
+  "repeats": 2,
+  "promptVersion": "2026-09-13.3",
+  "fingerprint": "b2470b32db11445ec1c84e951af3ef9010ec6869c903887726b22f00f266c3f1",
+  "settings": {
+    "reasoning": "provider default (medium per model docs)",
+    "maxOutputTokens": 10000,
+    "timeoutMs": 90000,
+    "maxRetries": 0,
+    "concurrency": 2,
+    "existingTitles": []
+  },
+  "cases": [
+    {
+      "id": "frontend-race",
+      "domain": "frontend",
+      "language": "tsx",
+      "difficulty": "중",
+      "kind": "debugging",
+      "topic": "React 19 상품 검색의 응답 역전 오류 수정. fetch가 늦게 끝나도 최신 검색만 표시하고, 공백 검색은 요청 없이 목록을 비우며, HTTP 오류와 unmount를 처리. API는 상품명 문자열 배열을 반환."
+    },
+    {
+      "id": "backend-dedupe",
+      "domain": "backend",
+      "language": "python",
+      "difficulty": "하",
+      "kind": "implementation",
+      "topic": "Python 3.12 dedupe_emails(emails) 구현. ASCII 이메일 문자열을 strip 및 소문자로 비교해 중복 제거. 최초 원본 문자열과 순서 유지, 공백뿐인 항목 제외, 입력 목록 불변. 표준 라이브러리만 사용."
+    },
+    {
+      "id": "game-movement",
+      "domain": "game",
+      "language": "csharp",
+      "difficulty": "하",
+      "kind": "debugging",
+      "topic": "Unity 6 기존 Input Manager의 3D 캐릭터 이동 오류 수정. 대각선 속도 제한, 프레임 독립 이동, 작은 아날로그 입력 유지. Rigidbody 없이 XZ 평면 transform 이동, speed는 음수가 아님."
+    },
+    {
+      "id": "network-frames",
+      "domain": "network",
+      "language": "python",
+      "difficulty": "상",
+      "kind": "implementation",
+      "topic": "Python 3.12 TCP length-prefix 프레임 파서. 4바이트 big-endian 길이, 최대 1024바이트, 0길이 허용. feed(bytes)->list[bytes]는 분할/합쳐진 수신 처리. 초과 길이는 ValueError 후 명시적 reset 전 모든 feed 거절. 표준 라이브러리만 사용."
+    },
+    {
+      "id": "database-report",
+      "domain": "database",
+      "language": "sql",
+      "difficulty": "중",
+      "kind": "refactoring",
+      "topic": "PostgreSQL 16 고객별 완료 주문 통계 쿼리 리팩터링. 고객(id PK,name), 주문(id PK,customer_id,status,amount numeric not null) 스키마 정의. 주문 없는 고객 포함, 완료 주문만 count/sum, 없으면 0, 고객 id 정렬. 기존 정답 쿼리의 중복 계산 줄이기."
+    },
+    {
+      "id": "infra-config",
+      "domain": "infra",
+      "language": "python",
+      "difficulty": "상",
+      "kind": "refactoring",
+      "topic": "Python 3.12 설정 검증 리팩터링. parse_config(env:dict[str,str])->dict: PORT 정수1..65535 기본8080, WORKERS 정수1..32 기본4, DEBUG true/false 기본false. 앞뒤공백 제거. 오류 필드명 정렬해 단일 ValueError로 모두 보고. 입력 불변, 파일/환경변수 읽기 금지."
+    }
+  ],
+  "rubric": {
+    "solutionCorrectness": "정답이 원래 주제와 생성된 모든 요구사항을 만족하는가? 제어 흐름과 경계값을 검토한다.",
+    "exampleConsistency": "구체적인 입력/출력이 정답 및 계약과 일치하는가?",
+    "contractClarity": "런타임, 의존성, 자료형, 오류/경계값 정책이 모순 없이 명시되는가?",
+    "exerciseFit": "분야/언어/난이도/유형에 맞는가? refactoring 시작 코드는 동작하고 debugging에는 실제 결함이 있는가?",
+    "teachingQuality": "3단계 힌트가 정답을 그대로 노출하지 않고 설명이 원인과 경계값을 설명하는가?"
+  },
+  "summary": {
+    "planned": 12,
+    "completed": 12,
+    "errors": 0,
+    "latencyP50Ms": 20818,
+    "latencyP95Ms": 26905,
+    "inputTokens": 5658,
+    "outputTokens": 29458,
+    "estimatedCostUsd": 0.03648119999999999,
+    "unpricedRequests": 0
+  },
+  "pricing": {
+    "gpt-5.4-mini": {
+      "model": "gpt-5.4-mini",
+      "input": 0.75,
+      "cachedInput": 0.075,
+      "output": 4.5,
+      "checkedAt": "2026-09-13"
+    },
+    "gpt-5.6-luna": {
+      "input": 0.2,
+      "cachedInput": 0.02,
+      "output": 1.2
+    },
+    "gpt-5.6-terra": {
+      "input": 2,
+      "cachedInput": 0.2,
+      "output": 12
+    },
+    "gpt-5.6-sol": {
+      "input": 4,
+      "cachedInput": 0.4,
+      "output": 20
+    }
+  },
+  "limitations": [
+    "Small development sample, not a held-out benchmark or proof of equivalence.",
+    "Schema success does not establish semantic quality; separate source-level assessment is required.",
+    "Provider errors/response loss can incur unmetered costs. No production database writes or generated-code execution by this script."
+  ],
+  "results": [
+    {
+      "id": "backend-dedupe",
+      "repetition": 1,
+      "run": {
+        "id": "d361456b-4e1b-47fe-86b0-c12bc5a97376",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 13214,
+        "inputTokens": 460,
+        "cachedInputTokens": 0,
+        "outputTokens": 1571,
+        "estimatedCostUsd": 0.0019771999999999997,
+        "createdAt": "2026-09-13T16:44:11.726Z"
+      },
+      "content": {
+        "title": "이메일 주소 중복 제거 함수 구현",
+        "summary": "대소문자와 양끝 공백을 무시해 이메일 주소의 중복을 제거하되, 처음 등장한 원본 문자열과 입력 순서를 보존하는 Python 함수를 구현합니다.",
+        "scenario": "Python 3.12 환경의 백엔드 입력 정리 단계에서 사용할 함수 dedupe_emails(emails)를 구현합니다. 외부 프레임워크와 패키지는 사용하지 않으며 표준 라이브러리도 필수로 사용할 필요는 없습니다. 입력 emails는 ASCII 문자로 이루어진 이메일 문자열만 담은 list[str]이며, 이메일 형식 자체의 유효성 검사는 이 함수의 책임이 아닙니다. 각 문자열의 앞뒤 공백은 비교할 때 제거하고, 영문 대소문자는 소문자로 바꾸어 비교합니다. 반환값은 중복이 제거된 list[str]입니다. 반환 목록에는 중복 판정에 사용한 정규화 문자열이 아니라 최초로 등장한 원본 문자열을 넣어야 합니다. 예를 들어 입력 [' Alice@Example.com ', 'alice@example.com', 'BOB@example.com', '   ', 'bob@EXAMPLE.com']의 기대 결과는 [' Alice@Example.com ', 'BOB@example.com']입니다. 입력 목록은 함수 호출 전후에 변경되지 않아야 합니다. 입력 ['A@EXAMPLE.COM', ' a@example.com ', 'B@example.com']의 기대 결과는 ['A@EXAMPLE.COM', 'B@example.com']입니다.",
+        "requirements": [
+          "함수 시그니처를 def dedupe_emails(emails: list[str]) -> list[str] 형태로 유지하고, 입력 문자열을 순서대로 처리해야 합니다.",
+          "각 항목은 앞뒤 공백을 제거하고 소문자로 변환한 값을 중복 비교용 키로 사용해야 합니다.",
+          "앞뒤 공백을 제거한 결과가 빈 문자열인 항목은 반환 결과에서 제외해야 합니다.",
+          "같은 비교용 키가 여러 번 나타나면 최초 항목의 원본 문자열만 결과에 포함해야 하며, 결과 순서는 최초 등장 순서와 같아야 합니다.",
+          "함수는 입력 list를 수정하거나 그 안의 문자열을 재할당하지 않아야 합니다.",
+          "이메일 형식 검증, 문자열 내부 공백 제거, 도메인 별도 처리 등 명세에 없는 변환은 수행하지 않아야 합니다."
+        ],
+        "starterCode": "def dedupe_emails(emails: list[str]) -> list[str]:\n    \"\"\"중복 이메일을 제거해 최초 원본 문자열만 반환한다.\"\"\"\n    pass\n",
+        "hints": [
+          "중복 여부를 빠르게 기록할 별도의 set을 만들고, 결과를 담을 list도 따로 준비하세요.",
+          "각 항목에서 strip()한 값을 먼저 만든 뒤, 빈 문자열인지 확인하고 비교 키를 생성하세요.",
+          "비교 키가 아직 set에 없을 때만 해당 키를 set에 추가하고, strip() 결과가 아닌 현재 항목 원본을 결과 list에 추가하면 됩니다."
+        ],
+        "solution": "def dedupe_emails(emails: list[str]) -> list[str]:\n    seen: set[str] = set()\n    result: list[str] = []\n\n    for email in emails:\n        normalized = email.strip()\n        if not normalized:\n            continue\n\n        key = normalized.lower()\n        if key in seen:\n            continue\n\n        seen.add(key)\n        result.append(email)\n\n    return result\n",
+        "explanation": "입력 목록을 직접 변경하지 않기 위해 각 문자열을 읽기만 하고, 결과를 별도의 list에 저장합니다. 먼저 strip()한 값을 normalized로 만들어 양끝 공백을 제거합니다. normalized가 빈 문자열이면 공백뿐인 항목이므로 건너뜁니다. 이후 normalized.lower()를 비교 키로 사용해 대소문자와 양끝 공백이 다른 동일 이메일을 같은 항목으로 취급합니다. seen set에 키가 없을 때만 키를 기록하고 현재 email을 result에 추가하므로, 최초 항목의 원본 문자열과 최초 등장 순서가 보존됩니다. 문자열 내부의 공백이나 이메일 형식은 변경하거나 검증하지 않습니다. 입력이 빈 목록이면 빈 목록을 반환하고, 모든 항목이 공백뿐이어도 빈 목록을 반환합니다. 시간 복잡도는 항목 수를 n, 문자열 평균 길이를 L이라 할 때 정규화 비용을 포함해 O(nL)이며, 추가 공간은 서로 다른 비교 키 수에 비례합니다.",
+        "examples": [
+          {
+            "input": "[' Alice@Example.com ', 'alice@example.com', 'BOB@example.com', '   ', 'bob@EXAMPLE.com']",
+            "output": "[' Alice@Example.com ', 'BOB@example.com']",
+            "note": "첫 번째 이메일의 원본 양끝 공백은 결과에 유지됩니다."
+          },
+          {
+            "input": "['A@EXAMPLE.COM', ' a@example.com ', 'B@example.com']",
+            "output": "['A@EXAMPLE.COM', 'B@example.com']",
+            "note": "앞뒤 공백과 대소문자를 무시하면 첫 두 항목은 같은 이메일입니다."
+          },
+          {
+            "input": "['   ', '  \\t  ']",
+            "output": "[]",
+            "note": "strip() 후 빈 문자열인 항목은 모두 제외됩니다."
+          }
+        ],
+        "tags": ["Python", "백엔드", "문자열 정규화", "중복 제거"],
+        "minutes": 15
+      }
+    },
+    {
+      "id": "backend-dedupe",
+      "repetition": 2,
+      "run": {
+        "id": "866fe042-2121-4d9b-8db1-a4d87fdad67d",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 10229,
+        "inputTokens": 460,
+        "cachedInputTokens": 0,
+        "outputTokens": 1184,
+        "estimatedCostUsd": 0.0015128,
+        "createdAt": "2026-09-13T16:45:02.126Z"
+      },
+      "content": {
+        "title": "이메일 목록 중복 제거기",
+        "summary": "정규화된 이메일 값을 기준으로 중복을 제거하되, 각 값의 최초 원본 표현과 입력 순서를 보존하는 Python 함수를 구현합니다.",
+        "scenario": "고객 알림 서비스에서 여러 경로로 수집한 이메일 목록을 하나의 발송 대상 목록으로 합치려고 합니다. Python 3.12와 표준 라이브러리만 사용하며, `dedupe_emails(emails)` 함수를 완성해야 합니다. 입력 `emails`는 문자열만 포함하는 리스트이고, 함수는 새로운 문자열 리스트를 반환합니다. 이메일 주소는 ASCII 문자열로 간주합니다. 비교할 때는 각 문자열의 양끝 공백을 제거한 뒤 소문자로 바꾼 값을 사용합니다. 예를 들어 입력 `[' Alice@EXAMPLE.COM ', 'alice@example.com', ' bob@example.com ']`의 결과는 `[' Alice@EXAMPLE.COM ', ' bob@example.com ']`입니다. 공백만 있는 항목은 결과에서 제외합니다. 함수는 입력 리스트를 변경해서는 안 됩니다.",
+        "requirements": [
+          "각 항목은 양끝 공백을 제거하고 소문자로 변환한 값을 비교 키로 사용해야 합니다.",
+          "비교 키가 같은 항목은 최초로 등장한 항목 하나만 결과에 포함해야 하며, 결과에는 해당 항목의 원본 문자열을 그대로 넣어야 합니다.",
+          "양끝 공백을 제거한 결과가 빈 문자열인 항목은 결과에서 제외해야 합니다.",
+          "결과 항목의 순서는 입력에서 최초 항목이 등장한 순서를 유지해야 합니다.",
+          "함수 실행 전후에 입력 리스트의 원소와 순서가 바뀌지 않아야 하며, 외부 패키지를 사용하지 않아야 합니다."
+        ],
+        "starterCode": "def dedupe_emails(emails: list[str]) -> list[str]:\n    \"\"\"중복 이메일을 제거해 새로운 리스트로 반환한다.\"\"\"\n    pass\n",
+        "hints": [
+          "각 문자열에서 비교에 사용할 정규화된 값을 먼저 만들고, 빈 값인지 확인해 보세요.",
+          "이미 본 비교 키를 저장할 자료구조와 결과를 담을 리스트를 함께 사용하면 입력 순서를 자연스럽게 유지할 수 있습니다.",
+          "반복문에서 원본 문자열은 그대로 결과에 추가하고, `item.strip().lower()`는 비교와 빈 문자열 판별에만 사용하세요."
+        ],
+        "solution": "def dedupe_emails(emails: list[str]) -> list[str]:\n    seen: set[str] = set()\n    result: list[str] = []\n\n    for email in emails:\n        normalized = email.strip().lower()\n        if not normalized or normalized in seen:\n            continue\n        seen.add(normalized)\n        result.append(email)\n\n    return result\n",
+        "explanation": "새로운 `result` 리스트와 이미 처리한 정규화 키를 저장하는 `seen` 집합을 만듭니다. 각 항목에 대해 `strip()`으로 양끝 공백을 제거하고 `lower()`로 소문자화한 값을 `normalized`로 계산합니다. 이 값이 빈 문자열이면 공백뿐인 항목이므로 건너뜁니다. 이미 `seen`에 있으면 중복이므로 건너뛰고, 처음 보는 값이면 키를 집합에 추가한 뒤 원본 `email`을 결과에 추가합니다. 따라서 비교는 정규화된 값으로 수행하면서도 결과에는 최초 항목의 공백과 대소문자를 포함한 원본이 보존됩니다. 입력 리스트를 순회만 하므로 입력 자체가 변경되지 않습니다. 예를 들어 `[' A@EXAMPLE.COM ', 'a@example.com', '   ', 'B@example.com', 'b@EXAMPLE.COM']`은 `[' A@EXAMPLE.COM ', 'B@example.com']`이 됩니다. 빈 입력은 빈 리스트를 반환하며, 모든 항목이 공백뿐이어도 빈 리스트를 반환합니다.",
+        "examples": [
+          {
+            "input": "[' Alice@EXAMPLE.COM ', 'alice@example.com', ' bob@example.com ']",
+            "output": "[' Alice@EXAMPLE.COM ', ' bob@example.com ']",
+            "note": "첫 번째 이메일의 원본 표현과 두 번째 고유 이메일의 원본 표현을 유지합니다."
+          },
+          {
+            "input": "[' A@EXAMPLE.COM ', '   ', 'a@example.com', '\\tB@example.com\\n', 'b@EXAMPLE.COM']",
+            "output": "[' A@EXAMPLE.COM ', '\\tB@example.com\\n']",
+            "note": "공백뿐인 항목은 제외하고, 대소문자와 양끝 공백이 다른 중복은 최초 항목만 남깁니다."
+          },
+          {
+            "input": "[]",
+            "output": "[]",
+            "note": "빈 입력은 빈 결과를 반환합니다."
+          }
+        ],
+        "tags": ["Python", "백엔드", "문자열 정규화", "중복 제거"],
+        "minutes": 15
+      }
+    },
+    {
+      "id": "database-report",
+      "repetition": 1,
+      "run": {
+        "id": "d660e9d9-11d9-4903-b091-0cc073eba3ea",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 20298,
+        "inputTokens": 482,
+        "cachedInputTokens": 0,
+        "outputTokens": 2370,
+        "estimatedCostUsd": 0.0029404,
+        "createdAt": "2026-09-13T16:44:41.828Z"
+      },
+      "content": {
+        "title": "고객별 완료 주문 통계 쿼리 리팩터링",
+        "summary": "PostgreSQL 16에서 고객별 완료 주문 수와 금액을 계산하는 기존 쿼리를, 주문 테이블의 중복 조회가 없도록 리팩터링합니다.",
+        "scenario": "고객과 주문 데이터를 운영하는 서비스에서 고객별 주문 요약 화면을 만들고 있습니다. 데이터베이스는 PostgreSQL 16을 사용합니다. 스키마는 다음과 같습니다.\n\ncustomers(id bigint PRIMARY KEY, name text NOT NULL)\norders(id bigint PRIMARY KEY, customer_id bigint NOT NULL REFERENCES customers(id), status text NOT NULL, amount numeric NOT NULL)\n\n주문 상태가 정확히 'completed'인 주문만 완료 주문으로 간주합니다. 결과에는 주문이 한 건도 없는 고객도 포함해야 하며, 결과 열은 id, name, completed_order_count, completed_amount 순서여야 합니다. completed_order_count는 정수형 개수이고 completed_amount는 numeric 합계입니다. 완료 주문이 없으면 두 통계 모두 0으로 표시합니다. 결과는 고객 id 오름차순으로 정렬해야 합니다.\n\n예를 들어 다음 데이터가 주어졌다고 가정합니다.\n\ncustomers\n1 | 김민서\n2 | 이도윤\n3 | 박서준\n\norders\n101 | 1 | completed | 100.50\n102 | 1 | pending   | 30.00\n103 | 1 | completed | 20.00\n104 | 3 | cancelled | 50.00\n105 | 3 | completed | 7.25\n\n기대 결과는 다음과 같습니다.\n\n1 | 김민서 | 2 | 120.50\n2 | 이도윤 | 0 | 0\n3 | 박서준 | 1 | 7.25\n\n현재 쿼리는 각 고객에 대해 완료 주문을 세는 조회와 합산하는 조회를 별도로 수행합니다. 결과의 의미는 유지하면서 주문 데이터의 중복 계산을 줄이도록 리팩터링하세요.",
+        "requirements": [
+          "모든 고객을 결과에 포함하고, 완료 주문이 없는 고객의 개수와 금액을 각각 0으로 반환해야 합니다.",
+          "status가 정확히 'completed'인 주문만 개수와 금액 계산에 포함해야 합니다.",
+          "고객별 완료 주문 개수와 금액을 각각 completed_order_count와 completed_amount 열로 반환해야 합니다.",
+          "주문 데이터에 대한 완료 여부 집계가 중복 수행되지 않도록 하나의 집계 경로에서 개수와 합계를 계산해야 하며, 기존처럼 고객별 상관 서브쿼리를 두 개 사용해서는 안 됩니다.",
+          "결과를 고객 id 오름차순으로 정렬해야 합니다."
+        ],
+        "starterCode": "SELECT\n    c.id,\n    c.name,\n    (\n        SELECT COUNT(*)\n        FROM orders o\n        WHERE o.customer_id = c.id\n          AND o.status = 'completed'\n    ) AS completed_order_count,\n    (\n        SELECT COALESCE(SUM(o.amount), 0)\n        FROM orders o\n        WHERE o.customer_id = c.id\n          AND o.status = 'completed'\n    ) AS completed_amount\nFROM customers c\nORDER BY c.id;",
+        "hints": [
+          "고객이 주문을 갖지 않는 경우도 보존하려면 고객을 기준 테이블로 두고, 통계 결과를 외부 조인하는 구조를 고려하세요.",
+          "완료 주문만 먼저 골라 고객별로 COUNT와 SUM을 한 번에 계산하면 주문 테이블을 통계별로 반복 조회하지 않을 수 있습니다.",
+          "집계 결과를 만든 뒤 customers에 LEFT JOIN하고, 조인되지 않은 집계값에는 COALESCE를 적용하세요. 완료 주문 필터는 집계 단계에서 처리하면 됩니다."
+        ],
+        "solution": "SELECT\n    c.id,\n    c.name,\n    COALESCE(s.completed_order_count, 0) AS completed_order_count,\n    COALESCE(s.completed_amount, 0) AS completed_amount\nFROM customers AS c\nLEFT JOIN (\n    SELECT\n        o.customer_id,\n        COUNT(*) AS completed_order_count,\n        SUM(o.amount) AS completed_amount\n    FROM orders AS o\n    WHERE o.status = 'completed'\n    GROUP BY o.customer_id\n) AS s\n    ON s.customer_id = c.id\nORDER BY c.id;",
+        "explanation": "완료 주문만 내부 집계 쿼리에서 먼저 필터링한 뒤 customer_id별로 COUNT와 SUM을 한 번에 계산합니다. 따라서 개수와 금액을 구하기 위해 orders를 별도의 상관 서브쿼리로 반복 조회하지 않습니다.\n\ncustomers를 왼쪽 테이블로 사용하고 집계 결과를 LEFT JOIN하므로, 주문이 없거나 완료 주문이 없는 고객도 결과에서 제외되지 않습니다. 이때 조인 대상 집계 행 자체가 없으므로 COUNT와 SUM 결과가 NULL이 될 수 있으며, 바깥쪽 COALESCE가 이를 0으로 바꿉니다.\n\nSUM은 amount가 numeric이므로 numeric 결과를 반환합니다. COALESCE의 0은 PostgreSQL이 각 표현식의 타입에 맞게 변환합니다. pending이나 cancelled 주문은 내부 WHERE 조건에서 제거되므로 통계에 영향을 주지 않습니다. 마지막으로 고객의 기본 키인 id를 기준으로 정렬하므로 결과 순서가 결정됩니다.",
+        "examples": [
+          {
+            "input": "customers: (1, '김민서'), (2, '이도윤'), (3, '박서준')\norders: (101, 1, 'completed', 100.50), (102, 1, 'pending', 30.00), (103, 1, 'completed', 20.00), (104, 3, 'cancelled', 50.00), (105, 3, 'completed', 7.25)",
+            "output": "id | name | completed_order_count | completed_amount\n1 | 김민서 | 2 | 120.50\n2 | 이도윤 | 0 | 0\n3 | 박서준 | 1 | 7.25\n\n고객 2는 주문이 없고, 고객 3의 cancelled 주문은 집계에서 제외됩니다.",
+            "note": "입력과 출력은 문제 시나리오의 데이터 계약을 따릅니다."
+          }
+        ],
+        "tags": ["SQL", "PostgreSQL", "데이터베이스", "집계", "쿼리 리팩터링"],
+        "minutes": 30
+      }
+    },
+    {
+      "id": "database-report",
+      "repetition": 2,
+      "run": {
+        "id": "cdb5472c-02a7-49f5-9502-45397e2d11e3",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 20818,
+        "inputTokens": 482,
+        "cachedInputTokens": 0,
+        "outputTokens": 2592,
+        "estimatedCostUsd": 0.0032068,
+        "createdAt": "2026-09-13T16:45:33.375Z"
+      },
+      "content": {
+        "title": "고객별 완료 주문 통계 쿼리 리팩터링",
+        "summary": "고객별 완료 주문 수와 완료 금액을 계산하는 PostgreSQL 쿼리에서 중복된 주문 테이블 조회를 제거하고, 주문이 없는 고객도 결과에 포함되도록 리팩터링합니다.",
+        "scenario": "온라인 쇼핑몰의 고객별 주문 통계를 조회하는 작업입니다. 실행 환경은 PostgreSQL 16이며, 별도의 함수나 확장 기능 없이 하나의 SQL 문으로 해결해야 합니다.\n\n스키마는 다음과 같습니다.\n\nCREATE TABLE customers (\n    id BIGINT PRIMARY KEY,\n    name TEXT NOT NULL\n);\n\nCREATE TABLE orders (\n    id BIGINT PRIMARY KEY,\n    customer_id BIGINT NOT NULL REFERENCES customers(id),\n    status TEXT NOT NULL,\n    amount NUMERIC NOT NULL\n);\n\n주문 상태가 정확히 'completed'인 행만 완료 주문으로 취급합니다. 결과에는 모든 고객이 포함되어야 하며, 고객별로 다음 열을 반환해야 합니다.\n\n- id: 고객 ID\n- name: 고객 이름\n- completed_order_count: 완료 주문 개수\n- completed_amount: 완료 주문 금액 합계\n\n주문이 없는 고객이나 완료 주문이 없는 고객의 통계값은 모두 숫자 0이어야 합니다. 금액은 NUMERIC 타입의 합계로 다루며, 고객 ID 오름차순으로 정렬합니다.\n\n예를 들어 다음 데이터가 있습니다.\n\ncustomers\nid | name\n2  | 김하늘\n1  | 이도윤\n3  | 박서준\n\norders\nid | customer_id | status    | amount\n101 | 1           | completed | 12000.50\n102 | 1           | pending   | 3000.00\n103 | 1           | completed | 799.50\n104 | 2           | cancelled | 5000.00\n\n기대 결과는 다음과 같습니다.\n\nid | name   | completed_order_count | completed_amount\n1  | 이도윤  | 2                     | 12800.00\n2  | 김하늘  | 0                     | 0\n3  | 박서준  | 0                     | 0\n\n현재 쿼리는 완료 주문 개수와 합계를 계산하기 위해 orders 테이블을 각각 조회합니다. 결과를 바꾸지 않으면서 완료 주문 집계를 한 번만 수행하도록 리팩터링하세요.",
+        "requirements": [
+          "모든 고객을 결과에 포함해야 하며, 주문 또는 완료 주문이 없는 고객이 LEFT JOIN 때문에 누락되지 않도록 작성해야 합니다.",
+          "status가 정확히 'completed'인 주문만 completed_order_count와 completed_amount 계산에 포함해야 합니다.",
+          "completed_order_count는 완료 주문 개수이고, completed_amount는 완료 주문의 amount 합계여야 합니다.",
+          "완료 주문이 없는 고객의 두 통계값은 각각 숫자 0이어야 하며, completed_amount는 NUMERIC 결과로 유지해야 합니다.",
+          "orders에 대한 완료 주문 집계가 고객별로 한 번 수행되도록 구성하여, 통계별 상관 서브쿼리처럼 같은 조건과 테이블을 중복 조회하지 않아야 합니다.",
+          "결과 열은 id, name, completed_order_count, completed_amount 순서로 반환하고 id 오름차순으로 정렬해야 합니다."
+        ],
+        "starterCode": "SELECT\n    c.id,\n    c.name,\n    (\n        SELECT COUNT(*)\n        FROM orders o\n        WHERE o.customer_id = c.id\n          AND o.status = 'completed'\n    ) AS completed_order_count,\n    COALESCE(\n        (\n            SELECT SUM(o.amount)\n            FROM orders o\n            WHERE o.customer_id = c.id\n              AND o.status = 'completed'\n        ),\n        0\n    ) AS completed_amount\nFROM customers c\nORDER BY c.id;",
+        "hints": [
+          "완료 주문만 먼저 대상으로 삼고, 고객별로 개수와 합계를 함께 계산하면 같은 조건을 여러 번 작성하지 않아도 됩니다.",
+          "고객별 집계 결과를 별도의 관계처럼 만든 뒤 customers와 결합하세요. 집계 결과가 없는 고객도 보존해야 하므로 결합 방향을 주의해야 합니다.",
+          "집계 결과가 없는 행의 COUNT와 SUM을 각각 COALESCE로 보정하고, 금액의 기본값은 NUMERIC 타입이 되도록 명시적으로 처리하세요."
+        ],
+        "solution": "WITH completed_totals AS (\n    SELECT\n        o.customer_id,\n        COUNT(*) AS completed_order_count,\n        SUM(o.amount) AS completed_amount\n    FROM orders AS o\n    WHERE o.status = 'completed'\n    GROUP BY o.customer_id\n)\nSELECT\n    c.id,\n    c.name,\n    COALESCE(t.completed_order_count, 0::bigint) AS completed_order_count,\n    COALESCE(t.completed_amount, 0::numeric) AS completed_amount\nFROM customers AS c\nLEFT JOIN completed_totals AS t\n    ON t.customer_id = c.id\nORDER BY c.id;",
+        "explanation": "completed_totals에서 완료 주문만 먼저 필터링한 뒤 customer_id별로 COUNT와 SUM을 함께 계산합니다. 따라서 기존 쿼리처럼 완료 주문 조건으로 orders를 개수 계산용과 합계 계산용으로 각각 조회하지 않고, 하나의 집계 단계에서 두 통계값을 만들 수 있습니다.\n\n이 집계 결과를 customers에 LEFT JOIN하면 완료 주문 집계 행이 없는 고객도 유지됩니다. 이런 고객은 t의 열이 NULL이 되므로 COUNT에는 0::bigint, SUM에는 0::numeric을 각각 COALESCE로 적용합니다. SUM의 입력이 NUMERIC이므로 금액 기본값도 0::numeric으로 지정해 결과 타입을 명확히 했습니다.\n\n완료 주문이 아닌 주문은 CTE의 WHERE 조건에서 제외되므로 pending이나 cancelled 상태의 금액은 합계에 포함되지 않습니다. 고객 ID가 같은 완료 주문이 여러 개여도 GROUP BY로 하나의 집계 행이 만들어지며, 고객 자체는 customers에서 직접 가져오므로 주문 데이터가 없어도 결과에 나타납니다. 마지막 ORDER BY는 고객 ID 오름차순을 보장합니다.",
+        "examples": [
+          {
+            "input": "customers: (2, '김하늘'), (1, '이도윤'), (3, '박서준')\norders: (101, 1, 'completed', 12000.50), (102, 1, 'pending', 3000.00), (103, 1, 'completed', 799.50), (104, 2, 'cancelled', 5000.00)",
+            "output": "id | name   | completed_order_count | completed_amount\n1  | 이도윤  | 2                     | 12800.00\n2  | 김하늘  | 0                     | 0\n3  | 박서준  | 0                     | 0\n\n고객 1의 pending 주문과 고객 2의 cancelled 주문은 통계에서 제외되며, 고객 3은 주문이 없어도 결과에 포함됩니다.",
+            "note": "주어진 scenario의 대표 예시입니다."
+          },
+          {
+            "input": "customers: (10, '최유진')\norders: (201, 10, 'completed', 0), (202, 10, 'completed', 15.25), (203, 10, 'returned', 100.00)",
+            "output": "id | name   | completed_order_count | completed_amount\n10 | 최유진  | 2                     | 15.25",
+            "note": "완료 주문의 amount가 0인 경우도 주문 개수에는 포함되며, 완료되지 않은 returned 주문은 합계에서 제외됩니다."
+          }
+        ],
+        "tags": ["PostgreSQL", "SQL", "데이터베이스", "쿼리 리팩터링", "집계"],
+        "minutes": 30
+      }
+    },
+    {
+      "id": "frontend-race",
+      "repetition": 1,
+      "run": {
+        "id": "785d5637-b00b-40b1-8e9f-8aa620613f4d",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 21763,
+        "inputTokens": 461,
+        "cachedInputTokens": 0,
+        "outputTokens": 2863,
+        "estimatedCostUsd": 0.0035277999999999998,
+        "createdAt": "2026-09-13T16:44:11.721Z"
+      },
+      "content": {
+        "title": "React 19 상품 검색의 응답 역전 오류 수정",
+        "summary": "느리게 도착한 이전 검색 결과가 최신 검색 결과를 덮어쓰지 않도록 React 상품 검색 컴포넌트의 비동기 상태 처리를 수정합니다.",
+        "scenario": "React 19와 TypeScript TSX로 상품 검색 화면을 개발하고 있습니다. 사용자가 검색어를 입력하면 GET /api/products?q=<URL 인코딩된 검색어>를 호출합니다. API는 성공 시 HTTP 200과 함께 JSON 배열을 반환하며, 배열의 각 원소는 상품명 문자열입니다. 예를 들어 GET /api/products?q=노트북의 응답은 [\"노트북 거치대\", \"게이밍 노트북\"]일 수 있습니다. 검색어가 공백만 포함하거나 빈 문자열이면 API를 호출하지 않고 상품 목록을 비워야 합니다. 네트워크 지연 때문에 이전 요청이 최신 요청보다 늦게 끝날 수 있으며, 화면이 사라진 뒤에는 비동기 요청이 상태를 변경해서는 안 됩니다.",
+        "requirements": [
+          "검색어가 공백이 아닌 경우에만 검색어 양끝의 공백을 제거한 값을 q로 URL 인코딩하여 /api/products에 요청해야 합니다.",
+          "새 검색이 시작되면 이전 검색의 응답이 더 늦게 도착하더라도 상품 목록이나 오류 상태를 변경할 수 없도록 처리해야 합니다. AbortController를 사용해 이전 요청을 취소하는 것은 허용되지만, 취소가 무시되는 환경에서도 최신 요청만 반영되어야 합니다.",
+          "검색어가 빈 문자열 또는 공백만으로 바뀌면 네트워크 요청 없이 상품 목록과 오류 상태를 초기화하고 로딩 상태를 해제해야 합니다.",
+          "HTTP 상태 코드가 2xx가 아니면 성공 응답으로 처리하지 말고 사용자에게 표시할 오류 상태를 설정해야 합니다. 네트워크 오류도 동일하게 처리해야 하며, AbortController에 의한 정상적인 취소는 오류 메시지로 표시하지 않아야 합니다.",
+          "컴포넌트가 unmount된 뒤에는 요청 성공, 실패, 종료 처리가 어떤 React 상태도 변경하지 않도록 해야 합니다.",
+          "제공된 ProductSearch 컴포넌트의 오류를 수정하고, 검색어 입력값·상품 목록·로딩 상태·오류 메시지를 화면에 표시해야 합니다."
+        ],
+        "starterCode": "import { useEffect, useState } from \"react\";\n\ntype ProductSearchProps = {\n  endpoint?: string;\n};\n\nexport default function ProductSearch({\n  endpoint = \"/api/products\",\n}: ProductSearchProps) {\n  const [query, setQuery] = useState(\"\");\n  const [products, setProducts] = useState<string[]>([]);\n  const [loading, setLoading] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n\n  useEffect(() => {\n    const keyword = query.trim();\n\n    if (keyword === \"\") {\n      setProducts([]);\n      setError(null);\n      setLoading(false);\n      return;\n    }\n\n    setLoading(true);\n    setError(null);\n\n    fetch(`${endpoint}?q=${encodeURIComponent(keyword)}`)\n      .then((response) => response.json())\n      .then((names: string[]) => {\n        setProducts(names);\n      })\n      .catch(() => {\n        setError(\"상품을 불러오지 못했습니다.\");\n      })\n      .finally(() => {\n        setLoading(false);\n      });\n  }, [query, endpoint]);\n\n  return (\n    <section>\n      <label>\n        상품 검색\n        <input\n          value={query}\n          onChange={(event) => setQuery(event.target.value)}\n          placeholder=\"상품명을 입력하세요\"\n        />\n      </label>\n\n      {loading && <p>검색 중...</p>}\n      {error && <p role=\"alert\">{error}</p>}\n\n      {!loading && !error && (\n        <ul>\n          {products.map((product, index) => (\n            <li key={`${product}-${index}`}>{product}</li>\n          ))}\n        </ul>\n      )}\n    </section>\n  );\n}",
+        "hints": [
+          "각 useEffect 실행마다 요청을 식별할 번호와 해당 effect가 아직 유효한지를 나타내는 지역 변수를 둘 수 있습니다.",
+          "AbortController로 이전 fetch를 취소하더라도 모든 실행 환경이 취소를 즉시 보장한다고 가정하면 안 됩니다. 응답을 반영하기 전에 현재 요청인지와 컴포넌트가 아직 유효한지를 함께 확인하세요.",
+          "catch에서는 AbortError를 별도로 무시하고, 성공 처리 전에는 response.ok를 검사하세요. finally에서도 동일한 유효성 검사가 있어야 unmount 이후 상태 변경을 막을 수 있습니다."
+        ],
+        "solution": "import { useEffect, useRef, useState } from \"react\";\n\ntype ProductSearchProps = {\n  endpoint?: string;\n};\n\nexport default function ProductSearch({\n  endpoint = \"/api/products\",\n}: ProductSearchProps) {\n  const [query, setQuery] = useState(\"\");\n  const [products, setProducts] = useState<string[]>([]);\n  const [loading, setLoading] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n  const requestIdRef = useRef(0);\n\n  useEffect(() => {\n    const requestId = ++requestIdRef.current;\n    const controller = new AbortController();\n    let cancelled = false;\n    const keyword = query.trim();\n\n    if (keyword === \"\") {\n      setProducts([]);\n      setError(null);\n      setLoading(false);\n\n      return () => {\n        cancelled = true;\n        controller.abort();\n      };\n    }\n\n    setLoading(true);\n    setError(null);\n\n    const isCurrent = () =>\n      !cancelled && requestId === requestIdRef.current;\n\n    async function loadProducts() {\n      try {\n        const response = await fetch(\n          `${endpoint}?q=${encodeURIComponent(keyword)}`,\n          { signal: controller.signal },\n        );\n\n        if (!response.ok) {\n          throw new Error(`HTTP ${response.status}`);\n        }\n\n        const data: unknown = await response.json();\n        if (\n          !Array.isArray(data) ||\n          !data.every((item) => typeof item === \"string\")\n        ) {\n          throw new Error(\"Invalid response format\");\n        }\n\n        if (isCurrent()) {\n          setProducts(data);\n        }\n      } catch (caught: unknown) {\n        if (!isCurrent()) {\n          return;\n        }\n\n        if (caught instanceof DOMException && caught.name === \"AbortError\") {\n          return;\n        }\n\n        setProducts([]);\n        setError(\"상품을 불러오지 못했습니다.\");\n      } finally {\n        if (isCurrent()) {\n          setLoading(false);\n        }\n      }\n    }\n\n    void loadProducts();\n\n    return () => {\n      cancelled = true;\n      controller.abort();\n    };\n  }, [query, endpoint]);\n\n  return (\n    <section>\n      <label>\n        상품 검색\n        <input\n          value={query}\n          onChange={(event) => setQuery(event.target.value)}\n          placeholder=\"상품명을 입력하세요\"\n        />\n      </label>\n\n      {loading && <p>검색 중...</p>}\n      {error && <p role=\"alert\">{error}</p>}\n\n      {!loading && !error && (\n        <ul>\n          {products.map((product, index) => (\n            <li key={`${product}-${index}`}>{product}</li>\n          ))}\n        </ul>\n      )}\n    </section>\n  );\n}",
+        "explanation": "런타임은 React 19, 언어는 TypeScript TSX입니다. effect가 실행될 때마다 requestIdRef를 증가시켜 해당 요청의 순서를 기록합니다. 이전 요청의 fetch가 취소되지 않고 늦게 완료되더라도 requestId가 현재 번호와 다르므로 성공·실패·finally의 상태 변경이 모두 무시됩니다. 지역 변수 cancelled는 effect 정리 이후의 응답을 차단하므로 unmount 뒤 상태 변경도 방지합니다. AbortController는 불필요한 이전 요청을 실제로 취소하는 최적화이며, 요청 식별자 검사가 별도로 있어 취소가 무시되어도 안전합니다. 빈 검색어는 요청을 만들기 전에 목록과 오류를 초기화하고 종료합니다. 성공 응답은 response.ok를 확인하므로 4xx·5xx가 상품 배열로 처리되지 않습니다. 네트워크 오류와 잘못된 JSON 배열 형식은 일반 오류로 표시하고, AbortError는 정상적인 취소이므로 표시하지 않습니다. 예를 들어 사용자가 먼저 \"노트\"를 입력하고 곧바로 \"노트북\"을 입력했다면 두 요청이 모두 실행될 수 있지만, \"노트\" 응답이 먼저 또는 나중에 도착하더라도 최종 목록은 \"노트북\" 응답만 반영합니다. 사용자가 입력값을 공백만 남도록 바꾸면 새 fetch 없이 목록은 빈 배열이 되고 오류와 로딩 상태도 해제됩니다.",
+        "examples": [
+          {
+            "input": "초기 화면에서 query는 \"\"",
+            "output": "네트워크 요청 없음, 상품 목록 [], loading false, error null",
+            "note": "빈 검색어 처리"
+          },
+          {
+            "input": "사용자가 \"  노트북  \" 입력, API가 200과 [\"노트북 거치대\", \"게이밍 노트북\"] 반환",
+            "output": "GET /api/products?q=%EB%85%B8%ED%8A%B8%EB%B6%81 후 두 상품을 목록에 표시",
+            "note": "양끝 공백 제거 및 URL 인코딩"
+          },
+          {
+            "input": "사용자가 \"노트\" 입력 후 즉시 \"노트북\" 입력; 노트북 요청이 먼저 완료되고 노트 요청이 나중에 완료",
+            "output": "노트북 검색 결과 유지",
+            "note": "오래된 응답 무시"
+          }
+        ],
+        "tags": ["React 19", "TypeScript", "TSX", "fetch", "비동기 상태 관리"],
+        "minutes": 35
+      }
+    },
+    {
+      "id": "frontend-race",
+      "repetition": 2,
+      "run": {
+        "id": "3bd348f1-f1b5-4a76-add6-ee7ea786d857",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 24323,
+        "inputTokens": 461,
+        "cachedInputTokens": 0,
+        "outputTokens": 3012,
+        "estimatedCostUsd": 0.0037066,
+        "createdAt": "2026-09-13T16:45:00.399Z"
+      },
+      "content": {
+        "title": "최신 상품 검색 결과만 표시하기",
+        "summary": "React 19와 TypeScript로 작성된 상품 검색 컴포넌트에서 응답 도착 순서가 검색 순서를 뒤집지 않도록 오류를 수정합니다.",
+        "scenario": "쇼핑몰 운영 도구의 상품 검색 화면이다. 브라우저에서 실행되는 React 19 + TypeScript TSX 컴포넌트이며, 별도의 라이브러리 없이 브라우저 기본 fetch API를 사용한다. 상품 검색 API는 GET /api/products?query={검색어} 형식이고, 성공 시 HTTP 200과 함께 상품명 문자열 배열(JSON)을 반환한다. 예를 들어 /api/products?query=phone은 [\"Phone Case\",\"Phone Stand\"]를 반환할 수 있다. 검색어가 \"  phone  \"이면 앞뒤 공백을 제거한 phone으로 요청해야 한다. 검색어가 공백뿐이면 API를 호출하지 않고 상품 목록을 빈 배열로 만든다. 화면에는 검색 입력창, 로딩 문구, 오류 문구, 상품명 목록이 표시된다. API가 2xx가 아닌 응답을 반환하거나 네트워크 오류가 발생하면 오류 문구를 표시하고 상품 목록은 빈 배열로 만든다.",
+        "requirements": [
+          "검색어가 변경될 때마다 앞뒤 공백을 제거한 값으로 상품 API를 호출하고, URL 쿼리 값은 안전하게 인코딩한다. 단, 공백만 포함된 검색어는 fetch를 호출하지 않는다.",
+          "여러 요청이 동시에 진행될 때 응답이 도착한 순서와 관계없이 가장 최근 검색어에 대한 결과만 상품 목록과 상태에 반영한다.",
+          "공백만 포함된 검색어가 되면 진행 중인 이전 요청의 결과가 나중에 도착하더라도 반영되지 않아야 하며, 상품 목록과 오류를 비우고 로딩 상태를 해제한다.",
+          "HTTP 응답의 ok가 false이면 성공으로 처리하지 않고 사용자에게 오류 문구를 표시하며, 네트워크 오류도 같은 방식으로 처리한다. 오류가 발생한 검색의 상품 목록은 빈 배열이어야 한다.",
+          "컴포넌트가 언마운트된 뒤에는 fetch의 성공, 실패, 종료 결과로 React 상태를 갱신하지 않아야 한다. 진행 중인 요청은 가능하면 AbortController로 취소해야 하며, 취소를 지원하지 않는 환경에서도 식별자 또는 활성 상태 검사로 결과 반영을 막아야 한다."
+        ],
+        "starterCode": "import { useEffect, useState } from \"react\";\n\nexport default function ProductSearch() {\n  const [query, setQuery] = useState(\"\");\n  const [products, setProducts] = useState<string[]>([]);\n  const [loading, setLoading] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n\n  useEffect(() => {\n    setLoading(true);\n    setError(null);\n\n    fetch(`/api/products?query=${query}`)\n      .then((response) => response.json())\n      .then((names: string[]) => {\n        setProducts(names);\n        setLoading(false);\n      })\n      .catch(() => {\n        setError(\"상품을 불러오지 못했습니다.\");\n        setLoading(false);\n      });\n  }, [query]);\n\n  return (\n    <section>\n      <label>\n        상품 검색\n        <input\n          value={query}\n          onChange={(event) => setQuery(event.target.value)}\n          placeholder=\"상품명을 입력하세요\"\n        />\n      </label>\n\n      {loading && <p>검색 중...</p>}\n      {error && <p role=\"alert\">{error}</p>}\n      <ul>\n        {products.map((name) => (\n          <li key={name}>{name}</li>\n        ))}\n      </ul>\n    </section>\n  );\n}",
+        "hints": [
+          "fetch를 시작하기 전에 trim한 검색어가 비어 있는지 먼저 판단하고, 비어 있다면 현재 요청을 무효화한 뒤 즉시 상태를 초기화하세요.",
+          "이전 요청을 abort하는 것만으로는 충분하지 않을 수 있습니다. 각 effect 실행에 순번을 부여하고, 비동기 결과를 반영하기 직전에 해당 순번이 최신인지 확인하세요.",
+          "effect마다 AbortController와 활성 상태를 만들고 cleanup에서 취소하세요. 성공과 실패의 모든 setState 직전에 활성 상태와 최신 요청 순번을 함께 검사하면 언마운트와 응답 역전을 모두 막을 수 있습니다."
+        ],
+        "solution": "import { useEffect, useRef, useState } from \"react\";\n\nexport default function ProductSearch() {\n  const [query, setQuery] = useState(\"\");\n  const [products, setProducts] = useState<string[]>([]);\n  const [loading, setLoading] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n  const latestRequest = useRef(0);\n\n  useEffect(() => {\n    const requestId = ++latestRequest.current;\n    const normalizedQuery = query.trim();\n    const controller = new AbortController();\n    let active = true;\n\n    if (normalizedQuery === \"\") {\n      setProducts([]);\n      setError(null);\n      setLoading(false);\n\n      return () => {\n        active = false;\n        controller.abort();\n      };\n    }\n\n    setProducts([]);\n    setError(null);\n    setLoading(true);\n\n    fetch(`/api/products?query=${encodeURIComponent(normalizedQuery)}`, {\n      signal: controller.signal,\n    })\n      .then(async (response) => {\n        if (!response.ok) {\n          throw new Error(`상품 검색 실패: HTTP ${response.status}`);\n        }\n\n        const data: unknown = await response.json();\n        if (\n          !Array.isArray(data) ||\n          !data.every((item): item is string => typeof item === \"string\")\n        ) {\n          throw new Error(\"상품 검색 응답 형식이 올바르지 않습니다.\");\n        }\n\n        return data;\n      })\n      .then((names) => {\n        if (!active || requestId !== latestRequest.current) {\n          return;\n        }\n\n        setProducts(names);\n        setError(null);\n        setLoading(false);\n      })\n      .catch((reason: unknown) => {\n        if (!active || requestId !== latestRequest.current) {\n          return;\n        }\n\n        if (reason instanceof DOMException && reason.name === \"AbortError\") {\n          return;\n        }\n\n        setProducts([]);\n        setError(\"상품을 불러오지 못했습니다.\");\n        setLoading(false);\n      });\n\n    return () => {\n      active = false;\n      controller.abort();\n    };\n  }, [query]);\n\n  return (\n    <section>\n      <label>\n        상품 검색\n        <input\n          value={query}\n          onChange={(event) => setQuery(event.target.value)}\n          placeholder=\"상품명을 입력하세요\"\n        />\n      </label>\n\n      {loading && <p>검색 중...</p>}\n      {error && <p role=\"alert\">{error}</p>}\n      <ul>\n        {products.map((name) => (\n          <li key={name}>{name}</li>\n        ))}\n      </ul>\n    </section>\n  );\n}",
+        "explanation": "각 effect 실행마다 latestRequest를 증가시켜 요청 순번을 만든다. 검색어가 바뀌면 이전 effect의 cleanup이 실행되므로 이전 요청을 AbortController로 취소하고 active를 false로 만든다. 서버나 브라우저 환경이 취소를 즉시 반영하지 않더라도 응답 처리 시 requestId가 최신 순번인지 다시 확인하므로 오래된 결과가 화면을 덮어쓸 수 없다.\n\n검색어를 trim한 뒤 빈 문자열이면 fetch를 호출하지 않고 목록, 오류, 로딩 상태를 즉시 초기화한다. 이때도 요청 순번을 먼저 증가시키므로 이전 검색 요청이 늦게 끝나도 결과를 반영하지 못한다. 유효한 검색어는 encodeURIComponent로 쿼리 값을 인코딩한다.\n\nresponse.ok를 확인해 4xx와 5xx를 성공으로 오인하지 않으며, JSON 형식이 상품명 문자열 배열인지도 확인한다. 네트워크 오류와 HTTP 오류는 모두 목록을 비우고 오류 문구를 표시한다. AbortError는 의도적인 취소이므로 오류 문구를 표시하지 않는다. active 검사는 언마운트 이후 상태 변경을 차단하고, requestId 검사는 서로 다른 검색 요청 사이의 응답 역전을 차단한다.",
+        "examples": [
+          {
+            "input": "사용자가 \"phone\"을 입력하고 API가 [\"Phone Case\",\"Phone Stand\"]를 반환함",
+            "output": "상품 목록에 Phone Case와 Phone Stand가 표시되고 로딩 문구와 오류 문구는 사라진다.",
+            "note": "실제 요청은 /api/products?query=phone이다."
+          },
+          {
+            "input": "사용자가 \"  phone  \"을 입력함",
+            "output": "앞뒤 공백을 제거한 phone으로 요청하며, 성공하면 [\"Phone Case\",\"Phone Stand\"]가 표시된다.",
+            "note": "공백은 URL 쿼리 값에 포함되지 않는다."
+          },
+          {
+            "input": "사용자가 \"   \"만 입력함",
+            "output": "fetch 요청 없이 상품 목록이 비고 로딩 문구와 오류 문구도 표시되지 않는다.",
+            "note": "직전에 phone 요청이 진행 중이어도 phone의 응답은 반영되지 않는다."
+          }
+        ],
+        "tags": ["React 19", "TypeScript", "TSX", "fetch", "비동기 상태 관리"],
+        "minutes": 35
+      }
+    },
+    {
+      "id": "game-movement",
+      "repetition": 1,
+      "run": {
+        "id": "e6acba4b-e102-4997-be29-554c86c12afb",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 16885,
+        "inputTokens": 454,
+        "cachedInputTokens": 0,
+        "outputTokens": 2074,
+        "estimatedCostUsd": 0.0025796,
+        "createdAt": "2026-09-13T16:44:24.942Z"
+      },
+      "content": {
+        "title": "Unity 6 레거시 입력 기반 3D 캐릭터 이동 오류 수정",
+        "summary": "Unity 6의 기존 Input Manager를 사용하는 3D 캐릭터 이동 스크립트에서 대각선 과속, 프레임 의존 이동, 작은 아날로그 입력 소실 문제를 수정합니다.",
+        "scenario": "Unity 6 프로젝트에서 Rigidbody 없이 캐릭터의 Transform을 직접 이동시키는 스크립트가 있습니다. 입력은 기존 Input Manager의 \"Horizontal\"과 \"Vertical\" 축에서 읽으며, 각 축의 값은 일반적으로 -1.0부터 1.0 사이의 float입니다. 두 축은 Input.GetAxis를 통해 부드럽게 변화하므로 작은 아날로그 입력도 전달될 수 있습니다. 이동은 월드 좌표 기준 XZ 평면에서만 수행해야 하며, speed는 초당 이동 거리이고 음수가 아닌 값이라고 가정합니다. 한 프레임의 이동량은 Time.deltaTime에 비례해야 합니다. 현재 코드는 대각선 이동 시 속도가 빨라지고, 작은 입력이 사라지며, 프레임 속도에 따라 이동 속도가 달라지는 오류가 있습니다.",
+        "requirements": [
+          "\"Horizontal\"과 \"Vertical\" 축을 Input.GetAxis로 읽고, 두 값을 각각 X축과 Z축 이동 입력으로 사용해야 합니다.",
+          "입력 벡터의 길이가 1보다 클 때만 길이를 1로 제한해야 합니다. 길이가 1 이하인 입력은 그대로 유지하여 작은 아날로그 입력이 사라지지 않게 해야 합니다.",
+          "이동량에 Time.deltaTime을 곱해 초당 speed 기준의 프레임 독립적인 이동을 구현해야 합니다.",
+          "이동은 Rigidbody나 물리 이동 없이 Transform의 위치를 직접 변경하고, Y축 위치와 이동량은 변경하지 않아야 합니다.",
+          "speed가 음수가 되더라도 실제 이동에는 음수 속도가 사용되지 않도록 처리해야 합니다."
+        ],
+        "starterCode": "using UnityEngine;\n\npublic class LegacyPlayerMover : MonoBehaviour\n{\n    [SerializeField] private float speed = 5f;\n\n    private void Update()\n    {\n        float horizontal = Input.GetAxis(\"Horizontal\");\n        float vertical = Input.GetAxis(\"Vertical\");\n\n        Vector2 input = new Vector2(horizontal, vertical);\n        Vector2 direction = input.normalized;\n\n        Vector3 movement = new Vector3(direction.x, vertical, direction.y) * speed;\n        transform.position += movement;\n    }\n}",
+        "hints": [
+          "두 축 입력을 하나의 Vector2로 묶은 뒤, 입력 벡터의 길이가 1보다 클 때와 그렇지 않을 때를 나누어 생각해 보세요.",
+          "Vector2.normalized는 작은 입력도 길이 1로 만들기 때문에 아날로그 입력 보존에 적합하지 않습니다. 길이를 초과할 때만 제한하는 API나 조건을 사용하세요.",
+          "최종 이동 벡터는 XZ 평면에 매핑하고, 한 프레임 동안 이동하는 거리에는 Time.deltaTime과 음수가 아닌 speed를 함께 적용하세요."
+        ],
+        "solution": "using UnityEngine;\n\npublic class LegacyPlayerMover : MonoBehaviour\n{\n    [SerializeField] private float speed = 5f;\n\n    private void Update()\n    {\n        float horizontal = Input.GetAxis(\"Horizontal\");\n        float vertical = Input.GetAxis(\"Vertical\");\n\n        Vector2 input = new Vector2(horizontal, vertical);\n        Vector2 limitedInput = Vector2.ClampMagnitude(input, 1f);\n        float nonNegativeSpeed = Mathf.Max(0f, speed);\n\n        Vector3 movement = new Vector3(\n            limitedInput.x,\n            0f,\n            limitedInput.y\n        );\n\n        transform.position += movement * nonNegativeSpeed * Time.deltaTime;\n    }\n}",
+        "explanation": "기존 코드의 첫 번째 문제는 input.normalized입니다. normalized는 입력 벡터의 길이를 항상 1로 만들기 때문에 (0.1, 0) 같은 작은 입력도 (1, 0)이 되어 아날로그 입력의 세기가 사라집니다. Vector2.ClampMagnitude(input, 1f)는 길이가 1을 초과할 때만 입력을 줄이고, 그보다 작은 입력은 그대로 보존합니다. 따라서 (1, 1)은 대략 (0.707, 0.707)이 되어 대각선 전체 속도가 1을 넘지 않으며, (0.2, 0.1)은 원래 값이 유지됩니다.\n\n두 번째 문제는 이동 벡터의 Y 성분에 vertical을 넣은 것입니다. vertical은 Z축 입력이어야 하므로 Vector3의 X에는 limitedInput.x, Y에는 0, Z에는 limitedInput.y를 넣습니다. 이렇게 하면 Transform의 현재 Y 위치를 유지하면서 XZ 평면으로만 이동합니다.\n\n세 번째 문제는 Time.deltaTime이 빠져 있어 프레임당 이동량이 고정된다는 점입니다. movement에 nonNegativeSpeed와 Time.deltaTime을 곱하면 speed가 초당 이동 거리로 해석되고 프레임 속도와 무관한 이동이 됩니다. speed는 Mathf.Max로 0 이상으로 제한하여 음수 값이 반대 방향 이동으로 변하지 않게 했습니다. 이 스크립트는 Rigidbody를 사용하지 않고 Update에서 Transform.position을 직접 변경합니다.\n\n예를 들어 speed가 5, deltaTime이 0.02, 입력이 (Horizontal=0.2, Vertical=0.1)이면 입력 길이가 1보다 작으므로 그대로 유지되고 한 프레임 이동량은 X=0.02, Y=0, Z=0.01입니다. 입력이 (1, 1)이면 각 축 입력은 약 0.707로 제한되어 한 프레임 이동량은 각 축 약 0.0707입니다. 입력이 (0, 0)이면 위치는 변하지 않습니다.",
+        "examples": [
+          {
+            "input": "speed=5, Time.deltaTime=0.02, Horizontal=0.2, Vertical=0.1, 현재 위치=(3, 2, -1)",
+            "output": "다음 위치는 약 (3.02, 2, -0.99)이다.",
+            "note": "입력 길이가 1보다 작으므로 작은 아날로그 입력을 그대로 유지한다."
+          },
+          {
+            "input": "speed=5, Time.deltaTime=0.02, Horizontal=1, Vertical=1, 현재 위치=(0, 4, 0)",
+            "output": "다음 위치는 약 (0.0707, 4, 0.0707)이다.",
+            "note": "대각선 입력은 길이 1로 제한되며 Y축은 변하지 않는다."
+          },
+          {
+            "input": "speed=-3, Time.deltaTime=0.02, Horizontal=1, Vertical=0, 현재 위치=(1, 1, 1)",
+            "output": "다음 위치는 (1, 1, 1)이다.",
+            "note": "음수 speed는 0으로 처리한다."
+          }
+        ],
+        "tags": ["C#", "Unity 6", "게임 개발", "Input Manager", "Transform 이동"],
+        "minutes": 15
+      }
+    },
+    {
+      "id": "game-movement",
+      "repetition": 2,
+      "run": {
+        "id": "3fb37846-be18-40e7-af70-362896d96216",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 21018,
+        "inputTokens": 454,
+        "cachedInputTokens": 0,
+        "outputTokens": 2553,
+        "estimatedCostUsd": 0.0031544,
+        "createdAt": "2026-09-13T16:45:12.357Z"
+      },
+      "content": {
+        "title": "Unity 6 XZ 캐릭터 이동 오류 수정",
+        "summary": "기존 Input Manager를 사용하는 3D 캐릭터의 이동 스크립트에서 대각선 과속, 프레임 의존성, 아날로그 입력 손실 문제를 수정하세요.",
+        "scenario": "Unity 6 프로젝트에서 Rigidbody를 사용하지 않는 3D 캐릭터를 관리하고 있습니다. 캐릭터는 기존 Input Manager에 등록된 \"Horizontal\" 및 \"Vertical\" 축으로 이동합니다. 이동은 transform.position을 직접 변경하며, 월드 좌표의 XZ 평면만 사용하고 Y 좌표는 유지해야 합니다. speed의 단위는 초당 월드 단위이며 0 이상입니다. 입력 축 값은 일반적으로 -1부터 1 사이의 실수이고, 키보드뿐 아니라 작은 아날로그 스틱 입력도 들어올 수 있습니다. 현재 스크립트에는 프레임 수에 따라 이동 속도가 달라지고, 대각선 이동이 너무 빠르며, 아날로그 입력을 제대로 보존하지 못하는 오류가 있습니다.",
+        "requirements": [
+          "Update에서 Input Manager의 \"Horizontal\"과 \"Vertical\" 축을 실수로 읽어 이동 입력을 구성해야 합니다. 작은 아날로그 입력값을 0 또는 최대 입력으로 바꾸지 않고 크기를 보존해야 합니다.",
+          "입력 벡터의 XZ 평면 길이가 1보다 클 때만 길이를 1로 제한해야 합니다. 따라서 축 하나의 입력 크기와 1 이하인 아날로그 입력 크기는 그대로 유지하고, 최대 대각선 입력의 속도는 단일 축 입력과 같아야 합니다.",
+          "이동량에 반드시 Time.deltaTime을 곱해 프레임률과 관계없이 초당 speed만큼 이동하도록 해야 합니다.",
+          "이동은 transform.position을 통해 수행하고, 이동 벡터의 Y 성분은 항상 0이어야 합니다. 기존 transform.position.y 값은 변경되면 안 됩니다.",
+          "speed가 음수로 설정되더라도 캐릭터가 입력 반대 방향으로 이동하지 않도록 실제 이동 계산에서는 0 이상으로 처리해야 합니다."
+        ],
+        "starterCode": "using UnityEngine;\n\npublic class CharacterMover : MonoBehaviour\n{\n    [SerializeField] private float speed = 5f;\n\n    private void Update()\n    {\n        float horizontal = Input.GetAxisRaw(\"Horizontal\");\n        float vertical = Input.GetAxisRaw(\"Vertical\");\n\n        Vector3 movement = new Vector3(horizontal, 0f, vertical);\n        transform.position += movement * speed;\n    }\n}",
+        "hints": [
+          "이동 입력 벡터의 길이가 1을 넘는 경우와 1 이하인 경우를 다르게 처리해야 합니다. 항상 Normalize하면 작은 아날로그 입력이 최대 입력처럼 바뀝니다.",
+          "기존 Input Manager의 아날로그 값과 설정된 감쇠를 사용하려면 Raw 입력 대신 일반 축 읽기 함수를 검토하세요.",
+          "속도 단위가 초당 이동 거리라면 한 프레임의 이동량은 속도에 해당 프레임의 경과 시간을 곱한 값입니다. 음수 speed는 Mathf.Max 등으로 방어할 수 있습니다."
+        ],
+        "solution": "using UnityEngine;\n\npublic class CharacterMover : MonoBehaviour\n{\n    [SerializeField, Min(0f)] private float speed = 5f;\n\n    private void Update()\n    {\n        float horizontal = Input.GetAxis(\"Horizontal\");\n        float vertical = Input.GetAxis(\"Vertical\");\n\n        Vector3 input = new Vector3(horizontal, 0f, vertical);\n        Vector3 direction = Vector3.ClampMagnitude(input, 1f);\n        float nonNegativeSpeed = Mathf.Max(0f, speed);\n\n        transform.position += direction * nonNegativeSpeed * Time.deltaTime;\n    }\n}",
+        "explanation": "Input.GetAxis는 기존 Input Manager가 제공하는 아날로그 입력과 축 감쇠를 사용할 수 있으므로 작은 입력값을 유지합니다. 입력을 XZ 평면의 Vector3로 만든 뒤 Vector3.ClampMagnitude(input, 1f)를 적용하면 길이가 1보다 큰 대각선 입력만 제한됩니다. 예를 들어 (1, 1)은 약 (0.707, 0.707)이 되어 전체 이동 속도가 단일 축과 같아지고, (0.2, 0)은 그대로 유지됩니다. Normalize를 무조건 적용하지 않기 때문에 작은 아날로그 입력이 최대 속도로 확대되지 않습니다. 이동량에는 Time.deltaTime을 곱해 프레임당 이동이 아니라 초당 이동이 되도록 했습니다. 또한 movement의 Y 성분을 0으로 고정했으므로 현재 transform.position의 Y 값은 유지됩니다. [Min(0f)]는 인스펙터에서 음수 입력을 예방하고, Mathf.Max는 런타임에 값이 변경되는 경우에도 음수 speed가 반대 방향 이동을 만들지 않게 합니다. 예를 들어 초기 위치가 (10, 2, -3), speed가 4, deltaTime이 0.5초이고 입력이 Horizontal=0.6, Vertical=0.8이면 입력 길이가 1이므로 이동량은 (1.2, 0, 1.6), 최종 위치는 (11.2, 2, -1.4)입니다. 두 축 입력이 모두 1이면 입력은 (0.707..., 0, 0.707...)로 제한되어 같은 조건에서 각 축 이동량은 약 1.414이며 대각선 전체 속도는 4 * 0.5 = 2입니다. 입력이 (0.1, 0)이고 speed가 5, deltaTime이 0.02초라면 이동량은 (0.01, 0, 0)입니다. 입력이 없거나 speed가 음수이면 이동량은 0입니다.",
+        "examples": [
+          {
+            "input": "초기 위치 (10, 2, -3), speed=4, deltaTime=0.5, Horizontal=0.6, Vertical=0.8",
+            "output": "최종 위치 (11.2, 2, -1.4)",
+            "note": "입력 길이가 1이므로 제한 없이 그대로 사용합니다."
+          },
+          {
+            "input": "초기 위치 (0, 5, 0), speed=4, deltaTime=0.5, Horizontal=1, Vertical=1",
+            "output": "최종 위치 약 (1.414, 5, 1.414)",
+            "note": "대각선 입력을 길이 1로 제한합니다."
+          },
+          {
+            "input": "초기 위치 (3, 1, 4), speed=5, deltaTime=0.02, Horizontal=0.1, Vertical=0",
+            "output": "최종 위치 (3.01, 1, 4)",
+            "note": "작은 아날로그 입력 크기를 유지합니다."
+          }
+        ],
+        "tags": ["C#", "Unity 6", "게임 개발", "Unity Input Manager", "Transform 이동"],
+        "minutes": 15
+      }
+    },
+    {
+      "id": "infra-config",
+      "repetition": 1,
+      "run": {
+        "id": "86947f1d-da86-4769-960f-f014d4c131ff",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 24562,
+        "inputTokens": 490,
+        "cachedInputTokens": 0,
+        "outputTokens": 3007,
+        "estimatedCostUsd": 0.0037064,
+        "createdAt": "2026-09-13T16:47:20.259Z"
+      },
+      "content": {
+        "title": "환경 변수 기반 서비스 설정 검증기 리팩터링",
+        "summary": "서비스 시작 전에 환경 변수 형태의 설정 딕셔너리를 안전하게 검증하도록 기존 parse_config 함수를 리팩터링합니다. 여러 설정이 동시에 잘못된 경우에도 한 번에 모든 오류를 운영자에게 보여줘야 합니다.",
+        "scenario": "Python 3.12 표준 라이브러리만 사용하는 인프라 배포 도구의 일부를 수정합니다. 입력 함수는 parse_config(env: dict[str, str]) -> dict 형태이며, env는 이미 호출자가 수집한 환경 변수 사본이라고 가정합니다. 함수는 파일, os.environ, 네트워크 또는 다른 외부 상태를 읽어서는 안 됩니다. 입력 딕셔너리의 값은 문자열입니다.\n\n반환 딕셔너리는 정확히 다음 세 키를 가져야 합니다. PORT는 int, WORKERS는 int, DEBUG는 bool입니다. PORT가 없으면 8080, WORKERS가 없으면 4, DEBUG가 없으면 False를 사용합니다. 값의 앞뒤 공백은 제거합니다. PORT와 WORKERS는 부호를 포함할 수 있는 십진 정수 문자열이어야 하며 각각 1 이상 65535 이하, 1 이상 32 이하이어야 합니다. DEBUG는 공백 제거 후 대소문자를 구분하지 않고 true 또는 false여야 합니다.\n\n검증은 모든 필드에 대해 끝까지 수행해야 합니다. 잘못된 필드는 하나의 ValueError로 보고하며, 오류 메시지는 `잘못된 설정: FIELD=사유; FIELD=사유` 형식을 사용합니다. FIELD는 사전순으로 정렬하고, 각 사유는 `정수가 아님`, `허용 범위를 벗어남`, `true 또는 false가 아님` 중 하나를 사용합니다. 예를 들어 PORT와 DEBUG가 잘못되면 `잘못된 설정: DEBUG=true 또는 false가 아님; PORT=허용 범위를 벗어남`과 같은 메시지를 만듭니다. 유효한 필드의 값은 오류가 발생하더라도 반환할 필요가 없으며, 오류가 있으면 반환 대신 ValueError를 발생시킵니다.",
+        "requirements": [
+          "입력 env를 변경하지 않고, PORT·WORKERS·DEBUG 외의 키도 무시한 채 명세에 맞는 기본값과 변환 결과를 반환해야 합니다.",
+          "각 값의 앞뒤 공백을 제거한 뒤 PORT와 WORKERS를 검증하고, 십진 정수가 아니거나 각각의 범위를 벗어나면 해당 필드를 오류로 기록해야 합니다.",
+          "DEBUG는 공백 제거 및 대소문자 정규화 후 true와 false만 허용하고, 그 결과를 bool로 반환해야 합니다.",
+          "한 필드에서 오류가 발생해도 다른 모든 필드의 검증을 계속하여, 잘못된 필드 전체를 사전순으로 정렬한 단일 ValueError로 보고해야 합니다.",
+          "외부 모듈이나 외부 상태를 사용하지 않고 Python 3.12에서 동작해야 하며, 성공 시 반환 딕셔너리의 타입은 PORT=int, WORKERS=int, DEBUG=bool이어야 합니다."
+        ],
+        "starterCode": "def parse_config(env: dict[str, str]) -> dict:\n    # 서비스 시작 시 사용할 설정을 만든다.\n    env[\"PORT\"] = env.get(\"PORT\", \"8080\")\n    env[\"WORKERS\"] = env.get(\"WORKERS\", \"4\")\n    env[\"DEBUG\"] = env.get(\"DEBUG\", \"false\")\n\n    port = int(env[\"PORT\"].strip())\n    workers = int(env[\"WORKERS\"].strip())\n    debug = env[\"DEBUG\"].strip().lower() == \"true\"\n\n    if port < 1 or port > 65535:\n        raise ValueError(\"PORT가 잘못되었습니다\")\n    if workers < 1 or workers > 32:\n        raise ValueError(\"WORKERS가 잘못되었습니다\")\n\n    return {\n        \"PORT\": port,\n        \"WORKERS\": workers,\n        \"DEBUG\": debug,\n    }",
+        "hints": [
+          "기본값을 env에 써 넣지 말고, 각 필드에 대해 `env.get(키, 기본값)`의 결과를 지역 변수로만 다루세요. 검증 오류를 즉시 발생시키지 말고 오류를 담아 둘 자료구조가 필요합니다.",
+          "숫자 필드는 변환과 범위 검사를 별도로 처리하면 정수가 아닌 경우에도 나머지 필드의 검증을 계속할 수 있습니다. DEBUG는 문자열을 bool 비교 결과로 바로 바꾸기 전에 허용된 두 리터럴인지 확인하세요.",
+          "오류 사전을 만든 뒤 `sorted(errors)`로 키를 순회하면 보고 순서를 보장할 수 있습니다. 숫자 필드의 변환 실패 시에는 해당 값을 별도로 저장하지 않아도 되며, 성공적으로 변환된 값만 결과 사전에 넣으면 됩니다."
+        ],
+        "solution": "def parse_config(env: dict[str, str]) -> dict:\n    errors: dict[str, str] = {}\n    result: dict[str, int | bool] = {}\n\n    port_text = env.get(\"PORT\", \"8080\").strip()\n    try:\n        if not port_text or not (port_text.lstrip(\"+-\").isdigit()):\n            raise ValueError\n        port = int(port_text)\n    except ValueError:\n        errors[\"PORT\"] = \"정수가 아님\"\n    else:\n        if not 1 <= port <= 65535:\n            errors[\"PORT\"] = \"허용 범위를 벗어남\"\n        else:\n            result[\"PORT\"] = port\n\n    workers_text = env.get(\"WORKERS\", \"4\").strip()\n    try:\n        if not workers_text or not (workers_text.lstrip(\"+-\").isdigit()):\n            raise ValueError\n        workers = int(workers_text)\n    except ValueError:\n        errors[\"WORKERS\"] = \"정수가 아님\"\n    else:\n        if not 1 <= workers <= 32:\n            errors[\"WORKERS\"] = \"허용 범위를 벗어남\"\n        else:\n            result[\"WORKERS\"] = workers\n\n    debug_text = env.get(\"DEBUG\", \"false\").strip().lower()\n    if debug_text == \"true\":\n        result[\"DEBUG\"] = True\n    elif debug_text == \"false\":\n        result[\"DEBUG\"] = False\n    else:\n        errors[\"DEBUG\"] = \"true 또는 false가 아님\"\n\n    if errors:\n        details = \"; \".join(\n            f\"{field}={errors[field]}\" for field in sorted(errors)\n        )\n        raise ValueError(f\"잘못된 설정: {details}\")\n\n    return {\n        \"PORT\": result[\"PORT\"],\n        \"WORKERS\": result[\"WORKERS\"],\n        \"DEBUG\": result[\"DEBUG\"],\n    }",
+        "explanation": "기존 코드는 기본값을 입력 딕셔너리에 직접 기록하므로 입력을 변경하고, 첫 번째 int 변환 또는 범위 오류에서 즉시 종료합니다. 또한 DEBUG가 false가 아닌 임의의 문자열이어도 False로 처리하는 문제가 있습니다.\n\n리팩터링 코드는 각 설정을 env.get으로 읽기만 하여 입력 불변성을 유지합니다. PORT와 WORKERS는 공백을 제거하고, 비어 있지 않은 십진 정수 문자열인지 확인한 뒤 int로 변환합니다. 변환이 성공한 경우에만 범위를 검사하므로 정수 형식 오류와 범위 오류를 구분할 수 있습니다. DEBUG는 허용된 두 문자열을 명시적으로 비교합니다.\n\n오류는 즉시 발생시키지 않고 errors 사전에 모읍니다. 따라서 PORT, WORKERS, DEBUG가 동시에 잘못되어도 모두 검사됩니다. 마지막에 sorted(errors)로 필드명을 정렬하고 하나의 메시지로 결합한 뒤 ValueError를 발생시킵니다. 오류가 없을 때만 타입이 변환된 세 값을 반환합니다.\n\n빈 문자열과 공백만 있는 문자열은 정수가 아니므로 `정수가 아님`으로 처리됩니다. `+1`과 `-1`은 십진 정수 형식이지만 범위 검사를 추가로 받으므로 포트와 워커 수에서는 음수 및 0이 범위 오류가 됩니다. DEBUG의 ` TRUE `와 `False`는 각각 True와 False로 처리됩니다. 잘못된 입력이더라도 함수는 env에 값을 추가하거나 기존 값을 덮어쓰지 않습니다.",
+        "examples": [
+          {
+            "input": "{\"PORT\": \" 9000 \", \"WORKERS\": \" 8\", \"DEBUG\": \"TRUE\", \"EXTRA\": \"ignored\"}",
+            "output": "{\"PORT\": 9000, \"WORKERS\": 8, \"DEBUG\": true}",
+            "note": "EXTRA는 무시되며 입력 딕셔너리는 변경되지 않습니다."
+          },
+          {
+            "input": "{}",
+            "output": "{\"PORT\": 8080, \"WORKERS\": 4, \"DEBUG\": false}",
+            "note": "세 필드 모두 기본값을 사용합니다."
+          },
+          {
+            "input": "{\"PORT\": \"70000\", \"WORKERS\": \"zero\", \"DEBUG\": \"maybe\"}",
+            "output": "ValueError(\"잘못된 설정: DEBUG=true 또는 false가 아님; PORT=허용 범위를 벗어남; WORKERS=정수가 아님\")",
+            "note": "세 필드를 모두 검사하고 필드명을 사전순으로 보고합니다."
+          }
+        ],
+        "tags": ["Python", "DevOps", "설정 검증", "리팩터링", "환경 변수"],
+        "minutes": 55
+      }
+    },
+    {
+      "id": "infra-config",
+      "repetition": 2,
+      "run": {
+        "id": "be67fced-68ed-4fa2-bed1-fa609d26158a",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 20519,
+        "inputTokens": 490,
+        "cachedInputTokens": 0,
+        "outputTokens": 2560,
+        "estimatedCostUsd": 0.00317,
+        "createdAt": "2026-09-13T16:47:20.264Z"
+      },
+      "content": {
+        "title": "환경 변수 기반 서비스 설정 검증기 리팩터링",
+        "summary": "운영 서비스가 환경 변수로 받은 포트, 워커 수, 디버그 플래그를 안전하게 사용할 수 있도록 기존 설정 파서를 리팩터링합니다. 기본값 적용, 공백 처리, 엄격한 불리언 변환, 다중 오류 수집을 모두 만족해야 합니다.",
+        "scenario": "Python 3.12 표준 라이브러리만 사용하는 배포 도구의 설정 검증 모듈입니다. 구현 대상 함수는 parse_config(env: dict[str, str]) -> dict[str, object]이며, env는 환경 변수 이름과 문자열 값의 매핑입니다. 파일이나 실제 운영 환경 변수는 읽지 않고 호출자가 전달한 env만 사용해야 합니다.\n\n지원하는 설정은 PORT, WORKERS, DEBUG 세 가지입니다. PORT는 1 이상 65535 이하의 정수이고 기본값은 8080입니다. WORKERS는 1 이상 32 이하의 정수이고 기본값은 4입니다. DEBUG는 대소문자를 구분하지 않는 true 또는 false만 허용하며 기본값은 false입니다. 모든 문자열 값은 검증 전에 앞뒤 공백을 제거합니다.\n\n반환되는 딕셔너리는 항상 PORT, WORKERS, DEBUG 세 키를 가지며, PORT와 WORKERS는 int, DEBUG는 bool이어야 합니다. 알 수 없는 env 키는 무시합니다. 하나 이상의 지원 설정이 잘못되면 가능한 모든 잘못된 필드를 한 번에 보고해야 하며, 필드명은 사전순으로 정렬합니다. 오류 메시지 형식은 정확히 `잘못된 설정 필드: FIELD1, FIELD2`입니다.\n\n예를 들어 `{\"PORT\": \" 9000 \", \"DEBUG\": \"TrUe\"}`의 결과는 `{\"PORT\": 9000, \"WORKERS\": 4, \"DEBUG\": True}`입니다. `{\"PORT\": \"0\", \"WORKERS\": \"abc\", \"DEBUG\": \"yes\"}`는 `DEBUG`, `PORT`, `WORKERS`를 모두 보고하는 ValueError를 발생시켜야 하며, 메시지는 `잘못된 설정 필드: DEBUG, PORT, WORKERS`입니다. 빈 딕셔너리는 `{\"PORT\": 8080, \"WORKERS\": 4, \"DEBUG\": False}`를 반환해야 합니다.",
+        "requirements": [
+          "parse_config는 전달받은 env 딕셔너리나 그 안의 값을 변경하지 않아야 합니다. 기본값을 적용하기 위해 env에 키를 삽입하거나 값을 덮어쓰면 안 됩니다.",
+          "PORT와 WORKERS는 값의 앞뒤 공백을 제거한 뒤 10진 정수로 변환하고, 각각 PORT는 1~65535, WORKERS는 1~32 범위를 벗어나면 잘못된 필드로 처리해야 합니다.",
+          "DEBUG는 앞뒤 공백 제거 후 `true` 또는 `false`를 대소문자 구분 없이 정확히 인식해야 하며, 그 밖의 문자열은 잘못된 필드로 처리해야 합니다. 예를 들어 `yes`, `1`, 빈 문자열은 허용하지 않습니다.",
+          "누락된 PORT, WORKERS, DEBUG에는 각각 8080, 4, False를 적용해야 하며, 유효한 입력과 기본값을 합친 결과는 세 키를 항상 포함해야 합니다.",
+          "검증은 한 필드에서 실패해도 중단하지 않고 세 지원 필드를 모두 검사해야 합니다. 오류가 있으면 잘못된 필드명을 중복 없이 사전순으로 정렬하여 하나의 ValueError로 보고하고, 오류가 없을 때만 결과 딕셔너리를 반환해야 합니다."
+        ],
+        "starterCode": "def parse_config(env: dict[str, str]) -> dict[str, object]:\n    \"\"\"환경 변수 딕셔너리를 서비스 설정으로 변환한다.\"\"\"\n    env.setdefault(\"PORT\", \"8080\")\n    env.setdefault(\"WORKERS\", \"4\")\n    env.setdefault(\"DEBUG\", \"false\")\n\n    config = {}\n    errors = []\n\n    try:\n        config[\"PORT\"] = int(env[\"PORT\"])\n        if not 1 <= config[\"PORT\"] <= 65535:\n            raise ValueError(\"PORT 범위 오류\")\n    except ValueError:\n        errors.append(\"PORT\")\n        raise ValueError(\"잘못된 설정 필드: PORT\")\n\n    try:\n        config[\"WORKERS\"] = int(env[\"WORKERS\"])\n        if not 1 <= config[\"WORKERS\"] <= 32:\n            raise ValueError(\"WORKERS 범위 오류\")\n    except ValueError:\n        errors.append(\"WORKERS\")\n\n    config[\"DEBUG\"] = bool(env[\"DEBUG\"])\n\n    if errors:\n        raise ValueError(\"잘못된 설정 필드: \" + \", \".join(errors))\n    return config",
+        "hints": [
+          "기본값은 입력 딕셔너리에 넣지 말고, 각 필드를 읽을 때 `get`과 지역 변수로 적용하세요. 반환 딕셔너리는 검증이 끝난 뒤에만 성공 결과로 사용하면 입력 불변성을 지키기 쉽습니다.",
+          "각 필드는 변환과 범위 검사를 독립적으로 수행하고, 실패하면 즉시 예외를 다시 발생시키지 말고 오류 필드 목록에 추가하세요. DEBUG는 문자열의 소문자 변환 결과를 허용 목록과 비교해야 합니다.",
+          "세 필드의 검사 결과를 지역 결과 딕셔너리와 오류 목록에 각각 축적한 뒤, 오류 목록을 `sorted`하여 메시지를 만든 다음 마지막에 한 번만 ValueError를 발생시키세요."
+        ],
+        "solution": "def parse_config(env: dict[str, str]) -> dict[str, object]:\n    \"\"\"환경 변수 딕셔너리를 검증된 서비스 설정으로 변환한다.\"\"\"\n    config: dict[str, object] = {}\n    errors: list[str] = []\n\n    port_text = env.get(\"PORT\", \"8080\").strip()\n    try:\n        port = int(port_text, 10)\n        if not 1 <= port <= 65535:\n            raise ValueError\n    except ValueError:\n        errors.append(\"PORT\")\n    else:\n        config[\"PORT\"] = port\n\n    workers_text = env.get(\"WORKERS\", \"4\").strip()\n    try:\n        workers = int(workers_text, 10)\n        if not 1 <= workers <= 32:\n            raise ValueError\n    except ValueError:\n        errors.append(\"WORKERS\")\n    else:\n        config[\"WORKERS\"] = workers\n\n    debug_text = env.get(\"DEBUG\", \"false\").strip().lower()\n    if debug_text == \"true\":\n        config[\"DEBUG\"] = True\n    elif debug_text == \"false\":\n        config[\"DEBUG\"] = False\n    else:\n        errors.append(\"DEBUG\")\n\n    if errors:\n        raise ValueError(\"잘못된 설정 필드: \" + \", \".join(sorted(errors)))\n\n    return config",
+        "explanation": "입력 딕셔너리를 직접 수정하지 않도록 기본값은 `env.get`의 두 번째 인자로 제공하고, 변환 결과는 별도의 config에 저장합니다. 각 숫자 필드는 먼저 공백을 제거한 뒤 10진 정수로 변환하고 범위를 검사합니다. 변환 실패와 범위 오류를 모두 ValueError로 통일하면 두 종류의 오류를 동일하게 수집할 수 있습니다.\n\nDEBUG는 `bool(\"false\")`처럼 문자열의 비어 있지 않음 여부를 검사하면 안 됩니다. 소문자로 정규화한 뒤 true와 false를 명시적으로 비교하여 정확히 두 값만 허용합니다. 각 필드 검사는 독립적으로 실행되므로 여러 입력 오류를 동시에 수집할 수 있습니다.\n\n숫자 필드가 잘못되었을 때 해당 키를 config에 넣지 않아도 됩니다. 오류가 하나라도 있으면 config를 반환하지 않고 정렬된 오류 목록으로 단일 ValueError를 발생시키기 때문입니다. 모든 검사를 통과한 경우에는 세 필드가 각각 int, int, bool 타입으로 채워진 결과를 반환합니다. 빈 문자열, 범위를 벗어난 숫자, 부호가 포함된 숫자처럼 `int`가 허용하는 형식은 별도의 금지 조건이 없으므로 정수로 해석 가능한 값으로 처리됩니다.",
+        "examples": [
+          {
+            "input": "{\"PORT\": \" 9000 \", \"DEBUG\": \"TrUe\"}",
+            "output": "{\"PORT\": 9000, \"WORKERS\": 4, \"DEBUG\": true}",
+            "note": "WORKERS는 기본값을 사용합니다."
+          },
+          {
+            "input": "{\"PORT\": \"0\", \"WORKERS\": \"abc\", \"DEBUG\": \"yes\"}",
+            "output": "ValueError(\"잘못된 설정 필드: DEBUG, PORT, WORKERS\")",
+            "note": "세 필드를 모두 검사한 뒤 필드명을 사전순으로 보고합니다."
+          },
+          {
+            "input": "{}",
+            "output": "{\"PORT\": 8080, \"WORKERS\": 4, \"DEBUG\": false}",
+            "note": "세 설정 모두 기본값을 사용합니다."
+          }
+        ],
+        "tags": ["Python", "DevOps", "설정 검증", "리팩터링", "환경 변수"],
+        "minutes": 50
+      }
+    },
+    {
+      "id": "network-frames",
+      "repetition": 1,
+      "run": {
+        "id": "1a88ca76-3773-44d4-9a07-baff033abf0e",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 26905,
+        "inputTokens": 482,
+        "cachedInputTokens": 0,
+        "outputTokens": 3186,
+        "estimatedCostUsd": 0.0039196,
+        "createdAt": "2026-09-13T16:44:33.492Z"
+      },
+      "content": {
+        "title": "TCP 스트림의 길이 접두 프레임 파서 구현",
+        "summary": "Python 3.12 표준 라이브러리만 사용해 TCP 수신 데이터의 분할·병합을 처리하는 4바이트 길이 접두 프레임 파서를 구현합니다.",
+        "scenario": "TCP는 메시지 경계를 보장하지 않으므로 한 번의 recv 결과에 프레임 일부만 들어오거나 여러 프레임이 합쳐질 수 있습니다. 이를 처리하기 위해 각 프레임은 4바이트 big-endian 부호 없는 정수 길이와 그 길이만큼의 payload로 구성됩니다. payload 길이는 0 이상 1024 이하이며, payload는 임의의 바이너리 bytes일 수 있습니다. 실행 환경은 Python 3.12이고 외부 패키지는 사용할 수 없습니다. FrameParser.feed(data)는 bytes를 받아 현재까지 완성된 payload들을 순서대로 list[bytes]로 반환합니다. 아직 완성되지 않은 데이터는 내부에 보관합니다. 길이가 1024를 초과하는 헤더를 발견하면 해당 호출은 ValueError를 발생시키고 파서를 실패 상태로 전환합니다. 실패 상태에서는 reset()을 호출하기 전까지 feed()를 호출할 때마다 인자와 관계없이 ValueError를 발생시켜야 합니다. 초과 길이를 발견한 호출에서 일부 프레임이 앞서 완성되었더라도 호출 전체는 예외로 끝나며, reset() 전까지 해당 내부 데이터는 다시 사용하지 않습니다. reset()은 미완성 데이터와 실패 상태를 모두 초기화합니다.\n\n예시 1:\nparser.feed(bytes.fromhex(\"000000056865\")) -> []\nparser.feed(b\"llo\" + bytes.fromhex(\"00000000\")) -> [b\"hello\", b\"\"]\n\n예시 2:\nparser.feed(bytes.fromhex(\"00000003\")) -> []\nparser.feed(b\"a\\x00b\\x00\\x00\\x00\\x02cd\") -> [b\"a\\x00b\", b\"cd\"]\n\n예시 3:\nparser.feed(bytes.fromhex(\"00000401\")) -> ValueError\nparser.feed(b\"\") -> ValueError\nparser.reset()\nparser.feed(bytes.fromhex(\"00000001ff\")) -> [b\"\\xff\"]",
+        "requirements": [
+          "FrameParser 클래스를 완성하고, 공개 메서드로 feed(data: bytes) -> list[bytes]와 reset() -> None을 제공해야 합니다.",
+          "feed()는 4바이트를 모두 받기 전에는 길이를 해석하지 않고, 헤더와 payload가 여러 호출에 나뉘거나 여러 프레임이 한 호출에 합쳐진 경우에도 프레임 순서와 payload 바이트를 보존해야 합니다.",
+          "payload 길이 0을 유효한 프레임으로 처리하여 b''를 반환해야 하며, payload 길이가 정확히 1024인 프레임도 허용해야 합니다.",
+          "완성된 헤더의 길이가 1024보다 크면 ValueError를 발생시키고 실패 상태로 전환해야 하며, 이후 reset() 전의 모든 feed() 호출은 즉시 ValueError를 발생시켜야 합니다.",
+          "reset()은 실패 상태와 보관 중인 미완성 바이트를 모두 제거해야 하며, 그 뒤 새 스트림을 정상적으로 파싱할 수 있어야 합니다.",
+          "정상 상태에서 bytes가 아닌 값이 전달되면 TypeError를 발생시켜야 하며, 프레임 payload를 텍스트로 디코딩하거나 외부 라이브러리를 사용해서는 안 됩니다."
+        ],
+        "starterCode": "class FrameParser:\n    MAX_PAYLOAD = 1024\n\n    def __init__(self):\n        self._buffer = bytearray()\n        self._failed = False\n\n    def feed(self, data: bytes) -> list[bytes]:\n        \"\"\"수신된 TCP 조각을 추가하고 완성된 payload를 반환한다.\"\"\"\n        # TODO: 실패 상태, 입력 타입, 스트림 누적 및 프레임 추출을 구현하세요.\n        raise NotImplementedError\n\n    def reset(self) -> None:\n        \"\"\"파서를 새 TCP 스트림을 받을 수 있는 상태로 되돌린다.\"\"\"\n        # TODO: 내부 상태를 초기화하세요.\n        raise NotImplementedError",
+        "hints": [
+          "TCP 데이터는 호출 단위가 아니라 연속된 바이트 스트림입니다. 따라서 feed()마다 새 파서를 만들지 말고, 아직 소비하지 않은 바이트를 bytearray에 누적하세요.",
+          "현재 버퍼 앞부분에 헤더 4바이트가 없으면 기다려야 합니다. 헤더가 있으면 int.from_bytes(..., byteorder=\"big\")으로 길이를 계산하고, 전체 프레임이 도착했을 때만 제거하세요.",
+          "한 번의 feed()에서 while 루프로 여러 프레임을 처리하되, 초과 길이를 발견하면 버퍼를 폐기하고 실패 플래그를 설정한 뒤 ValueError를 발생시키세요. 실패 플래그 검사는 입력 타입 검사보다 먼저 두면 모든 후속 feed()를 일관되게 거절할 수 있습니다."
+        ],
+        "solution": "class FrameParser:\n    MAX_PAYLOAD = 1024\n\n    def __init__(self):\n        self._buffer = bytearray()\n        self._failed = False\n\n    def feed(self, data: bytes) -> list[bytes]:\n        if self._failed:\n            raise ValueError(\"parser is in failed state; call reset() first\")\n\n        if not isinstance(data, bytes):\n            raise TypeError(\"data must be bytes\")\n\n        self._buffer.extend(data)\n        frames: list[bytes] = []\n\n        while True:\n            if len(self._buffer) < 4:\n                break\n\n            payload_length = int.from_bytes(self._buffer[:4], byteorder=\"big\")\n            if payload_length > self.MAX_PAYLOAD:\n                self._buffer.clear()\n                self._failed = True\n                raise ValueError(\"payload length exceeds 1024 bytes\")\n\n            frame_size = 4 + payload_length\n            if len(self._buffer) < frame_size:\n                break\n\n            frames.append(bytes(self._buffer[4:frame_size]))\n            del self._buffer[:frame_size]\n\n        return frames\n\n    def reset(self) -> None:\n        self._buffer.clear()\n        self._failed = False",
+        "explanation": "버퍼에는 아직 완성되지 않은 스트림의 앞부분을 계속 보관합니다. 먼저 4바이트 헤더가 도착했는지 확인하고, 헤더가 있으면 big-endian 정수로 payload 길이를 해석합니다. 길이가 최대값을 넘으면 더 이상 스트림을 복구하지 않고 버퍼를 비운 뒤 실패 상태를 설정합니다. 이렇게 하면 초과 길이를 포함한 호출에서 앞쪽에 프레임이 함께 들어온 경우에도 부분 결과를 반환하거나 다음 데이터와 잘못 이어 붙이지 않습니다.\n\n길이가 유효하더라도 전체 헤더와 payload가 아직 도착하지 않았다면 버퍼를 그대로 둡니다. 전체 프레임이 도착했을 때만 payload를 bytes로 복사해 결과에 추가하고 버퍼에서 해당 프레임을 삭제합니다. 이후 while 루프를 계속 실행하므로 한 번의 feed()에 합쳐진 여러 프레임과 0바이트 payload를 모두 처리할 수 있습니다.\n\n실패 상태 검사를 가장 먼저 수행하므로 reset() 전에는 빈 bytes를 포함한 모든 feed() 호출이 ValueError가 됩니다. 정상 상태에서만 입력 타입을 검사하며, reset()은 보류 중인 조각과 실패 플래그를 함께 초기화합니다. 헤더가 4바이트보다 짧거나 payload가 일부만 도착한 경우에는 예외 없이 빈 목록을 반환하고 데이터를 유지하는 것이 TCP 분할 수신의 핵심입니다.",
+        "examples": [
+          {
+            "input": "parser.feed(bytes.fromhex(\"000000056865\")); parser.feed(b\"llo\" + bytes.fromhex(\"00000000\"))",
+            "output": "[], [b'hello', b'']",
+            "note": "첫 호출에는 hello의 앞 두 바이트만 있고, 두 번째 호출에서 hello와 빈 프레임이 완성됩니다."
+          },
+          {
+            "input": "parser.feed(bytes.fromhex(\"00000003\")); parser.feed(b\"a\\x00b\\x00\\x00\\x00\\x02cd\")",
+            "output": "[], [b'a\\x00b', b'cd']",
+            "note": "헤더와 payload가 분리되어 도착하고, 두 번째 호출에는 두 프레임이 함께 들어옵니다."
+          },
+          {
+            "input": "parser.feed(bytes.fromhex(\"00000401\")); parser.feed(b\"\")",
+            "output": "첫 호출은 ValueError, 두 번째 호출도 ValueError",
+            "note": "1025바이트 길이는 허용 범위를 넘으므로 reset() 전까지 실패 상태가 유지됩니다."
+          }
+        ],
+        "tags": ["Python", "네트워크", "TCP", "스트림 파싱", "바이너리 프로토콜"],
+        "minutes": 55
+      }
+    },
+    {
+      "id": "network-frames",
+      "repetition": 2,
+      "run": {
+        "id": "6e500453-ba9a-4d65-9895-84671cb6796e",
+        "operation": "generate",
+        "promptVersion": "2026-09-13.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 21136,
+        "inputTokens": 482,
+        "cachedInputTokens": 0,
+        "outputTokens": 2486,
+        "estimatedCostUsd": 0.0030796,
+        "createdAt": "2026-09-13T16:45:24.724Z"
+      },
+      "content": {
+        "title": "TCP 스트림용 4바이트 길이 프레임 파서 구현",
+        "summary": "TCP는 메시지 경계를 보장하지 않으므로, 분할되거나 여러 개가 합쳐진 수신 데이터를 길이 접두사 기반 프레임 목록으로 복원하는 상태형 파서를 구현합니다.",
+        "scenario": "Python 3.12 표준 라이브러리만 사용하는 TCP 서버에서 수신 버퍼를 처리한다고 가정합니다. 애플리케이션 프로토콜은 각 프레임 앞에 4바이트 부호 없는 big-endian 정수 길이를 둡니다. 길이는 프레임 payload의 바이트 수이며, 최대 1024바이트이고 0바이트 payload도 유효합니다.\n\nParser.feed(data)는 bytes를 입력받아 이번 호출까지 완전히 수신된 프레임들을 순서대로 list[bytes]로 반환합니다. TCP 특성상 하나의 프레임이 여러 feed 호출로 나뉘거나, 여러 프레임이 한 번의 feed에 합쳐질 수 있습니다. 완전한 프레임이 아직 없으면 빈 리스트를 반환합니다.\n\n길이 값이 1024를 초과하면 스트림은 복구 불가능한 오류 상태가 됩니다. 해당 feed 호출은 ValueError를 발생시키며, 그 호출에서 오류 길이보다 앞서 발견된 완전한 프레임도 반환하지 않고 버립니다. 오류 상태에서는 이후의 모든 feed 호출이 입력 내용과 관계없이 ValueError를 발생시켜야 합니다. reset()을 호출하면 버퍼와 오류 상태를 모두 초기화하여 새 스트림을 처리할 수 있습니다.\n\n예를 들어 bytes.fromhex('00000003616263')를 한 번에 feed하면 [b'abc']를 반환합니다. bytes.fromhex('0000000361'), bytes.fromhex('6263')를 차례로 feed하면 첫 호출은 [], 둘째 호출은 [b'abc']를 반환합니다. bytes.fromhex('0000000000000001ff')를 한 번에 feed하면 [b'', b'\\xff']를 반환합니다. bytes.fromhex('00000401')은 길이 1025이므로 ValueError를 발생시키고, 이후 reset() 전까지의 feed도 모두 ValueError를 발생시킵니다.",
+        "requirements": [
+          "FrameParser 클래스를 완성한다. 생성 시 최대 payload 길이는 1024바이트로 고정하며, 별도의 외부 파일이나 패키지를 사용하지 않는다.",
+          "feed(data: bytes)에서 4바이트 길이 접두사와 payload가 여러 호출에 걸쳐 분할된 경우에도 원래 프레임을 순서대로 복원한다. 한 호출에 여러 프레임이 포함되면 모두 반환한다.",
+          "길이 0을 유효한 프레임으로 처리하여 b''를 반환 목록에 포함한다. 아직 4바이트 길이 또는 전체 payload가 모이지 않은 프레임은 반환하지 않는다.",
+          "길이 값이 1024보다 크면 ValueError를 발생시키고 파서를 오류 상태로 전환한다. 오류가 발생한 호출에서 이미 완성된 프레임을 외부에 반환하지 않으며, reset() 전의 모든 feed 호출도 ValueError를 발생시켜야 한다.",
+          "reset()은 미완성 데이터와 오류 상태를 모두 제거해야 하며, 호출 후에는 새 TCP 스트림의 첫 바이트부터 정상적으로 파싱할 수 있어야 한다."
+        ],
+        "starterCode": "class FrameParser:\n    MAX_PAYLOAD = 1024\n\n    def __init__(self):\n        self._buffer = bytearray()\n        self._failed = False\n\n    def feed(self, data: bytes) -> list[bytes]:\n        \"\"\"수신된 TCP 조각을 추가하고 완성된 payload들을 반환한다.\"\"\"\n        # TODO: 구현\n        raise NotImplementedError\n\n    def reset(self) -> None:\n        \"\"\"파서를 새 스트림을 받을 수 있는 초기 상태로 되돌린다.\"\"\"\n        # TODO: 구현\n        raise NotImplementedError",
+        "hints": [
+          "TCP 수신 단위와 프레임 단위는 다르므로, feed가 끝날 때 버퍼에 남은 미완성 바이트를 삭제하지 말고 다음 호출까지 보존하세요.",
+          "반복문에서 먼저 4바이트가 모였는지 확인한 뒤 int.from_bytes(..., 'big')로 길이를 읽으세요. 길이가 최대치를 넘는 순간에는 오류 상태를 기록하고 내부 버퍼를 비워 두는 것이 안전합니다.",
+          "한 번의 feed에서 오류가 발생하면 그 전에 임시 결과에 넣은 프레임까지 반환하면 안 됩니다. 결과를 지역 변수로만 모으고, 길이 초과 검사를 통과한 뒤에만 정상 반환하도록 하세요."
+        ],
+        "solution": "class FrameParser:\n    MAX_PAYLOAD = 1024\n\n    def __init__(self):\n        self._buffer = bytearray()\n        self._failed = False\n\n    def feed(self, data: bytes) -> list[bytes]:\n        \"\"\"수신된 TCP 조각을 추가하고 완성된 payload들을 반환한다.\"\"\"\n        if self._failed:\n            raise ValueError(\"parser is in failed state; call reset() first\")\n\n        if not isinstance(data, bytes):\n            raise TypeError(\"data must be bytes\")\n\n        self._buffer.extend(data)\n        frames: list[bytes] = []\n\n        while True:\n            if len(self._buffer) < 4:\n                break\n\n            payload_length = int.from_bytes(self._buffer[:4], byteorder=\"big\")\n            if payload_length > self.MAX_PAYLOAD:\n                self._failed = True\n                self._buffer.clear()\n                raise ValueError(\"payload length exceeds 1024 bytes\")\n\n            frame_size = 4 + payload_length\n            if len(self._buffer) < frame_size:\n                break\n\n            payload = bytes(self._buffer[4:frame_size])\n            del self._buffer[:frame_size]\n            frames.append(payload)\n\n        return frames\n\n    def reset(self) -> None:\n        \"\"\"파서를 새 스트림을 받을 수 있는 초기 상태로 되돌린다.\"\"\"\n        self._buffer.clear()\n        self._failed = False",
+        "explanation": "TCP는 read 또는 recv 한 번이 프레임 하나와 일치한다는 보장이 없으므로, 수신 바이트를 bytearray에 누적합니다. 버퍼에 4바이트가 모이면 big-endian 길이를 해석하고, 최대 길이를 초과하는지 먼저 검사합니다.\n\n길이가 유효하더라도 전체 4바이트 접두사와 payload가 도착하지 않았다면 반복을 중단하고 버퍼를 유지합니다. 전체 프레임이 모이면 payload만 복사해 결과 목록에 추가한 뒤 해당 프레임만 버퍼에서 제거합니다. 이 과정을 반복하면 한 번에 합쳐진 여러 프레임과 여러 호출로 나뉜 프레임을 모두 처리할 수 있습니다.\n\n길이 초과가 발견되면 _failed를 True로 설정하고 버퍼를 비운 뒤 즉시 ValueError를 발생시킵니다. 결과 목록은 지역 변수이므로 같은 호출에서 앞서 완성된 프레임도 호출자에게 반환되지 않습니다. 이후 feed는 새 데이터를 처리하지 않고 항상 ValueError를 발생시켜, 손상된 스트림의 경계를 임의로 재해석하지 않도록 합니다. reset은 버퍼와 오류 상태를 함께 초기화합니다.\n\n빈 bytes를 feed해도 기존에 저장된 데이터만 처리하며, 새 데이터가 없으므로 일반적으로 결과는 빈 목록입니다. 길이 0인 프레임은 frame_size가 4가 되므로 b''를 정상적으로 결과에 추가합니다. 최대 길이 1024인 프레임은 유효하고, 1025 이상만 오류입니다. 구현의 버퍼 크기는 하나의 미완성 프레임과 4바이트 접두사 범위로 제한되며, 프레임이 완성될 때마다 즉시 제거됩니다.",
+        "examples": [
+          {
+            "input": "parser.feed(bytes.fromhex('00000003616263'))",
+            "output": "[b'abc']",
+            "note": "3바이트 payload를 한 번에 수신한다."
+          },
+          {
+            "input": "parser.feed(bytes.fromhex('0000000361')); parser.feed(bytes.fromhex('6263'))",
+            "output": "첫 호출: [] / 둘째 호출: [b'abc']",
+            "note": "길이 접두사와 payload가 여러 TCP 조각으로 나뉜다."
+          },
+          {
+            "input": "parser.feed(bytes.fromhex('0000000000000001ff'))",
+            "output": "[b'', b'\\xff']",
+            "note": "0바이트 프레임과 1바이트 프레임이 합쳐져 있다."
+          }
+        ],
+        "tags": ["Python", "TCP", "네트워크", "스트림 파싱", "상태 머신"],
+        "minutes": 60
+      }
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { concurrencyContract } from "./concurrency-contract.test-helper";
 import { queryContract } from "./query-contract.test-helper";
 import { randomUUID } from "node:crypto";
 import postgres, { type Sql } from "postgres";
@@ -38,6 +39,10 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
     }
   }, 30_000);
   queryContract(() => store);
+  concurrencyContract(
+    () => store,
+    (id) => sql`UPDATE jobs SET expires=0 WHERE id=${id}`,
+  );
   it("stores and revokes authenticated sessions with the hosted PostgreSQL driver", async () => {
     const pool = new Pool({ connectionString: url, max: 1, options: `-c search_path=${schema}` });
     try {
@@ -77,7 +82,11 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
   it("seeds without exposing answers and keeps owners separate", async () => {
     expect((await store.summaries()).filter((p) => p.source === "curated").length).toBe(12);
     expect((await store.summaries())[0]).not.toHaveProperty("solution");
-    await store.saveProgress("alice", "be-pagination", { code: "my draft", bookmarked: true });
+    await store.saveProgress("alice", "be-pagination", {
+      baseRevision: 0,
+      code: "my draft",
+      bookmarked: true,
+    });
     expect((await store.progress("alice"))["be-pagination"].code).toBe("my draft");
     expect((await store.progress("bob"))["be-pagination"]).toBeUndefined();
     const fresh = new PostgresStore(sql);
@@ -87,7 +96,7 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
     const p = (await store.problem("be-pagination"))!;
     await Promise.all(Array.from({ length: 8 }, () => store.reveal("alice", p, "hint")));
     expect((await store.progress("alice"))[p.id].hintsViewed).toBe(p.hints.length);
-    await store.saveProgress("alice", p.id, { code: "newer draft" });
+    await store.saveProgress("alice", p.id, { baseRevision: 1, code: "newer draft" });
     const review: Review = {
       score: 100,
       passed: true,
@@ -127,14 +136,80 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
   it("claims a generation once and commits its problem with the job result", async () => {
     const id = randomUUID();
     const jobs = await Promise.all(
-      Array.from({ length: 6 }, () => store.startJob("alice", id, "generate")),
+      Array.from({ length: 6 }, () => store.startJob("alice", id, "generate", "same-input")),
     );
     expect(jobs.filter((j) => j.state === "new")).toHaveLength(1);
     const p = { ...seedProblems[0], id: `ai-${randomUUID()}`, source: "ai" as const };
-    await store.completeGeneration(p, id);
-    expect(await store.startJob("alice", id, "generate")).toEqual({ state: "done", result: p.id });
+    const winner = jobs.find((j) => j.state === "new")!;
+    if (winner.state !== "new") throw new Error("Missing winner");
+    await store.reserveGeneration(winner.lease);
+    await store.completeGeneration(p, winner.lease);
+    expect(await store.startJob("alice", id, "generate", "same-input")).toEqual({
+      state: "done",
+      result: p.id,
+    });
     expect((await store.problem(p.id))?.title).toBe(p.title);
-    expect(await store.startJob("bob", id, "generate")).toEqual({ state: "pending" });
+    await expect(store.startJob("bob", id, "generate", "same-input")).rejects.toThrow();
+  }, 30000);
+  it("uses five distinct connections for competing conditional code writes and duplicate completions", async () => {
+    const connections = await Promise.all(Array.from({ length: 5 }, () => sql.reserve()));
+    try {
+      const pids = await Promise.all(connections.map((c) => c`SELECT pg_backend_pid() AS pid`));
+      expect(new Set(pids.map((rows) => rows[0].pid)).size).toBe(5);
+    } finally {
+      connections.forEach((c) => c.release());
+    }
+    const owner = randomUUID(),
+      id = seedProblems[0].id;
+    const results = await Promise.allSettled(
+      Array.from({ length: 5 }, (_, i) =>
+        store.saveProgress(owner, id, { code: `writer-${i}`, baseRevision: 0 }),
+      ),
+    );
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    expect((await store.progressFor(owner, id))?.codeRevision).toBe(1);
+    const job = await store.startJob(owner, randomUUID(), `review:${id}`, "same-input");
+    if (job.state !== "new") throw new Error("No execution");
+    const review: Review = {
+      score: 0,
+      passed: false,
+      summary: "검토",
+      criteria: [],
+      strengths: [],
+      improvements: [],
+    };
+    const completions = await Promise.allSettled(
+      Array.from({ length: 5 }, () => store.saveAttempt(owner, id, "same code", review, job.lease)),
+    );
+    expect(completions.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    expect(await store.attempts(owner)).toHaveLength(1);
+  }, 30000);
+  it("rolls back problem, completion and quota together if final job update fails", async () => {
+    const owner = `user:${randomUUID()}`,
+      id = randomUUID();
+    const job = await store.startJob(owner, id, "generate", "input");
+    if (job.state !== "new") throw new Error("No lease");
+    await store.reserveGeneration(job.lease);
+    const problem = { ...seedProblems[0], id: `atomic-${randomUUID()}`, source: "ai" as const };
+    await sql.unsafe(
+      `CREATE FUNCTION reject_completion() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.state='done' THEN RAISE EXCEPTION 'injected completion failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER reject_completion BEFORE UPDATE ON jobs FOR EACH ROW EXECUTE FUNCTION reject_completion();`,
+    );
+    try {
+      await expect(store.completeGeneration(problem, job.lease)).rejects.toThrow();
+      expect(await store.problem(problem.id)).toBeNull();
+      expect((await sql`SELECT state FROM generation_usage WHERE request_id=${id}`)[0].state).toBe(
+        "pending",
+      );
+      expect((await store.startJob(owner, id, "generate", "input")).state).toBe("pending");
+    } finally {
+      await sql.unsafe(
+        "DROP TRIGGER reject_completion ON jobs; DROP FUNCTION reject_completion();",
+      );
+    }
+    await store.completeGeneration(problem, job.lease);
+    expect((await sql`SELECT state FROM generation_usage WHERE request_id=${id}`)[0].state).toBe(
+      "done",
+    );
   }, 30000);
   it("imports idempotently and rolls back a malformed backup atomically", async () => {
     const backup = {

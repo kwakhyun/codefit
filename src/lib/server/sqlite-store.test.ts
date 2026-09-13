@@ -1,7 +1,10 @@
+import { DatabaseSync } from "node:sqlite";
+import { storageSchema } from "./storage-schema.mjs";
+import { concurrencyContract } from "./concurrency-contract.test-helper";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { beforeEach, afterEach, describe, expect, it } from "vitest";
 import { seedProblems } from "../../data/problems";
 import { DOMAIN_IDS, KINDS, LEVELS, supportsLanguage } from "../catalog";
 import { generationSchema, problemSchema, publicProblem, validateReview } from "../problem";
@@ -107,7 +110,11 @@ describe("durable isolated learning state", () => {
     const location = path.join(dir, "test.sqlite");
     const first = store(location);
     first.addProblem({ ...p, id: "ai-persistence", source: "ai" });
-    first.saveProgress("alice", "ai-persistence", { code: "my saved code", bookmarked: true });
+    first.saveProgress("alice", "ai-persistence", {
+      baseRevision: 0,
+      code: "my saved code",
+      bookmarked: true,
+    });
     first.db.close();
     stores.splice(stores.indexOf(first), 1);
     const second = store(location);
@@ -121,12 +128,12 @@ describe("durable isolated learning state", () => {
   });
   it("does not overwrite a draft on bookmark, reveal or review and preserves solved status", () => {
     const s = store();
-    s.saveProgress("alice", p.id, { code: "new draft" });
+    s.saveProgress("alice", p.id, { baseRevision: 0, code: "new draft" });
     s.saveProgress("alice", p.id, { bookmarked: true });
     s.reveal("alice", p, "hint");
     const a = s.saveAttempt("alice", p.id, "older submitted code", reviewed());
     expect(a.assisted).toBe(true);
-    s.saveProgress("alice", p.id, { code: "newer draft" });
+    s.saveProgress("alice", p.id, { baseRevision: 1, code: "newer draft" });
     s.saveAttempt("alice", p.id, "another submission", reviewed(false));
     expect(s.progress("alice")[p.id]).toMatchObject({
       status: "solved",
@@ -147,15 +154,6 @@ describe("durable isolated learning state", () => {
       status: "new",
     });
   });
-  it("keeps generation idempotent and rejects cross-owner result access", () => {
-    const s = store();
-    expect(s.startJob("a", "job", "generate").state).toBe("new");
-    expect(s.startJob("a", "job", "generate").state).toBe("pending");
-    s.finishJob("job", p.id);
-    expect(s.startJob("a", "job", "generate")).toEqual({ state: "done", result: p.id });
-    expect(s.startJob("b", "job", "generate").state).toBe("pending");
-    expect(s.startJob("a", "job", "review").state).toBe("pending");
-  });
   it("enforces transactional limits without charging other buckets on denial", () => {
     const s = store();
     const first = { key: "a", max: 1, windowMs: 1000 };
@@ -166,7 +164,7 @@ describe("durable isolated learning state", () => {
   });
   it("imports backups into a different browser without replacing existing code or duplicating attempts", () => {
     const s = store();
-    s.saveProgress("a", p.id, { code: "original code", bookmarked: true });
+    s.saveProgress("a", p.id, { baseRevision: 0, code: "original code", bookmarked: true });
     s.saveAttempt("a", p.id, "submitted code", reviewed());
     const backup = {
       version: 2 as const,
@@ -174,7 +172,7 @@ describe("durable isolated learning state", () => {
       progress: s.progress("a"),
       attempts: s.attempts("a"),
     };
-    s.saveProgress("b", p.id, { code: "keep this code" });
+    s.saveProgress("b", p.id, { baseRevision: 0, code: "keep this code" });
     const first = s.importBackup("b", backup);
     expect(first.attempts).toBe(1);
     expect(s.progress("b")[p.id].code).toBe("keep this code");
@@ -208,5 +206,64 @@ describe("durable isolated learning state", () => {
     s.archiveLegacy("a", { generatedLessons: [] });
     expect(s.legacy("a")).toEqual({ generatedLessons: [{ id: "old" }] });
     expect(s.legacy("b")).toBeNull();
+  });
+});
+
+describe("SQLite concurrency contract", () => {
+  let current: SqliteStore;
+  beforeEach(() => {
+    current = store();
+  });
+  concurrencyContract(
+    () => current,
+    (id) => current.db.prepare("UPDATE jobs SET expires=0 WHERE id=?").run(id),
+  );
+});
+
+describe("SQLite migration and commit failure", () => {
+  it("upgrades existing progress without changing code or resetting its revision on reopen", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "codefit-migration-"));
+    dirs.push(dir);
+    const file = path.join(dir, "legacy.sqlite");
+    const legacy = new DatabaseSync(file);
+    legacy.exec(storageSchema);
+    legacy.prepare("INSERT INTO problems VALUES (?,?,?)").run(p.id, JSON.stringify(p), p.createdAt);
+    legacy
+      .prepare("INSERT INTO progress(owner,problem_id,code,updated_at) VALUES (?,?,?,?)")
+      .run("legacy", p.id, "kept code", p.createdAt);
+    legacy.close();
+    const upgraded = store(file);
+    expect(upgraded.progressFor("legacy", p.id)).toMatchObject({
+      code: "kept code",
+      codeRevision: 0,
+    });
+    upgraded.saveProgress("legacy", p.id, { code: "new code", baseRevision: 0 });
+    upgraded.db.close();
+    stores.splice(stores.indexOf(upgraded), 1);
+    expect(store(file).progressFor("legacy", p.id)).toMatchObject({
+      code: "new code",
+      codeRevision: 1,
+    });
+  });
+  it("rolls back a generated problem and quota when job completion itself fails", () => {
+    const s = store(),
+      job = s.startJob("user:atomic", "atomic", "generate", "input");
+    if (job.state !== "new") throw new Error("No lease");
+    s.reserveGeneration(job.lease);
+    s.db.exec(
+      "CREATE TEMP TRIGGER reject_completion BEFORE UPDATE ON jobs WHEN NEW.state='done' BEGIN SELECT RAISE(ABORT,'injected completion failure'); END;",
+    );
+    const result = { ...p, id: "atomic-generated", source: "ai" as const };
+    expect(() => s.completeGeneration(result, job.lease)).toThrow();
+    expect(s.problem(result.id)).toBeNull();
+    expect(
+      s.db.prepare("SELECT state FROM generation_usage WHERE request_id='atomic'").get()?.state,
+    ).toBe("pending");
+    expect(s.startJob("user:atomic", "atomic", "generate", "input").state).toBe("pending");
+    s.db.exec("DROP TRIGGER reject_completion");
+    s.completeGeneration(result, job.lease);
+    expect(
+      s.db.prepare("SELECT state FROM generation_usage WHERE request_id='atomic'").get()?.state,
+    ).toBe("done");
   });
 });

@@ -2,6 +2,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public status: number,
+    public payload?: { kind?: string; current?: unknown },
   ) {
     super(message);
   }
@@ -40,7 +41,7 @@ export async function api<T>(
   } catch {
     throw new ApiError("서버 응답을 읽지 못했습니다. 연결 상태를 확인해 주세요.", response.status);
   }
-  if (!response.ok) throw new ApiError(data.error || "요청에 실패했습니다.", response.status);
+  if (!response.ok) throw new ApiError(data.error || "요청에 실패했습니다.", response.status, data);
   return data as T;
 }
 export function errorMessage(error: unknown) {

@@ -4,22 +4,34 @@ import { api, errorMessage, setWorkspaceScope } from "@/lib/client-api";
 import type { Attempt, Progress, Workspace } from "@/lib/problem";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export function usePracticeSession(activeId?: string) {
+export function usePracticeSession(activeId?: string, libraryHref = "/", attemptId?: string) {
   const [data, setData] = useState<Workspace | null>(null);
   const [loadError, setLoadError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const requestVersion = useRef(0);
+  const initial = useRef(true);
   const signatures = useRef(new Map<string, string>());
   const load = useCallback(async () => {
     const version = ++requestVersion.current;
     setRefreshing(true);
     try {
-      const workspace = await api<Workspace>(
-        `/api/workspace${activeId ? `?problem=${encodeURIComponent(activeId)}` : ""}`,
-      );
+      const params = new URLSearchParams();
+      if (activeId) params.set("problem", activeId);
+      if (initial.current) {
+        params.set("include", "initial");
+        params.set("library", libraryHref);
+        if (attemptId) params.set("attempt", attemptId);
+      }
+      const workspace = await api<Workspace>(`/api/workspace?${params}`);
       if (version !== requestVersion.current) return;
       setWorkspaceScope(workspace.scope);
-      setData(workspace);
+      initial.current = false;
+      setData((previous) => ({
+        ...workspace,
+        bootstrap:
+          workspace.bootstrap ??
+          (previous?.scope === workspace.scope ? previous.bootstrap : undefined),
+      }));
       setLoadError("");
       try {
         const legacyText = localStorage.getItem("recode-progress-v1");
@@ -39,7 +51,7 @@ export function usePracticeSession(activeId?: string) {
     } finally {
       if (version === requestVersion.current) setRefreshing(false);
     }
-  }, [activeId]);
+  }, [activeId, libraryHref, attemptId]);
   useEffect(() => {
     void Promise.resolve().then(load);
     const version = requestVersion;

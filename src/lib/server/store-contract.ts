@@ -3,9 +3,11 @@ import type { Backup } from "../backup";
 import type { Attempt, Problem, ProblemSummary, Progress, Review } from "../problem";
 
 type Stored<T> = T | Promise<T>;
-export type ProgressPatch = { code?: string; bookmarked?: boolean };
+export type ProgressPatch = { code?: string; baseRevision?: number; bookmarked?: boolean };
 export type UsageLimit = { key: string; max: number; windowMs: number; cost?: number };
-export type JobClaim = { state: "new" | "pending" | "done"; result?: string };
+export type JobLease = { id: string; owner: string; kind: string; token: string };
+export type JobClaim =
+  { state: "new"; lease: JobLease } | { state: "pending" } | { state: "done"; result: string };
 
 /** The API uses the same operations with local SQLite and hosted PostgreSQL. */
 export interface ProblemStore {
@@ -14,7 +16,7 @@ export interface ProblemStore {
   problem(id: string): Stored<Problem | null>;
   problems(): Stored<Problem[]>;
   summaries(): Stored<ProblemSummary[]>;
-  completeGeneration(problem: Problem, jobId: string): Stored<void>;
+  completeGeneration(problem: Problem, lease: JobLease): Stored<void>;
   progress(owner: string): Stored<Record<string, Progress>>;
   saveProgress(owner: string, id: string, patch: ProgressPatch): Stored<Progress>;
   reveal(owner: string, problem: Problem, kind: "hint" | "solution"): Stored<Progress>;
@@ -24,12 +26,12 @@ export interface ProblemStore {
     id: string,
     code: string,
     review: Review,
-    jobId?: string,
+    lease?: JobLease,
   ): Stored<Attempt>;
   consumeLimits(entries: UsageLimit[], now?: number): Stored<boolean>;
-  reserveGeneration(owner: string, requestId: string, now?: number): Stored<boolean>;
-  startJob(owner: string, id: string, kind: string): Stored<JobClaim>;
-  failJob(id: string): Stored<void>;
+  reserveGeneration(lease: JobLease, now?: number): Stored<boolean>;
+  startJob(owner: string, id: string, kind: string, fingerprint: string): Stored<JobClaim>;
+  failJob(lease: JobLease): Stored<boolean>;
   importBackup(owner: string, backup: Backup): Stored<{ problems: number; attempts: number }>;
   archiveLegacy(owner: string, content: unknown): Stored<void>;
   legacy(owner: string): Stored<unknown>;

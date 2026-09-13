@@ -12,7 +12,11 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const patch = await readBody(
       request,
       z
-        .object({ code: z.string().max(30000).optional(), bookmarked: z.boolean().optional() })
+        .object({
+          code: z.string().max(30000).optional(),
+          baseRevision: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
+          bookmarked: z.boolean().optional(),
+        })
         .strict(),
     );
     return json({ progress: await (await getStore()).saveProgress(owner, id, patch) });

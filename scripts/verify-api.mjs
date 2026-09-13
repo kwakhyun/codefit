@@ -63,7 +63,7 @@ assert.equal(
   (
     await a(`/api/progress/${id}`, {
       method: "PUT",
-      body: { code: "print('persisted draft')", bookmarked: true },
+      body: { code: "print('persisted draft')", baseRevision: 0, bookmarked: true },
     })
   ).status,
   200,

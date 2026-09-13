@@ -22,6 +22,13 @@ export async function setCode(page: Page, code: string) {
   }, code);
 }
 export async function readCode(page: Page) {
+  // Navigation can show submission controls before the deliberately lazy editor is ready.
+  await page.waitForFunction(
+    () =>
+      (
+        window as unknown as { monaco?: { editor: { getModels(): unknown[] } } }
+      ).monaco?.editor.getModels().length,
+  );
   return page.evaluate(() =>
     (
       window as unknown as { monaco: { editor: { getModels(): { getValue(): string }[] } } }

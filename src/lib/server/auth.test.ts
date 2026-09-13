@@ -148,12 +148,12 @@ describe("OAuth and database sessions", () => {
     ).toBe(403);
   });
 });
-it("uses Sol generation and preserves the evaluated review model", () => {
+it("uses Sol generation and the evaluated Luna review model", () => {
   vi.stubEnv("OPENAI_GENERATION_MODEL", "");
   vi.stubEnv("OPENAI_REVIEW_MODEL", "");
   vi.stubEnv("OPENAI_MODEL", "");
   expect(aiModel("generate")).toBe("gpt-5.6-sol");
-  expect(aiModel("review")).toBe("gpt-5.4-mini");
+  expect(aiModel("review")).toBe("gpt-5.6-luna");
   expect(estimateCost("gpt-5.6-sol", 1000000, 0, 1000000)).toBe(24);
 });
 it("preserves only safe local return paths", () => {

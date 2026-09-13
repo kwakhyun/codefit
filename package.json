@@ -19,10 +19,13 @@
     "check:unused": "knip",
     "migrate:postgres": "node scripts/migrate-sqlite-to-postgres.mjs",
     "eval:ai": "node --import tsx scripts/evaluate-ai.ts",
+    "eval:generation": "node --import tsx scripts/evaluate-generation.ts",
     "test:e2e": "playwright test",
     "benchmark": "node --import tsx scripts/benchmark-storage.ts",
     "measure:browser": "node --import tsx scripts/measure-browser.ts",
-    "test:ai-live": "node --import tsx scripts/verify-live-ai.ts"
+    "test:ai-live": "node --import tsx scripts/verify-live-ai.ts",
+    "measure:interactions": "node --import tsx scripts/measure-interactions.mjs",
+    "measure:typing-pair": "node scripts/measure-typing-pair.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

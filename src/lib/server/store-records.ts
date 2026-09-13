@@ -5,6 +5,7 @@ type Row = Record<string, unknown>;
 export function toProgress(row: Row): Progress {
   return {
     problemId: String(row.problem_id),
+    codeRevision: Number(row.code_revision),
     code: row.code == null ? null : String(row.code),
     bookmarked: Boolean(row.bookmarked),
     hintsViewed: Number(row.hints_viewed),

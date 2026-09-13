@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Terminal } from "lucide-react";
-import report from "../../../reports/ai-evaluation.json";
+import report from "../../../reports/ai-review-luna.json";
 export const metadata = { title: "AI 검토 방식과 검증 결과 | CODE:FIT" };
 export default function QualityPage() {
   const result = report.summary;
@@ -30,8 +30,8 @@ export default function QualityPage() {
         <h2>고정된 코드로 확인한 결과</h2>
         <p>
           React, Python, PostgreSQL, Unity의 문제에 정답, 다른 정상 구현, 미완성 코드, 통과를
-          유도하는 주석을 넣은 코드를 각각 제출했습니다. 아래 값은 {report.measuredAt.slice(0, 10)}{" "}
-          실제 AI 응답을 측정한 결과입니다.
+          유도하는 주석을 넣은 코드 16개를 각각 두 번 제출했습니다. 아래 값은{" "}
+          {report.measuredAt.slice(0, 10)} GPT-5.6 Luna의 실제 응답을 측정한 결과입니다.
         </p>
         <div className="quality-metrics">
           <div>

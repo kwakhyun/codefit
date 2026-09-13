@@ -55,13 +55,21 @@ export function AppHeader({
         <button
           className="icon-button help-button"
           aria-label="사용 안내"
-          onClick={() => setHelpOpen(true)}
+          onClick={(event) => {
+            // Safari does not focus buttons on pointer activation; retain a dialog return target.
+            event.currentTarget.focus();
+            setHelpOpen(true);
+          }}
         >
           <CircleHelp size={18} />
         </button>
         <button
           className="primary-button small"
-          onClick={() => setGeneratorOpen(true)}
+          onClick={(event) => {
+            // Safari does not focus buttons on pointer activation; retain a dialog return target.
+            event.currentTarget.focus();
+            setGeneratorOpen(true);
+          }}
           disabled={!data}
         >
           <Sparkles size={15} />
