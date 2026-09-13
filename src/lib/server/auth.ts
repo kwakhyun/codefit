@@ -10,8 +10,16 @@ export async function getAuth() {
   if (!instance)
     instance = (async () => {
       await getStore(); // Run schema migrations under the existing database lock.
-      const database = process.env.DATABASE_URL
-        ? new Pool({ connectionString: process.env.DATABASE_URL, max: 2, idleTimeoutMillis: 20000 })
+      const connection = process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL) : null;
+      // Preserve pg 8's full certificate verification when pg 9 changes these aliases.
+      if (
+        connection &&
+        !connection.searchParams.has("uselibpqcompat") &&
+        ["prefer", "require", "verify-ca"].includes(connection.searchParams.get("sslmode") || "")
+      )
+        connection.searchParams.set("sslmode", "verify-full");
+      const database = connection
+        ? new Pool({ connectionString: connection.toString(), max: 2, idleTimeoutMillis: 20000 })
         : (await import("./sqlite-store")).getSqliteStore().db;
       const providers = configuredProviders();
       return createAuth({

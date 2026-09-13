@@ -189,8 +189,8 @@ export function PracticeApp({
         <AppFooter />
       </div>
       <Generator
-        key={`${initialDomain}:${activeProblem?.domain || "frontend"}`}
-        open={generatorOpen}
+        key={`${data?.scope}:${initialDomain}:${activeProblem?.domain || "frontend"}`}
+        open={generatorOpen && Boolean(data)}
         onClose={() => setGeneratorOpen(false)}
         initialDomain={
           initialDomain === "all" ? activeProblem?.domain || "frontend" : initialDomain
