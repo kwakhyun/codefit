@@ -7,14 +7,14 @@ const icons = { frontend: PanelTop, backend: Server, game: Gamepad2, network: Ne
 export function DomainIcon({ domain, size = 17 }: { domain: DomainId; size?: number }) { const Icon = icons[domain]; return <Icon size={size} aria-hidden="true" />; }
 export function DifficultyBadge({ level }: { level: string }) { return <span className={`badge level-${level}`}><span className="level-bars" aria-hidden="true"><i /><i /><i /></span>{level}</span>; }
 export function KindBadge({ kind }: { kind: PublicProblem["kind"] }) { return <span className={`kind-label kind-${kind}`}>{KIND_LABELS[kind]}</span>; }
-export function Modal({ open, onClose, title, children, className = "", busy = false }: { open: boolean; onClose: () => void; title: string; children: ReactNode; className?: string; busy?: boolean }) {
+export function Modal({ open, onClose, title, children, className = "", busy = false, dismissible = true }: { open: boolean; onClose: () => void; title: string; children: ReactNode; className?: string; busy?: boolean; dismissible?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = ref.current;
     if (open && dialog && !dialog.open) dialog.showModal();
     else if (!open && dialog?.open) dialog.close();
   }, [open]);
-  return <dialog ref={ref} className={`modal ${className}`} aria-label={title} onCancel={e => { e.preventDefault(); if (!busy) onClose(); }} onClick={e => { if (e.target === ref.current && !busy) onClose(); }}>
-    <div className="modal-heading"><span className="mono">{title}</span><button className="icon-button" aria-label="닫기" onClick={onClose} disabled={busy}><X size={19} /></button></div>{children}
+  return <dialog ref={ref} className={`modal ${className}`} aria-label={title} onCancel={e => { e.preventDefault(); if (!busy && dismissible) onClose(); }} onClick={e => { if (e.target === ref.current && !busy && dismissible) onClose(); }}>
+    <div className="modal-heading"><span className="mono">{title}</span>{dismissible && <button className="icon-button" aria-label="닫기" onClick={onClose} disabled={busy}><X size={19} /></button>}</div>{children}
   </dialog>;
 }

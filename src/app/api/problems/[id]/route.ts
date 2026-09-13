@@ -7,7 +7,9 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const { owner } = await session(request);
     const { id } = await context.params;
     const problem = await requireProblem(id);
-    const progress = (await (await getStore()).progress(owner))[id];
-    return json({ problem: publicProblem(problem), progress: progress || null, hints: problem.hints.slice(0, progress?.hintsViewed || 0), solution: progress?.solutionViewed ? { code: problem.solution, explanation: problem.explanation } : null, attempts: await (await getStore()).attempts(owner, id) });
+    const store = await getStore();
+    const [allProgress, attempts] = await Promise.all([store.progress(owner), store.attempts(owner, id)]);
+    const progress = allProgress[id];
+    return json({ problem: publicProblem(problem), progress: progress || null, hints: problem.hints.slice(0, progress?.hintsViewed || 0), solution: progress?.solutionViewed ? { code: problem.solution, explanation: problem.explanation } : null, attempts });
   } catch (error) { return failure(error); }
 }

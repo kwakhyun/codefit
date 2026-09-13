@@ -10,18 +10,21 @@ import { DifficultyBadge, KindBadge, Modal } from "./ui";
 const CodeEditor = dynamic(() => import("@/components/code-editor").then(m => m.CodeEditor), { ssr: false, loading: () => <div className="editor-loading"><span className="blink">▋</span> 코드 편집기 준비 중…</div> });
 type Detail = { problem: PublicProblem; progress: Progress | null; hints: string[]; solution: { code: string; explanation: string } | null; attempts: Attempt[] };
 type Tab = "problem" | "hints" | "solution" | "history";
-export function ProblemWorkspace({ id, onProgress, fontSize, focus, setFocus, aiReady }: { id: string; onProgress: (p: Progress, attempt?: Attempt) => void; fontSize: number; focus: boolean; setFocus: (value: boolean) => void; aiReady: boolean }) {
+export function ProblemWorkspace({ id, onProgress, fontSize, focus, setFocus, aiReady, returnTo = "/", initialAttemptId }: { id: string; onProgress: (p: Progress, attempt?: Attempt) => void; fontSize: number; focus: boolean; setFocus: (value: boolean) => void; aiReady: boolean; returnTo?: string; initialAttemptId?: string }) {
   const [detail, setDetail] = useState<Detail | null>(null);
   const [code, setCode] = useState("");
-  const [tab, setTab] = useState<Tab>("problem");
+  const [tab, setTab] = useState<Tab>(initialAttemptId ? "history" : "problem");
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState<"saved" | "saving" | "local" | "failed">("saved");
   const [busy, setBusy] = useState(false);
   const [revealing, setRevealing] = useState(false);
-  const [confirm, setConfirm] = useState<"solution" | "reset" | null>(null);
+  const [confirm, setConfirm] = useState<"solution" | "reset" | "restore" | null>(null);
   const [selectedAttempt, setSelectedAttempt] = useState<Attempt | null>(null);
+  const [undoCode, setUndoCode] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
+  const [bookmarkBusy, setBookmarkBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const pending = useRef(false);
   const reviewRequest = useRef<{ code: string; id: string } | null>(null);
@@ -42,17 +45,22 @@ export function ProblemWorkspace({ id, onProgress, fontSize, focus, setFocus, ai
         if (local && typeof local.code === "string" && local.code.length <= 30000 && local.at > Date.parse(next.progress?.updatedAt || "1970-01-01")) { draft = local.code; localNewer = draft !== next.progress?.code; }
       } catch { /* Server remains the source of truth when browser storage is unavailable. */ }
       latest.current = { code: draft, dirty: localNewer };
-      setCode(draft); setDetail(next); setSelectedAttempt(next.attempts[0] || null); setSaveState(localNewer ? "local" : "saved");
+      setCode(draft); setDetail(next); setSelectedAttempt(next.attempts.find(a => a.id === initialAttemptId) || next.attempts[0] || null); setSaveState(localNewer ? "local" : "saved");
+      if (localNewer) setNotice("이 브라우저에 남아 있던 미저장 코드를 복구했습니다.");
     } catch (e) { if (mounted.current) setLoadError(errorMessage(e)); }
     finally { if (mounted.current) setLoading(false); }
-  }, [id]);
+  }, [id, initialAttemptId]);
   const save = useCallback((value: string, version: number) => {
     queue.current = queue.current.catch(() => {}).then(async () => {
       if (mounted.current) setSaveState("saving");
       try {
         const response = await api<{ progress: Progress }>(`/api/progress/${encodeURIComponent(id)}`, { method: "PUT", body: { code: value }, keepalive: new TextEncoder().encode(value).length < 45000 });
         if (!mounted.current) return;
-        if (version === changeVersion.current) { latest.current.dirty = false; setSaveState("saved"); }
+        if (version === changeVersion.current) {
+          latest.current.dirty = false; setSaveState("saved");
+          try { const draft = JSON.parse(localStorage.getItem(`recode-draft:${id}`) || "null"); if (draft?.code === value) localStorage.removeItem(`recode-draft:${id}`); } catch { /* Server has saved this version. */ }
+        }
+        setDetail(prev => prev ? { ...prev, progress: prev.progress && prev.progress.updatedAt > response.progress.updatedAt ? prev.progress : response.progress } : prev);
         onProgress(response.progress);
       } catch { if (mounted.current) setSaveState("failed"); }
     });
@@ -67,13 +75,30 @@ export function ProblemWorkspace({ id, onProgress, fontSize, focus, setFocus, ai
       if (latest.current.dirty) void save(latest.current.code, changeVersion.current);
     };
   }, [load, save]);
+  useEffect(() => { if (!loading && latest.current.dirty) void save(latest.current.code, changeVersion.current); }, [loading, save]);
   useEffect(() => {
     const flush = () => { if (latest.current.dirty) { if (timer.current) clearTimeout(timer.current); void save(latest.current.code, changeVersion.current); } };
     const hide = () => { if (document.visibilityState === "hidden") flush(); };
     const beforeUnload = (event: BeforeUnloadEvent) => { if (latest.current.dirty) { flush(); event.preventDefault(); } };
-    window.addEventListener("online", flush); document.addEventListener("visibilitychange", hide); window.addEventListener("beforeunload", beforeUnload);
-    return () => { window.removeEventListener("online", flush); document.removeEventListener("visibilitychange", hide); window.removeEventListener("beforeunload", beforeUnload); };
+    window.addEventListener("online", flush); window.addEventListener("codefit:session-restored", flush); document.addEventListener("visibilitychange", hide); window.addEventListener("beforeunload", beforeUnload);
+    return () => { window.removeEventListener("online", flush); window.removeEventListener("codefit:session-restored", flush); document.removeEventListener("visibilitychange", hide); window.removeEventListener("beforeunload", beforeUnload); };
   }, [save]);
+  useEffect(() => {
+    const refreshImported = async () => {
+      try {
+        const next = await api<Detail>(`/api/problems/${encodeURIComponent(id)}`);
+        if (!mounted.current) return;
+        if (!latest.current.dirty && changeVersion.current === 0 && next.progress?.code != null) {
+          latest.current.code = next.progress.code; setCode(next.progress.code);
+        }
+        setDetail(prev => ({ ...next, progress: prev?.progress && next.progress && prev.progress.updatedAt > next.progress.updatedAt ? prev.progress : next.progress }));
+        setSelectedAttempt(prev => next.attempts.find(a => a.id === prev?.id) || next.attempts[0] || null);
+        setNotice("가져온 힌트와 제출 기록을 반영했습니다.");
+      } catch (e) { if (mounted.current) setError(errorMessage(e)); }
+    };
+    window.addEventListener("codefit:backup-imported", refreshImported);
+    return () => window.removeEventListener("codefit:backup-imported", refreshImported);
+  }, [id]);
   function changeCode(value: string) {
     if (value.length > 30000) { setError("코드는 30,000자까지 작성할 수 있습니다."); return; }
     setCode(value); latest.current = { code: value, dirty: true }; changeVersion.current += 1;
@@ -94,7 +119,7 @@ export function ProblemWorkspace({ id, onProgress, fontSize, focus, setFocus, ai
       if (!mounted.current) return;
       reviewRequest.current = null;
       setSelectedAttempt(result.attempt);
-      setDetail(prev => prev ? { ...prev, progress: result.progress, attempts: [result.attempt, ...prev.attempts] } : prev);
+      setDetail(prev => prev ? { ...prev, progress: prev.progress && prev.progress.updatedAt > result.progress.updatedAt ? prev.progress : result.progress, attempts: [result.attempt, ...prev.attempts.filter(a => a.id !== result.attempt.id)] } : prev);
       onProgress(result.progress, result.attempt);
     } catch (e) { if (mounted.current) setError(errorMessage(e)); }
     finally { pending.current = false; if (mounted.current) setBusy(false); }
@@ -104,23 +129,29 @@ export function ProblemWorkspace({ id, onProgress, fontSize, focus, setFocus, ai
     setRevealing(true); setError(""); setConfirm(null);
     try {
       const result = await api<Pick<Detail, "hints" | "solution"> & { progress: Progress }>(`/api/problems/${encodeURIComponent(id)}/reveal`, { method: "POST", body: { kind } });
-      setDetail(prev => prev ? { ...prev, ...result } : prev); onProgress(result.progress); setTab(kind === "hint" ? "hints" : "solution");
+      setDetail(prev => prev ? { ...prev, ...result, progress: prev.progress && prev.progress.updatedAt > result.progress.updatedAt ? prev.progress : result.progress } : prev); onProgress(result.progress); setTab(kind === "hint" ? "hints" : "solution");
     } catch (e) { setError(errorMessage(e)); }
     finally { setRevealing(false); }
   }
   async function bookmark() {
-    if (!detail) return;
+    if (!detail || bookmarkBusy) return;
+    setBookmarkBusy(true);
     try {
       const { progress } = await api<{ progress: Progress }>(`/api/progress/${encodeURIComponent(id)}`, { method: "PUT", body: { bookmarked: !detail.progress?.bookmarked } });
-      setDetail({ ...detail, progress }); onProgress(progress);
+      setDetail(prev => prev ? { ...prev, progress: prev.progress && prev.progress.updatedAt > progress.updatedAt ? prev.progress : progress } : prev); onProgress(progress);
     } catch (e) { setError(errorMessage(e)); }
+    finally { setBookmarkBusy(false); }
+  }
+  function replaceCode(value: string, message: string) {
+    setUndoCode(latest.current.code); changeCode(value); setNotice(message); setConfirm(null);
   }
   if (loading) return <div className="content-loader" role="status"><LoaderCircle className="spin" size={25} /><p>문제와 저장된 풀이를 불러오는 중</p></div>;
-  if (loadError || !detail) return <div className="empty-state"><AlertCircle size={32} /><h2>문제를 불러오지 못했습니다.</h2><p>{loadError}</p><button className="secondary-button" onClick={() => { setLoading(true); setLoadError(""); void load(); }}>다시 시도</button><Link href="/">문제 보관함으로</Link></div>;
+  if (loadError || !detail) return <div className="empty-state"><AlertCircle size={32} /><h2>문제를 불러오지 못했습니다.</h2><p>{loadError}</p><button className="secondary-button" onClick={() => { setLoading(true); setLoadError(""); void load(); }}>다시 시도</button><Link href={returnTo}>문제 보관함으로</Link></div>;
   const { problem, hints, solution, attempts, progress } = detail;
   return <div className={`workspace ${focus ? "is-focused" : ""}`}>
-    <div className="workspace-breadcrumb"><Link href="/"><ArrowLeft size={15} /> 문제 보관함</Link><ChevronRight size={13} /><span>{domainLabel(problem.domain)}</span><span className="workspace-id mono">{problem.id.startsWith("ai-") ? "AI CHALLENGE" : "CURATED CHALLENGE"}</span></div>
-    <div className="workspace-heading"><div><div className="problem-meta"><DifficultyBadge level={problem.difficulty} /><KindBadge kind={problem.kind} /><span>{LANGUAGES[problem.language].label}</span><span><Clock3 size={13} /> 약 {problem.minutes}분</span></div><h1>{problem.title}</h1></div><div className="workspace-heading-actions"><button className={`icon-button ${progress?.bookmarked ? "active" : ""}`} aria-label={progress?.bookmarked ? "북마크 해제" : "북마크"} onClick={bookmark}><Bookmark size={20} fill={progress?.bookmarked ? "currentColor" : "none"} /></button><button className="icon-button" aria-label={focus ? "집중 모드 종료" : "집중 모드"} onClick={() => setFocus(!focus)}>{focus ? <Minimize2 size={20} /> : <Maximize2 size={20} />}</button></div></div>
+    <div className="workspace-breadcrumb"><Link href={returnTo}><ArrowLeft size={15} /> 문제 보관함</Link><ChevronRight size={13} /><span>{domainLabel(problem.domain)}</span><span className="workspace-id mono">{problem.id.startsWith("ai-") ? "AI CHALLENGE" : "CURATED CHALLENGE"}</span></div>
+    <div className="workspace-heading"><div><div className="problem-meta"><DifficultyBadge level={problem.difficulty} /><KindBadge kind={problem.kind} /><span>{LANGUAGES[problem.language].label}</span><span><Clock3 size={13} /> 약 {problem.minutes}분</span></div><h1>{problem.title}</h1></div><div className="workspace-heading-actions"><button className={`icon-button ${progress?.bookmarked ? "active" : ""}`} aria-label={progress?.bookmarked ? "북마크 해제" : "북마크"} onClick={bookmark} disabled={bookmarkBusy}><Bookmark size={20} fill={progress?.bookmarked ? "currentColor" : "none"} /></button><button className="icon-button" aria-label={focus ? "집중 모드 종료" : "집중 모드"} onClick={() => setFocus(!focus)}>{focus ? <Minimize2 size={20} /> : <Maximize2 size={20} />}</button></div></div>
+    {notice && <div className="draft-notice" role="status"><Save size={15} /><span>{notice}</span>{undoCode !== null && <button className="text-button" onClick={() => { changeCode(undoCode); setUndoCode(null); setNotice("변경 전 코드로 되돌렸습니다."); }}>변경 취소</button>}<button className="icon-button" aria-label="안내 닫기" onClick={() => setNotice("")}>×</button></div>}
     <div className="workbench">
       <section className="problem-pane" aria-label="문제 설명">
         <div className="problem-tabs" role="tablist" aria-label="문제 자료" onKeyDown={event => { const tabs: Tab[] = ["problem", "hints", "solution", "history"]; const index = tabs.indexOf(tab); const next = event.key === "ArrowRight" ? tabs[(index + 1) % 4] : event.key === "ArrowLeft" ? tabs[(index + 3) % 4] : event.key === "Home" ? tabs[0] : event.key === "End" ? tabs[3] : null; if (next) { event.preventDefault(); setTab(next); document.getElementById(`tab-${next}`)?.focus(); } }}>{([{ id: "problem", label: "문제", Icon: FileText }, { id: "hints", label: "힌트", Icon: Lightbulb }, { id: "solution", label: "정답", Icon: Code2 }, { id: "history", label: "기록", Icon: History }] as const).map(t => <button key={t.id} id={`tab-${t.id}`} role="tab" tabIndex={tab === t.id ? 0 : -1} aria-selected={tab === t.id} aria-controls="problem-tab-panel" onClick={() => setTab(t.id)}><t.Icon size={15} />{t.label}{t.id === "hints" && <small>{hints.length}/3</small>}{t.id === "history" && attempts.length > 0 && <small>{attempts.length}</small>}</button>)}</div>
@@ -133,15 +164,15 @@ export function ProblemWorkspace({ id, onProgress, fontSize, focus, setFocus, ai
       </section>
       <section className="editor-pane" aria-label="풀이 작업 공간">
         <div className="editor-topbar"><span><span className="status-dot" /> CODE WORKSPACE</span><div><span className={`save-indicator ${saveState === "failed" ? "failed" : ""}`} role="status">{saveState === "saving" ? <LoaderCircle size={12} className="spin" /> : saveState === "saved" ? <Check size={12} /> : <Save size={12} />}{({ saved: "저장됨", saving: "저장 중", local: "저장 대기", failed: "저장 실패" })[saveState]}</span>{(saveState === "failed" || saveState === "local") && <button className="text-button" onClick={() => save(code, changeVersion.current)}>지금 저장</button>}<button className="icon-button" aria-label="시작 코드로 초기화" onClick={() => setConfirm("reset")} disabled={busy}><RotateCcw size={14} /></button></div></div>
-        <CodeEditor value={code} language={problem.language} problemId={id} onChange={changeCode} onCheck={review} fontSize={fontSize} />
+        <CodeEditor value={code} language={problem.language} problemId={id} onChange={changeCode} onCheck={review} onSave={() => { if (timer.current) clearTimeout(timer.current); void save(latest.current.code, changeVersion.current); }} fontSize={fontSize} />
         <div className="review-action"><span><kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd><small>AI가 요구사항을 검토합니다.</small></span><button className="primary-button" onClick={() => review(code)} disabled={busy || code.trim().length < 5 || !aiReady}>{busy ? <LoaderCircle size={16} className="spin" /> : <Sparkles size={16} />}{busy ? "풀이 검토 중" : "AI 풀이 검토"}{!busy && <ArrowRight size={16} />}</button></div>
         {!aiReady && <p className="inline-warning">AI 연결 설정 후 풀이 검토를 사용할 수 있습니다. 코드 작성과 저장은 가능합니다.</p>}
         {error && <p className="inline-error workspace-error" role="alert"><AlertCircle size={16} />{error}<button aria-label="오류 메시지 닫기" onClick={() => setError("")}>×</button></p>}
         <section className="review-console" aria-label="AI 검토 결과" aria-live="polite"><div className="console-heading"><Terminal size={14} /><strong>검토 결과</strong><span>AI 코드 리뷰 · 실행 검증 아님</span></div>
-          {busy ? <div className="console-idle"><span className="mono success-text">$ review --requirements</span><p><LoaderCircle size={15} className="spin" />요구사항과 경계 조건을 하나씩 살펴보고 있습니다.</p><small>검토 중에도 코드를 수정할 수 있습니다. 제출 시점의 코드로 검토합니다.</small></div> : selectedAttempt ? <div className="review-result"><div className="review-result-title"><span className={selectedAttempt.review.passed ? "success-text" : "warning-text"}>{selectedAttempt.review.passed ? <CheckCircle2 size={22} /> : <AlertCircle size={22} />}<strong>{selectedAttempt.review.passed ? "모든 요구사항을 충족했습니다." : "조금 더 다듬어 볼까요?"}</strong></span><b>{selectedAttempt.review.score}<small>%</small></b></div><p>{selectedAttempt.review.summary}</p>{selectedAttempt.code !== code && <p className="review-stale"><History size={14} /> 현재 코드와 다른 제출본의 검토 결과입니다.</p>}<ul className="review-criteria">{selectedAttempt.review.criteria.map(c => <li key={c.requirementIndex}>{c.passed ? <CheckCircle2 className="success-text" size={16} /> : <AlertCircle className="warning-text" size={16} />}<div><strong>요구사항 {c.requirementIndex + 1}</strong><p>{c.feedback}</p></div></li>)}</ul>{selectedAttempt.review.improvements.length > 0 && <div className="review-improvements"><strong>다음 시도에서</strong><ul>{selectedAttempt.review.improvements.map(t => <li key={t}>{t}</li>)}</ul></div>}<details className="submitted-code"><summary>제출했던 코드 보기 <span>{dateLabel(selectedAttempt.createdAt)}</span></summary><pre><code>{selectedAttempt.code}</code></pre></details></div> : <div className="console-idle"><span className="mono"><span className="success-text">❯</span> 준비되었습니다.<span className="blink">_</span></span><p>코드를 작성한 뒤 검토를 요청해 보세요.</p><small>문자열 일치가 아닌 요구사항 충족 여부를 확인합니다.</small></div>}
+          {busy ? <div className="console-idle"><span className="mono success-text">$ review --requirements</span><p><LoaderCircle size={15} className="spin" />요구사항과 경계 조건을 하나씩 살펴보고 있습니다.</p><small>검토 중에도 코드를 수정할 수 있습니다. 제출 시점의 코드로 검토합니다.</small></div> : selectedAttempt ? <div className="review-result"><div className="review-result-title"><span className={selectedAttempt.review.passed ? "success-text" : "warning-text"}>{selectedAttempt.review.passed ? <CheckCircle2 size={22} /> : <AlertCircle size={22} />}<strong>{selectedAttempt.review.passed ? "모든 요구사항을 충족했습니다." : "조금 더 다듬어 볼까요?"}</strong></span><b>{selectedAttempt.review.score}<small>%</small></b></div><p>{selectedAttempt.review.summary}</p>{selectedAttempt.code !== code && <p className="review-stale"><History size={14} /> 현재 코드와 다른 제출본의 검토 결과입니다.</p>}<ul className="review-criteria">{selectedAttempt.review.criteria.map(c => <li key={c.requirementIndex}>{c.passed ? <CheckCircle2 className="success-text" size={16} /> : <AlertCircle className="warning-text" size={16} />}<div><strong>요구사항 {c.requirementIndex + 1}</strong><p>{c.feedback}</p></div></li>)}</ul>{selectedAttempt.review.improvements.length > 0 && <div className="review-improvements"><strong>다음 시도에서</strong><ul>{selectedAttempt.review.improvements.map(t => <li key={t}>{t}</li>)}</ul></div>}{selectedAttempt.review.strengths.length > 0 && <div className="review-strengths"><strong>잘한 점</strong><ul>{selectedAttempt.review.strengths.map(t => <li key={t}>{t}</li>)}</ul></div>}<details className="submitted-code"><summary>제출했던 코드 보기 <span>{dateLabel(selectedAttempt.createdAt)}</span></summary><pre><code>{selectedAttempt.code}</code></pre><button className="secondary-button" disabled={busy || selectedAttempt.code === code} onClick={() => setConfirm("restore")}><History size={15} />이 제출본으로 이어 풀기</button></details></div> : <div className="console-idle"><span className="mono"><span className="success-text">❯</span> 준비되었습니다.<span className="blink">_</span></span><p>코드를 작성한 뒤 검토를 요청해 보세요.</p><small>문자열 일치가 아닌 요구사항 충족 여부를 확인합니다.</small></div>}
         </section>
       </section>
     </div>
-    <Modal open={confirm !== null} onClose={() => setConfirm(null)} title={confirm === "solution" ? "VIEW SOLUTION" : "RESET CODE"} className="confirm-modal"><div className="confirm-content"><h2>{confirm === "solution" ? "참고 정답을 열까요?" : "시작 코드로 돌아갈까요?"}</h2><p>{confirm === "solution" ? "작성한 코드는 유지됩니다. 정답을 본 이력이 풀이 기록에 남습니다." : "현재 작성 중인 코드는 시작 코드로 바뀝니다. 이전에 제출한 풀이와 검토 기록은 유지됩니다."}</p><div className="modal-buttons"><button className="secondary-button" onClick={() => setConfirm(null)}>계속 풀기</button><button className="primary-button" onClick={() => { if (confirm === "solution") void reveal("solution"); else { changeCode(problem.starterCode); setConfirm(null); } }}>{confirm === "solution" ? "정답 열기" : "시작 코드로 초기화"}</button></div></div></Modal>
+    <Modal open={confirm !== null} onClose={() => setConfirm(null)} title={confirm === "solution" ? "VIEW SOLUTION" : confirm === "restore" ? "RESTORE SUBMISSION" : "RESET CODE"} className="confirm-modal"><div className="confirm-content"><h2>{confirm === "solution" ? "참고 정답을 열까요?" : confirm === "restore" ? "이 제출본으로 이어 풀까요?" : "시작 코드로 돌아갈까요?"}</h2><p>{confirm === "solution" ? "작성한 코드는 유지됩니다. 정답을 본 이력이 풀이 기록에 남습니다." : confirm === "restore" ? "선택한 제출본을 편집기로 불러옵니다. 변경 전 코드는 안내의 변경 취소 버튼으로 되돌릴 수 있습니다." : "현재 코드를 시작 코드로 바꿉니다. 변경 취소로 되돌릴 수 있으며, 이전 제출 기록은 유지됩니다."}</p><div className="modal-buttons"><button className="secondary-button" onClick={() => setConfirm(null)}>계속 풀기</button><button className="primary-button" onClick={() => { if (confirm === "solution") void reveal("solution"); else if (confirm === "restore" && selectedAttempt) replaceCode(selectedAttempt.code, "선택한 제출본을 불러왔습니다. 수정하고 다시 검토해 보세요."); else replaceCode(problem.starterCode, "시작 코드로 초기화했습니다."); }}>{confirm === "solution" ? "정답 열기" : confirm === "restore" ? "제출본 불러오기" : "시작 코드로 초기화"}</button></div></div></Modal>
   </div>;
 }

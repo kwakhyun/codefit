@@ -1,6 +1,6 @@
 "use client";
 import Editor, { loader, type BeforeMount, type OnMount } from "@monaco-editor/react";
-import { AlignLeft, WrapText, Code2 } from "lucide-react";
+import { AlignLeft, WrapText, Code2, Undo2, Redo2, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { editor } from "monaco-editor";
 import { LANGUAGES, type Language } from "@/lib/catalog";
@@ -173,29 +173,39 @@ function configureMonaco(monaco: Parameters<BeforeMount>[0]) {
 }
 
 
-export function CodeEditor({ value, language, problemId, onChange, onCheck, fontSize = 14 }: {
+export function CodeEditor({ value, language, problemId, onChange, onCheck, onSave, fontSize = 14 }: {
   value: string; language: Language; problemId: string; onChange: (value: string) => void;
-  onCheck: (value: string) => void; fontSize?: number;
+  onCheck: (value: string) => void; onSave?: () => void; fontSize?: number;
 }) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const onCheckRef = useRef(onCheck);
+  const onSaveRef = useRef(onSave);
+  const [editorNotice, setEditorNotice] = useState("");
   const [cursor, setCursor] = useState({ line: 1, column: 1 });
   const [wrap, setWrap] = useState(false);
-  useEffect(() => { onCheckRef.current = onCheck; }, [onCheck]);
+  useEffect(() => { onCheckRef.current = onCheck; onSaveRef.current = onSave; }, [onCheck, onSave]);
   const handleMount: OnMount = (mountedEditor, monaco) => {
     editorRef.current = mountedEditor;
+    let preferredWrap = window.matchMedia("(max-width: 600px)").matches;
+    try { const saved = localStorage.getItem("codefit-editor-wrap"); if (saved !== null) preferredWrap = saved === "on"; } catch { /* Use screen size if storage is unavailable. */ }
+    setWrap(preferredWrap);
     mountedEditor.getModel()?.updateOptions({
       bracketColorizationOptions: { enabled: false, independentColorPoolPerBracketType: false },
     });
     const command = mountedEditor.addAction({ id: "recode.review", label: "AI 풀이 검토", keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter], run: () => onCheckRef.current(mountedEditor.getValue()) });
+    const saveCommand = mountedEditor.addAction({ id: "codefit.save", label: "지금 저장", keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS], run: () => onSaveRef.current?.() });
     const listener = mountedEditor.onDidChangeCursorPosition(({ position }) => setCursor({ line: position.lineNumber, column: position.column }));
-    mountedEditor.onDidDispose(() => { command.dispose(); listener.dispose(); });
+    mountedEditor.onDidDispose(() => { command.dispose(); saveCommand.dispose(); listener.dispose(); });
   };
   return <div className="code-editor">
     <div className="editor-filebar"><span><Code2 size={15} /><strong>{language === "dockerfile" ? "Dockerfile" : "solution." + LANGUAGES[language].ext}</strong><span className="file-dot" /></span><div>
-      <button className={`icon-button ${wrap ? "active" : ""}`} aria-label="자동 줄바꿈" aria-pressed={wrap} onClick={() => setWrap(!wrap)} title="자동 줄바꿈"><WrapText size={16} /></button>
-      <button className="icon-button" aria-label="코드 정리" title="코드 정리 (지원 언어)" onClick={() => editorRef.current?.getAction("editor.action.formatDocument")?.run()}><AlignLeft size={16} /></button>
+      <button className={`icon-button ${wrap ? "active" : ""}`} aria-label="자동 줄바꿈" aria-pressed={wrap} onClick={() => { setWrap(!wrap); try { localStorage.setItem("codefit-editor-wrap", wrap ? "off" : "on"); } catch { /* Session setting still works. */ } }} title="자동 줄바꿈"><WrapText size={16} /></button>
+      <button className="icon-button" aria-label="실행 취소" title="실행 취소 (Ctrl / ⌘ Z)" onClick={() => { editorRef.current?.trigger("toolbar", "undo", null); editorRef.current?.focus(); }}><Undo2 size={16} /></button>
+      <button className="icon-button" aria-label="다시 실행" title="다시 실행" onClick={() => { editorRef.current?.trigger("toolbar", "redo", null); editorRef.current?.focus(); }}><Redo2 size={16} /></button>
+      {onSave && <button className="icon-button" aria-label="지금 저장" title="지금 저장 (Ctrl / ⌘ S)" onClick={onSave}><Save size={16} /></button>}
+      <button className="icon-button" aria-label="코드 정리" title="코드 정리 (지원 언어)" onClick={async () => { const action = editorRef.current?.getAction("editor.action.formatDocument"); if (!action?.isSupported()) { setEditorNotice("이 언어는 자동 코드 정리를 지원하지 않습니다."); return; } try { await action.run(); setEditorNotice("코드 정리를 완료했습니다."); } catch { setEditorNotice("코드를 정리하지 못했습니다. 문법을 확인해 주세요."); } }}><AlignLeft size={16} /></button>
     </div></div>
+    {editorNotice && <div className="editor-notice" role="status"><span>{editorNotice}</span><button aria-label="편집기 안내 닫기" onClick={() => setEditorNotice("")}>×</button></div>}
     <div className="monaco-shell"><Editor height="100%" path={"file:///practice/" + problemId + "." + LANGUAGES[language].ext}
       language={LANGUAGES[language].monaco} value={value} theme="recode-terminal" beforeMount={configureMonaco} onMount={handleMount}
       onChange={next => onChange(next ?? "")} loading={<div className="editor-loading"><span className="blink">▋</span> 코드 편집기 준비 중…</div>}

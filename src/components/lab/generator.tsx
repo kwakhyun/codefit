@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, Check, LoaderCircle, Sparkles, Terminal, Database } from "lucide-react";
 import { DOMAINS, LEVELS, KINDS, KIND_LABELS, LANGUAGES, type DomainId, type Language } from "@/lib/catalog";
 import { api, errorMessage } from "@/lib/client-api";
@@ -20,6 +20,12 @@ export function Generator({ open, onClose, onCreated, initialDomain, aiReady }: 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const requestRef = useRef<{ fingerprint: string; id: string } | null>(null);
+  useEffect(() => {
+    if (!busy) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [busy]);
   async function generate(e: FormEvent) {
     e.preventDefault();
     if (busy) return;

@@ -11,6 +11,7 @@ export async function api<T>(url: string, options?: { method?: string; body?: un
   let data;
   try { data = await response.json(); }
   catch { throw new ApiError("서버 응답을 읽지 못했습니다. 연결 상태를 확인해 주세요.", response.status); }
+  if (response.status === 401 && url !== "/api/session" && typeof window !== "undefined") window.dispatchEvent(new Event("codefit:session-expired"));
   if (!response.ok) throw new ApiError(data.error || "요청에 실패했습니다.", response.status);
   return data as T;
 }
