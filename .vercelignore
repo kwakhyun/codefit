@@ -2,7 +2,7 @@
 .vercel
 node_modules
 .next
-data
-artifacts
+/data/
+/artifacts/
 coverage
 *.tsbuildinfo
