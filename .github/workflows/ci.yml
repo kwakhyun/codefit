@@ -15,7 +15,7 @@ jobs:
           POSTGRES_USER: codefit
           POSTGRES_PASSWORD: codefit_test
           POSTGRES_DB: codefit_test
-        ports: ['5432:5432']
+        ports: ["5432:5432"]
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -30,6 +30,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run format:check
       - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run check:unused
       - run: npm test
       - run: npm run build

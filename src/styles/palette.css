@@ -1,0 +1,347 @@
+/* DOS monochrome: black canvas, neutral surfaces, and white controls. */
+
+.topbar,
+.hero-terminal,
+.terminal-body,
+.login-page,
+.editor-loading {
+  background: #000000;
+}
+
+.topbar {
+  backdrop-filter: none;
+}
+
+.terminal-body {
+  background-image: none;
+}
+
+.terminal-title,
+.modal-heading {
+  background: #c0c0c0;
+  color: #000000;
+  border-bottom-color: #ffffff;
+}
+
+.terminal-title > svg,
+.modal-heading > .mono,
+.modal-heading .icon-button {
+  color: #000000;
+}
+
+.modal-heading .icon-button:hover {
+  background: #a0a0a0;
+  color: #000000;
+}
+
+.terminal-title i,
+.terminal-title i:nth-child(2),
+.terminal-title i:nth-child(3) {
+  background: #000000;
+}
+
+.terminal-title {
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.terminal-title > span:first-child {
+  gap: 3px;
+}
+
+.terminal-title i {
+  width: 7px;
+  height: 7px;
+}
+
+.terminal-prompt,
+.terminal-flag,
+.terminal-value {
+  color: #e6e6e6;
+}
+
+.terminal-foot {
+  background: #080808;
+}
+
+.secondary-button {
+  background: #080808;
+  border-color: #555555;
+  color: #d0d0d0;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #242424;
+}
+
+.nav-item.active {
+  background: #e6e6e6;
+  border-color: #e6e6e6;
+  color: #000000;
+}
+
+.nav-item.active svg,
+.nav-item.active small {
+  color: #000000;
+}
+
+.domain-active {
+  background: #242424;
+  color: #ffffff;
+}
+
+.difficulty-options > button.selected {
+  background: #242424;
+}
+
+.difficulty-options > button.selected strong {
+  color: #ffffff;
+}
+
+.problem-row,
+.modal,
+.login-page > form,
+.review-console {
+  background: #080808;
+}
+
+.problem-row:hover {
+  background: #181818;
+}
+
+.editor-topbar,
+.editor-filebar,
+.editor-statusbar,
+.review-action {
+  background: #101010;
+}
+
+.monaco-shell,
+.solution-code,
+.submitted-code pre,
+.font-preview {
+  background: #000000;
+}
+
+.hint-card {
+  background: #141414;
+  border-color: #555555;
+}
+
+.hint-card.locked {
+  background: #080808;
+  border-color: #333333;
+}
+
+.inline-error {
+  border-left-width: 3px;
+}
+
+.modal::backdrop {
+  background: #000000cc;
+  backdrop-filter: none;
+}
+
+/* Functional color accents over the DOS black and graphite surfaces. */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline-color: var(--action);
+}
+
+::selection {
+  background: #244363;
+  color: #ffffff;
+}
+
+.primary-button {
+  background: var(--action);
+  border-color: var(--action);
+  color: #080808;
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #bfdbfe;
+  border-color: #bfdbfe;
+}
+
+.secondary-button:hover:not(:disabled) {
+  border-color: var(--action);
+}
+
+.hero-start:hover,
+.text-button:hover:not(:disabled),
+.icon-button.active {
+  color: var(--action);
+}
+
+.domain-active {
+  border-left-color: var(--action);
+}
+
+.domain-active svg {
+  color: var(--action);
+}
+
+.type-filters button.selected,
+.segmented > button.selected {
+  background: #152334;
+  color: #bfdbfe;
+}
+
+.type-filters button.selected:hover {
+  color: #dbeafe;
+}
+
+.problem-tabs button[aria-selected="true"] {
+  border-bottom-color: var(--action);
+  color: #bfdbfe;
+}
+
+.success-text,
+.problem-status.solved {
+  color: var(--success);
+}
+
+.warning-text,
+.problem-status.in-progress {
+  color: var(--warning);
+}
+
+.status-dot {
+  background: var(--success);
+}
+
+.status-dot.waiting {
+  background: var(--warning);
+}
+
+.eyebrow .status-dot,
+.terminal-foot .status-dot {
+  background: #a0a0a0;
+}
+
+.stat-progress i {
+  background: var(--success);
+}
+
+.kind-implementation {
+  color: var(--action);
+}
+
+.kind-debugging {
+  color: var(--warning);
+}
+
+.kind-refactoring {
+  color: var(--ai);
+}
+
+.level-하 {
+  background: #101e18;
+  border-color: #2d5443;
+  color: var(--success);
+}
+
+.level-중 {
+  background: #211b10;
+  border-color: #5b4826;
+  color: var(--warning);
+}
+
+.level-상 {
+  background: #251515;
+  border-color: #603737;
+  color: var(--danger);
+}
+
+.ai-tag {
+  color: var(--ai);
+  border-color: #504369;
+  background: #19151f;
+}
+
+.bookmark-button.active,
+.workspace-heading-actions .icon-button.active {
+  color: var(--warning);
+}
+
+.difficulty-options > button[data-difficulty="하"] {
+  --level-color: var(--success);
+}
+
+.difficulty-options > button[data-difficulty="중"] {
+  --level-color: var(--warning);
+}
+
+.difficulty-options > button[data-difficulty="상"] {
+  --level-color: var(--danger);
+}
+
+.difficulty-options > button strong,
+.difficulty-options > button.selected strong {
+  color: var(--level-color);
+}
+
+.difficulty-options > button.selected {
+  border-color: var(--level-color);
+}
+
+.difficulty-options strong span {
+  color: #b0b0b0;
+}
+
+.hint-card:not(.locked) {
+  border-left: 3px solid var(--action);
+}
+
+.hint-card:not(.locked) .mono {
+  color: var(--action);
+}
+
+.generation-progress {
+  background: #131c29;
+  border-color: #344b68;
+  color: #bfdbfe;
+}
+
+.generation-progress > div > span {
+  color: #b0b0b0;
+}
+
+.inline-error {
+  background: #211314;
+  border-color: #704044;
+  color: #ffb4b4;
+}
+
+.inline-warning,
+.review-stale {
+  background: #211c12;
+  border-color: #66502d;
+  color: var(--warning);
+}
+
+.review-stale {
+  color: var(--warning) !important;
+}
+
+.save-indicator.failed {
+  color: var(--danger);
+}
+
+.save-indicator .lucide-check {
+  color: var(--success);
+}
+
+.font-setting input {
+  accent-color: var(--action);
+}
+
+.toast > svg {
+  color: var(--success);
+}

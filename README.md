@@ -42,14 +42,14 @@ npm run dev
 
 환경 변수:
 
-| 이름 | 용도 |
-| --- | --- |
-| `OPENAI_API_KEY` | AI 생성과 코드 검토에 사용하는 서버 전용 키 |
-| `OPENAI_MODEL` | 사용할 모델. 기존 프로젝트 기본값 `gpt-5.4-mini` 유지 |
-| `DATABASE_URL` | 클라우드 PostgreSQL 연결 주소. Vercel에서는 필수이며 설정 시 SQLite 대신 사용 |
-| `DATABASE_PATH` | SQLite 파일의 절대 경로. 미설정 시 `data/recode.sqlite` |
-| `LAB_ACCESS_TOKEN` | 연습실 접근 암호. **프로덕션 실행 시 필수** |
-| `APP_ORIGIN` | 외부에서 접속하는 정확한 origin. 프록시 운영 시 `https://lab.example.com`처럼 설정하며 끝에 `/`를 넣지 않음 |
+| 이름               | 용도                                                                                                        |
+| ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `OPENAI_API_KEY`   | AI 생성과 코드 검토에 사용하는 서버 전용 키                                                                 |
+| `OPENAI_MODEL`     | 사용할 모델. 기존 프로젝트 기본값 `gpt-5.4-mini` 유지                                                       |
+| `DATABASE_URL`     | 클라우드 PostgreSQL 연결 주소. Vercel에서는 필수이며 설정 시 SQLite 대신 사용                               |
+| `DATABASE_PATH`    | SQLite 파일의 절대 경로. 미설정 시 `data/recode.sqlite`                                                     |
+| `LAB_ACCESS_TOKEN` | 연습실 접근 암호. **프로덕션 실행 시 필수**                                                                 |
+| `APP_ORIGIN`       | 외부에서 접속하는 정확한 origin. 프록시 운영 시 `https://lab.example.com`처럼 설정하며 끝에 `/`를 넣지 않음 |
 
 API 키 없이도 내장 문제, 편집, 저장, 힌트와 정답은 동작합니다. 생성과 AI 검토는 비활성화되고 필요한 설정을 안내합니다. 키 값은 브라우저에 전달하지 않습니다.
 
@@ -57,7 +57,7 @@ API 키 없이도 내장 문제, 편집, 저장, 힌트와 정답은 동작합�
 
 **Vercel + Neon PostgreSQL** 배포와 로컬 SQLite 실행을 지원합니다. `DATABASE_URL`이 있으면 중앙 PostgreSQL을 사용하며, Vercel에서 이 값이 없으면 임시 SQLite로 저장하지 않고 설정 오류를 반환합니다. SQLite로 운영할 때는 영구 디스크가 있는 단일 서버나 컨테이너를 사용하세요.
 
-GitHub의 `main` 브랜치가 Vercel 프로덕션 배포 소스입니다. 변경 사항 미리보기는 별도의 PostgreSQL 저장소를 사용합니다. `.github/workflows/ci.yml`은 PostgreSQL 테스트 서비스에서 저장·동시 요청 검증, 린트, 빌드를 수행합니다.
+GitHub의 `main` 브랜치가 Vercel 프로덕션 배포 소스입니다. 변경 사항 미리보기는 별도의 PostgreSQL 저장소를 사용합니다. `.github/workflows/ci.yml`은 PostgreSQL 테스트 서비스에서 저장과 동시 요청 검증, 서식, 타입, 미사용 코드 검사와 빌드를 수행합니다.
 
 Vercel 환경 변수는 Production과 Preview 각각에 `DATABASE_URL`, `OPENAI_API_KEY`, `LAB_ACCESS_TOKEN`을 등록합니다. 호스팅 연결 정보, API 키, 접근 암호, 로컬 DB는 Git에 포함하지 않습니다.
 
@@ -108,7 +108,7 @@ SQLite backup API로 실행 중인 WAL DB를 일관된 스냅샷으로 저장합
 PostgreSQL은 호스팅 제공자의 백업과 `pg_dump`를 사용하세요. 기존 SQLite 데이터를 클라우드로 옮길 때는 다음 명령을 사용합니다. 연결 설정 파일은 Git에서 제외된 경로에 둡니다.
 
 ```bash
-node scripts/migrate-sqlite-to-postgres.mjs data/recode.sqlite .vercel/.env.production.local
+npm run migrate:postgres -- data/recode.sqlite .vercel/.env.production.local
 ```
 
 이전은 트랜잭션으로 처리하며 기존 클라우드 문제와 기록을 덮어쓰지 않습니다. 브라우저 쿠키는 도메인별이므로, 로컬 진도를 새 도메인에서 사용하려면 개인 기록 백업을 가져오세요.
@@ -116,12 +116,15 @@ node scripts/migrate-sqlite-to-postgres.mjs data/recode.sqlite .vercel/.env.prod
 ## 검증
 
 ```bash
-npm test
+npm run format:check
 npm run lint
+npm run typecheck
+npm run check:unused
+npm test
 npm run build
 ```
 
-자동 테스트는 분야와 문제 구조, 입력 검증, 정답 비노출, 검토 기준 완결성, 사용자별 저장 격리, DB 재시작 후 보존, 초안 덮어쓰기 방지, 힌트 상한, 멱등 요청, 요청 제한과 Origin 검증을 확인합니다. 기존 MVP 데이터 / 비교 함수의 회귀 테스트도 유지합니다.
+자동 테스트는 분야와 문제 구조, 입력 검증, 정답 비노출, 검토 기준 완결성, 사용자별 저장 격리, DB 재시작 후 보존, 초안 덮어쓰기 방지, 힌트 상한, 멱등 요청, 요청 제한과 Origin 검증을 확인합니다. 초기 MVP의 미사용 예제와 비교 코드는 제거했으며, 기존 사용자 기록을 보관하는 호환 처리는 유지합니다.
 
 프로덕션 API 통합 검증은 별도의 임시 DB로 서버를 실행한 뒤 `VERIFY_BASE_URL`과 테스트 암호 `VERIFY_ACCESS_TOKEN`을 지정해 `npm run test:api`로 실행합니다. 인증, 세션 격리, 입력 제한, 힌트, 정답, 백업 복원을 확인하며 현재 사용자 DB를 대상으로 실행하지 않습니다.
 
@@ -129,16 +132,34 @@ npm run build
 
 ## 주요 구조
 
-- `src/components/practice-app.tsx`: 보관함, 검색과 필터, 학습 기록, 설정
-- `src/components/lab/problem-workspace.tsx`: 풀이, 자동 저장, 힌트 / 정답 / 기록과 AI 리뷰
-- `src/components/lab/generator.tsx`: 맞춤 문제 생성
-- `src/components/code-editor.tsx`: 로컬 Monaco 편집기
-- `src/lib/catalog.ts`: 분야와 언어 목록
-- `src/data/problems.ts`: 실전 내장 문제
-- `src/lib/problem.ts`: 문제와 리뷰 스키마
-- `src/lib/server/store.ts`: SQLite 스키마, 저장과 트랜잭션
-- `src/lib/server/ai.ts`: OpenAI 생성과 검토
-- `src/lib/server/http.ts`: 세션, 입력 크기와 호출 제한, 오류 응답
-- `src/app/api`: 생성, 조회, 저장, 힌트, 검토, 내보내기 / 가져오기, 접근 인증
+| 위치                                                     | 책임                                                                 |
+| -------------------------------------------------------- | -------------------------------------------------------------------- |
+| `src/app`                                                | 페이지 진입점, API 라우팅과 전역 스타일 진입점                       |
+| `src/components/practice-app.tsx`                        | 인증 상태에 따른 화면 조합과 앱 탐색                                 |
+| `src/components/shell`                                   | 메뉴, 헤더, 로그인, 설정과 도움말                                    |
+| `src/components/library`                                 | 문제 탐색, 필터, 목록, 생성과 학습 기록                              |
+| `src/components/workspace`                               | 문제 자료, 편집 화면, 검토 결과와 확인 창                            |
+| `src/components/ui`                                      | 공용 모달과 문제 배지                                                |
+| `src/components/code-editor.tsx`                         | 편집기 도구 모음과 Monaco 연결                                       |
+| `src/hooks`                                              | 탐색 상태, 인증, 백업, 문제 풀이와 자동 저장                         |
+| `src/lib/editor/monaco-setup.ts`                         | Monaco 테마와 언어 설정                                              |
+| `src/lib/catalog.ts`, `problem.ts`                       | 분야와 언어의 기준 목록, 문제와 리뷰 검증                            |
+| `src/lib/library-state.ts`, `training.ts`, `progress.ts` | 탐색 URL, 훈련 집계와 최신 진도 선택                                 |
+| `src/lib/server/session.ts`                              | 접근 인증, 쿠키와 요청 출처 확인                                     |
+| `src/lib/server/http.ts`, `problem-access.ts`            | 입력과 오류 응답, 문제 조회와 AI 요청 한도                           |
+| `src/lib/server/ai.ts`                                   | AI 생성과 검토                                                       |
+| `src/lib/server/database.ts`                             | 실행 환경에 맞는 저장소 선택                                         |
+| `src/lib/server/store-contract.ts`                       | 두 저장소가 준수하는 공통 인터페이스                                 |
+| `src/lib/server/sqlite-store.ts`, `postgres-store.ts`    | 각 DB의 쿼리, 트랜잭션과 동시 요청 처리                              |
+| `src/lib/server/storage-schema.mjs`, `store-records.ts`  | 공통 테이블 정의와 저장 레코드 변환                                  |
+| `src/data/problems.ts`                                   | 내장 실전 문제                                                       |
+| `src/styles`                                             | 기본 요소, 앱 틀, 보관함, 풀이, 대화상자, 반응형, 색상과 훈련 스타일 |
+| `scripts`                                                | 편집기 자산 준비, 운영 실행, 백업, DB 이전과 API 검증                |
+
+화면 컴포넌트는 표시와 사용자 입력을 담당하고, 서버 호출 및 상태 전이는 훅에서 관리합니다. 초안의 변경 순서, 저장 대기열, 브라우저 복구와 재연결은 `use-code-draft.ts`에 모여 있습니다. API는 `getStore()`와 공통 인터페이스를 통해 저장소에 접근하며 DB별 잠금과 SQL은 각 구현에 둡니다. 전체 백업은 문제를 한 번에 조회합니다.
+
+서식은 `npm run format`으로 통일합니다. TypeScript의 미사용 변수 검사와 Knip의 파일, 의존성, 내보내기 검사를 CI에서도 실행합니다. `storage-schema.d.mts`는 JS 스키마 모듈의 타입 선언이며 Knip의 파일 검사만 제외합니다. DB 이전 스크립트는 `migrate:postgres` 명령으로 등록한 운영 진입점입니다.
+
+스타일은 `globals.css`의 가져오기 순서가 적용 순서입니다. 같은 선택자의 뒤쪽 규칙이 우선하므로 변경 시 데스크톱과 모바일을 함께 확인하세요. `data`, `artifacts`, 생성된 Monaco 자산, 환경 설정 파일은 운영 데이터 또는 생성 결과로서 코드 검사와 Git에서 제외합니다. `recode-*` 저장 키와 쿠키 이름은 기존 기록 호환을 위해 유지합니다.
 
 구현 참고: [OpenAI 구조화된 응답](https://github.com/openai/openai-node/blob/main/docs/structured-outputs.md), [Node.js SQLite](https://nodejs.org/api/sqlite.html). Next.js 동작은 프로젝트에 설치된 `node_modules/next/dist/docs/` 문서를 기준으로 확인했습니다.

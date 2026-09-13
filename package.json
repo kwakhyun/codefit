@@ -12,7 +12,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "backup": "node scripts/backup-database.mjs",
-    "test:api": "node scripts/verify-api.mjs"
+    "test:api": "node scripts/verify-api.mjs",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:unused": "knip",
+    "migrate:postgres": "node scripts/migrate-sqlite-to-postgres.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -31,6 +36,8 @@
     "@types/react-dom": "^19.2.5",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.4",
+    "knip": "^6.35.1",
+    "prettier": "^3.9.6",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"
   },

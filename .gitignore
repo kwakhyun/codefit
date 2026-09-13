@@ -33,7 +33,6 @@ next-env.d.ts
 # persistent local database and verification artifacts
 /data/
 /artifacts/
-.vercel
 
 # Vercel local linkage and downloaded settings
-.vercel/
+/.vercel/
