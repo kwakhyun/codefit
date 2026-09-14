@@ -8,6 +8,43 @@ import type { Problem, Review } from "../problem";
 import type { AiRun } from "../ai-telemetry";
 
 export function queryContract(getStore: () => ProblemStore & { addProblem(p: Problem): unknown }) {
+  it("returns only first and latest handoff feedback per exercise, scoped to the owner and without drafts", async () => {
+    const store = getStore();
+    const owner = `handoff:${randomUUID()}`;
+    const p = seedProblems.find((p) => p.id === "handoff-cart")!;
+    const review: Review = {
+      summary: "인수인계 기록을 검토했습니다.",
+      score: 0,
+      passed: false,
+      criteria: p.requirements.map((_, requirementIndex) => ({
+        requirementIndex,
+        passed: false,
+        feedback: "근거를 보완해 주세요.",
+      })),
+      strengths: [],
+      improvements: [],
+    };
+    const submitted = [];
+    for (let i = 0; i < 4; i++)
+      submitted.push(await store.saveAttempt(owner, p.id, `private report ${i}`, review));
+    await store.saveAttempt("another-handoff-owner", p.id, "never disclose", review);
+    const rows = await store.queries.handoffAttempts(owner);
+    expect(rows).toHaveLength(2);
+    const ordered = submitted.sort(
+      (a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id),
+    );
+    expect(new Set(rows.map((r) => r.id))).toEqual(new Set([ordered[0].id, ordered.at(-1)!.id]));
+    expect(rows.every((r) => !("code" in r))).toBe(true);
+    expect(await store.queries.handoffAttempts(`absent:${randomUUID()}`)).toEqual([]);
+    await store.saveProgress(owner, p.id, { code: "private handoff draft", baseRevision: 0 });
+    expect(await store.queries.handoffProgress(owner)).toEqual([
+      { problemId: p.id, hasDraft: true },
+    ]);
+    expect(await store.queries.handoffProgress(`absent:${randomUUID()}`)).toEqual([]);
+    expect(JSON.stringify(await store.queries.handoffProgress(owner))).not.toContain(
+      "private handoff draft",
+    );
+  });
   it("reserves three generations concurrently, refunds failures and isolates accounts", async () => {
     const store = getStore(),
       owner = `user:${randomUUID()}`,

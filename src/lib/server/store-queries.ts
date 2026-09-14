@@ -1,3 +1,4 @@
+import { HANDOFF_TRACKS, handoffId } from "../handoff/catalog";
 import type { AiRun, AiUsage } from "../ai-telemetry";
 import { AI_ALLOWANCE } from "./usage-policy";
 import { generationDay } from "./generation-quota";
@@ -214,6 +215,40 @@ export class StoreQueries {
       )
     ).map((r) => String(r.title));
   }
+  async handoffProgress(owner: string): Promise<import("../handoff/learning").HandoffProgress[]> {
+    const ids = HANDOFF_TRACKS.flatMap((t) => [handoffId(t.key), handoffId(t.key, true)]);
+    const rows = await this.query(
+      `SELECT problem_id, CASE WHEN code IS NOT NULL THEN 1 ELSE 0 END AS has_draft FROM progress WHERE owner=? AND problem_id IN (${ids.map(() => "?").join(",")})`,
+      [owner, ...ids],
+    );
+    return rows.map((row) => ({
+      problemId: String(row.problem_id),
+      hasDraft: Boolean(row.has_draft),
+    }));
+  }
+
+  async handoffAttempts(owner: string): Promise<import("../problem").AttemptSummary[]> {
+    const ids = HANDOFF_TRACKS.flatMap((t) => [handoffId(t.key), handoffId(t.key, true)]);
+    // At most two rows per exercise: latest feedback and first transfer attempt.
+    // Never select private code or another owner's records into the dashboard.
+    const rows = await this.query(
+      `SELECT id,problem_id,review,assisted,created_at FROM (
+      SELECT id,problem_id,review,assisted,created_at,
+        ROW_NUMBER() OVER (PARTITION BY problem_id ORDER BY created_at DESC,id DESC) AS latest,
+        ROW_NUMBER() OVER (PARTITION BY problem_id ORDER BY created_at ASC,id ASC) AS first
+      FROM attempts WHERE owner=? AND problem_id IN (${ids.map(() => "?").join(",")})
+    ) ranked WHERE latest=1 OR first=1`,
+      [owner, ...ids],
+    );
+    return rows.map((row) => ({
+      id: String(row.id),
+      problemId: String(row.problem_id),
+      review: JSON.parse(String(row.review)),
+      assisted: Boolean(row.assisted),
+      createdAt: String(row.created_at),
+    }));
+  }
+
   async recordAiRun(owner: string, run: AiRun) {
     await this.query(
       "INSERT INTO ai_runs(id,owner,operation,created_at,content) VALUES (?,?,?,?,?) ON CONFLICT(id) DO NOTHING",

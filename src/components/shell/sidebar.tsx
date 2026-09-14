@@ -97,6 +97,10 @@ export function Sidebar({
           <History size={17} />
           <span>학습 기록</span>
         </Link>
+        <Link className="nav-item" href="/handoff">
+          <Terminal size={17} />
+          <span>AI 코드 인수인계</span>
+        </Link>
         <span className="nav-caption domains-caption">
           EXPLORE BY DOMAIN <span>{DOMAINS.length}</span>
         </span>

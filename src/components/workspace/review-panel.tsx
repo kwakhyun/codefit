@@ -1,4 +1,7 @@
 "use client";
+import { formatHandoffDraft } from "@/lib/handoff/draft";
+import { HANDOFF_CRITERIA } from "@/lib/handoff/catalog";
+import Link from "next/link";
 import type { ConfirmationAction } from "@/components/workspace/types";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -6,12 +9,19 @@ import { dateLabel } from "@/lib/client-api";
 import type { Attempt } from "@/lib/problem";
 import { AlertCircle, CheckCircle2, History, LoaderCircle, Terminal } from "lucide-react";
 interface ReviewPanelProps {
+  handoff?: boolean;
   busy: boolean;
   selectedAttempt: Attempt | null;
   code: string;
   setConfirm: Dispatch<SetStateAction<ConfirmationAction>>;
 }
-export function ReviewPanel({ busy, selectedAttempt, code, setConfirm }: ReviewPanelProps) {
+export function ReviewPanel({
+  handoff = false,
+  busy,
+  selectedAttempt,
+  code,
+  setConfirm,
+}: ReviewPanelProps) {
   return (
     <section className="review-console" aria-label="AI 검토 결과" aria-live="polite">
       <div className="console-heading">
@@ -63,7 +73,11 @@ export function ReviewPanel({ busy, selectedAttempt, code, setConfirm }: ReviewP
                   <AlertCircle className="warning-text" size={16} />
                 )}
                 <div>
-                  <strong>요구사항 {c.requirementIndex + 1}</strong>
+                  <strong>
+                    {handoff
+                      ? HANDOFF_CRITERIA[c.requirementIndex]
+                      : `요구사항 ${c.requirementIndex + 1}`}
+                  </strong>
                   <p>{c.feedback}</p>
                 </div>
               </li>
@@ -89,12 +103,19 @@ export function ReviewPanel({ busy, selectedAttempt, code, setConfirm }: ReviewP
               </ul>
             </div>
           )}
+          {handoff && (
+            <p>
+              <Link href="/handoff">내 역량별 피드백과 변형 재도전 확인 →</Link>
+            </p>
+          )}
           <details className="submitted-code">
             <summary>
               제출했던 코드 보기 <span>{dateLabel(selectedAttempt.createdAt)}</span>
             </summary>
             <pre>
-              <code>{selectedAttempt.code}</code>
+              <code>
+                {handoff ? formatHandoffDraft(selectedAttempt.code) : selectedAttempt.code}
+              </code>
             </pre>
             <button
               className="secondary-button"

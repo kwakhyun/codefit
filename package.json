@@ -25,7 +25,8 @@
     "measure:browser": "node --import tsx scripts/measure-browser.ts",
     "test:ai-live": "node --import tsx scripts/verify-live-ai.ts",
     "measure:interactions": "node --import tsx scripts/measure-interactions.mjs",
-    "measure:typing-pair": "node scripts/measure-typing-pair.mjs"
+    "measure:typing-pair": "node scripts/measure-typing-pair.mjs",
+    "eval:handoff": "node --import tsx scripts/evaluate-handoff.ts"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

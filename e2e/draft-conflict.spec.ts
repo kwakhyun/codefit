@@ -71,7 +71,7 @@ test("two signed-in tabs preserve typing through stale saves, repeated conflicts
         .violations,
     ).toEqual([]);
     if (info.project.name === "chromium")
-      await page.screenshot({ path: "docs/images/draft-conflict-desktop.png", fullPage: true });
+      await page.screenshot({ path: "artifacts/draft-conflict-desktop.png", fullPage: true });
     await page.unroute(`**${endpoint}`);
     const ack = gate();
     const reached = gate();
@@ -167,7 +167,7 @@ test("mobile conflict comparison supports keyboard editing, recovery, and access
   if (info.project.name === "chromium")
     await page
       .getByRole("region", { name: "코드 저장 충돌" })
-      .screenshot({ path: "docs/images/draft-conflict-mobile.png" });
+      .screenshot({ path: "artifacts/draft-conflict-mobile.png" });
   await page.getByRole("button", { name: "비교한 버전에 내 초안 저장" }).focus();
   await page.keyboard.press("Enter");
   await expect(input).toBeFocused();

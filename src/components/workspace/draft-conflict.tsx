@@ -1,13 +1,17 @@
 "use client";
+import { HandoffFields } from "@/components/handoff/handoff-fields";
+import { readHandoffDraft, writeHandoffDraft } from "@/lib/handoff/draft";
 import type { DraftStatus } from "@/lib/drafts/draft-controller";
 
 export function DraftConflict({
+  handoff = false,
   status,
   localSaved,
   code,
   onChange,
   onResolve,
 }: {
+  handoff?: boolean;
   status: DraftStatus;
   localSaved: boolean;
   code: string;
@@ -15,6 +19,8 @@ export function DraftConflict({
   onResolve: () => Promise<boolean>;
 }) {
   if (status.kind !== "conflict" && status.kind !== "resolving") return null;
+  const local = readHandoffDraft(code);
+  const remote = readHandoffDraft(status.server.code ?? "");
   return (
     <section className="draft-conflict" aria-label="코드 저장 충돌">
       <p role="alert">
@@ -31,8 +37,10 @@ export function DraftConflict({
             내 초안 · 계속 편집 가능
             <textarea
               aria-label="비교 화면의 내 초안"
-              value={code}
-              onChange={(e) => onChange(e.target.value)}
+              value={handoff ? local.implementation : code}
+              onChange={(e) =>
+                onChange(handoff ? writeHandoffDraft(e.target.value, local.notes) : e.target.value)
+              }
               spellCheck={false}
             />
           </label>
@@ -41,11 +49,23 @@ export function DraftConflict({
             <textarea
               aria-label="서버 저장본"
               readOnly
-              value={status.server.code ?? ""}
+              value={handoff ? remote.implementation : (status.server.code ?? "")}
               spellCheck={false}
             />
           </label>
         </div>
+        {handoff && (
+          <div className="draft-comparison">
+            <div>
+              <h3>내 인수인계 메모</h3>
+              <HandoffFields value={code} onChange={onChange} prefix="local-conflict" />
+            </div>
+            <div>
+              <h3>서버 인수인계 메모</h3>
+              <HandoffFields value={status.server.code ?? ""} readOnly prefix="remote-conflict" />
+            </div>
+          </div>
+        )}
         <p>
           서버본에서 필요한 부분을 복사해 내 초안에 합칠 수 있습니다. 아래 편집기에도 바로
           반영됩니다.

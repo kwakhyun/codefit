@@ -1,5 +1,14 @@
 "use client";
 
+import { HandoffExport } from "@/components/handoff/handoff-export";
+import { HandoffFields, HandoffGuide } from "@/components/handoff/handoff-fields";
+import { HandoffReadiness, focusHandoffField } from "@/components/handoff/handoff-readiness";
+import {
+  HANDOFF_FIELDS,
+  readHandoffDraft,
+  writeHandoffDraft,
+  formatHandoffDraft,
+} from "@/lib/handoff/draft";
 import { DraftConflict } from "./draft-conflict";
 import { ProblemMaterials } from "@/components/workspace/problem-materials";
 import { ReviewPanel } from "@/components/workspace/review-panel";
@@ -24,6 +33,7 @@ import {
   Save,
   Sparkles,
 } from "lucide-react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 const CodeEditor = dynamic(() => import("@/components/code-editor").then((m) => m.CodeEditor), {
@@ -57,6 +67,7 @@ export function ProblemWorkspace({
   initialAttemptId?: string;
   initialDetail?: ProblemDetail;
 }) {
+  const [missingField, setMissingField] = useState<(typeof HANDOFF_FIELDS)[number] | null>(null);
   const {
     detail,
     code,
@@ -121,11 +132,29 @@ export function ProblemWorkspace({
       </div>
     );
   const { problem, hints, solution, attempts, progress } = detail;
+  const handoffDraft = problem.handoff ? readHandoffDraft(code) : null;
+  const inputError =
+    missingField && handoffDraft && handoffDraft.notes[missingField.key].trim().length < 20
+      ? `${missingField.label}을 20자 이상 작성해 주세요.`
+      : "";
+  function requestReview(value: string) {
+    if (problem.handoff) {
+      const draft = readHandoffDraft(value);
+      const missing = HANDOFF_FIELDS.find((f) => draft.notes[f.key].trim().length < 20);
+      if (missing) {
+        setMissingField(missing);
+        focusHandoffField(missing.key);
+        return;
+      }
+    }
+    setMissingField(null);
+    void review(value);
+  }
   return (
     <div className={`workspace ${focus ? "is-focused" : ""}`}>
       <div className="workspace-breadcrumb">
         <Link href={returnTo}>
-          <ArrowLeft size={15} /> 문제 보관함
+          <ArrowLeft size={15} /> {returnTo === "/handoff" ? "인수인계 훈련" : "문제 보관함"}
         </Link>
         <ChevronRight size={13} />
         <span>{domainLabel(problem.domain)}</span>
@@ -184,6 +213,7 @@ export function ProblemWorkspace({
           </button>
         </div>
       )}
+      {problem.handoff && <HandoffGuide starterCode={problem.starterCode} />}
       <div className="workbench">
         <ProblemMaterials
           tab={tab}
@@ -246,6 +276,7 @@ export function ProblemWorkspace({
             </div>
           </div>
           <DraftConflict
+            handoff={Boolean(problem.handoff)}
             status={draftStatus}
             localSaved={localSaved}
             code={code}
@@ -261,22 +292,36 @@ export function ProblemWorkspace({
                   보관한 초안 {index + 1}
                   <textarea
                     aria-label={`보관한 초안 ${index + 1}`}
-                    value={draft.record.code}
+                    value={
+                      problem.handoff ? formatHandoffDraft(draft.record.code) : draft.record.code
+                    }
                     readOnly
                   />
                 </label>
               ))}
             </details>
           )}
+          {problem.handoff && <HandoffFields value={code} onChange={changeCode} section="before" />}
           <CodeEditor
-            value={code}
+            value={handoffDraft?.implementation ?? code}
             language={problem.language}
             problemId={id}
-            onChange={changeCode}
-            onCheck={review}
+            onChange={(value) =>
+              changeCode(handoffDraft ? writeHandoffDraft(value, handoffDraft.notes) : value)
+            }
+            onCheck={(value) =>
+              requestReview(handoffDraft ? writeHandoffDraft(value, handoffDraft.notes) : value)
+            }
             onSave={saveNow}
             fontSize={fontSize}
           />
+          {problem.handoff && <HandoffFields value={code} onChange={changeCode} section="after" />}
+          {problem.handoff && (
+            <>
+              <HandoffReadiness value={code} />
+              <HandoffExport title={problem.title} id={problem.id} value={code} />
+            </>
+          )}
           <div className="review-action">
             <span>
               <kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd>
@@ -284,7 +329,7 @@ export function ProblemWorkspace({
             </span>
             <button
               className="primary-button"
-              onClick={() => review(code)}
+              onClick={() => requestReview(code)}
               disabled={
                 busy ||
                 code.trim().length < 5 ||
@@ -303,16 +348,23 @@ export function ProblemWorkspace({
               AI 연결 설정 후 풀이 검토를 사용할 수 있습니다. 코드 작성과 저장은 가능합니다.
             </p>
           )}
-          {error && (
+          {(inputError || error) && (
             <p className="inline-error workspace-error" role="alert">
               <AlertCircle size={16} />
-              {error}
-              <button aria-label="오류 메시지 닫기" onClick={() => setError("")}>
+              {inputError || error}
+              <button
+                aria-label="오류 메시지 닫기"
+                onClick={() => {
+                  setError("");
+                  setMissingField(null);
+                }}
+              >
                 ×
               </button>
             </p>
           )}
           <ReviewPanel
+            handoff={Boolean(problem.handoff)}
             busy={busy}
             selectedAttempt={selectedAttempt}
             code={code}
@@ -321,6 +373,7 @@ export function ProblemWorkspace({
         </section>
       </div>
       <WorkspaceConfirmation
+        code={code}
         confirm={confirm}
         setConfirm={setConfirm}
         reveal={reveal}

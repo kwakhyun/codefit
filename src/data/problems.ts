@@ -1,3 +1,4 @@
+import { handoffProblems } from "./handoff-problems";
 import type { Problem } from "../lib/problem";
 
 type Seed = Omit<Problem, "createdAt" | "source">;
@@ -446,8 +447,11 @@ const seeds: Seed[] = [
     minutes: 35,
   },
 ];
-export const seedProblems: Problem[] = seeds.map((p, index) => ({
-  ...p,
-  source: "curated",
-  createdAt: new Date(Date.UTC(2026, 8, 1, 0, index)).toISOString(),
-}));
+export const seedProblems: Problem[] = [
+  ...seeds.map((p, index): Problem => ({
+    ...p,
+    source: "curated",
+    createdAt: new Date(Date.UTC(2026, 8, 1, 0, index)).toISOString(),
+  })),
+  ...handoffProblems,
+];

@@ -1,5 +1,6 @@
 "use client";
 
+import { handoffMissing } from "@/lib/handoff/draft";
 import type { ConfirmationAction, WorkspaceTab } from "@/components/workspace/types";
 
 import { useCodeDraft } from "@/hooks/use-code-draft";
@@ -130,6 +131,15 @@ export function useProblemController({
   }, [id, initialAttemptId, restoreImportedCode]);
   async function review(value: string) {
     if (pending.current || value.trim().length < 5 || !aiReady) return;
+    if (detail?.problem.handoff) {
+      const missing = handoffMissing(value);
+      if (missing.length) {
+        setError(
+          `${missing.join(", ")}을 각각 20자 이상 작성해 주세요. 내용의 정확성은 AI가 별도로 검토합니다.`,
+        );
+        return;
+      }
+    }
     pending.current = true;
     setBusy(true);
     setError("");

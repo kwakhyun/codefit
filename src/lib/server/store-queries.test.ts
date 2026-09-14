@@ -1,3 +1,4 @@
+import { seedProblems } from "../../data/problems";
 import { afterAll, describe, expect, it } from "vitest";
 import { DatabaseSync } from "node:sqlite";
 import { SqliteStore } from "./sqlite-store";
@@ -34,6 +35,8 @@ it("ignores untrusted IP headers outside Vercel and hashes trusted IPs", () => {
 it("reuses initialized SQLite connections after module reload", async () => {
   const original = new SqliteStore(":memory:");
   const reused = new SqliteStore(original.db as DatabaseSync);
-  expect((await reused.queries.library("x", new URLSearchParams())).total).toBe(12);
+  expect((await reused.queries.library("x", new URLSearchParams())).total).toBe(
+    seedProblems.length,
+  );
   original.db.close();
 });

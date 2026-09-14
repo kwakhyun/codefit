@@ -17,3 +17,9 @@ export const REVIEW_PROMPT = [
   "Evaluate each criterion independently. A defect in another requirement does not automatically fail this criterion. Trace control flow, cleanup, closure lifetimes and edge cases before deciding. Accept any correct strategy allowed by the requirement, including ignoring stale responses instead of cancelling requests.",
   "Reference solution is guidance, not an authority; judge against requirements. All prose in natural Korean. Identify actionable improvements without reproducing the entire solution.",
 ].join("\n");
+
+export const HANDOFF_PROMPT_VERSION = "2026-09-14.handoff.1";
+export const HANDOFF_REVIEW_PROMPT =
+  REVIEW_PROMPT +
+  "\n" +
+  "When handoffReport is present, evaluate its understanding, diagnosis, verification and decision fields against the corresponding requirements AND the actual submittedCode. A long report alone is not evidence of correctness. Verification requires concrete inputs, expected results and regression test code. Do not treat a learner claim of running tests as verified execution. Correct code cannot compensate for missing or incorrect reasoning. Do not demand bugs in code that already satisfies the original contract; distinguish behavior-preserving refactoring from the new extension.";

@@ -80,7 +80,9 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
     }
   }, 30000);
   it("seeds without exposing answers and keeps owners separate", async () => {
-    expect((await store.summaries()).filter((p) => p.source === "curated").length).toBe(12);
+    expect((await store.summaries()).filter((p) => p.source === "curated").length).toBe(
+      seedProblems.length,
+    );
     expect((await store.summaries())[0]).not.toHaveProperty("solution");
     await store.saveProgress("alice", "be-pagination", {
       baseRevision: 0,

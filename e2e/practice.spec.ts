@@ -24,7 +24,7 @@ test("anonymous entry, paged search, URL restoration, and home accessibility", a
   await accessible(page);
   await page.getByRole("button", { name: "다음 페이지" }).click();
   await expect(page).toHaveURL(/page=2/);
-  await expect(page.locator(".problem-row")).toHaveCount(4);
+  await expect(page.locator(".problem-row")).toHaveCount(8);
   await page.getByRole("textbox", { name: "문제 검색" }).fill("TCP");
   await expect(page.locator(".problem-row")).toHaveCount(1);
   await page.locator(".problem-link").click();

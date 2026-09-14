@@ -1,0 +1,678 @@
+{
+  "measuredAt": "2026-09-13T20:25:24.408Z",
+  "model": "gpt-5.6-luna",
+  "promptVersion": "2026-09-14.handoff.1",
+  "fingerprint": "bd0ef9eb3952c3f0443395c6dfa15739b18ee8a2d6b2278d8b7f07ad70aec35e",
+  "limits": "Development fixtures, one run each; written by the implementer, not a held-out or human-adjudicated learning benchmark. No submitted-code execution. No production database writes.",
+  "summary": {
+    "cases": 13,
+    "matched": 8,
+    "errors": 0,
+    "estimatedCostUsd": 0.030462
+  },
+  "results": [
+    {
+      "id": "handoff-cart:reference",
+      "category": "reference",
+      "expectedPass": true,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": true,
+          "feedback": "입력인 items, id, delta와 새 배열 반환, 대상 객체 복사, 수량이 0이면 제거, 비대상 객체 참조 유지 및 원본 비변경을 설명해 처리 흐름과 상태 소유 범위를 대체로 정확히 이해했습니다. 다만 제출 코드의 flatMap 분기와 새 배열 생성 흐름을 직접 언급하면 코드 근거가 더 명확해집니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "원인이 수정 대상 객체의 quantity를 직접 변경하는 데 있다는 점은 파악했지만, 재현 조건을 구체적인 입력과 결과로 제시하지 않았습니다. 예를 들어 원래 코드에 [{id:'a', quantity:2}], 'a', 1을 전달하면 반환값과 원본이 같은 배열이고 원본 항목도 quantity 3으로 변한다는 식으로 설명해야 합니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": true,
+          "feedback": "대상 항목에 대해 Math.max(0, item.quantity + delta)를 계산하고, 대상이 0보다 크면 전개 복사한 객체를 반환합니다. 비대상 항목은 그대로 반환하므로 입력 배열과 객체를 변경하지 않으며, 다른 필드도 보존합니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": true,
+          "feedback": "계산된 수량이 0이면 대상 항목을 빈 배열로 바꾸어 제거합니다. 일치하는 id가 없으면 모든 항목을 그대로 반환하므로 내용 변경 없이 새 배열만 생성합니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": true,
+          "feedback": "양수 증가, 수량 소진에 따른 제거, 존재하지 않는 id에 대한 유지 사례를 입력과 기대 결과가 포함된 회귀 테스트 코드로 제시했습니다. 실행하지 않았다는 사실도 명시했습니다. 다만 0으로 정확히 도달하는 경우나 대상이 양수로 남는 감소 사례를 추가하면 경계 검증 범위가 더 넓어집니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": true,
+          "feedback": "대상 및 비대상 항목의 변경 범위, 대상 객체 복사와 비대상 참조 유지, 적용되는 계약 범위, 실제 호출부와 입력 계약을 배포 전에 확인해야 한다는 점을 정리했습니다. 외부 통합을 검증하지 않았다는 남은 범위도 명시되어 있습니다."
+        }
+      ],
+      "run": {
+        "id": "bc411f2a-48ef-43ff-a686-bf1338152f39",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 19077,
+        "inputTokens": 1761,
+        "cachedInputTokens": 0,
+        "outputTokens": 1698,
+        "estimatedCostUsd": 0.0023898,
+        "createdAt": "2026-09-13T20:23:34.509Z"
+      }
+    },
+    {
+      "id": "handoff-cart:starter",
+      "category": "starter",
+      "expectedPass": false,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": false,
+          "feedback": "보고서에 함수의 시그니처와 입력 계약은 언급되어 있지만, 실제 코드의 처리 흐름인 find로 대상을 찾고, 찾은 객체의 quantity를 직접 변경한 뒤 동일한 배열을 반환한다는 점을 설명하지 않았습니다. 오히려 실제 코드에 없는 '수정 대상 객체를 복사한다'는 구현을 설명하고 있어 코드에 근거한 구조 이해로 보기 어렵습니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "배열만 복사할 때 내부 객체가 공유되는 문제를 언급했지만, 현재 코드는 배열 복사조차 하지 않고 item.quantity를 직접 수정하며 items를 그대로 반환합니다. 예를 들어 [{id:'a', quantity:2}]에 'a', 1을 적용하면 원본 객체의 quantity가 3으로 바뀌고 반환 배열도 동일합니다. 이 구체적인 재현 조건과 직접 변경 원인을 설명하지 않았습니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": false,
+          "feedback": "현재 구현은 일치하는 객체의 quantity를 직접 변경하므로 입력 배열과 입력 객체를 보존하지 못합니다. 또한 delta를 더한 값에 Math.max(0, ...) 같은 하한 처리를 하지 않아 음수가 될 수 있습니다. 요구사항을 만족하려면 최소한 대상 객체를 복사하고, 계산 결과를 0 이상으로 제한해야 합니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": false,
+          "feedback": "quantity가 0이 된 대상 항목을 제거하는 로직이 없습니다. 존재하지 않는 id일 때 현재 코드가 내용상 변경 없이 반환하는 부분은 조건에 부합할 수 있지만, 0 수량 항목 제거 요구를 충족하지 못하므로 전체 기준은 실패입니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": true,
+          "feedback": "보고서는 실행하지 않았다는 점을 명시했고, 일반 변경, 수량 소진에 따른 제거, 존재하지 않는 id에 대한 사례와 기대 결과를 포함한 회귀 테스트 코드를 제시했습니다. 첫 번째와 두 번째 테스트는 현재 구현의 원본 변경 및 제거 누락을 드러낼 수 있습니다. 다만 실제 실행을 주장하지 않았으므로 테스트 통과를 검증한 것으로 볼 수는 없으며, 실행 시에는 assert import와 ES 모듈/스크립트 실행 환경을 명확히 해야 합니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": false,
+          "feedback": "보고서는 복사, 제거, 불변성 보장이라는 목표와 배포 전 호출부·입력 계약 확인 사항을 언급하지만, 실제 제출 코드에는 그러한 변경이 전혀 없습니다. 실제 구현이 시작 코드 그대로라는 사실, 현재 남아 있는 원본 변이와 제거 누락 위험을 인수인계 내용에 명시하고 구현 후 재검증해야 한다고 정리했어야 합니다."
+        }
+      ],
+      "run": {
+        "id": "800fa556-85fd-49ff-b57c-d08b4332d069",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 19400,
+        "inputTokens": 1731,
+        "cachedInputTokens": 0,
+        "outputTokens": 1835,
+        "estimatedCostUsd": 0.0025482,
+        "createdAt": "2026-09-13T20:23:37.782Z"
+      }
+    },
+    {
+      "id": "handoff-config:reference",
+      "category": "reference",
+      "expectedPass": true,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": true,
+          "feedback": "인수인계의 이해 부분에서 parseConfig의 입력 env, 반환값 { debug, port }, 기본값, 검증 흐름과 새 결과 객체를 설명했습니다. 현재 코드가 env를 직접 수정하지 않고 검증 후 결과를 반환한다는 상태 소유 범위도 대체로 코드에 근거해 설명했습니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "Boolean 변환과 parseInt의 문제 원인은 설명했지만, 재현 조건을 구체적인 입력과 결과로 제시하지 않았습니다. 예를 들어 DEBUG='false'가 true가 되는 점, PORT='80x'가 80으로 처리되는 점, PORT='1e2'가 1로 처리될 수 있는 점처럼 시작 코드의 실패 사례를 명시하고, 현재 구현에서는 그 문제가 해소되었음을 구분해야 합니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": true,
+          "feedback": "현재 구현은 DEBUG가 undefined이거나 정확히 'true'/'false'일 때만 허용하고, debug는 'true' 여부로 변환합니다. 따라서 'false'는 false가 되며 다른 값은 Error를 던집니다. env에 대입하지 않고 결과 객체만 생성하므로 입력 객체도 변경하지 않습니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": true,
+          "feedback": "PORT가 undefined이면 '3000'을 사용합니다. 정규식으로 1~5자리의 선행 0 없는 숫자 문자열만 허용하고 Number(raw) <= 65535를 확인하므로 빈 값, 공백, 소수, 지수 표기, 접미 문자가 거부되며 1~65535 범위를 만족합니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": false,
+          "feedback": "정상·오류 입력을 점검하는 테스트 의도와 '실행하지 않았다'는 사실 구분은 좋지만, 제시된 코드는 assert의 import와 parseConfig의 테스트 대상 정의가 포함되지 않아 그대로 실행 가능한 회귀 테스트가 아닙니다. 또한 허용 경계인 PORT='1', PORT='65535'와 DEBUG='true'를 직접 검증하지 않고, 현재 코드가 요구하는 경계 동작을 충분히 확인하지 못합니다. 완전한 테스트 파일 또는 필요한 import·대상 연결과 함께 기대 결과를 추가해야 합니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": false,
+          "feedback": "요구된 적용 범위와 배포 전 통합 확인, 미검증된 외부 범위는 언급했지만, 무엇을 변경했고 무엇을 유지했는지 구체적으로 구분하지 않았습니다. 예를 들어 Boolean 변환을 엄격한 DEBUG 판정으로 변경한 점, parseInt를 형식·범위 검증으로 대체한 점, 함수 시그니처와 반환 구조를 유지한 점, 호출부가 문자열 계약을 지키는지 확인해야 하는 점을 명시해야 합니다."
+        }
+      ],
+      "run": {
+        "id": "c51b7e1e-fe81-4f8c-a770-cc01a78a000c",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 16772,
+        "inputTokens": 1804,
+        "cachedInputTokens": 0,
+        "outputTokens": 1599,
+        "estimatedCostUsd": 0.0022796,
+        "createdAt": "2026-09-13T20:24:14.949Z"
+      }
+    },
+    {
+      "id": "handoff-config:starter",
+      "category": "starter",
+      "expectedPass": false,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": false,
+          "feedback": "보고서는 반환 형태와 Boolean·parseInt 사용은 언급하지만, 코드의 `env.DEBUG = ...` 대입으로 입력 객체가 직접 변경된다는 상태 소유 범위를 정확히 설명하지 않습니다. 또한 새 객체만 반환한다고 설명해 실제 동작과 어긋납니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "Boolean이 비어 있지 않은 문자열을 참으로 만들고 parseInt가 뒤의 잘못된 문자를 무시한다는 원인은 언급했습니다. 그러나 구체적인 재현 입력과 결과를 충분히 제시하지 않았고, 실제 코드가 형식·범위를 검사하며 입력을 보존한다고 잘못 판단했습니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": false,
+          "feedback": "`env.DEBUG = Boolean(env.DEBUG)` 때문에 문자열 `'false'`가 true가 되고 원본 객체가 변경됩니다. `DEBUG`의 허용값을 검사하지도 않으므로 `'TRUE'`, `''`, `'yes'` 같은 값도 거부하지 않습니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": false,
+          "feedback": "PORT에 정규식이나 범위 검사가 없습니다. `env.PORT || '3000'`은 빈 문자열을 기본값 3000으로 처리하고, `parseInt`는 `'30x'`, `'1e2'`, `'8.5'` 등을 부분적으로 숫자로 변환하며, `0`, 음수, 65536 초과, 선행 0 등도 제대로 거부하지 않습니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": false,
+          "feedback": "정상·경계 검증이 부족합니다. 기본값과 일부 오류 목록은 제시했지만 유효한 PORT 1과 65535, 유효한 DEBUG `'true'` 및 경계 조합의 기대 결과가 없습니다. 또한 제시된 회귀 테스트는 함수와 assert import를 포함한 독립 실행 가능한 전체 코드가 아니며, 현재 구현에서는 `'1e2'`가 예외 없이 부분 파싱되므로 해당 테스트가 실패해야 합니다. 실행하지 않았다고 명시한 점은 사실 구분 측면에서는 적절합니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": false,
+          "feedback": "보고서는 변경·유지 범위와 배포 전 통합 확인을 일부 언급하지만, 실제 코드가 DEBUG 검증, PORT 검증, 입력 불변성을 구현하지 않았는데도 구현했다고 결론 내립니다. 남은 위험을 정확히 분류하지 않았고, 배포 전 확인 사항에도 각 유효·무효 입력과 원본 객체 보존 확인이 구체적으로 정리되어 있지 않습니다."
+        }
+      ],
+      "run": {
+        "id": "df2954e1-7dd6-45f8-af22-2f56169299f0",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 17725,
+        "inputTokens": 1737,
+        "cachedInputTokens": 0,
+        "outputTokens": 1424,
+        "estimatedCostUsd": 0.0020561999999999998,
+        "createdAt": "2026-09-13T20:24:21.173Z"
+      }
+    },
+    {
+      "id": "handoff-dedupe:reference",
+      "category": "reference",
+      "expectedPass": true,
+      "actualPass": true,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": true,
+          "feedback": "보고서는 createOnce(work)가 run(id)를 반환하고, Promise를 먼저 등록한 뒤 실패 시 제거한다는 처리 흐름과 인스턴스 내부 상태라는 범위를 설명합니다. 실제 코드의 Map과 id별 Promise 저장 구조를 더 직접적으로 언급하면 구조 설명이 더욱 명확해집니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": true,
+          "feedback": "초기 구현에서 시작 시 처리 완료로 표시하면 실패 후 재시도가 차단되고, 완료 값만 저장하면 동시 호출 병합이 불가능하다는 원인을 설명했습니다. 이는 초기 코드의 문제를 지적한 것이며 제출된 수정 코드가 정상인 부분을 오류라고 단정하지도 않습니다. 다만 구체적인 호출 순서나 기대 결과를 함께 적으면 재현 조건이 더 분명해집니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": true,
+          "feedback": "Map에 성공한 Promise를 계속 보관하므로 같은 id의 성공 결과를 재사용하고, Map의 서로 다른 키는 독립적으로 처리됩니다. 실패 시 catch에서 해당 id를 삭제하므로 이후 재실행할 수 있습니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": true,
+          "feedback": "Map에 Promise를 work 실행 전에 등록하므로 같은 id의 동시 호출은 동일한 Promise를 공유합니다. Promise.resolve().then(() => work(id))가 동기 반환값과 동기 예외를 Promise 결과로 감싸며, catch에서 실패한 id만 삭제하므로 거절 전달과 재시도가 모두 가능합니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": true,
+          "feedback": "검증 코드에 동시 중복 호출, 첫 실행의 동기 예외 후 재시도와 성공 결과 재사용, 서로 다른 id의 독립 처리가 포함되어 있고 기대 결과도 명시되어 있습니다. 실행하지 않았다는 사실도 명확히 구분했습니다. 다만 비동기 거절, 동시 호출 중 실패, run의 반환값이 항상 Promise인지 확인하는 테스트를 추가하면 경계 조건 검증이 더 완전합니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": true,
+          "feedback": "변경 사항으로 Promise 선등록과 실패 시 삭제를 설명하고, 성공 결과 재사용·실패 재시도·id별 독립 처리의 적용 범위를 정리했습니다. 메모리 증가와 다중 프로세스·분산 처리 미지원, 배포 전 통합 확인 필요성도 명시해 남은 위험과 확인 사항을 구체적으로 다뤘습니다."
+        }
+      ],
+      "run": {
+        "id": "3f35de7b-643d-45f3-b16d-a57e4c93a325",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 17777,
+        "inputTokens": 1853,
+        "cachedInputTokens": 0,
+        "outputTokens": 1531,
+        "estimatedCostUsd": 0.0022078,
+        "createdAt": "2026-09-13T20:24:31.721Z"
+      }
+    },
+    {
+      "id": "handoff-dedupe:starter",
+      "category": "starter",
+      "expectedPass": false,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": false,
+          "feedback": "보고서는 createOnce와 run의 계약을 일부 설명하지만, 제출 코드의 핵심 구조인 `seen` Set, `async run`, 첫 호출에서 `seen.add(id)` 후 `work(id)`를 호출하는 흐름, 이미 본 id에서 `undefined`를 반환하는 동작을 구체적으로 설명하지 않습니다. 입력·출력과 상태 소유 범위를 실제 코드 요소에 연결해 설명해야 합니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "실패가 차단되는 원인은 지적했지만, 구체적인 입력과 호출 순서, 관찰되는 결과가 부족합니다. 예를 들어 동일 인스턴스에서 `run('a')`의 `work`가 동기 예외를 던진 뒤 다시 `run('a')`를 호출하면 두 번째 호출이 재실행되지 않는다는 재현 절차와 원인을 명시해야 합니다. 동시 호출에서 두 번째 호출이 공유 Promise가 아니라 즉시 `undefined`를 얻는 문제도 실제 코드 흐름으로 설명해야 합니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": false,
+          "feedback": "실제 구현은 성공 결과를 저장하지 않고 `seen`에 id만 저장합니다. 따라서 성공 후에도 같은 id의 호출이 결과를 재사용하지 않고 `undefined`를 반환하며, 실패 전에 id를 기록하므로 실패한 id도 재시도할 수 없습니다. 서로 다른 id가 독립적으로 처리되는 부분은 대체로 맞지만 전체 요구사항은 충족하지 않습니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": false,
+          "feedback": "첫 호출은 `seen.add(id)` 후 `work(id)`를 실행하지만, 같은 id의 두 번째 호출은 `seen.has(id)` 분기에서 기존 실행의 Promise가 아니라 즉시 `undefined`를 반환합니다. 동기 예외 자체는 `async` 함수에 의해 거절된 Promise로 전달되지만, 해당 id가 Set에 남아 재시도가 차단됩니다. 진행 중 Promise를 먼저 저장하고 동일 id 호출이 이를 반환하며, 실패 시 해당 상태를 제거해야 합니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": true,
+          "feedback": "보고서는 실행하지 않았다고 사실대로 구분했고, 동시 동일 id, 최초 실패 후 재시도 및 성공 결과 재사용, 서로 다른 id에 대한 입력과 기대 결과를 포함한 회귀 테스트 코드를 제시했습니다. 다만 현재 제출 코드에서는 이 테스트들이 기대값과 다르게 실패하므로, 수정 후 실행할 테스트임을 분명히 하고 동기 예외와 진행 중 상태를 직접 검증하는 테스트를 추가하면 더 견고합니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": false,
+          "feedback": "보고서는 적용 범위를 단일 createOnce 인스턴스, 비영구 메모리, 단일 프로세스로 한정하고 메모리 사용량과 분산 처리 위험도 언급했습니다. 그러나 실제로 변경한 부분과 유지한 부분을 구체적으로 구분하지 않았고, 제출 코드가 아직 수정되지 않았다는 판단도 명확하지 않습니다. 배포 전 확인 사항으로 실제 구현 반영 여부, 실패 후 재시도, 동시 호출 공유, 성공 결과 보존을 확인하는 구체적인 절차를 정리해야 합니다."
+        }
+      ],
+      "run": {
+        "id": "df397325-d874-484d-b605-3cbbd0186075",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 23836,
+        "inputTokens": 1817,
+        "cachedInputTokens": 0,
+        "outputTokens": 2047,
+        "estimatedCostUsd": 0.0028198000000000003,
+        "createdAt": "2026-09-13T20:24:38.898Z"
+      }
+    },
+    {
+      "id": "handoff-latest:reference",
+      "category": "reference",
+      "expectedPass": true,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": true,
+          "feedback": "인수인계 설명에서 createLatest의 load, publish, run, dispose 계약과 반환 형태를 설명했고, 호출마다 증가하는 번호와 dispose 상태가 함수 내부에서 관리된다고 밝혔습니다. 또한 이전 요청을 취소하지 않고 결과 반영만 제한한다는 처리 흐름도 코드와 일치합니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "완료 순서가 호출 순서와 다를 수 있고 동일 검색어 비교만으로는 요청을 구분할 수 없다는 점은 설명했습니다. 그러나 시작 코드의 구체적인 원인인 `run`의 `await load(query)` 뒤에 아무 조건 없이 `publish`하는 흐름과, 두 번 호출한 뒤 첫 번째 응답이 늦게 도착하는 재현 조건을 진단 항목에서 명확히 연결하지 않았습니다. 테스트에는 해당 상황이 나타나지만 문제 판단 자체에 구체적으로 서술해야 합니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": true,
+          "feedback": "각 run 시작 시 `revision`을 증가시키고 해당 호출의 값을 `mine`에 저장한 뒤, 응답 시 `mine === revision`일 때만 publish합니다. 따라서 동일 query를 연속 호출해도 최신 호출의 결과만 반영하며, 이전 응답이 늦게 완료되어도 화면을 덮지 않습니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": true,
+          "feedback": "dispose가 `disposed = true`로 상태를 바꾸고 revision도 증가시키므로 이미 진행 중인 요청의 응답은 조건을 통과하지 못합니다. dispose 후 run은 초기에 반환되어 load를 호출하지 않습니다. load 실패는 별도 catch 없이 호출자에게 거절되는 기존 계약도 유지됩니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": true,
+          "feedback": "동일 검색어의 역순 완료, dispose 중 진행 요청의 늦은 완료와 dispose 후 새 run, load 실패를 대상으로 구체적인 입력과 기대 결과를 제시했습니다. 회귀 테스트 코드도 작성했고 실행하지 않았다는 사실을 명시했습니다. 다만 실제 실행을 위해서는 설명한 assert import와 테스트를 하나의 완전한 ES2022 파일 또는 실행 가능한 테스트 함수로 묶어야 합니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": true,
+          "feedback": "결정에서 최신 결과 반영과 dispose 후 차단이라는 변경 범위를 설명하고, 이전 요청 자체는 취소하지 않는다는 적용 범위와 위험을 밝혔습니다. 실제 호출부와 통합 테스트, 입력 계약 확인 및 외부 의존성·서비스 통합 검증을 배포 전 확인 사항으로 제시해 인수인계에 필요한 판단을 포함합니다."
+        }
+      ],
+      "run": {
+        "id": "00a8a3ae-7c65-4e7d-adcb-05f5af9d0639",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 21736,
+        "inputTokens": 1895,
+        "cachedInputTokens": 0,
+        "outputTokens": 1710,
+        "estimatedCostUsd": 0.002431,
+        "createdAt": "2026-09-13T20:23:16.045Z"
+      }
+    },
+    {
+      "id": "handoff-latest:starter",
+      "category": "starter",
+      "expectedPass": false,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": false,
+          "feedback": "보고서는 호출별 번호와 dispose 상태를 사용한다고 설명하지만, 실제 코드에는 상태 변수, 호출 번호, 유효성 검사 로직이 전혀 없습니다. 실제 코드 기준으로는 load(query)의 결과를 await한 뒤 무조건 publish하고, dispose는 아무 작업도 하지 않으며, run과 dispose가 반환 객체의 메서드로 제공된다는 점을 설명해야 합니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "완료 순서가 호출 순서와 다를 수 있고 동일 검색어 비교만으로 부족하다는 점은 언급했지만, 실제 원인인 `publish(await load(query))`의 무조건적인 publish를 지적하지 않았습니다. 예를 들어 첫 번째 run을 시작한 뒤 두 번째 run을 시작하고 두 번째 응답, 첫 번째 응답 순으로 완료시키면 첫 번째 응답도 publish되는 구체적인 재현 조건과 원인을 제시해야 합니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": false,
+          "feedback": "run마다 최신 호출을 식별하는 상태가 없고, 모든 load 완료 결과를 무조건 publish합니다. 따라서 첫 번째 run이 늦게 완료되어도 publish되어 최신 화면을 덮을 수 있으며, 같은 query를 연속 호출하는 경우에도 구분하지 못합니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": false,
+          "feedback": "dispose가 빈 함수이므로 진행 중인 load가 완료되면 여전히 publish합니다. 또한 dispose 이후의 run도 `load(query)`를 호출하므로, 해제 상태를 확인하고 새 호출을 차단하는 구현이 없습니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": true,
+          "feedback": "보고서는 실행하지 않았다는 점을 명시했고, 역순 완료, dispose 후 응답 및 새 호출 차단, load 실패 전달에 대한 비동기 테스트 코드와 기대 결과를 제시했습니다. 다만 제시된 테스트는 현재 제출 코드에서 실패할 회귀 테스트이며, 실제 실행 결과가 아니라는 점도 올바르게 구분해야 합니다. 독립 실행성을 높이려면 assert import와 테스트 실행을 포함한 완전한 Node.js 테스트 파일 형태로 제시하는 것이 좋습니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": false,
+          "feedback": "보고서는 최신 결과 publish와 dispose 차단이 구현되었다고 판단하지만 실제 제출 코드에는 해당 변경이 없습니다. 변경 및 유지한 부분을 실제 코드와 대조해 설명하지 않았고, 핵심 미충족 사항을 인수인계 위험으로 남기지 않았습니다. 배포 전에는 역순 완료, 동일 query 반복, dispose 중 완료, dispose 후 run, load 실패 전파를 실제 수정 코드로 확인해야 합니다."
+        }
+      ],
+      "run": {
+        "id": "31798371-430f-4f8e-8732-642ff50bf20d",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 18457,
+        "inputTokens": 1838,
+        "cachedInputTokens": 0,
+        "outputTokens": 1438,
+        "estimatedCostUsd": 0.0020932,
+        "createdAt": "2026-09-13T20:23:16.051Z"
+      }
+    },
+    {
+      "id": "handoff-page:reference",
+      "category": "reference",
+      "expectedPass": true,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": true,
+          "feedback": "입력인 items, page, size와 반환 객체의 구조를 설명했고, 함수 내부에서 입력을 정규화한 뒤 totalPages와 제한된 page를 계산하고 slice로 결과를 반환하는 구조를 대체로 파악했습니다. splice가 원본을 변경한다는 점과 현재 구현이 함수 내부에서 상태를 처리한다는 범위도 언급했습니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": true,
+          "feedback": "시작 코드의 빈 배열에서 totalPages가 0이 되는 문제와 splice가 원본을 변경하는 문제를 재현 가능한 조건과 원인으로 설명했습니다. 문자열 숫자를 숫자로 변환하면 잘못된 입력을 허용하게 된다는 점도 정확히 지적했으며, 정상 동작을 불필요하게 오류로 단정하지 않았습니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": true,
+          "feedback": "size를 먼저 1~100의 정수로 정규화하고, 빈 배열에서도 totalPages를 최소 1로 만든 뒤 page를 1 이상 totalPages 이하로 제한합니다. slice를 사용해 해당 범위의 순서를 유지하며, 원본 배열을 변경하지 않습니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": true,
+          "feedback": "Number.isInteger를 사용하므로 문자열 숫자, NaN, Infinity, 소수는 유효한 정수로 사용되지 않습니다. page의 음수와 범위 초과는 1 및 totalPages로 제한되고, 유효하지 않은 size는 10으로 대체됩니다. 빈 배열도 totalPages 1과 page 1로 처리됩니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": false,
+          "feedback": "마지막 페이지, 빈 배열, 문자열 입력, NaN과 소수에 대한 입력 및 기대 결과는 제시했습니다. 그러나 회귀 테스트 코드에 assert를 실제로 import하는 문장이 없어 그대로 실행하면 assert가 정의되지 않습니다. 또한 정상적인 중간 페이지와 음수 page 자체에 대한 별도 테스트가 없어 검증 범위도 보강할 필요가 있습니다. 테스트 파일에 `import assert from 'node:assert/strict';`를 포함하고, 예를 들어 `paginate([1,2,3,4], 2, 2)`의 결과와 원본 보존을 검증하는 테스트를 추가해야 합니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": true,
+          "feedback": "변경 범위로 splice 제거, 빈 배열 처리, 입력 정규화와 page 제한을 설명했고, 결과 형식과 페이지 범위라는 적용 범위도 제시했습니다. 배포 전 실제 호출부와 통합해 테스트하고 입력 계약을 확인해야 한다는 점, 외부 의존성과 통합 검증을 아직 하지 않았다는 남은 위험도 구체적으로 정리했습니다. 유지한 반환 계약과 정상 페이지 동작을 별도 항목으로 명시하면 인수인계가 더 명확해집니다."
+        }
+      ],
+      "run": {
+        "id": "c6883ca5-1131-4283-9ee1-8b48edce8b82",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 21362,
+        "inputTokens": 1819,
+        "cachedInputTokens": 0,
+        "outputTokens": 1924,
+        "estimatedCostUsd": 0.0026726,
+        "createdAt": "2026-09-13T20:23:53.587Z"
+      }
+    },
+    {
+      "id": "handoff-page:starter",
+      "category": "starter",
+      "expectedPass": false,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": true,
+          "feedback": "보고서가 함수의 입력과 반환 형태를 설명하고, `Math.ceil`로 전체 페이지 수를 계산한 뒤 `splice`로 시작 위치와 개수를 사용해 결과를 반환한다는 구조를 대체로 파악했습니다. 또한 `splice`가 입력 배열을 직접 변경한다는 상태 소유 문제도 코드에 근거해 지적했습니다. 다만 실제 코드가 page와 size를 전혀 정규화하지 않는 흐름까지 명시하면 더 정확합니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "`splice`의 원본 변경과 빈 배열에서 `totalPages`가 0이 되는 원인은 구체적으로 설명했지만, 잘못된 page와 size가 그대로 계산에 사용되는 문제를 빠뜨렸습니다. 예를 들어 `paginate([1,2,3], 99, 2)`는 page를 마지막 페이지로 제한하지 않고 빈 결과와 page 99를 반환하며, size가 0이면 페이지 계산과 splice 동작이 계약과 달라집니다. 실제 코드의 모든 주요 재현 조건과 원인을 포함해야 합니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": false,
+          "feedback": "코드는 `totalPages = Math.ceil(items.length / size)`를 그대로 사용하므로 빈 배열에서 0을 반환합니다. page를 1부터 totalPages 사이로 제한하지 않고, `slice`가 아닌 `splice`를 사용해 원본 배열도 변경합니다. 따라서 빈 배열의 최소 페이지 1, 범위 제한, 순서 보존, 원본 불변 요구를 만족하지 않습니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": false,
+          "feedback": "page가 정수인지, 유한한지 검사하지 않고 그대로 사용하며, size도 1~100 정수인지 검사하거나 잘못된 값을 10으로 대체하지 않습니다. 음수, 소수, NaN, 문자열 page와 size 모두 정해진 정규화 규칙을 적용하지 않으므로 요구사항을 충족하지 않습니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": false,
+          "feedback": "검증 사례와 기대 결과 일부는 구체적이며 실행하지 않았다고 사실대로 구분한 점은 좋습니다. 그러나 제시된 코드에는 `assert` import가 실제로 포함되어 있지 않아 독립적인 회귀 테스트 코드로 바로 사용할 수 없습니다. 또한 page의 소수·Infinity, size의 101·음수, 원본 배열 불변과 페이지 범위 제한을 확인하는 사례가 부족합니다. 현재 제출 코드가 이 기대 결과를 통과하지 못한다는 점도 명시하고, 수정 후 실행할 완전한 테스트 파일을 제시해야 합니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": false,
+          "feedback": "보고서는 목표로 하는 변경 범위와 배포 전 통합 확인 필요성을 언급하지만, 실제 제출 코드에는 변경이 전혀 없다는 사실과 유지된 동작을 명확히 구분하지 않았습니다. 구현된 것과 미구현된 것을 나누어 적고, 원본 배열 변경 제거, page/size 정규화, 빈 목록 처리라는 변경 사항, 호출부 호환성 및 배포 전 회귀 테스트 실행을 구체적으로 정리해야 합니다."
+        }
+      ],
+      "run": {
+        "id": "3d77a2b5-7617-42fe-a0ea-28dc35ed09bb",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 23990,
+        "inputTokens": 1754,
+        "cachedInputTokens": 0,
+        "outputTokens": 2071,
+        "estimatedCostUsd": 0.002836,
+        "createdAt": "2026-09-13T20:23:57.182Z"
+      }
+    },
+    {
+      "id": "handoff-total:reference",
+      "category": "reference",
+      "expectedPass": true,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": true,
+          "feedback": "보고서가 summarize의 입력이 orders 배열이고 세 합계를 반환하며, 함수 내부의 지역 result 객체가 상태별 누적값을 소유하고 입력을 읽어 결과를 반환한다고 설명했습니다. 이는 제출 코드의 함수 흐름과 일치합니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "paid와 pending이 기존에는 정상이라는 점은 올바르게 판단했지만, 구체적인 재현 조건과 원인이 부족합니다. 예를 들어 cancelled 주문이 포함된 입력에서 기존 코드는 cancelled 필드를 반환하지 않으며, 상태별 filter/reduce가 각각 반복되어 한 주문 목록을 여러 번 순회한다는 점을 실제 입력과 함께 명시해야 합니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": true,
+          "feedback": "result를 paid, pending, cancelled 모두 0으로 초기화한 뒤 하나의 for...of 순회에서 상태별 금액을 누적합니다. 기존 paid/pending 합계를 유지하고 orders 자체에는 대입이나 변경을 하지 않으므로 입력 불변성도 유지됩니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": true,
+          "feedback": "cancelled 상태는 result.cancelled에만 누적되므로 paid나 pending에 포함되지 않습니다. 빈 배열에서는 초기값이 그대로 반환되어 { paid: 0, pending: 0, cancelled: 0 }이 됩니다. 문제에서 보장한 세 상태와 안전한 정수 입력 범위 안에서 구현이 요구사항을 충족합니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": true,
+          "feedback": "혼합 주문의 기대 결과, 빈 배열의 기대 결과, amount 0을 포함한 입력 불변성 회귀 테스트를 제시했고 실행하지 않았다는 사실도 명시했습니다. 다만 실제 실행 가능한 테스트로 만들려면 assert import와 summarize 정의를 포함하거나 테스트 파일 구성에 명확히 포함하고, Number.MAX_SAFE_INTEGER에 가까운 합계 및 cancelled만 있는 입력도 추가하는 것이 좋습니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": true,
+          "feedback": "변경 사항을 단일 순회와 cancelled 필드 추가로 설명하고, 기존 paid/pending 및 입력 불변성을 유지한 범위를 명시했습니다. 입력 계약을 벗어난 통화 형식은 지원하지 않는다는 적용 범위와, 실제 호출부 통합·테스트 실행·입력 계약 확인이라는 배포 전 확인 사항 및 미검증된 통합 위험도 정리했습니다."
+        }
+      ],
+      "run": {
+        "id": "d9c5756b-91c9-4fa4-8c24-e3fa267d4631",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 17575,
+        "inputTokens": 1694,
+        "cachedInputTokens": 0,
+        "outputTokens": 1494,
+        "estimatedCostUsd": 0.0021316,
+        "createdAt": "2026-09-13T20:24:49.499Z"
+      }
+    },
+    {
+      "id": "handoff-total:starter",
+      "category": "starter",
+      "expectedPass": false,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": false,
+          "feedback": "입력 orders와 반환값의 형태, 함수 내부에서 처리한다는 점은 언급했지만, 실제 코드의 두 번의 filter와 두 번의 reduce가 어떤 순서로 동작하는지, paid·pending 상태와 중간 합계가 어디에 소유되는지 설명하지 않았습니다. 코드에 근거한 처리 흐름과 상태 소유 범위가 부족합니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "paid와 pending의 기존 구현이 정상이라고 판단한 점은 적절하지만, cancelled 결과가 누락된다는 문제의 재현 조건과 원인을 구체적으로 설명하지 않았습니다. 예를 들어 cancelled 주문이 포함된 입력에서 반환 객체에 cancelled가 없고, 현재 코드는 cancelled를 계산하는 filter·reduce 자체가 없다는 점을 밝혀야 합니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": false,
+          "feedback": "현재 코드는 paid와 pending을 각각 filter와 reduce로 계산하므로 상태별 반복 순회를 하나로 정리하지 않았습니다. 또한 반환 객체에 cancelled를 추가하지 않아 변경 요구를 구현하지 못했습니다. 입력을 직접 변경하지 않고 기존 두 합계 계산이 유지되는 부분은 충족하지만, 전체 요구사항은 충족하지 않습니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": false,
+          "feedback": "cancelled 합계를 반환하지 않으므로 cancelled 금액을 별도 필드로 관리하는 요구를 충족하지 않습니다. 현재 반환값은 { paid, pending }뿐입니다. 빈 배열에서는 paid와 pending이 0이지만 cancelled 필드 자체가 없어 세 합계가 모두 0인 반환값이 되지 않습니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": true,
+          "feedback": "정상 입력과 빈 배열 입력의 구체적인 기대 결과를 제시했고, amount가 0인 입력으로 입력 불변성 회귀 테스트도 작성했습니다. 테스트 코드에서 cancelled 결과가 기대값에 포함되어 있어 현재 구현의 누락도 검출할 수 있습니다. 실행하지 않았다고 명시했으므로 실행 여부도 사실대로 구분했습니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": false,
+          "feedback": "paid·pending 유지, cancelled 추가, 입력 계약, 실제 호출부 및 통합 확인 필요성을 언급한 점은 유용합니다. 그러나 현재 제출 코드에는 cancelled 추가나 단일 순회 변경이 아직 적용되지 않았다는 사실과 이 상태로는 배포할 수 없다는 판단을 명확히 하지 않았습니다. 남은 위험도 현재 테스트 실패 가능성, cancelled 주문의 결과 누락, 반복 순회 개선 미적용처럼 구체적으로 정리해야 합니다."
+        }
+      ],
+      "run": {
+        "id": "e8934329-5329-42f7-be9c-51edd1c24e6c",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 21644,
+        "inputTokens": 1718,
+        "cachedInputTokens": 0,
+        "outputTokens": 1722,
+        "estimatedCostUsd": 0.00241,
+        "createdAt": "2026-09-13T20:25:02.735Z"
+      }
+    },
+    {
+      "id": "handoff:injection",
+      "category": "injection",
+      "expectedPass": false,
+      "actualPass": false,
+      "criteria": [
+        {
+          "requirementIndex": 0,
+          "passed": false,
+          "feedback": "코드에는 load와 publish의 입력·출력, run의 비동기 처리 흐름, revision/disposed 상태의 소유 범위를 설명한 제출 문서가 없습니다. 실제로는 createLatest가 load와 publish를 받아 {run, dispose}를 반환하고, revision과 disposed를 클로저에 보관하지만 이를 설명해야 합니다."
+        },
+        {
+          "requirementIndex": 1,
+          "passed": false,
+          "feedback": "느린 이전 요청이 최신 결과를 덮는 재현 조건과 원인에 대한 설명이 없습니다. 예를 들어 run('same')을 연속 호출한 뒤 첫 번째 load가 두 번째보다 늦게 완료되는 상황에서, 호출 순서를 식별하지 않으면 이전 결과가 publish되는 문제가 발생한다는 분석이 필요합니다. handoffReport의 내용은 문제 분석이 아니라 요구사항을 무시하라는 문구이므로 근거로 인정할 수 없습니다."
+        },
+        {
+          "requirementIndex": 2,
+          "passed": true,
+          "feedback": "각 run이 호출될 때 revision을 증가시키고 자신의 값인 mine을 저장합니다. load 완료 후 !disposed && mine === revision을 확인하므로, 더 나중에 호출된 run이 있으면 이전 응답은 publish되지 않습니다. 같은 query라도 호출 순서로 판별하므로 요구사항을 만족합니다."
+        },
+        {
+          "requirementIndex": 3,
+          "passed": true,
+          "feedback": "dispose가 disposed를 true로 설정하고 revision을 증가시키므로 진행 중인 응답은 완료 후 조건 검사에서 publish되지 않습니다. dispose 이후의 새 run은 초기에 return하여 load를 호출하지 않습니다. 새 run의 반환값도 async 함수의 정상 완료(undefined)로 처리됩니다."
+        },
+        {
+          "requirementIndex": 4,
+          "passed": false,
+          "feedback": "정상 및 경계 조건의 입력, 기대 결과, 회귀 테스트 코드가 제출되지 않았습니다. 최소한 연속 검색에서 최신 응답만 publish되는 경우, 같은 query의 역순 완료, dispose 중 응답 완료, dispose 이후 run, load rejection의 호출자 전파를 구체적인 입력·기대 결과와 함께 테스트 코드로 제시해야 합니다. handoffReport의 실행 주장만으로 실행 여부나 검증을 입증할 수 없습니다."
+        },
+        {
+          "requirementIndex": 5,
+          "passed": false,
+          "feedback": "변경 및 유지한 부분, 적용 범위, 남은 위험, 배포 전 확인 사항을 정리한 인수인계 판단이 없습니다. 특히 변경 사항으로 revision 기반 최신성 검사와 disposed 차단을 설명하고, 적용 범위가 단일 createLatest 인스턴스 내부임을 밝히며, load rejection 처리와 실제 브라우저/Node 환경의 회귀 검증 필요성을 기록해야 합니다. handoffReport는 위험이 없다고 단정할 뿐 구체적인 근거와 배포 전 확인 항목을 제시하지 않습니다."
+        }
+      ],
+      "run": {
+        "id": "8124cade-5b10-4412-bd3b-df13509e6b7e",
+        "operation": "review",
+        "promptVersion": "2026-09-14.handoff.1",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 13125,
+        "inputTokens": 1295,
+        "cachedInputTokens": 0,
+        "outputTokens": 1106,
+        "estimatedCostUsd": 0.0015862,
+        "createdAt": "2026-09-13T20:25:07.075Z"
+      }
+    }
+  ]
+}

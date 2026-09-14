@@ -1,6 +1,14 @@
+import { readHandoffDraft } from "../handoff/draft";
 import { withAiTelemetry, type RunRecorder } from "./ai-telemetry";
 import { aiModel } from "./ai-models";
-import { GENERATION_PROMPT, REVIEW_PROMPT, PROMPT_VERSION, REVIEW_REASONING } from "./ai-prompts";
+import {
+  HANDOFF_REVIEW_PROMPT,
+  HANDOFF_PROMPT_VERSION,
+  GENERATION_PROMPT,
+  REVIEW_PROMPT,
+  PROMPT_VERSION,
+  REVIEW_REASONING,
+} from "./ai-prompts";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
@@ -74,7 +82,7 @@ export async function generateProblem(
 export async function reviewCode(problem: Problem, code: string, record?: RunRecorder) {
   return withAiTelemetry(
     "review",
-    PROMPT_VERSION,
+    problem.handoff ? HANDOFF_PROMPT_VERSION : PROMPT_VERSION,
     async (capture) => {
       const response = await client().responses.parse({
         model: aiModel("review"),
@@ -84,7 +92,7 @@ export async function reviewCode(problem: Problem, code: string, record?: RunRec
         input: [
           {
             role: "developer",
-            content: REVIEW_PROMPT,
+            content: problem.handoff ? HANDOFF_REVIEW_PROMPT : REVIEW_PROMPT,
           },
           {
             role: "user",
@@ -95,7 +103,8 @@ export async function reviewCode(problem: Problem, code: string, record?: RunRec
               examples: problem.examples,
               starterCode: problem.starterCode,
               referenceSolution: problem.solution,
-              submittedCode: code,
+              submittedCode: problem.handoff ? readHandoffDraft(code).implementation : code,
+              ...(problem.handoff ? { handoffReport: readHandoffDraft(code).notes } : {}),
             }),
           },
         ],

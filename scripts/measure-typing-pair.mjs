@@ -122,7 +122,7 @@ try {
         cpu: cpus()[0].model,
         browser: browser.version(),
         condition:
-          "390x844 / CPU 4x / latency 100ms / 10Mbps down / 5Mbps up / production / identical 12 problems and fresh guest per sample",
+          "390x844 / CPU 4x / latency 100ms / 10Mbps down / 5Mbps up / production / compared builds must use identical problem banks and fresh guest per sample",
         repetitions:
           "5 alternating pairs; traces on every sample; instrumented local/session storage durations",
         purpose:

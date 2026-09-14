@@ -48,6 +48,9 @@ export const problemSchema = problemContentSchema.extend({
   difficulty: z.enum(LEVELS),
   kind: z.enum(KINDS),
   source: z.enum(["curated", "ai"]),
+  handoff: z
+    .object({ track: z.string().max(40), variant: z.boolean(), skill: z.string().max(80) })
+    .optional(),
   createdAt: z.iso.datetime(),
 });
 export type Problem = z.infer<typeof problemSchema>;

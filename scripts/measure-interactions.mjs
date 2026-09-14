@@ -184,7 +184,7 @@ try {
           platform: platform(),
           os: release(),
           database:
-            "SQLite / 12 curated problems / fresh isolated database per build / fresh guest per sample",
+            "SQLite / current curated seed bank / use equal counts for compared builds / fresh isolated database per build / fresh guest per sample",
           build: "next build / production / React StrictMode / no dev server",
           cache: "new browser context, HTTP cache disabled, warmed local server",
           repetitions: 5,

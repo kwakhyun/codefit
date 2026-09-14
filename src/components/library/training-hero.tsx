@@ -30,6 +30,12 @@ export function TrainingHero({ recommended, libraryHref, resume }: TrainingHeroP
           <FileCode2 size={19} />
           <span>문제는 AI가 출제하고, 풀이는 직접. 막힐 때는 힌트와 피드백.</span>
         </div>
+        <Link href="/handoff" className="handoff-entry">
+          <strong>NEW / AI 코드 인수인계 훈련</strong>
+          <span>
+            이해하고, 고치고, 검증하며 내 코드로 만들기 <ArrowUpRight size={16} />
+          </span>
+        </Link>
         {recommended && (
           <Link href={problemUrl(recommended.id, libraryHref)} className="hero-start">
             {resume ? "이어서 훈련하기" : "오늘의 코딩 훈련 시작"}
