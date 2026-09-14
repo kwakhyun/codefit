@@ -1,0 +1,227 @@
+/* shell layout at supported breakpoints. Keep media queries in source order. */
+
+@media (min-width: 1550px) {
+  .nav-item,
+  .domain-nav {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1230px) {
+  .sidebar {
+    width: 194px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .main-shell {
+    margin-left: 194px;
+  }
+  .brand-logo {
+    font-size: 21px;
+    gap: 9px;
+  }
+  .nav-item {
+    font-size: 10px;
+  }
+  .domain-nav {
+    font-size: 10px;
+  }
+  .sidebar-workspace {
+    padding: 10px 8px;
+  }
+  .sidebar-note {
+    font-size: 9px;
+  }
+  .sidebar-version {
+    font-size: 7px;
+  }
+  .sidebar-version > span:last-child {
+    font-size: 6px;
+  }
+  .topbar {
+    padding: 0 25px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .sidebar {
+    width: 181px;
+    padding: 25px 10px 0;
+  }
+  .main-shell {
+    margin-left: 181px;
+  }
+  .sidebar .brand-logo {
+    font-size: 19px;
+    gap: 7px;
+  }
+  .brand-logo small {
+    font-size: 7px;
+    letter-spacing: 1.3px;
+  }
+  .sidebar-workspace {
+    margin-top: 28px;
+    font-size: 10px;
+    gap: 7px;
+  }
+  .sidebar-workspace small {
+    font-size: 7px;
+  }
+  .nav-caption {
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 0 8px;
+  }
+  .nav-item {
+    padding: 10px 8px;
+    gap: 8px;
+  }
+  .nav-item svg {
+    width: 15px;
+  }
+  .domains-caption {
+    margin-top: 25px;
+  }
+  .sidebar-note {
+    padding: 11px 7px;
+    gap: 7px;
+  }
+  .sidebar-note svg {
+    width: 14px;
+  }
+  .connection {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 230px;
+    padding: 28px 17px 0;
+    transition: transform 0.2s;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar .brand-logo {
+    font-size: 24px;
+    gap: 10px;
+  }
+  .brand-logo small {
+    font-size: 8px;
+    letter-spacing: 1.7px;
+  }
+  .sidebar .brand-symbol {
+    width: 34px;
+    height: 35px;
+  }
+  .sidebar-close {
+    display: flex;
+    position: absolute;
+    right: 8px;
+    top: 12px;
+    width: 24px;
+    height: 24px;
+  }
+  .sidebar .nav-item {
+    font-size: 12px;
+    padding: 10px 11px;
+  }
+  .sidebar .nav-caption {
+    font-size: 9px;
+    padding: 0 11px;
+  }
+  .sidebar .sidebar-workspace {
+    font-size: 12px;
+    gap: 10px;
+  }
+  .sidebar .sidebar-workspace small {
+    font-size: 8px;
+  }
+  .sidebar-note {
+    font-size: 10px;
+    padding: 12px;
+    gap: 10px;
+  }
+  .sidebar-version {
+    font-size: 8px;
+  }
+  .sidebar-version > span:last-child {
+    font-size: 7px;
+  }
+  .main-shell {
+    margin-left: 0;
+  }
+  .mobile-menu {
+    display: flex;
+    width: 26px;
+    height: 30px;
+  }
+  .topbar {
+    height: 58px;
+    padding: 0 18px;
+    gap: 10px;
+  }
+  .topbar-path {
+    gap: 9px;
+    font-size: 10px;
+  }
+  .path-root {
+    display: none;
+  }
+  .topbar-path > span:nth-child(3) {
+    display: none;
+  }
+  .topbar-actions {
+    gap: 10px;
+  }
+  .help-button {
+    margin: 0;
+    width: 25px;
+  }
+  .new-label {
+    display: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .topbar {
+    padding: 0 13px;
+  }
+  .topbar-path strong {
+    font-size: 10px;
+  }
+  .topbar-actions {
+    gap: 5px;
+  }
+  .topbar-actions > .help-button {
+    width: 24px;
+    margin-right: 4px;
+  }
+}
+
+@media (min-width: 1001px) {
+  .nav-item,
+  .domain-nav {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 540px) {
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    backdrop-filter: blur(12px);
+  }
+}
+
+@media (max-width: 760px) {
+  .sidebar {
+    visibility: hidden;
+  }
+  .sidebar.open {
+    visibility: visible;
+  }
+}

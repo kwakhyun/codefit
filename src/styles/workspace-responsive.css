@@ -1,0 +1,506 @@
+/* workspace layout at supported breakpoints. Keep media queries in source order. */
+
+@media (min-width: 1550px) {
+  .workspace-heading h1 {
+    font-size: 28px;
+  }
+  .practice-main {
+    padding: 30px 35px 0;
+  }
+  .monaco-shell {
+    height: 500px;
+  }
+  .problem-content {
+    min-height: 730px;
+  }
+  .scenario {
+    font-size: 13px;
+  }
+  .requirements li > p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1230px) {
+  .workbench {
+    grid-template-columns: minmax(280px, 0.9fr) minmax(340px, 1.1fr);
+  }
+  .problem-content {
+    padding: 22px 19px;
+  }
+  .practice-main {
+    padding: 23px 20px 0;
+  }
+  .problem-tabs button {
+    padding: 0 6px;
+    font-size: 9px;
+    gap: 4px;
+  }
+  .problem-tabs button svg {
+    width: 13px;
+  }
+  .workspace-heading h1 {
+    font-size: 21px;
+  }
+  .review-action > span kbd {
+    font-size: 8px;
+    padding: 1px 3px;
+  }
+  .review-action .primary-button {
+    font-size: 10px;
+    gap: 6px;
+    padding: 9px;
+  }
+  .review-action {
+    padding: 11px;
+    gap: 5px;
+  }
+  .review-action > span {
+    font-size: 9px;
+  }
+  .review-action > span > small {
+    font-size: 8px;
+  }
+  .editor-topbar > span {
+    font-size: 8px;
+  }
+  .editor-topbar {
+    padding: 0 11px;
+  }
+  .editor-topbar > div {
+    gap: 6px;
+  }
+  .console-heading > span {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .workbench {
+    grid-template-columns: 1fr;
+  }
+  .problem-pane {
+    border-right: 0;
+    border-bottom: 1px solid #494949;
+  }
+  .problem-content {
+    max-height: 430px;
+    min-height: 290px;
+  }
+  .problem-tabs button {
+    flex: 0 1 auto;
+    padding: 0 20px;
+    font-size: 11px;
+  }
+  .workspace-heading h1 {
+    font-size: 22px;
+  }
+  .monaco-shell {
+    height: 450px;
+  }
+  .editor-topbar > span {
+    font-size: 9px;
+  }
+  .review-action .primary-button {
+    font-size: 12px;
+    padding: 10px 15px;
+  }
+  .review-action > span kbd {
+    font-size: 10px;
+  }
+  .review-action {
+    padding: 14px;
+  }
+  .review-action > span > small {
+    font-size: 10px;
+  }
+  .console-heading > span {
+    font-size: 9px;
+  }
+  .focus-mode .workbench {
+    grid-template-columns: minmax(300px, 1fr) minmax(360px, 1.2fr);
+  }
+  .focus-mode .problem-content {
+    min-height: 720px;
+    max-height: calc(100vh - 220px);
+  }
+  .focus-mode .problem-pane {
+    border-right: 1px solid #494949;
+    border-bottom: 0;
+  }
+  .focus-mode .problem-tabs button {
+    padding: 0 9px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 760px) {
+  .practice-main {
+    padding: 20px 18px 0;
+  }
+  .workspace-heading h1 {
+    font-size: 22px;
+  }
+  .workspace-heading {
+    margin: 18px 0 21px;
+  }
+  .workspace-id {
+    font-size: 7px;
+  }
+  .problem-content {
+    padding: 24px;
+    max-height: 420px;
+    min-height: 280px;
+  }
+  .problem-tabs {
+    padding-left: 10px;
+  }
+  .scenario {
+    font-size: 12px;
+  }
+  .problem-tabs button {
+    padding: 0 18px;
+  }
+  .focus-mode .workbench {
+    grid-template-columns: 1fr;
+  }
+  .focus-mode .problem-content {
+    min-height: 280px;
+    max-height: 420px;
+  }
+  .focus-mode .problem-pane {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 540px) {
+  .practice-main,
+  .focus-mode .practice-main {
+    padding: 17px 12px 0;
+  }
+  .workspace-breadcrumb {
+    font-size: 9px;
+    gap: 7px;
+  }
+  .workspace-breadcrumb a > svg {
+    width: 13px;
+  }
+  .workspace-id {
+    display: none;
+  }
+  .workspace-heading {
+    align-items: flex-start;
+    gap: 10px;
+    margin: 20px 0 18px;
+  }
+  .workspace-heading h1 {
+    font-size: 20px;
+    line-height: 1.6;
+    letter-spacing: -0.7px;
+    margin-top: 10px;
+  }
+  .workspace-heading-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .workspace-heading-actions .icon-button {
+    width: 29px;
+    height: 29px;
+  }
+  .workspace-heading-actions .icon-button svg {
+    width: 16px;
+  }
+  .problem-meta {
+    gap: 8px;
+    font-size: 9px;
+  }
+  .problem-meta > .kind-label {
+    font-size: 9px;
+  }
+  .problem-meta > span:last-child {
+    font-size: 8px;
+  }
+  .problem-meta > span:last-child svg {
+    width: 11px;
+  }
+  .workbench {
+    border-radius: 0;
+  }
+  .problem-tabs {
+    height: 44px;
+    padding: 0 5px;
+  }
+  .problem-tabs button,
+  .focus-mode .problem-tabs button {
+    flex: 1;
+    padding: 0 8px;
+    font-size: 10px;
+    gap: 5px;
+  }
+  .problem-tabs button svg {
+    width: 14px;
+  }
+  .problem-tabs small {
+    font-size: 7px;
+  }
+  .problem-content {
+    padding: 22px 18px;
+    max-height: 440px;
+    min-height: 290px;
+  }
+  .scenario {
+    font-size: 11px;
+    line-height: 1.95;
+  }
+  .requirements li > p {
+    font-size: 10px;
+    line-height: 1.9;
+  }
+  .section-marker > span {
+    font-size: 11px;
+  }
+  .example-box {
+    padding: 12px;
+  }
+  .example-box code {
+    font-size: 9px;
+  }
+  .example-box p {
+    font-size: 9px;
+  }
+  .problem-tags {
+    font-size: 9px;
+  }
+  .help-nudge {
+    font-size: 9px;
+    padding: 11px;
+  }
+  .editor-topbar {
+    height: 40px;
+    padding: 0 11px;
+  }
+  .editor-topbar > span {
+    font-size: 8px;
+  }
+  .save-indicator {
+    font-size: 8px;
+  }
+  .editor-topbar > div {
+    gap: 4px;
+  }
+  .monaco-shell,
+  .focus-mode .monaco-shell {
+    height: 390px;
+  }
+  .editor-filebar > span {
+    font-size: 9px;
+    padding: 10px 13px;
+  }
+  .editor-filebar strong {
+    font-size: 9px;
+  }
+  .editor-statusbar {
+    font-size: 7px;
+    padding: 0 10px;
+  }
+  .editor-statusbar > span {
+    gap: 8px;
+  }
+  .editor-statusbar > span:first-child > span {
+    display: none;
+  }
+  .review-action {
+    padding: 11px 10px;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+  .review-action > span {
+    font-size: 8px;
+  }
+  .review-action > span kbd {
+    font-size: 7px;
+    padding: 1px 3px;
+  }
+  .review-action > span > small {
+    font-size: 8px;
+  }
+  .review-action .primary-button {
+    font-size: 10px;
+    padding: 9px 11px;
+    min-height: 38px;
+    gap: 6px;
+  }
+  .review-action .primary-button > svg {
+    width: 13px;
+  }
+  .console-heading {
+    padding: 0 12px;
+    font-size: 9px;
+  }
+  .console-heading > span {
+    font-size: 7px;
+  }
+  .console-heading strong {
+    font-size: 9px;
+  }
+  .console-idle {
+    padding: 21px 16px;
+  }
+  .console-idle > .mono {
+    font-size: 10px;
+  }
+  .console-idle p {
+    font-size: 10px;
+  }
+  .review-result {
+    padding: 17px 15px;
+  }
+  .review-result-title strong {
+    font-size: 11px;
+  }
+  .review-result-title > b {
+    font-size: 22px;
+  }
+  .review-result-title > span > svg {
+    width: 19px;
+  }
+  .review-result > p {
+    font-size: 10px;
+  }
+  .review-criteria p {
+    font-size: 10px;
+  }
+  .review-result-title {
+    gap: 7px;
+  }
+  .solution-locked {
+    padding: 35px 0;
+  }
+  .solution-locked p {
+    font-size: 10px;
+  }
+  .solution-locked small {
+    font-size: 8px;
+  }
+  .problem-content h2 {
+    font-size: 17px;
+  }
+  .problem-content > .eyebrow {
+    font-size: 9px;
+  }
+  .problem-content > .muted {
+    font-size: 10px;
+  }
+  .hint-card p {
+    font-size: 10px;
+  }
+  .tab-empty small {
+    font-size: 9px;
+  }
+}
+
+@media (min-width: 1001px) {
+  .problem-tabs button {
+    font-size: 11px;
+  }
+  .scenario {
+    font-size: 13px;
+  }
+  .requirements li > p {
+    font-size: 12px;
+  }
+  .example-box code {
+    font-size: 11px;
+  }
+  .example-box p {
+    font-size: 11px;
+  }
+  .review-criteria p,
+  .review-result > p {
+    font-size: 12px;
+  }
+  .review-criteria strong {
+    font-size: 11px;
+  }
+  .console-idle p {
+    font-size: 12px;
+  }
+  .console-idle small {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 540px) {
+  .scenario {
+    font-size: 13px;
+  }
+  .requirements li > p {
+    font-size: 12px;
+  }
+  .section-marker > span {
+    font-size: 12px;
+  }
+  .example-box code {
+    font-size: 11px;
+  }
+  .example-box p {
+    font-size: 11px;
+  }
+  .help-nudge {
+    font-size: 11px;
+  }
+  .problem-content > .muted {
+    font-size: 12px;
+  }
+  .problem-tabs button,
+  .focus-mode .problem-tabs button {
+    font-size: 12px;
+    padding: 0 6px;
+    gap: 5px;
+  }
+  .hint-card p {
+    font-size: 12px;
+  }
+  .solution-locked p {
+    font-size: 12px;
+  }
+  .solution-locked small {
+    font-size: 10px;
+  }
+  .solution-code {
+    font-size: 11px;
+  }
+  .review-result > p {
+    font-size: 12px;
+  }
+  .review-criteria p {
+    font-size: 12px;
+  }
+  .review-criteria strong {
+    font-size: 11px;
+  }
+  .review-result-title strong {
+    font-size: 12px;
+  }
+  .console-idle p {
+    font-size: 12px;
+  }
+  .console-idle small {
+    font-size: 10px;
+  }
+  .review-action .primary-button {
+    font-size: 12px;
+  }
+  .review-improvements ul {
+    font-size: 11px;
+  }
+  .problem-meta {
+    font-size: 10px;
+  }
+  .problem-meta > .kind-label {
+    font-size: 10px;
+  }
+  .problem-meta > span:last-child {
+    font-size: 10px;
+  }
+}

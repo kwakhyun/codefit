@@ -1,5 +1,10 @@
 "use client";
-import { HANDOFF_FIELDS, readHandoffDraft, writeHandoffDraft } from "@/lib/handoff/draft";
+import {
+  HANDOFF_FIELDS,
+  HANDOFF_MIN_LENGTH,
+  readHandoffDraft,
+  writeHandoffDraft,
+} from "@/lib/handoff/draft";
 
 export function HandoffFields({
   value,
@@ -44,7 +49,8 @@ export function HandoffFields({
           />
           {!readOnly && (
             <small>
-              20자 이상 · {notes[field.key].length}/{field.max}자 · 코드와 함께 자동 저장
+              {HANDOFF_MIN_LENGTH}자 이상 · {notes[field.key].length}/{field.max}자 · 코드와 함께
+              자동 저장
             </small>
           )}
         </label>

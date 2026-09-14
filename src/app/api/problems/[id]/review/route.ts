@@ -1,4 +1,4 @@
-import { handoffMissing } from "@/lib/handoff/draft";
+import { missingHandoffFields, readHandoffDraft, handoffMissingMessage } from "@/lib/handoff/draft";
 import type { JobLease } from "@/lib/server/store-contract";
 import { requestFingerprint } from "@/lib/server/write-conflicts";
 import { reviewCode } from "@/lib/server/ai";
@@ -20,9 +20,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       z.object({ code: z.string().trim().min(5).max(30000), requestId: z.uuid() }),
     );
     if (problem.handoff) {
-      const missing = handoffMissing(input.code);
-      if (missing.length)
-        throw new HttpError(400, `${missing.join(", ")}을 각각 20자 이상 작성해 주세요.`);
+      const missing = missingHandoffFields(readHandoffDraft(input.code).notes);
+      if (missing.length) throw new HttpError(400, handoffMissingMessage(missing));
     }
     const store = await getStore();
     const job = await store.startJob(

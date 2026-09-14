@@ -4,7 +4,9 @@ import { HandoffExport } from "@/components/handoff/handoff-export";
 import { HandoffFields, HandoffGuide } from "@/components/handoff/handoff-fields";
 import { HandoffReadiness, focusHandoffField } from "@/components/handoff/handoff-readiness";
 import {
-  HANDOFF_FIELDS,
+  type HandoffField,
+  missingHandoffFields,
+  handoffMissingMessage,
   readHandoffDraft,
   writeHandoffDraft,
   formatHandoffDraft,
@@ -67,7 +69,7 @@ export function ProblemWorkspace({
   initialAttemptId?: string;
   initialDetail?: ProblemDetail;
 }) {
-  const [missingField, setMissingField] = useState<(typeof HANDOFF_FIELDS)[number] | null>(null);
+  const [missingField, setMissingField] = useState<HandoffField | null>(null);
   const {
     detail,
     code,
@@ -134,13 +136,13 @@ export function ProblemWorkspace({
   const { problem, hints, solution, attempts, progress } = detail;
   const handoffDraft = problem.handoff ? readHandoffDraft(code) : null;
   const inputError =
-    missingField && handoffDraft && handoffDraft.notes[missingField.key].trim().length < 20
-      ? `${missingField.label}을 20자 이상 작성해 주세요.`
+    missingField && handoffDraft && missingHandoffFields(handoffDraft.notes).includes(missingField)
+      ? handoffMissingMessage([missingField])
       : "";
   function requestReview(value: string) {
     if (problem.handoff) {
       const draft = readHandoffDraft(value);
-      const missing = HANDOFF_FIELDS.find((f) => draft.notes[f.key].trim().length < 20);
+      const missing = missingHandoffFields(draft.notes)[0];
       if (missing) {
         setMissingField(missing);
         focusHandoffField(missing.key);

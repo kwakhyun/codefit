@@ -1,0 +1,30 @@
+/* Shared design tokens. Feature colors remain explicit to avoid accidental coupling. */
+:root {
+  color-scheme: dark;
+  --bg: #000000;
+  --sidebar: #080808;
+  --line: #333333;
+  --text: #e6e6e6;
+  --muted: #a0a0a0;
+  --accent: #ffffff;
+  --warning: #f2c879;
+  --danger: #ff9a9a;
+  --action: #93c5fd;
+  --success: #7dd3ac;
+  --ai: #c4b5fd;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --sans: "IBM Plex Mono", "SFMono-Regular", Consolas, "Noto Sans KR", monospace;
+  --black: #000000;
+  --white: #ffffff;
+  --action-soft: #bfdbfe;
+  --handoff-border: #34373d;
+  --handoff-surface: #14161a;
+  --handoff-input: #0c0e12;
+  --handoff-card: #111318;
+  --handoff-accent: #b7dce4;
+  --handoff-muted: #b3b7c2;
+  --handoff-help: #a9adb7;
+  --handoff-placeholder: #858b97;
+  --handoff-outline: #45515b;
+  --handoff-focus: #87cfe0;
+}

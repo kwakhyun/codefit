@@ -269,17 +269,28 @@ test("reset retains handoff notes and undo restores the code; review errors reta
   await expect(page.locator("#handoff-understanding")).toHaveValue(notes.understanding);
   await page.getByRole("button", { name: "변경 취소" }).click();
   await expect.poll(() => readCode(page)).toBe(base.solution);
-  await page.route("**/api/problems/handoff-cart/review", (route) =>
-    route.fulfill({
+  const requests: { requestId: string; code: string }[] = [];
+  await page.route("**/api/problems/handoff-cart/review", (route) => {
+    requests.push(route.request().postDataJSON());
+    return route.fulfill({
       status: 502,
       json: { error: "AI 응답을 받지 못했습니다. 다시 시도해 주세요." },
-    }),
-  );
+    });
+  });
   await page.getByRole("button", { name: "AI 풀이 검토", exact: true }).click();
   await expect(page.locator(".workspace-error")).toContainText("AI 응답을 받지 못했습니다");
   for (const [key, value] of Object.entries(notes))
     await expect(page.locator(`#handoff-${key}`)).toHaveValue(value);
   expect(await readCode(page)).toBe(base.solution);
+  await page.getByRole("button", { name: "AI 풀이 검토", exact: true }).click();
+  await expect.poll(() => requests.length).toBe(2);
+  await expect(page.locator(".workspace-error")).toContainText("AI 응답을 받지 못했습니다");
+  expect(requests[1]).toEqual(requests[0]);
+  await page.locator("#handoff-decision").fill(notes.decision + " 추가 경계 사례를 준비합니다.");
+  await page.getByRole("button", { name: "AI 풀이 검토", exact: true }).click();
+  await expect.poll(() => requests.length).toBe(3);
+  expect(requests[2].requestId).not.toBe(requests[1].requestId);
+  expect(requests[2].code).not.toBe(requests[1].code);
 });
 
 test("audit: original code, stable labels, missing-note focus and handoff document download", async ({

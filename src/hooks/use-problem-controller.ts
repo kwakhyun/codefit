@@ -1,6 +1,6 @@
 "use client";
 
-import { handoffMissing } from "@/lib/handoff/draft";
+import { useCodeReview } from "./use-code-review";
 import type { ConfirmationAction, WorkspaceTab } from "@/components/workspace/types";
 
 import { useCodeDraft } from "@/hooks/use-code-draft";
@@ -32,7 +32,6 @@ export function useProblemController({
   const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [busy, setBusy] = useState(false);
   const [revealing, setRevealing] = useState(false);
   const [confirm, setConfirm] = useState<ConfirmationAction>(null);
   const [selectedAttempt, setSelectedAttempt] = useState<Attempt | null>(null);
@@ -40,8 +39,6 @@ export function useProblemController({
   const [notice, setNotice] = useState("");
   const [bookmarkBusy, setBookmarkBusy] = useState(false);
   const [copied, setCopied] = useState(false);
-  const pending = useRef(false);
-  const reviewRequest = useRef<{ code: string; id: string } | null>(null);
 
   const mounted = useRef(true);
 
@@ -129,30 +126,15 @@ export function useProblemController({
     window.addEventListener("codefit:backup-imported", refreshImported);
     return () => window.removeEventListener("codefit:backup-imported", refreshImported);
   }, [id, initialAttemptId, restoreImportedCode]);
-  async function review(value: string) {
-    if (pending.current || value.trim().length < 5 || !aiReady) return;
-    if (detail?.problem.handoff) {
-      const missing = handoffMissing(value);
-      if (missing.length) {
-        setError(
-          `${missing.join(", ")}을 각각 20자 이상 작성해 주세요. 내용의 정확성은 AI가 별도로 검토합니다.`,
-        );
-        return;
-      }
-    }
-    pending.current = true;
-    setBusy(true);
-    setError("");
-    try {
-      await saveBeforeReview();
-      if (reviewRequest.current?.code !== value)
-        reviewRequest.current = { code: value, id: crypto.randomUUID() };
-      const result = await api<{ attempt: Attempt; progress: Progress }>(
-        `/api/problems/${encodeURIComponent(id)}/review`,
-        { method: "POST", body: { code: value, requestId: reviewRequest.current.id } },
-      );
-      if (!mounted.current) return;
-      reviewRequest.current = null;
+  const { busy, review } = useCodeReview({
+    id,
+    scope,
+    aiReady,
+    handoff: Boolean(detail?.problem.handoff),
+    mounted,
+    saveBeforeReview,
+    onError: setError,
+    onReviewed(result) {
       setSelectedAttempt(result.attempt);
       setDetail((prev) =>
         prev
@@ -167,13 +149,8 @@ export function useProblemController({
           : prev,
       );
       onProgress(result.progress, result.attempt);
-    } catch (e) {
-      if (mounted.current) setError(errorMessage(e));
-    } finally {
-      pending.current = false;
-      if (mounted.current) setBusy(false);
-    }
-  }
+    },
+  });
   async function reveal(kind: "hint" | "solution") {
     if (revealing) return;
     setRevealing(true);

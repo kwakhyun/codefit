@@ -1,5 +1,5 @@
 "use client";
-import { HANDOFF_FIELDS, readHandoffDraft } from "@/lib/handoff/draft";
+import { HANDOFF_FIELDS, missingHandoffFields, readHandoffDraft } from "@/lib/handoff/draft";
 
 export function focusHandoffField(key: string) {
   const target = document.getElementById(`handoff-${key}`);
@@ -8,10 +8,12 @@ export function focusHandoffField(key: string) {
 }
 export function HandoffReadiness({ value }: { value: string }) {
   const { notes } = readHandoffDraft(value);
-  const missing = HANDOFF_FIELDS.filter((f) => notes[f.key].trim().length < 20);
+  const missing = missingHandoffFields(notes);
   return (
     <div className="handoff-readiness" aria-label="인수인계 작성 상태">
-      <strong>메모 작성 {4 - missing.length}/4</strong>
+      <strong>
+        메모 작성 {HANDOFF_FIELDS.length - missing.length}/{HANDOFF_FIELDS.length}
+      </strong>
       <p>
         {missing.length
           ? "아래 항목을 작성한 뒤 검토할 수 있습니다. 항목을 누르면 입력 위치로 이동합니다."

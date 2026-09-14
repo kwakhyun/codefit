@@ -1,22 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;450;500;600;700&family=Noto+Sans+KR:wght@400;450;500;550;600;650;700;750;800&display=swap");
 
-:root {
-  color-scheme: dark;
-  --bg: #000000;
-  --sidebar: #080808;
-  --line: #333333;
-  --text: #e6e6e6;
-  --muted: #a0a0a0;
-  --accent: #ffffff;
-  --warning: #f2c879;
-  --danger: #ff9a9a;
-  --action: #93c5fd;
-  --success: #7dd3ac;
-  --ai: #c4b5fd;
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --sans: "IBM Plex Mono", "SFMono-Regular", Consolas, "Noto Sans KR", monospace;
-}
-
 * {
   box-sizing: border-box;
 }

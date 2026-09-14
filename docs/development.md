@@ -4,7 +4,7 @@
 
 ## 로컬 실행
 
-Node.js 22.13 이상이 필요합니다. Docker 없이 SQLite로 실행할 수 있습니다.
+Node.js 22.x(22.13 이상)가 필요합니다. Docker 없이 SQLite로 실행할 수 있습니다.
 
 ```bash
 npm ci

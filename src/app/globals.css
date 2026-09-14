@@ -1,10 +1,15 @@
 /* Import order preserves base, responsive, then final palette and training styles. */
+@import "../styles/tokens.css";
 @import "../styles/foundation.css";
 @import "../styles/shell.css";
 @import "../styles/library.css";
 @import "../styles/workspace.css";
 @import "../styles/dialogs.css";
-@import "../styles/responsive.css";
+@import "../styles/shared-responsive.css";
+@import "../styles/shell-responsive.css";
+@import "../styles/library-responsive.css";
+@import "../styles/workspace-responsive.css";
+@import "../styles/dialogs-responsive.css";
 @import "../styles/palette.css";
 @import "../styles/training.css";
 @import "../styles/quality.css";

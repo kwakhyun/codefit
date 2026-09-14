@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Script, createContext } from "node:vm";
 import { handoffProblems, handoffSpecs } from "../../data/handoff-problems";
-import { readHandoffDraft, writeHandoffDraft, handoffMissing } from "./draft";
+import { readHandoffDraft, writeHandoffDraft, missingHandoffFields } from "./draft";
 import { handoffLearning, TRANSFER_DELAY_MS } from "./learning";
 import { problemSchema, publicProblem, type AttemptSummary } from "../problem";
 import { safeReturnTo } from "../library-state";
@@ -79,8 +79,10 @@ it("report and implementation roundtrip preserves literal code and hostile text 
   const packed = writeHandoffDraft(implementation, hostile);
   expect(readHandoffDraft(packed)).toEqual({ implementation, notes: hostile });
   expect(await run(packed, "typeof secret")).toBe("undefined");
-  expect(handoffMissing(writeHandoffDraft(implementation, notes))).toEqual([]);
-  expect(handoffMissing(implementation)).toHaveLength(4);
+  expect(
+    missingHandoffFields(readHandoffDraft(writeHandoffDraft(implementation, notes)).notes),
+  ).toEqual([]);
+  expect(missingHandoffFields(readHandoffDraft(implementation).notes)).toHaveLength(4);
   const corrupt = implementation + "\n// CODEFIT_HANDOFF_V1 {invalid";
   expect(readHandoffDraft(corrupt).implementation).toBe(corrupt);
   expect(() =>

@@ -34,13 +34,13 @@
 }
 .handoff-intro li {
   margin-right: 26px;
-  color: #b7dce4;
+  color: var(--handoff-accent);
 }
 .handoff-progress,
 .handoff-quality,
 .handoff-guide {
-  border: 1px solid #34373d;
-  background: #14161a;
+  border: 1px solid var(--handoff-border);
+  background: var(--handoff-surface);
   border-radius: 8px;
   padding: 24px;
   margin-bottom: 24px;
@@ -63,8 +63,8 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 16px;
-  background: #111318;
-  border: 1px solid #34373d;
+  background: var(--handoff-card);
+  border: 1px solid var(--handoff-border);
   border-radius: 8px;
   padding: 26px;
   min-width: 0;
@@ -82,11 +82,11 @@
   margin-top: auto;
 }
 .handoff-skill {
-  color: #b7dce4;
+  color: var(--handoff-accent);
   font-size: 13px;
 }
 .handoff-feedback {
-  border-top: 1px solid #34373d;
+  border-top: 1px solid var(--handoff-border);
   width: 100%;
   padding-top: 16px;
   font-size: 13px;
@@ -97,13 +97,13 @@
 }
 .handoff-feedback summary {
   cursor: pointer;
-  color: #b7dce4;
+  color: var(--handoff-accent);
 }
 .handoff-feedback ul {
   padding-left: 18px;
 }
 .handoff-entry {
-  border: 1px solid #45515b;
+  border: 1px solid var(--handoff-outline);
   background: #161a20;
   display: flex;
   flex-direction: column;
@@ -132,14 +132,14 @@
 }
 .handoff-guide small,
 .handoff-fields small {
-  color: #a9adb7;
+  color: var(--handoff-help);
   line-height: 1.6;
 }
 .handoff-fields {
   padding: 20px;
   display: grid;
   gap: 20px;
-  border-bottom: 1px solid #34373d;
+  border-bottom: 1px solid var(--handoff-border);
 }
 .handoff-fields label {
   display: flex;
@@ -153,14 +153,14 @@
 }
 .handoff-fields label > span {
   font-size: 13px;
-  color: #b3b7c2;
+  color: var(--handoff-muted);
   line-height: 1.6;
 }
 .handoff-fields textarea {
   resize: vertical;
   width: 100%;
   min-height: 90px;
-  background: #0c0e12;
+  background: var(--handoff-input);
   color: #e5e7ed;
   border: 1px solid #454a54;
   border-radius: 4px;
@@ -172,7 +172,7 @@
 .handoff-fields textarea:focus-visible,
 .handoff-page a:focus-visible,
 .handoff-guide button:focus-visible {
-  outline: 2px solid #87cfe0;
+  outline: 2px solid var(--handoff-focus);
   outline-offset: 3px;
 }
 .draft-comparison > div {
@@ -217,7 +217,7 @@
 }
 .handoff-metrics dt {
   font-size: 13px;
-  color: #b3b7c2;
+  color: var(--handoff-muted);
   line-height: 1.6;
 }
 .handoff-metrics dd {
@@ -230,13 +230,13 @@
   align-items: center;
   gap: 20px;
   padding: 18px;
-  border: 1px solid #45515b;
+  border: 1px solid var(--handoff-outline);
   margin: 18px 0;
 }
 .handoff-recommendation p,
 .handoff-next-reason {
   font-size: 13px;
-  color: #b3b7c2;
+  color: var(--handoff-muted);
 }
 .handoff-recommendation .secondary-button {
   flex-shrink: 0;
@@ -244,7 +244,7 @@
 .handoff-measurement summary,
 .handoff-original summary {
   cursor: pointer;
-  color: #b7dce4;
+  color: var(--handoff-accent);
   line-height: 1.8;
 }
 .handoff-measurement p {
@@ -263,18 +263,18 @@
   max-height: 320px;
   overflow: auto;
   padding: 16px;
-  background: #0c0e12;
+  background: var(--handoff-input);
   font-size: 13px;
   line-height: 1.8;
 }
 .handoff-readiness {
   padding: 18px 20px;
   background: #151a20;
-  border-top: 1px solid #34373d;
+  border-top: 1px solid var(--handoff-border);
 }
 .handoff-readiness p {
   font-size: 13px;
-  color: #b3b7c2;
+  color: var(--handoff-muted);
   line-height: 1.7;
   margin: 8px 0;
 }
@@ -282,7 +282,7 @@
   margin: 4px 16px 4px 0;
 }
 .handoff-fields textarea::placeholder {
-  color: #858b97;
+  color: var(--handoff-placeholder);
 }
 @media (max-width: 700px) {
   .handoff-metrics {
@@ -312,6 +312,6 @@
   gap: 12px;
 }
 .handoff-export small {
-  color: #a9adb7;
+  color: var(--handoff-help);
   font-size: 12px;
 }

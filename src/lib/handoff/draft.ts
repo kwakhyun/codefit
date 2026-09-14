@@ -1,14 +1,6 @@
 import { z } from "zod";
 
-const handoffNotesSchema = z
-  .object({
-    understanding: z.string().max(2000),
-    diagnosis: z.string().max(2000),
-    verification: z.string().max(4000),
-    decision: z.string().max(2000),
-  })
-  .strict();
-export type HandoffNotes = z.infer<typeof handoffNotesSchema>;
+export const HANDOFF_MIN_LENGTH = 20;
 export const HANDOFF_FIELDS = [
   {
     key: "understanding",
@@ -43,6 +35,22 @@ export const HANDOFF_FIELDS = [
     max: 2000,
   },
 ] as const;
+export type HandoffField = (typeof HANDOFF_FIELDS)[number];
+export type HandoffNotes = Record<HandoffField["key"], string>;
+const handoffNotesSchema = z
+  .object(
+    Object.fromEntries(
+      HANDOFF_FIELDS.map((field) => [field.key, z.string().max(field.max)]),
+    ) as Record<HandoffField["key"], z.ZodString>,
+  )
+  .strict();
+export function missingHandoffFields(notes: HandoffNotes) {
+  return HANDOFF_FIELDS.filter((field) => notes[field.key].trim().length < HANDOFF_MIN_LENGTH);
+}
+export function handoffMissingMessage(fields: readonly HandoffField[]) {
+  return `${fields.map((field) => field.label).join(", ")}을 각각 ${HANDOFF_MIN_LENGTH}자 이상 작성해 주세요.`;
+}
+
 const marker = "\n// CODEFIT_HANDOFF_V1 ";
 const empty = (): HandoffNotes => ({
   understanding: "",
@@ -72,12 +80,6 @@ export function writeHandoffDraft(implementation: string, notes: HandoffNotes) {
     JSON.stringify(handoffNotesSchema.parse(notes))
       .replaceAll("\u2028", "\\u2028")
       .replaceAll("\u2029", "\\u2029")
-  );
-}
-export function handoffMissing(value: string) {
-  const { notes } = readHandoffDraft(value);
-  return HANDOFF_FIELDS.filter((field) => notes[field.key].trim().length < 20).map(
-    (field) => field.label,
   );
 }
 export function formatHandoffDraft(value: string) {

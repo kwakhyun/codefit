@@ -14,6 +14,17 @@ CODE:FIT의 목적은 AI가 구현을 대신하는 환경에서도 개발자가 
 
 [브라우저 로딩 실험](../reports/browser-performance.json)은 같은 운영 빌드를 로컬에서 데스크톱과 모바일 크기로 각각 3회 측정했습니다. LCP 중앙값은 464ms / 824ms였습니다. CPU/네트워크 제한 없는 로컬 실험이며 실제 이용자의 Core Web Vitals나 운영 사이트 지연으로 해석하지 않습니다. `npm run measure:browser`로 재현할 수 있습니다.
 
+## 코드 구조 정리 — 2026-09-14
+
+기준 커밋 `3ad93c3`에서 화면 동작을 유지하면서 수정 책임을 좁혔다.
+
+- `use-code-review.ts`는 검토 중 중복 요청 방지, 저장 완료 확인, 동일 제출의 요청 ID 재사용과 오류 처리를 담당한다. `use-problem-controller.ts`는 받은 결과를 현재 화면과 제출 기록에 반영한다. 코드나 인수인계 메모가 달라지면 새 요청 ID를 발급하며, 요청에는 해당 화면의 계정 범위를 명시한다.
+- `lib/handoff/draft.ts`의 필드 정의가 최대 길이와 직렬화 스키마의 기준이다. 최소 길이와 누락 판정, 오류 문구도 공유한다. 입력 UI, 작성 상태, 검토 훅과 API는 같은 규칙을 사용하되 서버 검증은 유지한다. 코드/메모 저장 형식과 기존 데이터는 바뀌지 않는다.
+- 기존 1,773줄의 `responsive.css`를 `shell-responsive.css`, `library-responsive.css`, `workspace-responsive.css`, `dialogs-responsive.css`와 소수의 공통 규칙으로 나눴다. 각 파일 안에서는 기존 미디어 쿼리 순서를 유지한다. `globals.css`에는 기본 스타일 → 반응형 → 테마 → 개별 기능이라는 적용 순서를 명시한다. CSS Modules나 새로운 스타일 라이브러리는 도입하지 않았다.
+- 색상과 폰트의 공통 변수는 `tokens.css`로 모았다. 반복되는 흑백, 동작 강조색과 인수인계 색상을 변수로 공유한다. 한 번만 쓰는 모든 색상을 무리하게 변수화하지 않으며, 최종 DOS 테마의 덮어쓰기는 `palette.css`에 유지한다.
+
+스타일 이동은 파일 길이를 줄이는 것뿐 아니라 수정 위치를 찾기 쉽게 하는 목적이다. 파일 수가 늘고 CSS의 적용 순서를 계속 관리해야 하는 비용은 남는다. 검증 조건과 결과는 [검증 기록](VERIFICATION.md)에 남긴다.
+
 ## 백엔드: 원본 데이터와 조회용 데이터
 
 ```mermaid
@@ -270,7 +281,7 @@ SQLite와 PostgreSQL은 동일 계약을 구현합니다. PostgreSQL은 같은 I
 
 [공식 Luna 가격](https://developers.openai.com/api/docs/models/gpt-5.6-luna), [Terra 가격](https://developers.openai.com/api/docs/models/gpt-5.6-terra), [Sol 가격](https://developers.openai.com/api/docs/models/gpt-5.6-sol)을 2026-09-14 확인했습니다. 백만 토큰당 입력/캐시 입력/출력은 각각 Luna $0.20/$0.02/$1.20, Terra $2/$0.20/$12, Sol $4/$0.40/$20입니다. 표준 문맥 가격이며 Sol은 프로모션 단가입니다. [비용 계산](../src/lib/ai-telemetry.ts)에 반영했으며 알려지지 않은 모델은 비용 미상으로 유지합니다. 실제 청구액이나 장문 문맥 단가를 뜻하지 않습니다.
 
-## AI 코드 인수인계 훈련 — 로컬 업데이트
+## AI 코드 인수인계 훈련
 
 이번 변경은 커밋 전 로컬에서 검증했다. 기존 일반 문제 12개에 기본 인수인계 과제 6개와 변형 6개를 추가한다. 초기 범위는 프론트엔드와 백엔드의 의존성 없는 ES2022 JavaScript 함수다. 실제 회사의 AI 생성 코드나 여러 파일로 된 저장소를 가져오는 기능은 포함하지 않는다.
 

@@ -1,0 +1,241 @@
+/* dialogs layout at supported breakpoints. Keep media queries in source order. */
+
+@media (max-width: 1230px) {
+  .toast {
+    left: calc(50% + 97px);
+  }
+}
+
+@media (max-width: 1000px) {
+  .toast {
+    left: calc(50% + 90px);
+  }
+}
+
+@media (max-width: 760px) {
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: #00000088;
+    backdrop-filter: blur(3px);
+    z-index: 39;
+    display: block;
+  }
+  .toast {
+    left: 50%;
+  }
+}
+
+@media (max-width: 540px) {
+  .modal {
+    max-height: calc(100dvh - 24px);
+    max-width: calc(100vw - 20px);
+    border-radius: 0;
+  }
+  .modal-heading {
+    padding: 10px 14px;
+  }
+  .modal-heading > .mono {
+    font-size: 9px;
+  }
+  .generator-modal form {
+    padding: 21px 19px;
+  }
+  .generator-intro h2 {
+    font-size: 20px;
+    line-height: 1.5;
+  }
+  .generator-intro p {
+    font-size: 10px;
+  }
+  .generator-intro > .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .generator-fields {
+    margin-top: 21px;
+  }
+  .form-row {
+    gap: 10px;
+  }
+  .form-row label {
+    font-size: 10px;
+  }
+  .form-row select {
+    font-size: 11px;
+    height: 39px;
+    padding-left: 8px;
+  }
+  .difficulty-options {
+    gap: 7px;
+  }
+  .difficulty-options > button {
+    padding: 11px 9px;
+  }
+  .difficulty-options strong {
+    font-size: 12px;
+  }
+  .difficulty-options strong span {
+    font-size: 8px;
+  }
+  .difficulty-options small {
+    font-size: 8px;
+  }
+  .topic-label {
+    font-size: 10px;
+  }
+  .topic-label textarea {
+    font-size: 10px;
+    padding: 10px;
+  }
+  .topic-suggestions {
+    gap: 5px;
+  }
+  .topic-suggestions > button {
+    font-size: 8px;
+    padding: 5px 6px;
+  }
+  .generation-note {
+    font-size: 9px;
+    margin: 19px 0 16px;
+    align-items: flex-start;
+  }
+  .generation-note > svg {
+    margin-top: 2px;
+    flex-shrink: 0;
+    width: 13px;
+  }
+  .generator-intro .terminal-icon {
+    width: 39px;
+    height: 39px;
+    margin-bottom: 15px;
+  }
+  .confirm-content {
+    padding: 23px 20px;
+  }
+  .confirm-content h2 {
+    font-size: 19px;
+  }
+  .confirm-content > p {
+    font-size: 11px;
+  }
+  .modal-buttons {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .modal-buttons button {
+    font-size: 10px;
+    padding: 9px 12px;
+  }
+  .settings-content,
+  .help-content {
+    padding: 23px 20px;
+  }
+  .settings-content h2,
+  .help-content h2 {
+    font-size: 20px;
+    margin-bottom: 25px;
+  }
+  .settings-content .eyebrow,
+  .help-content .eyebrow {
+    font-size: 9px;
+  }
+  .settings-info {
+    font-size: 10px;
+  }
+  .settings-info strong {
+    font-size: 10px;
+  }
+  .settings-content > p {
+    font-size: 10px;
+  }
+  .settings-content > .secondary-button {
+    font-size: 10px;
+  }
+  .help-content li strong {
+    font-size: 11px;
+  }
+  .help-content li p {
+    font-size: 10px;
+  }
+  .shortcut-help {
+    gap: 14px;
+    font-size: 8px;
+  }
+  .shortcut-help kbd {
+    font-size: 8px;
+  }
+  .toast {
+    bottom: 16px;
+    font-size: 11px;
+    padding: 10px 10px 10px 13px;
+    min-width: 250px;
+    width: max-content;
+    max-width: calc(100vw - 25px);
+  }
+}
+
+.settings-content > .import-note {
+  font-size: 9px;
+  text-align: center;
+  color: #919191;
+  margin: 10px 0 0;
+  line-height: 1.8;
+}
+
+@media (max-width: 540px) {
+  .generator-intro p {
+    font-size: 12px;
+  }
+  .form-row label,
+  .field-label,
+  .topic-label {
+    font-size: 12px;
+  }
+  .form-row select {
+    font-size: 13px;
+  }
+  .segmented > button {
+    font-size: 12px;
+  }
+  .difficulty-options strong span {
+    font-size: 10px;
+    white-space: normal;
+    line-height: 1.7;
+    min-height: 34px;
+  }
+  .difficulty-options small {
+    font-size: 10px;
+  }
+  .topic-label textarea {
+    font-size: 12px;
+  }
+  .topic-suggestions > button {
+    font-size: 10px;
+  }
+  .generation-note {
+    font-size: 11px;
+  }
+  .settings-content > p {
+    font-size: 12px;
+  }
+  .settings-info,
+  .settings-info strong {
+    font-size: 12px;
+  }
+  .settings-content > .secondary-button {
+    font-size: 12px;
+  }
+  .help-content li strong {
+    font-size: 13px;
+  }
+  .help-content li p {
+    font-size: 12px;
+  }
+  .settings-content > .import-note {
+    font-size: 10px;
+  }
+  .confirm-content > p {
+    font-size: 12px;
+  }
+}

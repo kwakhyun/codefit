@@ -1,0 +1,36 @@
+/* shared layout at supported breakpoints. Keep media queries in source order. */
+
+@media (max-width: 1230px) {
+  .brand-symbol {
+    width: 30px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .brand-symbol {
+    width: 29px;
+    height: 30px;
+  }
+}
+
+@media (max-width: 760px) {
+  .skip-link {
+    left: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.import-button {
+  margin-top: 10px;
+  background: transparent;
+}

@@ -4,7 +4,7 @@
 .hero-terminal,
 .terminal-body,
 .editor-loading {
-  background: #000000;
+  background: var(--black);
 }
 
 .topbar {
@@ -18,25 +18,25 @@
 .terminal-title,
 .modal-heading {
   background: #c0c0c0;
-  color: #000000;
-  border-bottom-color: #ffffff;
+  color: var(--black);
+  border-bottom-color: var(--white);
 }
 
 .terminal-title > svg,
 .modal-heading > .mono,
 .modal-heading .icon-button {
-  color: #000000;
+  color: var(--black);
 }
 
 .modal-heading .icon-button:hover {
   background: #a0a0a0;
-  color: #000000;
+  color: var(--black);
 }
 
 .terminal-title i,
 .terminal-title i:nth-child(2),
 .terminal-title i:nth-child(3) {
-  background: #000000;
+  background: var(--black);
 }
 
 .terminal-title {
@@ -76,17 +76,17 @@
 .nav-item.active {
   background: #e6e6e6;
   border-color: #e6e6e6;
-  color: #000000;
+  color: var(--black);
 }
 
 .nav-item.active svg,
 .nav-item.active small {
-  color: #000000;
+  color: var(--black);
 }
 
 .domain-active {
   background: #242424;
-  color: #ffffff;
+  color: var(--white);
 }
 
 .difficulty-options > button.selected {
@@ -94,7 +94,7 @@
 }
 
 .difficulty-options > button.selected strong {
-  color: #ffffff;
+  color: var(--white);
 }
 
 .problem-row,
@@ -118,7 +118,7 @@
 .solution-code,
 .submitted-code pre,
 .font-preview {
-  background: #000000;
+  background: var(--black);
 }
 
 .hint-card {
@@ -153,7 +153,7 @@ summary:focus-visible {
 
 ::selection {
   background: #244363;
-  color: #ffffff;
+  color: var(--white);
 }
 
 .primary-button {
@@ -163,8 +163,8 @@ summary:focus-visible {
 }
 
 .primary-button:hover:not(:disabled) {
-  background: #bfdbfe;
-  border-color: #bfdbfe;
+  background: var(--action-soft);
+  border-color: var(--action-soft);
 }
 
 .secondary-button:hover:not(:disabled) {
@@ -188,7 +188,7 @@ summary:focus-visible {
 .type-filters button.selected,
 .segmented > button.selected {
   background: #152334;
-  color: #bfdbfe;
+  color: var(--action-soft);
 }
 
 .type-filters button.selected:hover {
@@ -197,7 +197,7 @@ summary:focus-visible {
 
 .problem-tabs button[aria-selected="true"] {
   border-bottom-color: var(--action);
-  color: #bfdbfe;
+  color: var(--action-soft);
 }
 
 .success-text,
@@ -304,7 +304,7 @@ summary:focus-visible {
 .generation-progress {
   background: #131c29;
   border-color: #344b68;
-  color: #bfdbfe;
+  color: var(--action-soft);
 }
 
 .generation-progress > div > span {
