@@ -20,12 +20,14 @@ test("guests can practice, see login guidance, and cannot generate or read profi
   await page.goto("/?generate=1");
   await expect(page.getByRole("heading", { name: /내게 필요한 문제를 만드세요/ })).toBeVisible();
   await page.getByRole("link", { name: "로그인 / 가입하고 생성하기" }).click();
-  await expect(page.getByRole("heading", { name: /오늘의 코딩 근력/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /연습 기록을 이어가세요/ })).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.goto("/profile");
   await expect(page).toHaveURL(/\/login\?returnTo=/);
   await page.getByRole("link", { name: "로그인 없이 연습하기" }).click();
-  await expect(page.getByRole("heading", { name: /내 실력은 녹슬지 않게/ })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 1, name: /앱의 원리부터 코드 이해까지/ }),
+  ).toBeVisible();
 });
 test("profile, account ownership, generation quota and logout work together", async ({
   page,
@@ -38,7 +40,7 @@ test("profile, account ownership, generation quota and logout work together", as
       { name, value: parts.join("="), url: base, httpOnly: true, sameSite: "Lax" },
     ]);
     await page.goto("/profile");
-    await expect(page.getByRole("heading", { name: "매일의 연습이 쌓이는 곳." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "내 프로필과 학습 현황" })).toBeVisible();
     await page.getByLabel("이름", { exact: true }).fill("계정 연습자");
     await page.getByLabel("한 줄 소개", { exact: true }).fill("백엔드 기본기 단련 중");
     await page.getByRole("button", { name: "프로필 저장" }).click();
@@ -76,7 +78,7 @@ test("profile, account ownership, generation quota and logout work together", as
     expect(generation.headers()["retry-after"]).toBeTruthy();
     await page.goto("/?generate=1");
     await expect(page.getByText("오늘 0 / 3회 남음")).toBeVisible();
-    await expect(page.getByText(/오늘 3회를 모두 사용했습니다/)).toBeVisible();
+    await expect(page.getByText(/오늘의 문제 생성 횟수를 모두 사용했습니다/)).toBeVisible();
     await page.goto("/profile");
     await page.getByRole("button", { name: "로그아웃", exact: true }).click();
     await expect(page).toHaveURL(base + "/");

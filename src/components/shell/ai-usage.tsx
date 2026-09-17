@@ -37,7 +37,7 @@ export function AiUsage() {
           <div className="usage-grid">
             {(["generate", "review"] as const).map((kind) => (
               <div key={kind}>
-                <span>{kind === "generate" ? "문제 생성" : "풀이 검토"}</span>
+                <span>{kind === "generate" ? "문제 생성" : "풀이 검토와 AI 질문"}</span>
                 <strong>
                   {kind === "generate" && !usage.canGenerate
                     ? "로그인 필요"
@@ -48,7 +48,7 @@ export function AiUsage() {
                 </strong>
                 <small>
                   {kind === "generate"
-                    ? "매일 00:00 KST 갱신 · 실패 시 횟수 반환"
+                    ? "매일 한국 시간 자정에 초기화 · 생성 실패 시 횟수 복구"
                     : usage.resetsAt[kind]
                       ? `${dateLabel(usage.resetsAt[kind]!)} 갱신`
                       : "첫 이용부터 24시간"}
@@ -65,8 +65,9 @@ export function AiUsage() {
         </>
       )}
       <p className="muted">
-        무료 공개 연습실입니다. 접속망과 서비스 전체의 공용 한도에 먼저 도달할 수 있습니다. AI
-        한도와 관계없이 기존 문제와 힌트는 이용할 수 있습니다.
+        모든 기능은 무료로 이용할 수 있습니다. 개인에게 남은 횟수가 있어도 같은 네트워크나 서비스
+        전체의 이용 한도에 도달하면 AI 요청이 일시적으로 제한될 수 있습니다. 기존 문제와 힌트는 계속
+        이용할 수 있습니다.
       </p>
       <Link className="text-button" href="/quality">
         AI 검토 방식과 검증 결과 보기 →

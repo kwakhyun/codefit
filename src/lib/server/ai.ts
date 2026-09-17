@@ -26,7 +26,7 @@ function client() {
   if (!process.env.OPENAI_API_KEY)
     throw new HttpError(
       503,
-      "AI 연결이 설정되지 않았습니다. 서버에 OPENAI_API_KEY를 설정하면 생성과 풀이 검토를 사용할 수 있습니다.",
+      "현재 AI 기능을 사용할 수 없습니다. 기존 문제 풀이와 코드 저장은 계속 이용할 수 있습니다.",
     );
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 90_000, maxRetries: 0 });
 }

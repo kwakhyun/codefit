@@ -19,7 +19,9 @@ export function useCodeDraft({
   mounted,
   onSaved,
   onError,
+  endpoint,
 }: {
+  endpoint?: string;
   id: string;
   scope: string;
   mounted: RefObject<boolean>;
@@ -52,7 +54,7 @@ export function useCodeDraft({
         save: async (code, baseRevision) => {
           try {
             const { progress } = await api<{ progress: Progress }>(
-              `/api/progress/${encodeURIComponent(id)}`,
+              endpoint ?? `/api/progress/${encodeURIComponent(id)}`,
               {
                 method: "PUT",
                 scope,

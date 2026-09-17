@@ -69,9 +69,12 @@ test("handoff discovery, no answer leak, mobile layout, keyboard navigation and 
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await page.locator(".handoff-entry").click();
+  await page
+    .locator(".training-paths")
+    .getByRole("link", { name: /AI 코드 이해 훈련/ })
+    .click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "읽는 것에서 이해하는 것으로",
+    "직접 분석하고 수정해 보세요",
   );
   await expect(page.locator(".handoff-card")).toHaveCount(6);
   await expect(page.getByRole("status")).toContainText("0/6개");
@@ -83,7 +86,7 @@ test("handoff discovery, no answer leak, mobile layout, keyboard navigation and 
   await accessible(page);
   if (testInfo.project.name === "chromium")
     await page.screenshot({ path: "artifacts/handoff-mobile.png", fullPage: true });
-  await page.getByRole("link", { name: "인수인계 시작 : 장바구니 상태 인수인계" }).click();
+  await page.getByRole("link", { name: "코드 분석 시작 : 장바구니 상태 인수인계" }).click();
   await stage(page, 3);
   await expect(page.locator("#handoff-understanding")).toBeVisible();
   await page.getByRole("button", { name: "구조 이해 작성하기" }).focus();
@@ -99,7 +102,10 @@ test("handoff discovery, no answer leak, mobile layout, keyboard navigation and 
   const detail = await (await page.request.get("/api/problems/handoff-cart")).json();
   expect(detail.problem).not.toHaveProperty("solution");
   expect(detail.solution).toBeNull();
-  await page.locator(".workspace-breadcrumb").getByRole("link", { name: "인수인계 훈련" }).click();
+  await page
+    .locator(".workspace-breadcrumb")
+    .getByRole("link", { name: "AI 코드 이해 훈련" })
+    .click();
   await expect(page).toHaveURL(/\/handoff$/);
   expect(errors).toEqual([]);
 });
@@ -395,7 +401,9 @@ test("audit: revisiting the base preserves retention and latest variant feedback
     .locator(".handoff-card")
     .filter({ has: page.getByRole("heading", { name: base.title }) });
   await expect(card).toContainText("최근 변형 과제: AI 기준 50%");
-  await expect(card).toContainText("첫 지연 재도전에서 서비스 내 도움 없이 AI 기준을 충족");
+  await expect(card).toContainText(
+    "7일 후 처음 제출한 변형 과제에서 코드핏의 도움 없이 AI 검토 기준을 충족",
+  );
   await expect(card.getByRole("link", { name: /7일 복습 시작/ })).toHaveAttribute(
     "href",
     /handoff-cart-transfer/,

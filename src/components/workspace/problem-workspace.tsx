@@ -176,7 +176,7 @@ export function ProblemWorkspace({
     <div className={`workspace ${focus ? "is-focused" : ""}`}>
       <div className="workspace-breadcrumb">
         <Link href={returnTo}>
-          <ArrowLeft size={15} /> {returnTo === "/handoff" ? "인수인계 훈련" : "문제 보관함"}
+          <ArrowLeft size={15} /> {returnTo === "/handoff" ? "AI 코드 이해 훈련" : "문제 보관함"}
         </Link>
         <ChevronRight size={13} />
         <span>{domainLabel(problem.domain)}</span>
@@ -426,7 +426,7 @@ export function ProblemWorkspace({
             </div>
             {!aiReady && (
               <p className="inline-warning">
-                AI 연결 설정 후 풀이 검토를 사용할 수 있습니다. 코드 작성과 저장은 가능합니다.
+                현재 AI 풀이 검토를 사용할 수 없습니다. 코드 작성과 저장은 계속 이용할 수 있습니다.
               </p>
             )}
             {(inputError || error) && (
@@ -453,7 +453,7 @@ export function ProblemWorkspace({
             />
             {learningEnabled && problem.handoff && (
               <aside className="lab-transfer">
-                <span className="eyebrow">NEXT / 다른 상황에서도 이해했을까?</span>
+                <span className="eyebrow">다음 연습</span>
                 <h3>
                   {problem.handoff.variant
                     ? "다른 주제로 분석 범위 넓히기"

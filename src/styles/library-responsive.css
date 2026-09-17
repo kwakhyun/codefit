@@ -6,27 +6,6 @@
     padding-left: 48px;
     padding-right: 48px;
   }
-  .hero-copy h1 {
-    font-size: 40px;
-  }
-  .library-hero {
-    padding-bottom: 42px;
-    gap: 65px;
-  }
-  .hero-terminal {
-    max-width: 500px;
-  }
-  .terminal-body {
-    padding: 25px 28px;
-    font-size: var(--text-ui);
-  }
-  .terminal-output {
-    margin: 26px 0;
-    gap: 11px;
-  }
-  .terminal-output > span {
-    font-size: var(--text-ui);
-  }
   .problem-row {
     min-height: 86px;
   }
@@ -55,9 +34,6 @@
   .stat-note {
     font-size: var(--text-caption);
   }
-  .hero-copy > p {
-    font-size: var(--text-reading);
-  }
   .hero-start {
     font-size: var(--text-ui);
   }
@@ -67,32 +43,8 @@
   .library-main {
     padding: 30px 26px 0;
   }
-  .library-hero {
-    gap: 30px;
-  }
-  .hero-copy h1 {
-    font-size: 29px;
-    letter-spacing: -1.5px;
-  }
-  .hero-copy > p {
-    font-size: var(--text-reading);
-  }
   .hero-start > span {
     display: none;
-  }
-  .terminal-body {
-    font-size: var(--text-caption);
-    padding: 19px 19px 17px;
-  }
-  .terminal-title {
-    font-size: var(--text-caption);
-  }
-  .terminal-output {
-    font-size: var(--text-caption);
-    margin: 20px 0;
-  }
-  .terminal-bottom {
-    font-size: var(--text-caption);
   }
   .stats-row > div {
     padding: 17px;
@@ -130,38 +82,6 @@
 @media (max-width: 1000px) {
   .library-main {
     padding: 25px 24px 0;
-  }
-  .hero-copy h1 {
-    font-size: 28px;
-  }
-  .hero-copy .eyebrow {
-    font-size: var(--text-caption);
-    letter-spacing: 1px;
-  }
-  .library-hero {
-    gap: 23px;
-  }
-  .terminal-body {
-    font-size: var(--text-caption);
-    padding: 18px 15px;
-  }
-  .terminal-output {
-    font-size: var(--text-caption);
-    gap: 9px;
-  }
-  .terminal-title {
-    padding: 10px 12px;
-    font-size: var(--text-caption);
-  }
-  .terminal-foot {
-    font-size: var(--text-caption);
-    letter-spacing: 0.6px;
-  }
-  .terminal-bottom {
-    font-size: var(--text-caption);
-  }
-  .terminal-output {
-    margin: 18px 0;
   }
   .stats-row > div {
     padding: 15px 12px;
@@ -266,20 +186,6 @@
   .library-main {
     padding: 25px 20px 0;
   }
-  .library-hero {
-    gap: 24px;
-    padding: 8px 0 30px;
-    grid-template-columns: 1fr 1fr;
-  }
-  .hero-copy h1 {
-    font-size: 27px;
-  }
-  .hero-copy > p {
-    font-size: var(--text-reading);
-  }
-  .hero-terminal {
-    transform: none;
-  }
   .stats-row > div {
     padding: 16px 13px;
   }
@@ -349,26 +255,6 @@
   .library-main {
     padding: 23px 17px 0;
   }
-  .library-hero {
-    grid-template-columns: 1fr;
-    padding: 6px 0 27px;
-    gap: 23px;
-  }
-  .hero-copy h1 {
-    font-size: 32px;
-    line-height: 1.5;
-    letter-spacing: -1.5px;
-    margin-top: 12px;
-    margin-bottom: 12px;
-  }
-  .hero-copy .eyebrow {
-    font-size: var(--text-caption);
-    letter-spacing: 1.1px;
-  }
-  .hero-copy > p {
-    font-size: var(--text-reading);
-    line-height: 1.9;
-  }
   .hero-start {
     margin-top: 19px;
     font-size: var(--text-small);
@@ -378,29 +264,6 @@
     margin-left: 3px;
     font-size: var(--text-caption);
     padding-left: 10px;
-  }
-  .hero-terminal {
-    max-width: none;
-  }
-  .terminal-title {
-    font-size: var(--text-caption);
-    padding: 10px 14px;
-  }
-  .terminal-body {
-    padding: 16px 20px;
-    font-size: var(--text-caption);
-  }
-  .terminal-output {
-    margin: 17px 0;
-    font-size: var(--text-caption);
-    gap: 7px;
-  }
-  .terminal-bottom {
-    font-size: var(--text-caption);
-  }
-  .terminal-foot {
-    font-size: var(--text-caption);
-    padding: 9px 14px;
   }
   .stats-row {
     grid-template-columns: 1fr 1fr;
@@ -690,7 +553,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .block-cursor,
   .blink {
     opacity: 1;
   }
@@ -728,9 +590,6 @@
   .stats-row > div > span:first-child {
     font-size: var(--text-small);
   }
-  .hero-copy > p {
-    font-size: var(--text-reading);
-  }
   .hero-start {
     font-size: var(--text-ui);
   }
@@ -740,18 +599,6 @@
 }
 
 @media (max-width: 540px) {
-  .library-hero {
-    padding-bottom: 24px;
-  }
-  .hero-terminal {
-    display: none;
-  }
-  .hero-copy > p {
-    font-size: var(--text-reading);
-  }
-  .hero-copy .eyebrow {
-    font-size: var(--text-caption);
-  }
   .hero-start {
     font-size: var(--text-ui);
   }

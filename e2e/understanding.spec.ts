@@ -255,9 +255,10 @@ test("coaching failure retries the same snapshot and preserves prediction and no
   }
   expect(requests[0]).toEqual(requests[1]);
   await stage(page, 3);
-  await page
-    .getByRole("textbox", { name: "문제 판단", exact: true })
-    .fill("원본과 반환값의 객체 참조를 추가로 비교하는 메모입니다.");
+  const diagnosis = page.getByRole("textbox", { name: "문제 판단", exact: true });
+  await diagnosis.fill("원본과 반환값의 객체 참조를 추가로 비교하는 메모입니다.");
+  await expect(diagnosis).toHaveValue("원본과 반환값의 객체 참조를 추가로 비교하는 메모입니다.");
+  await expect(diagnosis).toBeFocused();
   await stage(page, 1);
   await page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" }).click();
   await expect.poll(() => requests.length).toBe(3);

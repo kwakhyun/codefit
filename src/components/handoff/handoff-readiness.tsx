@@ -17,7 +17,7 @@ export function HandoffReadiness({ value }: { value: string }) {
       <p>
         {missing.length
           ? "아래 항목을 작성한 뒤 검토할 수 있습니다. 항목을 누르면 입력 위치로 이동합니다."
-          : "메모 입력 조건을 충족했습니다. 내용의 정확성은 AI 리뷰에서 별도로 확인합니다."}
+          : "모든 항목을 작성했습니다. AI 풀이 검토를 요청하면 코드와 메모를 함께 검토합니다."}
       </p>
       {missing.map((f) => (
         <button key={f.key} className="text-button" onClick={() => focusHandoffField(f.key)}>

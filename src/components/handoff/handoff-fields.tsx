@@ -67,10 +67,10 @@ export function HandoffGuide({ starterCode }: { starterCode: string }) {
   return (
     <section className="handoff-guide" aria-label="인수인계 훈련 안내">
       <span className="eyebrow">AI CODE HANDOFF</span>
-      <h2>이 코드를 맡아도 괜찮을까요?</h2>
+      <h2>코드 분석과 인수인계 메모</h2>
       <p>
-        코드를 읽고 판단한 근거를 남긴 뒤, 수정과 확장 내용을 검증하세요. 순서는 자유롭게 오갈 수
-        있습니다.
+        코드의 동작과 수정 이유를 설명하고, 변경한 내용을 테스트하세요. 각 단계는 필요한 순서로
+        이동할 수 있습니다.
       </p>
       <nav aria-label="인수인계 작성 단계">
         {[

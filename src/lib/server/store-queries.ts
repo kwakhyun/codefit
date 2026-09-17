@@ -1,3 +1,4 @@
+import { LearningStore } from "./learning-store";
 import { HANDOFF_TRACKS, handoffId } from "../handoff/catalog";
 import type { AiRun, AiUsage } from "../ai-telemetry";
 import { AI_ALLOWANCE } from "./usage-policy";
@@ -41,6 +42,10 @@ export class StoreQueries {
     private query: Query,
     private dialect: "sqlite" | "postgres",
   ) {}
+
+  get learning() {
+    return new LearningStore(this.query);
+  }
 
   async library(owner: string, params: URLSearchParams): Promise<LibraryPage> {
     const f = readFilters(params);

@@ -33,7 +33,7 @@ export function ProviderButtons({
       if (response.error)
         throw new Error("로그인을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } catch {
-      setError("로그인 제공자에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setError("Google 또는 GitHub에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.");
       setBusy(null);
     }
   }

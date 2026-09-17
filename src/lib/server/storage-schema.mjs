@@ -1,5 +1,13 @@
 // Shared SQL uses types supported by both SQLite and PostgreSQL.
 export const storageSchema = `
+CREATE TABLE IF NOT EXISTS learning_progress (
+  owner TEXT NOT NULL,
+  lesson_id TEXT NOT NULL,
+  content TEXT NOT NULL,
+  revision INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(owner, lesson_id)
+);
 CREATE TABLE IF NOT EXISTS problems (
   id TEXT PRIMARY KEY,
   content TEXT NOT NULL,

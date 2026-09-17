@@ -68,16 +68,16 @@ export function handoffLearning(
           : !base
             ? {
                 problemId: baseId,
-                label: "인수인계 시작",
-                reason: "코드를 읽고 판단하는 첫 훈련을 시작하세요.",
+                label: "코드 분석 시작",
+                reason: "원본 코드의 실행 결과를 예상하는 것부터 시작하세요.",
                 priority: 3,
               }
             : {
                 problemId: transferId,
                 label: firstTransfer ? "변형 과제 이어서 훈련" : "변형 과제 미리 연습",
                 reason: firstTransfer
-                  ? "같은 역량을 반복해서 연습할 수 있습니다."
-                  : "지금 연습할 수 있습니다. 7일 전에 제출하면 첫 지연 재도전 지표에는 포함하지 않습니다.",
+                  ? "기본 과제와 달라진 조건을 확인하고 다시 풀어보세요."
+                  : "지금도 연습할 수 있습니다. 기본 과제의 첫 검토일에서 7일이 지나기 전에 제출하면 7일 후 첫 제출 기록에는 포함되지 않습니다.",
                 priority: 4,
               };
     return {

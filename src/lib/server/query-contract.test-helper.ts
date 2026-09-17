@@ -1,5 +1,5 @@
 import { claim } from "./concurrency-contract.test-helper";
-import { StaleJob } from "./write-conflicts";
+import { CodeConflict, StaleJob } from "./write-conflicts";
 import { randomUUID } from "node:crypto";
 import { expect, it } from "vitest";
 import type { ProblemStore } from "./store-contract";
@@ -8,6 +8,46 @@ import type { Problem, Review } from "../problem";
 import type { AiRun } from "../ai-telemetry";
 
 export function queryContract(getStore: () => ProblemStore & { addProblem(p: Problem): unknown }) {
+  it("isolates beginner records and atomically rejects simultaneous stale writes", async () => {
+    const learning = getStore().queries.learning;
+    const owner = `beginner:${randomUUID()}`,
+      id = "where-data-lives";
+    const first = await learning.save(owner, id, "first", 0);
+    const results = await Promise.allSettled([
+      learning.save(owner, id, "tab A", first.codeRevision),
+      learning.save(owner, id, "tab B", first.codeRevision),
+    ]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    const rejected = results.find((r) => r.status === "rejected") as PromiseRejectedResult;
+    expect(rejected.reason).toBeInstanceOf(CodeConflict);
+    const current = (await learning.get(owner, id))!;
+    expect(current.codeRevision).toBe(2);
+    expect((await learning.save(owner, id, current.code!, first.codeRevision)).codeRevision).toBe(
+      2,
+    );
+    expect(await learning.get("other-learner", id)).toBeNull();
+    expect(await learning.all(owner)).toHaveLength(1);
+    await expect(learning.save(owner, "absent", "stale", 5)).rejects.toBeInstanceOf(CodeConflict);
+  });
+  it("fences beginner AI questions and distinguishes mismatched leases", async () => {
+    const store = getStore(),
+      id = "broken-memo";
+    const lease = await claim(store, randomUUID(), `learn-coach:${id}`);
+    await expect(
+      store.queries.learning.completeCoach({ ...lease, token: "stale" }, id, "late"),
+    ).rejects.toBeInstanceOf(StaleJob);
+    await expect(
+      store.queries.learning.completeCoach(lease, "other", "wrong"),
+    ).rejects.toBeInstanceOf(StaleJob);
+    await store.queries.learning.completeCoach(lease, id, "question");
+    await expect(
+      store.queries.learning.completeCoach(lease, id, "duplicate"),
+    ).rejects.toBeInstanceOf(StaleJob);
+    expect(await store.startJob(lease.owner, lease.id, lease.kind, "same-input")).toEqual({
+      state: "done",
+      result: "question",
+    });
+  });
   it("returns only first and latest handoff feedback per exercise, scoped to the owner and without drafts", async () => {
     const store = getStore();
     const owner = `handoff:${randomUUID()}`;

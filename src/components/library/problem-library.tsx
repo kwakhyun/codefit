@@ -62,7 +62,12 @@ export function ProblemLibrary({
   return (
     <>
       {initialView === "library" && initialDomain === "all" ? (
-        <TrainingHero recommended={recommended} libraryHref={libraryHref} resume={resume} />
+        <TrainingHero
+          recommended={recommended}
+          libraryHref={libraryHref}
+          resume={resume}
+          onGenerate={onGenerate}
+        />
       ) : (
         <div className="page-title">
           <span className="eyebrow">
@@ -70,13 +75,13 @@ export function ProblemLibrary({
           </span>
           <h1>
             {initialView === "bookmarks"
-              ? "다시 풀고 싶은 문제들."
-              : `${domainLabel(initialDomain as DomainId)}, 직접 풀어 보세요.`}
+              ? "북마크한 문제"
+              : `${domainLabel(initialDomain as DomainId)} 코딩 문제`}
           </h1>
           <p>
             {initialView === "bookmarks"
-              ? "북마크한 문제를 모아 보고, 나만의 속도로 다시 도전하세요."
-              : "AI에게 맡겼던 기능 구현, 오류 수정, 리팩터링을 직접 풀며 코딩 감각을 유지하세요."}
+              ? "저장해 둔 문제를 골라 이어서 풀거나 다시 연습하세요."
+              : "기능 구현, 오류 수정, 리팩터링 문제로 직접 코드를 작성하고 검토해 보세요."}
           </p>
         </div>
       )}
@@ -90,7 +95,7 @@ export function ProblemLibrary({
             {data.stats.total}
             <small>문제</small>
           </strong>
-          <span className="stat-note">차곡차곡 쌓이는 문제 은행</span>
+          <span className="stat-note">기본 문제와 AI 생성 문제</span>
         </div>
         <div>
           <span>
@@ -138,7 +143,7 @@ export function ProblemLibrary({
               {title}
               <span>{total}</span>
             </h2>
-            <p>오늘은 어떤 코딩 근력을 단련할까요?</p>
+            <p>연습할 분야와 난이도에 맞는 문제를 골라보세요.</p>
           </div>
           <button className="text-button" onClick={onGenerate}>
             <Sparkles size={14} />

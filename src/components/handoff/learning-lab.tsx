@@ -30,11 +30,6 @@ export function LearningLab({
     sameOutput(observation.actual, JSON.parse(choice.output));
   function move(index: number) {
     c.setStage(index);
-    requestAnimationFrame(() => {
-      const heading = document.getElementById("lab-stage-title");
-      heading?.focus();
-      heading?.scrollIntoView({ block: "start", behavior: "instant" });
-    });
   }
   return (
     <section className="learning-lab" aria-label="코드 이해 훈련">

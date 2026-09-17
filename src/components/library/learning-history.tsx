@@ -28,8 +28,8 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
     <>
       <div className="page-title">
         <span className="eyebrow">YOUR LEARNING LOG</span>
-        <h1>쌓이는 코드, 선명해지는 실력.</h1>
-        <p>지난 풀이를 돌아보고 다음 시도를 이어가세요.</p>
+        <h1>내 학습 기록</h1>
+        <p>제출한 코드와 검토 결과를 확인하고, 보완할 문제를 다시 풀어보세요.</p>
       </div>
       <div className="stats-row history-stats">
         <div>
@@ -75,7 +75,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
       </div>
       <section className="training-overview" aria-label="최근 7일 훈련 현황">
         <div>
-          <span className="eyebrow">꾸준함이 실력이 됩니다</span>
+          <span className="eyebrow">최근 7일 연습 기록</span>
           <h2>
             {training.streak ? `${training.streak}일 연속 훈련 중` : "오늘의 첫 풀이를 남겨 보세요"}
           </h2>
@@ -101,7 +101,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
       <section className="history-section">
         <div className="section-heading">
           <h2>
-            풀이 타임라인 <span>{data.stats.attempts}</span>
+            풀이 기록 <span>{data.stats.attempts}</span>
           </h2>
           <span className="muted">최근 검토 순</span>
         </div>
@@ -110,8 +110,10 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
         ) : !history.error && data.stats.attempts === 0 ? (
           <div className="empty-state bordered">
             <History size={36} />
-            <h2>첫 번째 기록을 남겨 보세요.</h2>
-            <p>문제를 풀고 AI 검토를 받으면 풀이와 피드백이 여기에 쌓입니다.</p>
+            <h2>아직 검토한 풀이가 없습니다.</h2>
+            <p>
+              문제를 풀고 AI 풀이 검토를 요청하면 제출한 코드와 피드백을 여기에서 볼 수 있습니다.
+            </p>
             <Link className="primary-button" href="/">
               문제 고르기
               <ArrowRight size={16} />

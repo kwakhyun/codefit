@@ -1,8 +1,6 @@
 /* DOS monochrome: black canvas, neutral surfaces, and white controls. */
 
 .topbar,
-.hero-terminal,
-.terminal-body,
 .editor-loading {
   background: var(--black);
 }
@@ -11,18 +9,12 @@
   backdrop-filter: none;
 }
 
-.terminal-body {
-  background-image: none;
-}
-
-.terminal-title,
 .modal-heading {
   background: #c0c0c0;
   color: var(--black);
   border-bottom-color: var(--white);
 }
 
-.terminal-title > svg,
 .modal-heading > .mono,
 .modal-heading .icon-button {
   color: var(--black);
@@ -31,36 +23,6 @@
 .modal-heading .icon-button:hover {
   background: #a0a0a0;
   color: var(--black);
-}
-
-.terminal-title i,
-.terminal-title i:nth-child(2),
-.terminal-title i:nth-child(3) {
-  background: var(--black);
-}
-
-.terminal-title {
-  font-weight: 600;
-  letter-spacing: 0.4px;
-}
-
-.terminal-title > span:first-child {
-  gap: 3px;
-}
-
-.terminal-title i {
-  width: 7px;
-  height: 7px;
-}
-
-.terminal-prompt,
-.terminal-flag,
-.terminal-value {
-  color: #e6e6e6;
-}
-
-.terminal-foot {
-  background: #080808;
 }
 
 .secondary-button {
@@ -218,8 +180,7 @@ summary:focus-visible {
   background: var(--warning);
 }
 
-.eyebrow .status-dot,
-.terminal-foot .status-dot {
+.eyebrow .status-dot {
   background: #a0a0a0;
 }
 

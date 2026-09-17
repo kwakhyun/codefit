@@ -1,0 +1,253 @@
+{
+  "date": "2026-09-17",
+  "baselineCommit": "43eb771e1cf3aa7e40dd6c9e626e7c07364f60b8",
+  "baselinePushed": true,
+  "newImplementationCommitted": false,
+  "newImplementationDeployed": false,
+  "environment": {
+    "os": "macOS 26.6.2",
+    "arch": "arm64",
+    "cpu": "Apple M2",
+    "memoryGB": 16,
+    "node": "v22.21.0",
+    "next": "16.3.4",
+    "build": "production",
+    "browsers": [
+      {
+        "name": "chromium",
+        "version": "153.0.8010.12"
+      },
+      {
+        "name": "firefox",
+        "version": "155.0"
+      },
+      {
+        "name": "webkit",
+        "version": "26.6"
+      }
+    ],
+    "database": "isolated SQLite",
+    "seedProblems": 24,
+    "beginnerMissions": 9,
+    "networkThrottle": false,
+    "cpuThrottle": false
+  },
+  "implementation": {
+    "foundations": 6,
+    "brokenAppLabs": 3,
+    "bannerImages": 4,
+    "bannerAssetBytes": 127176,
+    "coachModel": "existing review configuration; default gpt-5.6-luna"
+  },
+  "checks": {
+    "unit": {
+      "passed": 106,
+      "skipped": 21,
+      "skipReason": "isolated PostgreSQL server unavailable"
+    },
+    "build": "passed",
+    "typescript": "passed",
+    "lint": "passed",
+    "unused": "passed",
+    "format": "passed"
+  },
+  "browserRuns": [
+    {
+      "stage": "initial full regression",
+      "passed": 118,
+      "failed": 5,
+      "minutes": 11.7,
+      "notes": "3 obsolete heading selectors, Firefox animation contrast, WebKit note/retry assertion"
+    },
+    {
+      "stage": "WebKit coaching reproduction before focus change",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "stage": "focused beginner/account/understanding",
+      "passed": 65,
+      "failed": 1,
+      "minutes": 4.8,
+      "notes": "WebKit banner height after viewport resize"
+    },
+    {
+      "stage": "banner resize investigation",
+      "passed": 4,
+      "failed": 2,
+      "seconds": 59.2,
+      "notes": "Frame/asset readiness did not fix WebKit sizing"
+    },
+    {
+      "stage": "banner aspect-ratio and entrypoints",
+      "passed": 8,
+      "failed": 4,
+      "minutes": 2.3,
+      "notes": "WebKit sizing and mouse-button focus return"
+    },
+    {
+      "stage": "final banner build",
+      "passed": 12,
+      "failed": 0,
+      "minutes": 2,
+      "scenarioCount": 2,
+      "browserCount": 3,
+      "repetitions": 2,
+      "notes": "Fixed artwork frame height and explicit modal return focus; all slide accessibility and four entrypoints included"
+    },
+    {
+      "stage": "service-wide copy review full regression",
+      "date": "2026-09-18",
+      "passed": 126,
+      "failed": 0,
+      "minutes": 9.3,
+      "scenarioCount": 42,
+      "browserCount": 3,
+      "notes": "Single complete run; isolated SQLite; AI responses mocked."
+    }
+  ],
+  "layout": {
+    "samples": [
+      {
+        "height": 624.34375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "코딩이 처음이라면,\n앱부터 눌러보세요",
+        "width": 320
+      },
+      {
+        "height": 624.34375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "분명 저장했는데,\n메모가 사라졌다면?",
+        "width": 320
+      },
+      {
+        "height": 624.34375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "AI가 짠 코드,\n왜 이렇게 동작할까요?",
+        "width": 320
+      },
+      {
+        "height": 624.34375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "연습하고 싶은 기술로\n새 문제를 만들어보세요",
+        "width": 320
+      },
+      {
+        "height": 624.34375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "코딩이 처음이라면,\n앱부터 눌러보세요",
+        "width": 390
+      },
+      {
+        "height": 624.34375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "분명 저장했는데,\n메모가 사라졌다면?",
+        "width": 390
+      },
+      {
+        "height": 624.34375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "AI가 짠 코드,\n왜 이렇게 동작할까요?",
+        "width": 390
+      },
+      {
+        "height": 624.34375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "연습하고 싶은 기술로\n새 문제를 만들어보세요",
+        "width": 390
+      },
+      {
+        "height": 534.09375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "코딩이 처음이라면,\n앱부터 눌러보세요",
+        "width": 768
+      },
+      {
+        "height": 534.09375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "분명 저장했는데,\n메모가 사라졌다면?",
+        "width": 768
+      },
+      {
+        "height": 534.09375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "AI가 짠 코드,\n왜 이렇게 동작할까요?",
+        "width": 768
+      },
+      {
+        "height": 534.09375,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "연습하고 싶은 기술로\n새 문제를 만들어보세요",
+        "width": 768
+      },
+      {
+        "height": 458,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "코딩이 처음이라면,\n앱부터 눌러보세요",
+        "width": 1440
+      },
+      {
+        "height": 458,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "분명 저장했는데,\n메모가 사라졌다면?",
+        "width": 1440
+      },
+      {
+        "height": 458,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "AI가 짠 코드,\n왜 이렇게 동작할까요?",
+        "width": 1440
+      },
+      {
+        "height": 458,
+        "imageLoaded": true,
+        "overflow": 0,
+        "title": "연습하고 싶은 기술로\n새 문제를 만들어보세요",
+        "width": 1440
+      }
+    ],
+    "maxOverflow": 0,
+    "maxSlideHeightDelta": 0,
+    "allImagesLoaded": true,
+    "scope": "Historical measurements before the subsequent banner copy and Flex layout refinements; not measurements of the final copy."
+  },
+  "accessibility": {
+    "automated": "axe WCAG 2 A/AA and 2.1 AA",
+    "interaction": "browser keyboard, focus, conflicts, recovery, modal return",
+    "manualScreenReader": false
+  },
+  "externalOperations": {
+    "servicePaidOpenAiCalls": 0,
+    "builtInImageGenerationCalls": 4,
+    "productionDatabaseWrites": 0
+  },
+  "limitations": [
+    "Earlier browser runs remain separate historical results. The service-wide copy follow-up completed one full run with all 126 cases passing.",
+    "PostgreSQL shared contracts were added but not executed.",
+    "New AI coaching text quality and learner outcomes were not evaluated with live users or paid model calls.",
+    "Layout and asset-size observations are local; no production or before/after performance claim."
+  ],
+  "documentation": [
+    "docs/beginner-training.md",
+    "docs/design/feature-banner.md",
+    "docs/design/feature-banner-prompts.json",
+    "docs/VERIFICATION.md",
+    "docs/design/service-copy.md"
+  ],
+  "snapshotScope": "Initial local implementation before publication; follow-up service-wide copy and full regression verification is recorded in docs/VERIFICATION.md."
+}

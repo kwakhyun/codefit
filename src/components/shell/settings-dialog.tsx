@@ -61,7 +61,7 @@ export function SettingsDialog({
             <span className={`status-dot ${!data?.aiReady ? "waiting" : ""}`} />
             AI 연결
           </span>
-          <strong>{data?.aiReady ? "서버에 연결 정보 설정됨" : "API 키 설정 필요"}</strong>
+          <strong>{data?.aiReady ? "연결 설정 완료" : "현재 이용 불가"}</strong>
         </div>
         <div className="settings-info">
           <span>
@@ -71,9 +71,9 @@ export function SettingsDialog({
           <strong>{data ? "서버 데이터베이스" : "연결 확인 중"}</strong>
         </div>
         <p className="muted">
-          문제는 모두에게 공유됩니다. 로그인하면 풀이와 진도가 계정에 저장되고, 로그인 전에는 이
-          브라우저의 게스트 연습실에 저장됩니다. 게스트 기록을 계정으로 옮기려면 로그인 전에 내보낸
-          백업을 로그인 후 가져오세요. 기존 계정의 작성 코드는 덮어쓰지 않습니다.
+          생성한 문제는 누구나 볼 수 있습니다. 풀이와 진도는 로그인한 계정에 저장되며, 로그인 전
+          기록은 현재 브라우저에서 이어서 볼 수 있습니다. 게스트 코딩 기록을 계정으로 옮기려면
+          로그인 전에 백업을 내보내고, 로그인한 뒤 가져오세요. 계정에 이미 작성한 코드는 유지됩니다.
         </p>
         {Boolean(data?.legacyCount) && (
           <p className="inline-warning">
@@ -83,7 +83,7 @@ export function SettingsDialog({
         )}
         <button className="secondary-button full-width" onClick={exportData} disabled={exporting}>
           {exporting ? <LoaderCircle className="spin" size={16} /> : <ArrowDownToLine size={16} />}
-          전체 문제와 내 학습 기록 내보내기
+          전체 문제와 내 코딩 기록 내보내기
         </button>
         <input
           ref={importFile}
@@ -114,6 +114,10 @@ export function SettingsDialog({
           </p>
         )}
         <p className="import-note">이미 있는 문제와 작성 코드는 유지하고 새 기록을 추가합니다.</p>
+        <p className="import-note">
+          입문 실습 기록은 이 백업에 포함되지 않습니다. 각 미션 상단에서 별도로 내려받을 수 있으며,
+          가져오기는 지원하지 않습니다.
+        </p>
       </div>
     </Modal>
   );

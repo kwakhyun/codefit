@@ -47,7 +47,9 @@ export function useLearningLab({
     // Focus the committed destination, without stealing subsequent input on a late frame.
     if (headingFocusPending.current && stageTarget.current === stage) {
       headingFocusPending.current = false;
-      document.getElementById("lab-stage-title")?.focus();
+      const heading = document.getElementById("lab-stage-title");
+      heading?.focus();
+      heading?.scrollIntoView({ block: "start", behavior: "instant" });
     }
   }, [stage]);
   const [activity, setActivity] = useState<Activity>("idle");

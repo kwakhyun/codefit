@@ -157,7 +157,7 @@ export function ProblemMaterials({
         {tab === "hints" && (
           <>
             <span className="eyebrow">A LITTLE NUDGE</span>
-            <h2>생각의 실마리가 필요할 때</h2>
+            <h2>단계별 힌트</h2>
             <p className="muted">
               힌트는 한 단계씩 구체적인 방향을 알려 줍니다. 사용 기록은 풀이와 함께 저장됩니다.
             </p>
@@ -205,7 +205,7 @@ export function ProblemMaterials({
                 <p>
                   정답 코드와 해설을 확인할 수 있습니다.
                   <br />
-                  먼저 직접 풀어 본 뒤 비교하면 더 많이 배울 수 있어요.
+                  작성한 코드와 비교하며 접근 방법과 구현의 차이를 확인해 보세요.
                 </p>
                 <button
                   className="secondary-button"
@@ -243,7 +243,7 @@ export function ProblemMaterials({
                   <code>{solution.code}</code>
                 </pre>
                 <div className="section-marker">
-                  WHY <span>이렇게 풀었어요</span>
+                  WHY <span>풀이 해설</span>
                 </div>
                 <p className="scenario">{solution.explanation}</p>
               </>
@@ -253,7 +253,7 @@ export function ProblemMaterials({
         {tab === "history" && (
           <>
             <span className="eyebrow">SUBMISSION HISTORY</span>
-            <h2>생각이 코드가 된 기록</h2>
+            <h2>이 문제의 풀이 기록</h2>
             {attempts.length === 0 ? (
               <div className="tab-empty">
                 <History size={30} />

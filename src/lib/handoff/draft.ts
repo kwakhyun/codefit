@@ -49,7 +49,7 @@ export function missingHandoffFields(notes: HandoffNotes) {
   return HANDOFF_FIELDS.filter((field) => notes[field.key].trim().length < HANDOFF_MIN_LENGTH);
 }
 export function handoffMissingMessage(fields: readonly HandoffField[]) {
-  return `${fields.map((field) => field.label).join(", ")}을 각각 ${HANDOFF_MIN_LENGTH}자 이상 작성해 주세요.`;
+  return `다음 항목을 각각 ${HANDOFF_MIN_LENGTH}자 이상 작성해 주세요: ${fields.map((field) => field.label).join(", ")}`;
 }
 
 const marker = "\n// CODEFIT_HANDOFF_V1 ";

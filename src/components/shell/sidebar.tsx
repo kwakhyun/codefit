@@ -5,7 +5,16 @@ import { DomainIcon } from "@/components/ui/problem-badges";
 import { DOMAINS, type DomainId } from "@/lib/catalog";
 import type { LibraryView } from "@/lib/library-state";
 import type { ProblemSummary, Workspace } from "@/lib/problem";
-import { Bookmark, History, LayoutGrid, Settings2, Terminal, UserRound, X } from "lucide-react";
+import {
+  BookOpen,
+  Bookmark,
+  History,
+  LayoutGrid,
+  Settings2,
+  Terminal,
+  UserRound,
+  X,
+} from "lucide-react";
 import { BrandIcon } from "../ui/brand-icon";
 import Link from "next/link";
 interface SidebarProps {
@@ -96,6 +105,10 @@ export function Sidebar({
         >
           <History size={17} />
           <span>학습 기록</span>
+        </Link>
+        <Link className="nav-item" href="/learn">
+          <BookOpen size={17} />
+          <span>앱의 원리 배우기</span>
         </Link>
         <Link className="nav-item" href="/handoff">
           <Terminal size={17} />

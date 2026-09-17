@@ -14,7 +14,7 @@ export function HandoffCard({
   index: number;
   learning?: HandoffDashboard["learning"][number];
 }) {
-  const action = learning?.next ?? { problemId: handoffId(track.key), label: "인수인계 시작" };
+  const action = learning?.next ?? { problemId: handoffId(track.key), label: "코드 분석 시작" };
   const latest = learning?.latest;
   return (
     <article className="handoff-card">
@@ -64,12 +64,12 @@ export function HandoffCard({
           )}
           <p>
             {learning.retention === "independent"
-              ? "첫 지연 재도전에서 서비스 내 도움 없이 AI 기준을 충족했습니다."
+              ? "7일 후 처음 제출한 변형 과제에서 코드핏의 도움 없이 AI 검토 기준을 충족했습니다."
               : learning.retention === "early"
-                ? "첫 변형은 미리 연습했습니다. 지연 재도전 지표와 별도로 연습을 이어갑니다."
+                ? "변형 과제를 미리 제출해 7일 후 첫 제출 기록에는 포함되지 않습니다. 계속 연습할 수 있습니다."
                 : learning.retention === "needs-practice"
-                  ? "첫 지연 재도전에는 보완할 점이나 도움 사용이 있었습니다. 최근 피드백으로 다시 연습하세요."
-                  : "첫 지연 재도전은 최초 기본 과제 검토 7일 뒤부터 기록합니다."}
+                  ? "7일 후 첫 변형 풀이에서 도움을 사용했거나 일부 기준을 충족하지 못했습니다. 피드백을 확인하고 다시 연습하세요."
+                  : "기본 과제를 처음 검토한 날로부터 7일 이상 지난 뒤 변형 과제를 처음 제출하면 복습 기록을 남깁니다."}
           </p>
           {!learning.due && learning.dueAt && (
             <small>다음 복습 권장: {dateLabel(learning.dueAt)} (기기 시간대)</small>

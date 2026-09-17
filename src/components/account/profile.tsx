@@ -77,9 +77,9 @@ export function Profile({
   return (
     <div className="profile-content">
       <span className="eyebrow">MY TRAINING PROFILE</span>
-      <h1>매일의 연습이 쌓이는 곳.</h1>
+      <h1>내 프로필과 학습 현황</h1>
       <p className="muted">
-        {initialUser.email} / {new Date(initialUser.createdAt).toLocaleDateString("ko-KR")}부터 함께
+        {initialUser.email} / 가입일 {new Date(initialUser.createdAt).toLocaleDateString("ko-KR")}
       </p>
       {data && (
         <div className="profile-stats">
@@ -149,7 +149,7 @@ export function Profile({
                   setBio(e.target.value);
                   setSaved(false);
                 }}
-                placeholder="지금 단련하고 싶은 개발 역량을 적어 보세요."
+                placeholder="관심 있는 기술이나 학습 목표를 적어 주세요."
               />
               <small id="profile-bio-count">{bio.length}/300</small>
             </label>
@@ -180,8 +180,9 @@ export function Profile({
             <p role="status">연결된 계정 확인 중…</p>
           )}
           <p className="muted">
-            로그인 전 기록은 해당 브라우저의 연습실에 남습니다. 환경 설정에서 백업을 내보낸 뒤
-            로그인하고 가져오면 이어갈 수 있습니다.
+            로그인 전 코딩 기록을 옮기려면 게스트 상태에서 환경 설정의 백업을 내보낸 뒤, 로그인하고
+            가져오세요. 입문 실습 기록은 각 미션에서 별도로 내려받을 수 있으며 계정으로 옮기는
+            기능은 지원하지 않습니다.
           </p>
         </section>
       </div>

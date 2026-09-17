@@ -5,7 +5,7 @@ import { HandoffDashboard } from "@/components/handoff/handoff-dashboard";
 export const metadata: Metadata = {
   title: "AI 코드 이해 훈련 | CODE:FIT",
   description:
-    "AI가 작성한 코드를 이해하고, 고치고, 다음 변경까지 책임지는 연습. 실무 과제 6개와 변형 재도전으로 코드 판단력을 단련하세요.",
+    "AI가 작성한 코드의 실행 결과를 예상하고, 직접 수정하고 테스트하세요. JavaScript 기본 과제 6개와 변형 과제 6개를 로그인 없이 연습할 수 있습니다.",
 };
 export default function HandoffPage() {
   return (
@@ -22,13 +22,13 @@ export default function HandoffPage() {
       <section className="handoff-intro">
         <span className="eyebrow">PREDICT. RUN. UNDERSTAND.</span>
         <h1>
-          AI가 짠 코드,
+          AI가 작성한 코드를
           <br />
-          읽는 것에서 이해하는 것으로.
+          직접 분석하고 수정해 보세요
         </h1>
         <p>
-          실행 결과를 먼저 예상하고, 실제 동작과 비교해 보세요. 어긋난 이유를 찾아 고치고, 다른
-          상황에서도 설명할 수 있을 때까지 연습합니다. 틀린 예상도 배움의 시작입니다.
+          코드를 읽고 실행 결과를 예상한 뒤 실제 결과와 비교해 보세요. 오류를 수정하고 테스트하며,
+          코드가 어떻게 작동하는지 설명하는 연습을 합니다.
         </p>
         <ol>
           <li>예측하기</li>
@@ -43,8 +43,8 @@ export default function HandoffPage() {
       <div className="handoff-quickstart">
         <div>
           <span className="eyebrow">처음이라면 여기서 시작하세요</span>
-          <h2>원본 장바구니는 그대로일까요?</h2>
-          <p>짧은 함수 하나를 읽고 예상해 보세요. 로그인 없이 첫 실행까지 약 3분.</p>
+          <h2>장바구니 코드부터 살펴보세요</h2>
+          <p>상품 수량을 바꾸면 원본 데이터도 바뀔까요? 짧은 함수를 읽고 직접 실행해 확인하세요.</p>
         </div>
         <Link href="/problems/handoff-cart?from=%2Fhandoff" className="primary-button">
           코드 이해 훈련 시작 →

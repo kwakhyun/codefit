@@ -49,8 +49,8 @@ export function ReviewPanel({
               )}
               <strong>
                 {selectedAttempt.review.passed
-                  ? "모든 요구사항을 충족했습니다."
-                  : "조금 더 다듬어 볼까요?"}
+                  ? "AI 검토 기준을 모두 충족했습니다."
+                  : "보완할 내용을 확인해 보세요."}
               </strong>
             </span>
             <b>
@@ -85,7 +85,7 @@ export function ReviewPanel({
           </ul>
           {selectedAttempt.review.improvements.length > 0 && (
             <div className="review-improvements">
-              <strong>다음 시도에서</strong>
+              <strong>보완할 점</strong>
               <ul>
                 {selectedAttempt.review.improvements.map((t) => (
                   <li key={t}>{t}</li>
@@ -105,7 +105,7 @@ export function ReviewPanel({
           )}
           {handoff && (
             <p>
-              <Link href="/handoff">내 역량별 피드백과 변형 재도전 확인 →</Link>
+              <Link href="/handoff">과제별 피드백과 복습할 문제 보기 →</Link>
             </p>
           )}
           <details className="submitted-code">

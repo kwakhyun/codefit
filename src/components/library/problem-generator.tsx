@@ -113,12 +113,12 @@ export function Generator({
             내게 필요한 문제를 만드세요.
           </h2>
           <p>
-            Google 또는 GitHub 계정으로 시작하면 하루 3회 AI 문제를 생성할 수 있어요. 한국 시간
-            자정에 횟수가 갱신됩니다.
+            Google 또는 GitHub로 로그인하면 하루 3회 AI 문제를 만들 수 있습니다. 이용 횟수는 한국
+            시간 자정에 초기화됩니다.
           </p>
           <div className="generation-note">
             <Database size={16} />
-            <span>생성한 문제는 모두가 풀 수 있는 보관함에 쌓입니다.</span>
+            <span>생성한 문제는 공개 보관함에 저장되어 누구나 풀 수 있습니다.</span>
           </div>
           <Link
             className="primary-button"
@@ -127,7 +127,7 @@ export function Generator({
             로그인 / 가입하고 생성하기
             <ArrowRight size={16} />
           </Link>
-          <p>보관함의 문제 풀이, 힌트, 정답, AI 풀이 검토는 로그인 없이도 이용할 수 있어요.</p>
+          <p>문제 풀이, 힌트, 정답 확인, AI 풀이 검토는 로그인 없이도 이용할 수 있습니다.</p>
         </div>
       </Modal>
     );
@@ -144,7 +144,7 @@ export function Generator({
           <strong>
             {usage ? `오늘 ${usage.remaining.generate} / 3회 남음` : "생성 가능 횟수 확인 중…"}
           </strong>
-          <small>00:00 KST 갱신 · GPT-5.6 Sol</small>
+          <small>매일 한국 시간 자정에 초기화 · GPT-5.6 Sol</small>
         </div>
         {usageError && (
           <p className="inline-error" role="alert">
@@ -160,7 +160,7 @@ export function Generator({
         )}
         {usage?.remaining.generate === 0 && (
           <p className="inline-warning">
-            오늘 3회를 모두 사용했습니다. 다음 문제는 한국 시간 자정부터 만들 수 있어요.
+            오늘의 문제 생성 횟수를 모두 사용했습니다. 한국 시간 자정부터 다시 만들 수 있습니다.
           </p>
         )}
         <div className="generator-intro">
@@ -169,7 +169,7 @@ export function Generator({
           </div>
           <span className="eyebrow">MAKE YOUR NEXT CHALLENGE</span>
           <h2>지금 필요한 문제를 만드세요.</h2>
-          <p>연습할 주제만 정하면, AI가 하나의 실전 과제로 구성합니다.</p>
+          <p>분야, 난이도와 주제를 고르면 AI가 문제와 힌트, 참고 정답을 만듭니다.</p>
         </div>
         <fieldset disabled={busy} className="generator-fields">
           <div className="form-row">
@@ -257,7 +257,7 @@ export function Generator({
         </fieldset>
         {!aiReady && (
           <p className="inline-warning">
-            AI 연결이 필요합니다. 서버의 OPENAI_API_KEY 설정을 확인해 주세요.
+            현재 AI 문제 생성을 사용할 수 없습니다. 보관함에 있는 문제는 계속 풀 수 있습니다.
           </p>
         )}
         {error && (

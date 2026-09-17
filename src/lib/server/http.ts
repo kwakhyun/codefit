@@ -65,7 +65,7 @@ export function failure(error: unknown) {
     return json(
       {
         error:
-          "이 실행이 만료되었거나 다른 실행으로 교체됐습니다. 보관함이나 검토 이력을 확인해 주세요.",
+          "요청 처리 시간이 만료되었거나 새 요청으로 대체됐습니다. 보관함이나 검토 기록에서 결과를 확인해 주세요.",
       },
       409,
     );
@@ -82,15 +82,21 @@ export function failure(error: unknown) {
       return json(
         {
           error:
-            "AI 사용 한도 또는 요청 제한에 도달했습니다. 잠시 후 다시 시도하거나 서버 API 계정을 확인해 주세요.",
+            "AI 서비스의 이용 한도에 도달했거나 요청이 몰리고 있습니다. 잠시 후 다시 시도해 주세요.",
         },
         429,
       );
     if (status === 401 || status === 403)
-      return json({ error: "서버의 AI 인증 설정을 확인해 주세요." }, 503);
+      return json(
+        {
+          error:
+            "AI 서비스 연결에 문제가 있어 요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        },
+        503,
+      );
     if (status === 404)
       return json(
-        { error: "설정한 AI 모델을 사용할 수 없습니다. 서버 모델 설정을 확인해 주세요." },
+        { error: "현재 설정된 AI 모델을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요." },
         503,
       );
     return json({ error: "AI 응답을 받지 못했습니다. 잠시 후 다시 시도해 주세요." }, 502);
