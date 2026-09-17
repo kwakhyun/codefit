@@ -46,6 +46,7 @@ export const learningSchema = z
   })
   .strict();
 export type LearningRecord = z.infer<typeof learningSchema>;
+export type LearningRecordUpdate = (change: (record: LearningRecord) => LearningRecord) => void;
 export function emptyLearning(): LearningRecord {
   return {
     version: 1,

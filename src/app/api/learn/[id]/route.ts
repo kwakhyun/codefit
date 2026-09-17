@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { missionById } from "@/lib/learn/catalog";
 import { learningSchema, validLearning } from "@/lib/learn/progress";
+import type { LearningSession } from "@/lib/learn/session";
 import { getStore } from "@/lib/server/database";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
 import { session } from "@/lib/server/session";
@@ -16,7 +17,7 @@ export async function GET(request: Request, c: Context) {
       signedIn: !!user,
       aiReady: !!process.env.OPENAI_API_KEY,
       progress: await (await getStore()).queries.learning.get(owner, id),
-    });
+    } satisfies LearningSession);
   } catch (e) {
     return failure(e);
   }

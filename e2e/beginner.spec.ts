@@ -78,6 +78,32 @@ for (const m of MISSIONS)
     ).toBeVisible();
     expect(errors).toEqual([]);
   });
+test("stage navigation preserves observation undo and repair experiments", async ({ page }) => {
+  const mission = MISSIONS.find((item) => item.id === "where-data-lives")!;
+  await predict(page, mission);
+  const app = page.getByRole("region", { name: "교육용 앱", exact: true });
+  await app.getByRole("button", { name: ACTION_LABELS.save, exact: true }).click();
+  await app.getByRole("button", { name: ACTION_LABELS.refresh, exact: true }).click();
+  const observations = page.locator(".learn-observations ol li");
+  const original = await observations.allTextContents();
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "기록 내려받고 관찰 다시 시작", exact: true }).click();
+  expect((await download).suggestedFilename()).toBe("codefit-where-data-lives.txt");
+  const navigation = page.getByRole("navigation", { name: "입문 미션 단계" });
+  await navigation.getByRole("button", { name: /예상하기/ }).click();
+  await navigation.getByRole("button", { name: /직접 확인/ }).click();
+  await page.getByRole("button", { name: "이전 관찰 복구", exact: true }).click();
+  await expect(observations).toHaveText(original);
+  await page.getByRole("button", { name: "수정 방법과 검사 살펴보기" }).click();
+  await page.getByRole("radio", { name: /^서버 저장 결과를 확인/ }).check();
+  await page.getByText("수정안이 적용된 앱 사용해 보기", { exact: true }).click();
+  await app.getByRole("button", { name: ACTION_LABELS.save, exact: true }).click();
+  await expect(app).toContainText("서버 응답 확인: 저장 완료");
+  await navigation.getByRole("button", { name: /직접 확인/ }).click();
+  await navigation.getByRole("button", { name: /수정과 검사/ }).click();
+  await page.getByText("수정안이 적용된 앱 사용해 보기", { exact: true }).click();
+  await expect(app).toContainText("서버 응답 확인: 저장 완료");
+});
 test("mobile keyboard entry, dashboard, hints and accessibility", async ({ page }, info) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/learn");

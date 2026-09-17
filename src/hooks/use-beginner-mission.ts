@@ -11,10 +11,10 @@ import {
 } from "@/lib/learn/progress";
 import type { z } from "zod";
 import type { Mission } from "@/lib/learn/catalog";
-import type { Progress } from "@/lib/problem";
+import type { LearningSession } from "@/lib/learn/session";
 export function useBeginnerMission(
-  m: Mission,
-  session: { scope: string; progress: Progress | null },
+  mission: Mission,
+  session: Pick<LearningSession, "scope" | "progress">,
 ) {
   const mounted = useRef(false),
     [ready, setReady] = useState(false),
@@ -23,8 +23,8 @@ export function useBeginnerMission(
   const request = useRef<{ snapshot: string; id: string } | null>(null),
     active = useRef<AbortController | null>(null);
   const draft = useCodeDraft({
-    id: `learn:${m.id}`,
-    endpoint: `/api/learn/${m.id}`,
+    id: `learn:${mission.id}`,
+    endpoint: `/api/learn/${mission.id}`,
     scope: session.scope,
     mounted,
     onSaved: () => {},
@@ -45,37 +45,37 @@ export function useBeginnerMission(
     };
   }, [initialize, session.progress]);
   const record = readLearning(draft.code);
-  function update(change: (r: LearningRecord) => LearningRecord) {
+  function update(change: (currentRecord: LearningRecord) => LearningRecord) {
     const next = change(readLearning(draft.getCode()));
     draft.changeCode(JSON.stringify(next));
     setError("");
   }
   async function coach() {
     if (active.current) return;
-    const r = readLearning(draft.getCode()),
-      snapshot = coachSnapshot(m, r);
+    const currentRecord = readLearning(draft.getCode()),
+      snapshot = coachSnapshot(mission, currentRecord);
     if (request.current?.snapshot !== snapshot)
       request.current = { snapshot, id: crypto.randomUUID() };
-    const c = new AbortController();
-    active.current = c;
+    const controller = new AbortController();
+    active.current = controller;
     setBusy(true);
     setError("");
     try {
-      const reply = await api<z.infer<typeof coachSchema>>(`/api/learn/${m.id}/coach`, {
+      const reply = await api<z.infer<typeof coachSchema>>(`/api/learn/${mission.id}/coach`, {
         method: "POST",
         scope: session.scope,
-        body: { record: r, requestId: request.current.id },
-        signal: AbortSignal.any([c.signal, AbortSignal.timeout(115000)]),
+        body: { record: currentRecord, requestId: request.current.id },
+        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(115000)]),
       });
-      if (!mounted.current || c.signal.aborted) return;
+      if (!mounted.current || controller.signal.aborted) return;
       request.current = null;
       update((current) => ({ ...current, coach: { reply, snapshot } }));
     } catch (e) {
-      if (mounted.current && !c.signal.aborted) setError(errorMessage(e));
+      if (mounted.current && !controller.signal.aborted) setError(errorMessage(e));
     } finally {
-      if (active.current === c) active.current = null;
+      if (active.current === controller) active.current = null;
       if (mounted.current) setBusy(false);
     }
   }
-  return { draft, record, ready, error, setError, update, coach, busy };
+  return { draft, record, ready, error, update, coach, busy };
 }

@@ -58,16 +58,19 @@ flowchart LR
 
 ## 코드와 저장 책임
 
-| 위치                                        | 책임                                           |
-| ------------------------------------------- | ---------------------------------------------- |
-| `src/lib/learn/catalog.ts`                  | 아홉 미션의 상황, 선택지, 수정안과 해설        |
-| `src/lib/learn/simulation.ts`               | 순수 상태 전이와 초기 상태별 동작 검사         |
-| `src/lib/learn/progress.ts`                 | 기록 스키마, 완료 조건, 읽을 수 있는 내보내기  |
-| `src/hooks/use-beginner-mission.ts`         | 초안 연결, AI 재시도, 늦은 응답과 새 입력 보존 |
-| `src/components/learn/`                     | 목록, 미션 단계, 모의 앱과 요청 폼             |
-| `src/lib/server/learning-store.ts`          | 계정별 학습 기록의 조건부 저장과 AI 작업 완료  |
-| `src/app/api/learn/`                        | 세션, 입력 검증, 조회/저장 및 선택적 코칭      |
-| `src/components/library/feature-banner.tsx` | 자동 전환과 사용자의 조작 우선권               |
+| 위치                                                                        | 책임                                           |
+| --------------------------------------------------------------------------- | ---------------------------------------------- |
+| `src/lib/learn/catalog.ts`                                                  | 아홉 미션의 상황, 선택지, 수정안과 해설        |
+| `src/lib/learn/simulation.ts`                                               | 순수 상태 전이와 초기 상태별 동작 검사         |
+| `src/lib/learn/progress.ts`                                                 | 기록 스키마, 완료 조건, 읽을 수 있는 내보내기  |
+| `src/hooks/use-beginner-mission.ts`                                         | 초안 연결, AI 재시도, 늦은 응답과 새 입력 보존 |
+| `src/components/learn/`                                                     | 목록, 미션 단계, 모의 앱과 요청 폼             |
+| `src/components/learn/mission-session.tsx`                                  | 단계/포커스/충돌 조율과 화면 간 임시 상태 보존 |
+| `src/components/learn/mission-{prediction,observation,repair,transfer}.tsx` | 각 단계의 입력과 표시                          |
+| `src/lib/learn/session.ts`                                                  | API와 로더가 공유하는 개인 세션 응답 타입      |
+| `src/lib/server/learning-store.ts`                                          | 계정별 학습 기록의 조건부 저장과 AI 작업 완료  |
+| `src/app/api/learn/`                                                        | 세션, 입력 검증, 조회/저장 및 선택적 코칭      |
+| `src/components/library/feature-banner.tsx`                                 | 자동 전환과 사용자의 조작 우선권               |
 
 코딩 문제 목록/통계와 입문 진도를 섞지 않도록 `learning_progress` 테이블을 별도로 사용한다. `(owner, lesson_id)`별 문서를 보관하고, 기존 `DraftController`와 브라우저 초안 저장을 재사용한다. 코드 초안 훅에는 저장 엔드포인트를 지정하는 선택 옵션만 추가했다. 기존 코딩 API의 기본 동작은 유지한다.
 
@@ -91,6 +94,8 @@ sequenceDiagram
 같은 내용의 응답 유실 재시도는 리비전을 늘리지 않고 확인해 준다. 신규 문서는 리비전 0에서만 생성한다. SQLite/PostgreSQL 모두 같은 `INSERT ... ON CONFLICT ... WHERE ... RETURNING` 계약을 쓴다. 개인 API는 `no-store`, 소유자는 서버 세션에서 정하며 클라이언트가 보낸 계정 ID를 신뢰하지 않는다. 기존 연습실 헤더가 현재 계정과 다르면 거절한다.
 
 입문 진도는 자기 학습 기록이지 변조 방지 성적표가 아니다. 기본 기록 유효성과 완료 조건은 서버에서도 검사하지만, 사용자가 도구 밖에서 도움을 받았는지 판정하지 않는다. 게스트 기록과 로그인 기록은 자동 병합하지 않는다. 기존 코딩 백업과 입문 텍스트 내보내기는 별도이며 입문 가져오기는 지원하지 않는다.
+
+운영자의 전체 SQLite 파일 백업과 SQLite→PostgreSQL 이관에는 `learning_progress`가 포함된다. 사용자용 백업과 운영용 데이터 보관의 범위는 [개발 안내](development.md#백업과-구조)에서 구분한다.
 
 ## AI의 역할과 비용
 

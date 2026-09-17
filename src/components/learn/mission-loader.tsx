@@ -3,14 +3,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, errorMessage } from "@/lib/client-api";
 import type { Mission } from "@/lib/learn/catalog";
-import type { Progress } from "@/lib/problem";
+import type { LearningSession } from "@/lib/learn/session";
 import { MissionSession } from "./mission-session";
-export type LearningSession = {
-  scope: string;
-  signedIn: boolean;
-  aiReady: boolean;
-  progress: Progress | null;
-};
 export function MissionLoader({ mission }: { mission: Mission }) {
   const [data, setData] = useState<LearningSession | null>(null),
     [error, setError] = useState(""),

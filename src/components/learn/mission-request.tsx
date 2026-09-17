@@ -4,6 +4,7 @@ import {
   requestReady,
   coachSnapshot,
   type LearningRecord,
+  type LearningRecordUpdate,
 } from "@/lib/learn/progress";
 import type { Mission } from "@/lib/learn/catalog";
 export function MissionRequest({
@@ -16,7 +17,7 @@ export function MissionRequest({
 }: {
   mission: Mission;
   record: LearningRecord;
-  update: (f: (r: LearningRecord) => LearningRecord) => void;
+  update: LearningRecordUpdate;
   coach: () => Promise<void>;
   busy: boolean;
   aiReady: boolean;
