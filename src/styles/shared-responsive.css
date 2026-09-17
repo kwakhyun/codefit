@@ -34,3 +34,16 @@
   margin-top: 10px;
   background: transparent;
 }
+
+/* Preserve readable inputs and generous controls at narrow widths. */
+@media (max-width: 760px) {
+  :root {
+    --control-size: 44px;
+    --text-input: var(--text-reading);
+  }
+  .primary-button,
+  .primary-button.small,
+  .secondary-button {
+    min-height: 44px;
+  }
+}

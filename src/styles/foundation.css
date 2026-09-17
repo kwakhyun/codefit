@@ -13,7 +13,10 @@ body {
 
 body {
   font-family: var(--sans);
-  font-size: 13px;
+  font-size: var(--text-body);
+  line-height: 1.65;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
@@ -98,7 +101,7 @@ select {
 
 input::placeholder,
 textarea::placeholder {
-  color: #777777;
+  color: #a0a0a0;
 }
 
 select {
@@ -120,11 +123,12 @@ kbd,
 }
 
 pre {
+  word-break: normal;
   tab-size: 2;
 }
 
 kbd {
-  font-size: 10px;
+  font-size: var(--text-caption);
   border: 1px solid #3e3e3e;
   background: #212121;
   border-radius: 0;
@@ -134,7 +138,7 @@ kbd {
 }
 
 small {
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 
 .muted {
@@ -181,8 +185,8 @@ small {
 }
 
 .icon-button {
-  width: 30px;
-  height: 30px;
+  width: var(--control-size);
+  height: var(--control-size);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -206,12 +210,13 @@ small {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 10px 16px;
   border-radius: 0;
-  font-size: 12px;
+  font-size: var(--text-ui);
   font-weight: 650;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
 }
 
 .primary-button {
@@ -227,9 +232,9 @@ small {
 }
 
 .primary-button.small {
-  min-height: 34px;
+  min-height: 40px;
   padding: 7px 12px;
-  font-size: 11px;
+  font-size: var(--text-ui);
   gap: 7px;
 }
 
@@ -239,7 +244,7 @@ small {
   align-items: center;
   padding: 4px 0;
   color: #b2b2b2;
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 500;
 }
 
@@ -257,7 +262,7 @@ small {
 }
 
 .eyebrow {
-  font: 500 10px/1.5 var(--mono);
+  font: 500 var(--text-caption)/1.5 var(--mono);
   letter-spacing: 1.5px;
   color: #b9b9b9;
   display: flex;

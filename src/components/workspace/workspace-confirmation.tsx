@@ -76,7 +76,11 @@ export function WorkspaceConfirmation({
               else
                 replaceCode(
                   problem.handoff
-                    ? writeHandoffDraft(problem.starterCode, readHandoffDraft(code).notes)
+                    ? writeHandoffDraft(
+                        problem.starterCode,
+                        readHandoffDraft(code).notes,
+                        readHandoffDraft(code).training,
+                      )
                     : problem.starterCode,
                   "시작 코드로 초기화했습니다.",
                 );

@@ -2,7 +2,7 @@
 
 .brand-logo small {
   font-family: var(--sans);
-  font-size: 9px;
+  font-size: var(--text-caption);
   letter-spacing: 0;
 }
 
@@ -23,7 +23,7 @@
 
 .hero-copy > .eyebrow {
   font-family: var(--sans);
-  font-size: 11px;
+  font-size: var(--text-small);
   letter-spacing: 0.3px;
   color: var(--action-soft);
 }
@@ -40,7 +40,7 @@
   margin-top: 16px;
   max-width: 560px;
   color: #b0b0b0;
-  font-size: 11px;
+  font-size: var(--text-small);
   line-height: 1.9;
   word-break: keep-all;
 }
@@ -71,13 +71,13 @@
     font-size: clamp(22px, 6.4vw, 32px);
   }
   .hero-copy > .eyebrow {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .hero-copy > p br {
     display: none;
   }
   .training-principle {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .hero-start > span {
     margin-left: 0;
@@ -96,7 +96,7 @@
   border: 1px solid #344b68;
   color: var(--action-soft);
   padding: 12px 16px;
-  font-size: 12px;
+  font-size: var(--text-ui);
   line-height: 1.7;
 }
 
@@ -115,7 +115,7 @@
 }
 
 .editor-notice {
-  font-size: 11px;
+  font-size: var(--text-small);
   padding: 7px 12px;
 }
 
@@ -134,7 +134,7 @@
 .review-strengths {
   margin: 20px 0;
   color: var(--success);
-  font-size: 12px;
+  font-size: var(--text-ui);
   line-height: 1.9;
 }
 
@@ -150,7 +150,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--text-ui);
   margin: 20px 0;
 }
 
@@ -159,6 +159,8 @@
   color: #eee;
   border: 1px solid #606060;
   padding: 12px;
+
+  font-size: var(--text-input);
 }
 
 .training-overview {
@@ -178,13 +180,13 @@
 }
 
 .training-overview p {
-  font-size: 12px;
+  font-size: var(--text-ui);
   color: #b0b0b0;
   margin: 8px 0;
 }
 
 .training-overview small {
-  font-size: 10px;
+  font-size: var(--text-caption);
   color: #909090;
 }
 
@@ -195,6 +197,7 @@
 }
 
 .training-week > span {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -227,12 +230,17 @@
     flex-direction: column;
   }
   .training-week {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     width: 100%;
-    justify-content: space-between;
     gap: 3px;
   }
   .training-week svg {
-    padding: 10px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 40px;
+    height: auto;
+    padding: 8px;
   }
   .editor-filebar > span {
     min-width: 0;
@@ -247,7 +255,7 @@
     gap: 2px;
   }
   .editor-filebar .icon-button {
-    width: 28px;
+    width: var(--control-size);
   }
 }
 

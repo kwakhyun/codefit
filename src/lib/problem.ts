@@ -61,7 +61,15 @@ export function publicProblem(problem: Problem): PublicProblem {
   const { hints, solution: _solution, explanation: _explanation, ...rest } = problem;
   void _solution;
   void _explanation;
-  return { ...rest, hintCount: hints.length };
+  return {
+    ...rest,
+    // Historical seed/evaluation records contain an obsolete service capability sentence.
+    // Keep the original evaluation inputs intact; the workspace explains its current runtime.
+    scenario: problem.handoff
+      ? rest.scenario.replace(" 서비스는 제출 코드를 실행하지 않습니다.", "")
+      : rest.scenario,
+    hintCount: hints.length,
+  };
 }
 export const reviewSchema = z.object({
   summary: z.string().min(5).max(1200),

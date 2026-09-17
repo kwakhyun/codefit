@@ -15,6 +15,7 @@ export function CodeEditor({
   onCheck,
   onSave,
   fontSize = 14,
+  focusRequest = 0,
 }: {
   value: string;
   language: Language;
@@ -23,6 +24,7 @@ export function CodeEditor({
   onCheck: (value: string) => void;
   onSave?: () => void;
   fontSize?: number;
+  focusRequest?: number;
 }) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const onCheckRef = useRef(onCheck);
@@ -34,8 +36,15 @@ export function CodeEditor({
     onCheckRef.current = onCheck;
     onSaveRef.current = onSave;
   }, [onCheck, onSave]);
+  useEffect(() => {
+    if (focusRequest && editorRef.current) {
+      editorRef.current.layout();
+      editorRef.current.focus();
+    }
+  }, [focusRequest]);
   const handleMount: OnMount = (mountedEditor, monaco) => {
     editorRef.current = mountedEditor;
+    if (focusRequest) mountedEditor.focus();
     let preferredWrap = window.matchMedia("(max-width: 600px)").matches;
     try {
       const saved = localStorage.getItem("codefit-editor-wrap");

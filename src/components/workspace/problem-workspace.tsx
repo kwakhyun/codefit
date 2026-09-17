@@ -2,6 +2,10 @@
 
 import { HandoffExport } from "@/components/handoff/handoff-export";
 import { HandoffFields, HandoffGuide } from "@/components/handoff/handoff-fields";
+import { LearningLab, LabTests } from "@/components/handoff/learning-lab";
+import { useLearningLab } from "@/hooks/use-learning-lab";
+import { HANDOFF_TRACKS, handoffId } from "@/lib/handoff/catalog";
+import { problemUrl } from "@/lib/library-state";
 import { HandoffReadiness, focusHandoffField } from "@/components/handoff/handoff-readiness";
 import {
   type HandoffField,
@@ -69,6 +73,7 @@ export function ProblemWorkspace({
   initialAttemptId?: string;
   initialDetail?: ProblemDetail;
 }) {
+  const [editorFocusRequest, setEditorFocusRequest] = useState(0);
   const [missingField, setMissingField] = useState<HandoffField | null>(null);
   const {
     detail,
@@ -107,6 +112,19 @@ export function ProblemWorkspace({
     replaceCode,
     saveNow,
   } = useProblemController({ id, scope, onProgress, aiReady, initialAttemptId, initialDetail });
+  const learningEnabled = Boolean(
+    detail?.problem.handoff &&
+    HANDOFF_TRACKS.some((t) => id === handoffId(t.key) || id === handoffId(t.key, true)),
+  );
+  const labControl = useLearningLab({
+    id,
+    scope,
+    enabled: learningEnabled,
+    value: code,
+    starterCode: detail?.problem.starterCode ?? "",
+    onChange: changeCode,
+    initialStage: initialAttemptId ? 3 : 0,
+  });
   if (loading)
     return (
       <div className="content-loader" role="status">
@@ -140,12 +158,14 @@ export function ProblemWorkspace({
       ? handoffMissingMessage([missingField])
       : "";
   function requestReview(value: string) {
+    if (learningEnabled) labControl.setStage(3);
     if (problem.handoff) {
       const draft = readHandoffDraft(value);
       const missing = missingHandoffFields(draft.notes)[0];
       if (missing) {
         setMissingField(missing);
-        focusHandoffField(missing.key);
+        if (learningEnabled) labControl.setStage(3);
+        requestAnimationFrame(() => focusHandoffField(missing.key));
         return;
       }
     }
@@ -215,8 +235,19 @@ export function ProblemWorkspace({
           </button>
         </div>
       )}
-      {problem.handoff && <HandoffGuide starterCode={problem.starterCode} />}
-      <div className="workbench">
+      {learningEnabled ? (
+        <LearningLab
+          controller={labControl}
+          starterCode={problem.starterCode}
+          aiReady={aiReady}
+          blocked={saveState === "conflict" || saveState === "resolving"}
+        />
+      ) : problem.handoff ? (
+        <HandoffGuide starterCode={problem.starterCode} />
+      ) : null}
+      <div
+        className={`workbench ${learningEnabled ? `lab-workbench lab-stage-${labControl.stage}` : ""}`}
+      >
         <ProblemMaterials
           tab={tab}
           setTab={setTab}
@@ -231,7 +262,10 @@ export function ProblemWorkspace({
           setError={setError}
           copied={copied}
           selectedAttempt={selectedAttempt}
-          setSelectedAttempt={setSelectedAttempt}
+          setSelectedAttempt={(next) => {
+            setSelectedAttempt(next);
+            if (learningEnabled) labControl.setStage(3);
+          }}
         />
         <section className="editor-pane" aria-label="풀이 작업 공간">
           <div className="editor-topbar">
@@ -284,6 +318,14 @@ export function ProblemWorkspace({
             code={code}
             onChange={changeCode}
             onResolve={resolveConflict}
+            onResolvedFocus={
+              learningEnabled
+                ? () => {
+                    labControl.setStage(2, false);
+                    setEditorFocusRequest((n) => n + 1);
+                  }
+                : undefined
+            }
           />
           {recoverable.length > 0 && (
             <details className="draft-recovery">
@@ -303,75 +345,138 @@ export function ProblemWorkspace({
               ))}
             </details>
           )}
-          {problem.handoff && <HandoffFields value={code} onChange={changeCode} section="before" />}
-          <CodeEditor
-            value={handoffDraft?.implementation ?? code}
-            language={problem.language}
-            problemId={id}
-            onChange={(value) =>
-              changeCode(handoffDraft ? writeHandoffDraft(value, handoffDraft.notes) : value)
-            }
-            onCheck={(value) =>
-              requestReview(handoffDraft ? writeHandoffDraft(value, handoffDraft.notes) : value)
-            }
-            onSave={saveNow}
-            fontSize={fontSize}
-          />
-          {problem.handoff && <HandoffFields value={code} onChange={changeCode} section="after" />}
-          {problem.handoff && (
-            <>
-              <HandoffReadiness value={code} />
-              <HandoffExport title={problem.title} id={problem.id} value={code} />
-            </>
+          {problem.handoff && !learningEnabled && (
+            <HandoffFields value={code} onChange={changeCode} section="before" />
           )}
-          <div className="review-action">
-            <span>
-              <kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd>
-              <small>AI가 요구사항을 검토합니다.</small>
-            </span>
-            <button
-              className="primary-button"
-              onClick={() => requestReview(code)}
-              disabled={
-                busy ||
-                code.trim().length < 5 ||
-                !aiReady ||
-                saveState === "conflict" ||
-                saveState === "resolving"
-              }
-            >
-              {busy ? <LoaderCircle size={16} className="spin" /> : <Sparkles size={16} />}
-              {busy ? "풀이 검토 중" : "AI 풀이 검토"}
-              {!busy && <ArrowRight size={16} />}
-            </button>
+          <div className="workspace-code-section">
+            {(!learningEnabled || labControl.editorSeen) && (
+              <CodeEditor
+                focusRequest={learningEnabled && labControl.stage === 2 ? editorFocusRequest : 0}
+                value={handoffDraft?.implementation ?? code}
+                language={problem.language}
+                problemId={id}
+                onChange={(value) =>
+                  changeCode(
+                    handoffDraft
+                      ? writeHandoffDraft(value, handoffDraft.notes, handoffDraft.training)
+                      : value,
+                  )
+                }
+                onCheck={(value) =>
+                  requestReview(
+                    handoffDraft
+                      ? writeHandoffDraft(value, handoffDraft.notes, handoffDraft.training)
+                      : value,
+                  )
+                }
+                onSave={saveNow}
+                fontSize={fontSize}
+              />
+            )}
+            {learningEnabled && <LabTests controller={labControl} />}
           </div>
-          {!aiReady && (
-            <p className="inline-warning">
-              AI 연결 설정 후 풀이 검토를 사용할 수 있습니다. 코드 작성과 저장은 가능합니다.
-            </p>
-          )}
-          {(inputError || error) && (
-            <p className="inline-error workspace-error" role="alert">
-              <AlertCircle size={16} />
-              {inputError || error}
+          <div className="workspace-report-section">
+            {learningEnabled && attempts.length > 0 && (
+              <div className="lab-history-action">
+                <button
+                  className="text-button"
+                  onClick={() => {
+                    setTab("history");
+                    labControl.setStage(2);
+                    requestAnimationFrame(() => document.getElementById("tab-history")?.focus());
+                  }}
+                >
+                  이전 검토 기록 {attempts.length}개 보기 →
+                </button>
+              </div>
+            )}
+            {problem.handoff && (
+              <HandoffFields
+                value={code}
+                onChange={changeCode}
+                section={learningEnabled ? undefined : "after"}
+              />
+            )}
+            {problem.handoff && (
+              <>
+                <HandoffReadiness value={code} />
+                <HandoffExport title={problem.title} id={problem.id} value={code} />
+              </>
+            )}
+            <div className="review-action">
+              <span>
+                <kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd>
+                <small>AI가 요구사항을 검토합니다.</small>
+              </span>
               <button
-                aria-label="오류 메시지 닫기"
-                onClick={() => {
-                  setError("");
-                  setMissingField(null);
-                }}
+                className="primary-button"
+                onClick={() => requestReview(code)}
+                disabled={
+                  busy ||
+                  code.trim().length < 5 ||
+                  !aiReady ||
+                  saveState === "conflict" ||
+                  saveState === "resolving"
+                }
               >
-                ×
+                {busy ? <LoaderCircle size={16} className="spin" /> : <Sparkles size={16} />}
+                {busy ? "풀이 검토 중" : "AI 풀이 검토"}
+                {!busy && <ArrowRight size={16} />}
               </button>
-            </p>
-          )}
-          <ReviewPanel
-            handoff={Boolean(problem.handoff)}
-            busy={busy}
-            selectedAttempt={selectedAttempt}
-            code={code}
-            setConfirm={setConfirm}
-          />
+            </div>
+            {!aiReady && (
+              <p className="inline-warning">
+                AI 연결 설정 후 풀이 검토를 사용할 수 있습니다. 코드 작성과 저장은 가능합니다.
+              </p>
+            )}
+            {(inputError || error) && (
+              <p className="inline-error workspace-error" role="alert">
+                <AlertCircle size={16} />
+                {inputError || error}
+                <button
+                  aria-label="오류 메시지 닫기"
+                  onClick={() => {
+                    setError("");
+                    setMissingField(null);
+                  }}
+                >
+                  ×
+                </button>
+              </p>
+            )}
+            <ReviewPanel
+              handoff={Boolean(problem.handoff)}
+              busy={busy}
+              selectedAttempt={selectedAttempt}
+              code={code}
+              setConfirm={setConfirm}
+            />
+            {learningEnabled && problem.handoff && (
+              <aside className="lab-transfer">
+                <span className="eyebrow">NEXT / 다른 상황에서도 이해했을까?</span>
+                <h3>
+                  {problem.handoff.variant
+                    ? "다른 주제로 분석 범위 넓히기"
+                    : HANDOFF_TRACKS.find((t) => t.key === problem.handoff?.track)?.variantTitle}
+                </h3>
+                <p>
+                  이전 풀이를 보지 않고 새 코드의 결과부터 예상해 보세요. 지금 연습할 수 있으며, 7일
+                  뒤 첫 재도전 기록과는 구분됩니다.
+                </p>
+                <Link
+                  className="secondary-button"
+                  href={
+                    problem.handoff.variant
+                      ? "/handoff"
+                      : problemUrl(handoffId(problem.handoff.track, true), "/handoff")
+                  }
+                >
+                  {problem.handoff.variant ? "훈련 목록으로" : "새 상황에서 응용하기"}{" "}
+                  <ArrowRight size={16} />
+                </Link>
+              </aside>
+            )}
+          </div>
         </section>
       </div>
       <WorkspaceConfirmation

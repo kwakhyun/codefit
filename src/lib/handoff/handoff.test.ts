@@ -28,6 +28,7 @@ describe("handoff reference quality", () => {
       expect(safe).not.toHaveProperty("solution");
       expect(safe).not.toHaveProperty("explanation");
       expect(safe).not.toHaveProperty("hints");
+      expect(safe.scenario).not.toContain("서비스는 제출 코드를 실행하지 않습니다.");
       let failures = 0;
       for (const check of handoffSpecs[problem.handoff!.track].cases) {
         expect(await run(problem.solution, check.expression), check.note).toEqual(check.expected);

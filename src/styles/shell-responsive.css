@@ -3,40 +3,40 @@
 @media (min-width: 1550px) {
   .nav-item,
   .domain-nav {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
 }
 
 @media (max-width: 1230px) {
   .sidebar {
-    width: 194px;
+    width: 220px;
     padding-left: 12px;
     padding-right: 12px;
   }
   .main-shell {
-    margin-left: 194px;
+    margin-left: 220px;
   }
   .brand-logo {
     font-size: 21px;
     gap: 9px;
   }
   .nav-item {
-    font-size: 10px;
+    font-size: var(--text-ui);
   }
   .domain-nav {
-    font-size: 10px;
+    font-size: var(--text-ui);
   }
   .sidebar-workspace {
     padding: 10px 8px;
   }
   .sidebar-note {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .sidebar-version {
-    font-size: 7px;
+    font-size: var(--text-caption);
   }
   .sidebar-version > span:last-child {
-    font-size: 6px;
+    font-size: var(--text-caption);
   }
   .topbar {
     padding: 0 25px;
@@ -45,30 +45,30 @@
 
 @media (max-width: 1000px) {
   .sidebar {
-    width: 181px;
+    width: 220px;
     padding: 25px 10px 0;
   }
   .main-shell {
-    margin-left: 181px;
+    margin-left: 220px;
   }
   .sidebar .brand-logo {
     font-size: 19px;
     gap: 7px;
   }
   .brand-logo small {
-    font-size: 7px;
+    font-size: var(--text-caption);
     letter-spacing: 1.3px;
   }
   .sidebar-workspace {
     margin-top: 28px;
-    font-size: 10px;
+    font-size: var(--text-ui);
     gap: 7px;
   }
   .sidebar-workspace small {
-    font-size: 7px;
+    font-size: var(--text-caption);
   }
   .nav-caption {
-    font-size: 8px;
+    font-size: var(--text-caption);
     letter-spacing: 1px;
     padding: 0 8px;
   }
@@ -97,7 +97,7 @@
 @media (max-width: 760px) {
   .sidebar {
     transform: translateX(-100%);
-    width: 230px;
+    width: min(280px, 88vw);
     padding: 28px 17px 0;
     transition: transform 0.2s;
   }
@@ -109,7 +109,7 @@
     gap: 10px;
   }
   .brand-logo small {
-    font-size: 8px;
+    font-size: var(--text-caption);
     letter-spacing: 1.7px;
   }
   .sidebar .brand-symbol {
@@ -121,42 +121,42 @@
     position: absolute;
     right: 8px;
     top: 12px;
-    width: 24px;
-    height: 24px;
+    width: var(--control-size);
+    height: var(--control-size);
   }
   .sidebar .nav-item {
-    font-size: 12px;
+    font-size: var(--text-ui);
     padding: 10px 11px;
   }
   .sidebar .nav-caption {
-    font-size: 9px;
+    font-size: var(--text-caption);
     padding: 0 11px;
   }
   .sidebar .sidebar-workspace {
-    font-size: 12px;
+    font-size: var(--text-ui);
     gap: 10px;
   }
   .sidebar .sidebar-workspace small {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .sidebar-note {
-    font-size: 10px;
+    font-size: var(--text-caption);
     padding: 12px;
     gap: 10px;
   }
   .sidebar-version {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .sidebar-version > span:last-child {
-    font-size: 7px;
+    font-size: var(--text-caption);
   }
   .main-shell {
     margin-left: 0;
   }
   .mobile-menu {
     display: flex;
-    width: 26px;
-    height: 30px;
+    width: var(--control-size);
+    height: var(--control-size);
   }
   .topbar {
     height: 58px;
@@ -165,7 +165,7 @@
   }
   .topbar-path {
     gap: 9px;
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .path-root {
     display: none;
@@ -178,7 +178,7 @@
   }
   .help-button {
     margin: 0;
-    width: 25px;
+    width: var(--control-size);
   }
   .new-label {
     display: none;
@@ -190,13 +190,13 @@
     padding: 0 13px;
   }
   .topbar-path strong {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .topbar-actions {
     gap: 5px;
   }
   .topbar-actions > .help-button {
-    width: 24px;
+    width: var(--control-size);
     margin-right: 4px;
   }
 }
@@ -204,7 +204,7 @@
 @media (min-width: 1001px) {
   .nav-item,
   .domain-nav {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
 }
 
@@ -223,5 +223,38 @@
   }
   .sidebar.open {
     visibility: visible;
+  }
+}
+
+@media (max-height: 850px) {
+  .sidebar-note {
+    display: none;
+  }
+  .sidebar-workspace {
+    margin-block: 24px 20px;
+  }
+  .sidebar-version {
+    padding-block: 12px;
+  }
+}
+@media (max-height: 500px) {
+  .sidebar {
+    overflow-y: auto;
+  }
+  .sidebar > nav {
+    flex: none;
+    overflow: visible;
+  }
+}
+@media (max-width: 360px) {
+  .topbar-path > strong {
+    display: none;
+  }
+  .topbar-actions {
+    margin-left: auto;
+  }
+  .topbar .primary-button {
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }

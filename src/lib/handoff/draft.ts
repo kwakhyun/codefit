@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { trainingSchema, type TrainingDraft } from "./training";
 
 export const HANDOFF_MIN_LENGTH = 20;
 export const HANDOFF_FIELDS = [
@@ -52,6 +53,8 @@ export function handoffMissingMessage(fields: readonly HandoffField[]) {
 }
 
 const marker = "\n// CODEFIT_HANDOFF_V1 ";
+const trainingMarker = "\n// CODEFIT_HANDOFF_V2 ";
+const envelope = z.object({ notes: handoffNotesSchema, training: trainingSchema }).strict();
 const empty = (): HandoffNotes => ({
   understanding: "",
   diagnosis: "",
@@ -60,7 +63,22 @@ const empty = (): HandoffNotes => ({
 });
 
 /** One code revision protects the implementation AND report; no timestamp-based merge. */
-export function readHandoffDraft(value: string): { implementation: string; notes: HandoffNotes } {
+export function readHandoffDraft(value: string): {
+  implementation: string;
+  notes: HandoffNotes;
+  training?: TrainingDraft;
+} {
+  const trainingIndex = value.lastIndexOf(trainingMarker);
+  if (trainingIndex >= 0) {
+    const parsed = (() => {
+      try {
+        return envelope.safeParse(JSON.parse(value.slice(trainingIndex + trainingMarker.length)));
+      } catch {
+        return null;
+      }
+    })();
+    if (parsed?.success) return { implementation: value.slice(0, trainingIndex), ...parsed.data };
+  }
   const index = value.lastIndexOf(marker);
   if (index >= 0) {
     try {
@@ -72,20 +90,37 @@ export function readHandoffDraft(value: string): { implementation: string; notes
   }
   return { implementation: value, notes: empty() };
 }
-export function writeHandoffDraft(implementation: string, notes: HandoffNotes) {
+export function writeHandoffDraft(
+  implementation: string,
+  notes: HandoffNotes,
+  training?: TrainingDraft,
+) {
   // JSON escapes newlines, so report text cannot escape this JavaScript line comment.
   return (
     implementation +
-    marker +
-    JSON.stringify(handoffNotesSchema.parse(notes))
+    (training ? trainingMarker : marker) +
+    JSON.stringify(training ? envelope.parse({ notes, training }) : handoffNotesSchema.parse(notes))
       .replaceAll("\u2028", "\\u2028")
       .replaceAll("\u2029", "\\u2029")
   );
 }
 export function formatHandoffDraft(value: string) {
-  const { implementation, notes } = readHandoffDraft(value);
+  const { implementation, notes, training } = readHandoffDraft(value);
   return [
     implementation,
     ...HANDOFF_FIELDS.map((f) => `\n[${f.label}]\n${notes[f.key] || "미작성"}`),
+    ...(training ? [formatTraining(training)] : []),
+  ].join("\n");
+}
+
+export function formatTraining(t: TrainingDraft) {
+  return [
+    "[코드 이해 훈련]",
+    `예측 선택: ${t.prediction.choice || "미선택"}`,
+    `예측 이유: ${t.prediction.reason || "미작성"}`,
+    `예측 확정: ${t.prediction.locked ? "예" : "아니요"}`,
+    `원본 관찰: ${t.observation?.actual ?? "미실행"}`,
+    ...(t.run?.results.map((r) => `테스트 ${r.id} (${r.status}): ${r.actual}`) ?? []),
+    ...(t.coach ? [`AI 질문: ${t.coach.question}`] : []),
   ].join("\n");
 }

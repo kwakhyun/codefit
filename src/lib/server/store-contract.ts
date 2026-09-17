@@ -32,6 +32,7 @@ export interface ProblemStore {
   reserveGeneration(lease: JobLease, now?: number): Stored<boolean>;
   startJob(owner: string, id: string, kind: string, fingerprint: string): Stored<JobClaim>;
   failJob(lease: JobLease): Stored<boolean>;
+  completeCoaching(lease: JobLease, problemId: string, result: string): Stored<void>;
   importBackup(owner: string, backup: Backup): Stored<{ problems: number; attempts: number }>;
   archiveLegacy(owner: string, content: unknown): Stored<void>;
   legacy(owner: string): Stored<unknown>;

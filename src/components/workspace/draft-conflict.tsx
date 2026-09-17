@@ -1,6 +1,6 @@
 "use client";
 import { HandoffFields } from "@/components/handoff/handoff-fields";
-import { readHandoffDraft, writeHandoffDraft } from "@/lib/handoff/draft";
+import { readHandoffDraft, writeHandoffDraft, formatTraining } from "@/lib/handoff/draft";
 import type { DraftStatus } from "@/lib/drafts/draft-controller";
 
 export function DraftConflict({
@@ -10,6 +10,7 @@ export function DraftConflict({
   code,
   onChange,
   onResolve,
+  onResolvedFocus,
 }: {
   handoff?: boolean;
   status: DraftStatus;
@@ -17,6 +18,7 @@ export function DraftConflict({
   code: string;
   onChange: (code: string) => void;
   onResolve: () => Promise<boolean>;
+  onResolvedFocus?: () => void;
 }) {
   if (status.kind !== "conflict" && status.kind !== "resolving") return null;
   const local = readHandoffDraft(code);
@@ -39,7 +41,11 @@ export function DraftConflict({
               aria-label="비교 화면의 내 초안"
               value={handoff ? local.implementation : code}
               onChange={(e) =>
-                onChange(handoff ? writeHandoffDraft(e.target.value, local.notes) : e.target.value)
+                onChange(
+                  handoff
+                    ? writeHandoffDraft(e.target.value, local.notes, local.training)
+                    : e.target.value,
+                )
               }
               spellCheck={false}
             />
@@ -58,10 +64,16 @@ export function DraftConflict({
           <div className="draft-comparison">
             <div>
               <h3>내 인수인계 메모</h3>
+              {local.training && (
+                <pre className="training-conflict-record">{formatTraining(local.training)}</pre>
+              )}
               <HandoffFields value={code} onChange={onChange} prefix="local-conflict" />
             </div>
             <div>
               <h3>서버 인수인계 메모</h3>
+              {remote.training && (
+                <pre className="training-conflict-record">{formatTraining(remote.training)}</pre>
+              )}
               <HandoffFields value={status.server.code ?? ""} readOnly prefix="remote-conflict" />
             </div>
           </div>
@@ -81,7 +93,8 @@ export function DraftConflict({
             saved &&
             (document.activeElement === trigger || document.activeElement === document.body)
           )
-            document.querySelector<HTMLTextAreaElement>(".monaco-editor textarea")?.focus();
+            if (onResolvedFocus) onResolvedFocus();
+            else document.querySelector<HTMLTextAreaElement>(".monaco-editor textarea")?.focus();
         }}
       >
         {status.kind === "resolving" ? "서버 버전 확인하며 저장 중" : "비교한 버전에 내 초안 저장"}

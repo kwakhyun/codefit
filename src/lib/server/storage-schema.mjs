@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS legacy (
   content TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE INDEX IF NOT EXISTS jobs_owner_kind_state ON jobs(owner,kind,state);
 CREATE TABLE IF NOT EXISTS generation_usage (
   request_id TEXT PRIMARY KEY,
   owner TEXT NOT NULL,

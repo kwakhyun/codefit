@@ -23,17 +23,17 @@ export function TrainingHero({ recommended, libraryHref, resume }: TrainingHeroP
           </span>
         </h1>
         <p>
-          AI에게 코딩을 맡기는 동안, 내 손으로 푸는 감각도 챙기세요.
-          <br /> 기능 구현, 버그 수정, 리팩터링을 직접 풀며 실력을 단련합니다.
+          AI가 작성한 코드, 왜 그렇게 동작하는지 설명할 수 있나요?
+          <br /> 결과를 예상하고, 직접 실행하고, 고치며 이해하는 힘을 기릅니다.
         </p>
         <div className="training-principle">
           <FileCode2 size={19} />
-          <span>문제는 AI가 출제하고, 풀이는 직접. 막힐 때는 힌트와 피드백.</span>
+          <span>내가 이해하고 판단할 수 있는 코드로. 예측부터 수정, 응용까지.</span>
         </div>
         <Link href="/handoff" className="handoff-entry">
-          <strong>NEW / AI 코드 인수인계 훈련</strong>
+          <strong>AI 코드 이해 훈련</strong>
           <span>
-            이해하고, 고치고, 검증하며 내 코드로 만들기 <ArrowUpRight size={16} />
+            짧은 코드로 시작하는 예측과 실행 연습 <ArrowUpRight size={16} />
           </span>
         </Link>
         {recommended && (
@@ -65,20 +65,20 @@ export function TrainingHero({ recommended, libraryHref, resume }: TrainingHeroP
           </div>
           <p>
             <span className="terminal-flag">/mode:</span>
-            <span className="terminal-value">hands-on</span>
+            <span className="terminal-value">code-understanding</span>
           </p>
           <div className="terminal-output">
             <span>
               <Check size={12} />
-              구현 — 요구사항을 코드로 옮기기
+              예측 — 실행 전에 내 생각 남기기
             </span>
             <span>
               <Check size={12} />
-              디버깅 — 원인을 찾고 직접 고치기
+              확인 — 예상과 실제 결과 비교하기
             </span>
             <span>
               <Check size={12} />
-              리팩터링 — 더 나은 구조로 다듬기
+              응용 — 다른 상황에서도 직접 풀기
             </span>
           </div>
           <div className="terminal-bottom">

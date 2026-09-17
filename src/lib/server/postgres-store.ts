@@ -160,6 +160,9 @@ export class PostgresStore implements ProblemStore {
         await store.sql`SELECT * FROM progress WHERE owner=${owner} AND problem_id=${id} FOR UPDATE`;
       const p = toProgress(row);
       const attempt = createAttempt(id, code, review, p);
+      const helped =
+        await store.sql`SELECT 1 FROM jobs WHERE owner=${owner} AND kind=${`coach:${id}`} AND state='done' LIMIT 1`;
+      attempt.assisted ||= helped.length > 0;
       await store.sql`INSERT INTO attempts VALUES(${attempt.id},${owner},${id},${code},${JSON.stringify(review)},${Number(attempt.assisted)},${attempt.createdAt})`;
       await store.sql`UPDATE progress SET status=CASE WHEN status='solved' OR ${Number(review.passed)}=1 THEN 'solved' ELSE 'in-progress' END,updated_at=${attempt.createdAt} WHERE owner=${owner} AND problem_id=${id}`;
       if (lease) await store.finishJob(lease, attempt.id);
@@ -207,6 +210,12 @@ export class PostgresStore implements ProblemStore {
       if (Number(used.count) >= DAILY_GENERATIONS) return false;
       await store.sql`INSERT INTO generation_usage(request_id,owner,day,state,expires,token) VALUES(${lease.id},${lease.owner},${day},'pending',${Number(job.expires)},${lease.token}) ON CONFLICT(request_id) DO UPDATE SET day=EXCLUDED.day,state='pending',expires=EXCLUDED.expires,token=EXCLUDED.token`;
       return true;
+    });
+  }
+  async completeCoaching(lease: JobLease, problemId: string, result: string) {
+    return this.transaction(async (store) => {
+      await store.requireJob(lease, `coach:${problemId}`);
+      await store.finishJob(lease, result);
     });
   }
   private async finishJob(lease: JobLease, result: string) {

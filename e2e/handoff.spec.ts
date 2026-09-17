@@ -13,12 +13,28 @@ const notes = {
   decision:
     "대상 항목을 새 객체로 만들고 다른 항목을 유지했습니다. 배포 전에 실제 화면과 연결해 검증해야 합니다.",
 };
-async function openHandoff(page: Page) {
-  await page.goto("/problems/handoff-cart?from=%2Fhandoff");
+async function stage(page: Page, index: number) {
+  await page
+    .getByRole("navigation", { name: "코드 이해 훈련 단계" })
+    .getByRole("button")
+    .nth(index)
+    .click();
+}
+async function prepareWorkspace(page: Page) {
+  await stage(page, 2);
   await expect(page.locator(".monaco-editor").first()).toBeVisible();
   await readCode(page);
+  await stage(page, 3);
+}
+async function openHandoff(page: Page) {
+  await page.goto("/problems/handoff-cart?from=%2Fhandoff");
+  await stage(page, 2);
+  await expect(page.locator(".monaco-editor").first()).toBeVisible();
+  await readCode(page);
+  await stage(page, 3);
 }
 async function fillNotes(page: Page) {
+  await stage(page, 3);
   for (const [key, value] of Object.entries(notes))
     await page.locator(`#handoff-${key}`).fill(value);
 }
@@ -53,8 +69,10 @@ test("handoff discovery, no answer leak, mobile layout, keyboard navigation and 
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await page.getByRole("link", { name: /NEW \/ AI 코드 인수인계 훈련/ }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("이제 내가 책임질 차례");
+  await page.locator(".handoff-entry").click();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "읽는 것에서 이해하는 것으로",
+  );
   await expect(page.locator(".handoff-card")).toHaveCount(6);
   await expect(page.getByRole("status")).toContainText("0/6개");
   await accessible(page);
@@ -66,14 +84,15 @@ test("handoff discovery, no answer leak, mobile layout, keyboard navigation and 
   if (testInfo.project.name === "chromium")
     await page.screenshot({ path: "artifacts/handoff-mobile.png", fullPage: true });
   await page.getByRole("link", { name: "인수인계 시작 : 장바구니 상태 인수인계" }).click();
+  await stage(page, 3);
   await expect(page.locator("#handoff-understanding")).toBeVisible();
-  await page.getByRole("button", { name: "1. 이해" }).focus();
+  await page.getByRole("button", { name: "구조 이해 작성하기" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#handoff-understanding")).toBeFocused();
   await page.keyboard.insertText(
     "키보드로 구조 이해 메모를 작성합니다. 원본 데이터와 반환값을 확인합니다.",
   );
-  await page.getByRole("button", { name: "4. 검증" }).click();
+  await page.getByRole("button", { name: "검증 계획과 테스트 작성하기" }).click();
   await expect(page.locator("#handoff-verification")).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await accessible(page);
@@ -98,6 +117,7 @@ test("handoff code and report persist together, retain offline edits, and remain
     .poll(async () => readHandoffDraft((await saved(page)) ?? "").implementation)
     .toBe(base.solution);
   await page.reload();
+  await prepareWorkspace(page);
   await expect(page.locator("#handoff-diagnosis")).toHaveValue(notes.diagnosis);
   expect(await readCode(page)).toBe(base.solution);
   await context.setOffline(true);
@@ -245,6 +265,7 @@ test("private learning feedback shows a due transfer and survives backup roundtr
   await other.close();
   await card.getByRole("link", { name: /예약 인원 변경/ }).click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("예약 인원 변경");
+  await stage(page, 3);
   await expect(page.locator("#handoff-understanding")).toHaveValue("");
 });
 
@@ -286,7 +307,18 @@ test("reset retains handoff notes and undo restores the code; review errors reta
   await expect.poll(() => requests.length).toBe(2);
   await expect(page.locator(".workspace-error")).toContainText("AI 응답을 받지 못했습니다");
   expect(requests[1]).toEqual(requests[0]);
+  // Retrying on the current step must not schedule a heading focus that interrupts typing.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  await expect(page.locator("#lab-stage-title")).not.toBeFocused();
   await page.locator("#handoff-decision").fill(notes.decision + " 추가 경계 사례를 준비합니다.");
+  await expect(page.locator("#handoff-decision")).toHaveValue(
+    notes.decision + " 추가 경계 사례를 준비합니다.",
+  );
   await page.getByRole("button", { name: "AI 풀이 검토", exact: true }).click();
   await expect.poll(() => requests.length).toBe(3);
   expect(requests[2].requestId).not.toBe(requests[1].requestId);
@@ -301,8 +333,9 @@ test("audit: original code, stable labels, missing-note focus and handoff docume
     await route.fulfill({ response, json: { ...(await response.json()), aiReady: true } });
   });
   await openHandoff(page);
-  await page.getByText("인수받은 원본 코드 보기", { exact: true }).click();
-  await expect(page.locator(".handoff-original pre")).toContainText(base.starterCode);
+  await stage(page, 0);
+  await expect(page.getByLabel("예측할 원본 코드")).toContainText(base.starterCode);
+  await stage(page, 3);
   await setCode(page, base.solution);
   await page.getByRole("button", { name: "AI 풀이 검토", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "구조 이해", exact: true })).toBeFocused();
@@ -317,7 +350,9 @@ test("audit: original code, stable labels, missing-note focus and handoff docume
   const content = await readFile((await file.path())!, "utf8");
   expect(content).toContain(base.solution);
   expect(content).toContain(notes.decision);
-  await expect(page.locator(".handoff-original pre")).toContainText(base.starterCode);
+  await stage(page, 0);
+  await expect(page.getByLabel("예측할 원본 코드")).toContainText(base.starterCode);
+  await stage(page, 3);
   await accessible(page);
   if (testInfo.project.name === "chromium")
     await page.screenshot({ path: "artifacts/handoff-audit-workspace.png", fullPage: true });

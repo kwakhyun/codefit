@@ -12,17 +12,17 @@ cp .env.example .env.local
 npm run dev
 ```
 
-기존 `.env.local`이 있으면 덮어쓰지 마세요. 기본 주소는 `http://localhost:3000`입니다. OAuth를 사용하면 아래 `AUTH_BASE_URL`과 콜백 주소도 같은 주소로 맞춥니다. API 키 없이도 내장 문제, 코드 작성/저장, 힌트, 정답, 백업을 사용할 수 있습니다.
+기존 `.env.local`이 있으면 덮어쓰지 마세요. 기본 주소는 `http://localhost:3000`입니다. OAuth를 사용하면 아래 `AUTH_BASE_URL`과 콜백 주소도 같은 주소로 맞춥니다. API 키 없이도 내장 문제, 코드 작성/저장, 코드 이해 훈련의 예측과 실행 테스트, 힌트, 정답, 백업을 사용할 수 있습니다.
 
-| 환경 변수                 | 용도                                                                                   |
-| ------------------------- | -------------------------------------------------------------------------------------- |
-| `OPENAI_API_KEY`          | 서버 전용 AI 키. 생성과 검토에 사용                                                    |
-| `OPENAI_GENERATION_MODEL` | 문제 생성 기본 `gpt-5.6-sol` (GPT-5.6 Sol)                                             |
-| `OPENAI_REVIEW_MODEL`     | 풀이 검토 기본 `gpt-5.6-luna`, `medium` 추론. 이전 `OPENAI_MODEL`은 검토에만 호환 적용 |
-| `DATABASE_URL`            | PostgreSQL 연결 주소. Vercel에서 필수                                                  |
-| `DATABASE_PATH`           | SQLite 절대 경로. 기본 `data/recode.sqlite`                                            |
-| `RATE_LIMIT_SALT`         | Vercel에서 접속 IP를 HMAC으로 변환할 비밀 값. 32바이트 이상 난수 권장                  |
-| `APP_ORIGIN`              | 프록시 운영 시 실제 HTTPS origin. 끝의 `/` 제외                                        |
+| 환경 변수                 | 용도                                                                                               |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| `OPENAI_API_KEY`          | 서버 전용 AI 키. 생성과 검토에 사용                                                                |
+| `OPENAI_GENERATION_MODEL` | 문제 생성 기본 `gpt-5.6-sol` (GPT-5.6 Sol)                                                         |
+| `OPENAI_REVIEW_MODEL`     | 풀이 검토와 맞춤 질문 기본 `gpt-5.6-luna`, `medium` 추론. 이전 `OPENAI_MODEL`은 검토에만 호환 적용 |
+| `DATABASE_URL`            | PostgreSQL 연결 주소. Vercel에서 필수                                                              |
+| `DATABASE_PATH`           | SQLite 절대 경로. 기본 `data/recode.sqlite`                                                        |
+| `RATE_LIMIT_SALT`         | Vercel에서 접속 IP를 HMAC으로 변환할 비밀 값. 32바이트 이상 난수 권장                              |
+| `APP_ORIGIN`              | 프록시 운영 시 실제 HTTPS origin. 끝의 `/` 제외                                                    |
 
 비밀 값은 `NEXT_PUBLIC_*`나 Git에 넣지 않습니다. `.env.local`, `.vercel`, 데이터베이스, 테스트 임시 데이터는 Git에서 제외됩니다.
 
@@ -32,6 +32,20 @@ npm start
 ```
 
 독립 실행 빌드 외부에 SQLite 파일을 두므로 재빌드 후에도 기록이 유지됩니다. 운영 사이트는 GitHub `main`에 푸시하면 Vercel이 자동 배포합니다. Production과 Preview는 별도의 PostgreSQL을 사용하며 각각 서버 키와 `RATE_LIMIT_SALT`를 설정합니다. 접근 암호는 사용하지 않습니다.
+
+## 코드 이해 훈련의 실행 환경
+
+`npm ci`의 postinstall은 Monaco와 고정 버전 QuickJS WASM 파일을 `public/`에 복사합니다.
+로컬 실행과 Vercel 빌드 모두 같은 경로를 사용합니다. 생성된 자산은 Git에 넣지 않습니다.
+QuickJS 0.32.0의 파일명을 바꿀 때에는 복사 스크립트와 Worker 경로를 함께 갱신하세요.
+
+브라우저 Worker가 QuickJS를 실행하며 서버에는 사용자 코드를 실행하는 API가 없습니다.
+한 테스트당 600ms, 16MiB 힙, 256KiB 스택, 출력 1,600자 제한과 전체 12초 Worker 종료를 적용합니다.
+새 런타임을 테스트마다 만들며 DOM, 네트워크, 파일 시스템, 타이머나 모듈 로더를 노출하지 않습니다.
+입력은 교육용 JavaScript 함수에 한정합니다. 모바일의 메모리 부족이나 WASM 차단 시에도 초안은 보존됩니다.
+
+맞춤 질문 API는 기존 리뷰 모델 설정과 한도를 공유합니다. 이 작업에서는 유료 호출 없이 provider mock과 브라우저 모의 응답으로 검증했습니다.
+실제 모델의 질문 품질과 학습 효과는 별도 실사용 평가가 필요합니다.
 
 ## 검증 재현
 

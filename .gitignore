@@ -17,6 +17,7 @@
 
 # generated Monaco Editor assets
 /public/monaco/
+/public/quickjs/
 
 # misc
 .DS_Store

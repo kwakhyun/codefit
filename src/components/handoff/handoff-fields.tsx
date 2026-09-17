@@ -19,7 +19,7 @@ export function HandoffFields({
   readOnly?: boolean;
   prefix?: string;
 }) {
-  const { implementation, notes } = readHandoffDraft(value);
+  const { implementation, notes, training } = readHandoffDraft(value);
   const fields =
     section === "before"
       ? HANDOFF_FIELDS.slice(0, 2)
@@ -43,7 +43,11 @@ export function HandoffFields({
             rows={section === "after" ? 5 : 3}
             onChange={(event) =>
               onChange?.(
-                writeHandoffDraft(implementation, { ...notes, [field.key]: event.target.value }),
+                writeHandoffDraft(
+                  implementation,
+                  { ...notes, [field.key]: event.target.value },
+                  training,
+                ),
               )
             }
           />

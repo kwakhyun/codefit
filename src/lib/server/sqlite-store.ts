@@ -205,6 +205,12 @@ export class SqliteStore implements ProblemStore {
       this.ensureProgress(owner, id);
       const p = this.progressFor(owner, id)!;
       const attempt = createAttempt(id, code, review, p);
+      // Assistance is server-owned; editing or restoring a draft cannot erase it.
+      attempt.assisted ||= Boolean(
+        this.db
+          .prepare("SELECT 1 FROM jobs WHERE owner=? AND kind=? AND state='done' LIMIT 1")
+          .get(owner, `coach:${id}`),
+      );
       this.db
         .prepare("INSERT INTO attempts VALUES (?,?,?,?,?,?,?)")
         .run(
@@ -278,6 +284,12 @@ export class SqliteStore implements ProblemStore {
         )
         .run(id, owner, kind, Date.now() + GENERATION_LEASE_MS, lease.token, fingerprint);
       return { state: "new", lease };
+    });
+  }
+  completeCoaching(lease: JobLease, problemId: string, result: string) {
+    return this.transaction(() => {
+      this.requireJob(lease, `coach:${problemId}`);
+      this.finishJob(lease, result);
     });
   }
   private finishJob(lease: JobLease, result: string) {

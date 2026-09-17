@@ -36,7 +36,7 @@
     padding: 10px 14px;
   }
   .modal-heading > .mono {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .generator-modal form {
     padding: 21px 19px;
@@ -46,10 +46,10 @@
     line-height: 1.5;
   }
   .generator-intro p {
-    font-size: 10px;
+    font-size: var(--text-body);
   }
   .generator-intro > .eyebrow {
-    font-size: 8px;
+    font-size: var(--text-caption);
     letter-spacing: 1px;
   }
   .generator-fields {
@@ -59,10 +59,10 @@
     gap: 10px;
   }
   .form-row label {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .form-row select {
-    font-size: 11px;
+    font-size: var(--text-input);
     height: 39px;
     padding-left: 8px;
   }
@@ -73,30 +73,30 @@
     padding: 11px 9px;
   }
   .difficulty-options strong {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
   .difficulty-options strong span {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .difficulty-options small {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .topic-label {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .topic-label textarea {
-    font-size: 10px;
+    font-size: var(--text-input);
     padding: 10px;
   }
   .topic-suggestions {
     gap: 5px;
   }
   .topic-suggestions > button {
-    font-size: 8px;
+    font-size: var(--text-caption);
     padding: 5px 6px;
   }
   .generation-note {
-    font-size: 9px;
+    font-size: var(--text-caption);
     margin: 19px 0 16px;
     align-items: flex-start;
   }
@@ -117,14 +117,14 @@
     font-size: 19px;
   }
   .confirm-content > p {
-    font-size: 11px;
+    font-size: var(--text-body);
   }
   .modal-buttons {
     gap: 8px;
     flex-wrap: wrap;
   }
   .modal-buttons button {
-    font-size: 10px;
+    font-size: var(--text-caption);
     padding: 9px 12px;
   }
   .settings-content,
@@ -138,36 +138,36 @@
   }
   .settings-content .eyebrow,
   .help-content .eyebrow {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .settings-info {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .settings-info strong {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .settings-content > p {
-    font-size: 10px;
+    font-size: var(--text-body);
   }
   .settings-content > .secondary-button {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .help-content li strong {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .help-content li p {
-    font-size: 10px;
+    font-size: var(--text-body);
   }
   .shortcut-help {
     gap: 14px;
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .shortcut-help kbd {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .toast {
     bottom: 16px;
-    font-size: 11px;
+    font-size: var(--text-small);
     padding: 10px 10px 10px 13px;
     min-width: 250px;
     width: max-content;
@@ -176,7 +176,7 @@
 }
 
 .settings-content > .import-note {
-  font-size: 9px;
+  font-size: var(--text-caption);
   text-align: center;
   color: #919191;
   margin: 10px 0 0;
@@ -185,57 +185,57 @@
 
 @media (max-width: 540px) {
   .generator-intro p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .form-row label,
   .field-label,
   .topic-label {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
   .form-row select {
-    font-size: 13px;
+    font-size: var(--text-input);
   }
   .segmented > button {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
   .difficulty-options strong span {
-    font-size: 10px;
+    font-size: var(--text-caption);
     white-space: normal;
     line-height: 1.7;
     min-height: 34px;
   }
   .difficulty-options small {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .topic-label textarea {
-    font-size: 12px;
+    font-size: var(--text-input);
   }
   .topic-suggestions > button {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .generation-note {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .settings-content > p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .settings-info,
   .settings-info strong {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
   .settings-content > .secondary-button {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
   .help-content li strong {
-    font-size: 13px;
+    font-size: var(--text-body);
   }
   .help-content li p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .settings-content > .import-note {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .confirm-content > p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
 }

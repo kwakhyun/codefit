@@ -5,7 +5,7 @@
   --sidebar: #080808;
   --line: #333333;
   --text: #e6e6e6;
-  --muted: #a0a0a0;
+  --muted: #b0b0b0;
   --accent: #ffffff;
   --warning: #f2c879;
   --danger: #ff9a9a;
@@ -13,7 +13,15 @@
   --success: #7dd3ac;
   --ai: #c4b5fd;
   --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --sans: "IBM Plex Mono", "SFMono-Regular", Consolas, "Noto Sans KR", monospace;
+  --sans: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Readable roles stay consistent across breakpoints; honor the browser text size. */
+  --text-caption: 0.75rem;
+  --text-small: 0.8125rem;
+  --text-ui: 0.875rem;
+  --text-body: 0.9375rem;
+  --text-reading: 1rem;
+  --text-input: var(--text-body);
+  --control-size: 36px;
   --black: #000000;
   --white: #ffffff;
   --action-soft: #bfdbfe;

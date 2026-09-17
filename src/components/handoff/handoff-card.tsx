@@ -40,7 +40,9 @@ export function HandoffCard({
             {latest.score}% 충족
           </strong>
           <p>
-            {latest.assisted ? "서비스 내 힌트 또는 정답 사용" : "서비스 내 힌트와 정답 미사용"}
+            {latest.assisted
+              ? "서비스 내 힌트, 정답 또는 AI 질문 사용"
+              : "서비스 내 힌트, 정답과 AI 질문 미사용"}
           </p>
           <Link className="text-button" href={problemUrl(latest.problemId, "/handoff", latest.id)}>
             검토한 코드와 피드백 보기 →

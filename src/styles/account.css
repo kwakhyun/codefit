@@ -45,7 +45,7 @@
   color: #a0a0aa;
   margin-left: auto;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--text-caption);
   letter-spacing: 1px;
 }
 .auth-card-content {
@@ -60,7 +60,7 @@
 .auth-card-content > p,
 .auth-public-note p {
   color: #a8a8b2;
-  font-size: 13px;
+  font-size: var(--text-body);
   line-height: 1.85;
 }
 .oauth-providers {
@@ -79,7 +79,7 @@
   text-align: left;
 }
 .oauth-button small {
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 .google-symbol {
   font:
@@ -89,7 +89,7 @@
   width: 19px;
 }
 .auth-card-content .auth-privacy {
-  font-size: 11px;
+  font-size: var(--text-small);
   color: #9999a5;
 }
 .auth-privacy a,
@@ -105,7 +105,7 @@
   padding: 0 20px;
 }
 .auth-public-note strong {
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 .profile-stats {
   display: flex;
@@ -122,7 +122,7 @@
   font: 600 30px/1 var(--mono);
 }
 .profile-stats span {
-  font-size: 12px;
+  font-size: var(--text-ui);
   color: #a8a8b2;
 }
 .profile-grid {
@@ -137,13 +137,13 @@
   padding: 25px;
 }
 .profile-panel h2 {
-  font-size: 16px;
+  font-size: var(--text-reading);
   margin: 0 0 22px;
 }
 .profile-panel label {
   display: grid;
   gap: 9px;
-  font-size: 13px;
+  font-size: var(--text-body);
   margin-bottom: 20px;
 }
 .profile-panel input,
@@ -156,6 +156,8 @@
   color: #e7e7ee;
   font: inherit;
   resize: vertical;
+
+  font-size: var(--text-input);
 }
 .profile-panel label small {
   color: #9696a1;
@@ -166,7 +168,7 @@
   align-items: center;
   gap: 6px;
   color: #8dd7a8;
-  font-size: 12px;
+  font-size: var(--text-ui);
 }
 .profile-content .usage-panel {
   margin-top: 24px;
@@ -190,7 +192,7 @@
 }
 .privacy-copy p {
   color: #b5b5bf;
-  font-size: 14px;
+  font-size: var(--text-body);
   line-height: 1.9;
 }
 .generation-allowance {
@@ -202,7 +204,7 @@
   border-radius: 6px;
   padding: 12px 15px;
   margin: 18px 0;
-  font-size: 12px;
+  font-size: var(--text-ui);
 }
 .generation-allowance strong {
   color: #b6caff;
@@ -219,7 +221,7 @@
 }
 .generator-login p {
   color: #aaaab5;
-  font-size: 13px;
+  font-size: var(--text-body);
   line-height: 1.8;
 }
 .generator-login .primary-button {

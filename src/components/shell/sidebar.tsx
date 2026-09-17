@@ -99,7 +99,7 @@ export function Sidebar({
         </Link>
         <Link className="nav-item" href="/handoff">
           <Terminal size={17} />
-          <span>AI 코드 인수인계</span>
+          <span>AI 코드 이해 훈련</span>
         </Link>
         <span className="nav-caption domains-caption">
           EXPLORE BY DOMAIN <span>{DOMAINS.length}</span>

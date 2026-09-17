@@ -1,0 +1,357 @@
+{
+  "date": "2026-09-17",
+  "baselineCommit": "f71f39cab89b31fd01dd35001246b65ea341a1dc",
+  "scope": "Service-wide typography, responsive controls and training focus restoration; builds include existing uncommitted AI understanding training work.",
+  "environment": {
+    "os": "macOS 26.6.2 arm64",
+    "node": "22.21.0",
+    "next": "16.3.4",
+    "build": "production",
+    "seedProblems": 24,
+    "database": "isolated local SQLite",
+    "networkThrottle": false,
+    "cpuThrottle": false,
+    "playwright": "1.63.0",
+    "browsers": {
+      "chromium": "153.0.8010.12",
+      "firefox": "155.0",
+      "webkit": "26.6"
+    }
+  },
+  "tests": {
+    "unitSqlite": {
+      "passed": 90
+    },
+    "postgres": {
+      "skipped": 19,
+      "reason": "No isolated test database available"
+    },
+    "fullBrowserRegression": {
+      "passed": 84,
+      "durationMinutes": 4.9,
+      "perBrowser": 28,
+      "archive": "artifacts/ui-audit-final-full-20260917-215620"
+    },
+    "finalHelpCssRegression": {
+      "passed": 6,
+      "durationSeconds": 22.4,
+      "scenarios": "settings/keyboard and mobile navigation on all three browsers"
+    },
+    "focusRepeatWebkit": {
+      "passed": 3
+    },
+    "build": "passed",
+    "typescript": "passed",
+    "eslint": "passed",
+    "knip": "passed"
+  },
+  "layout": {
+    "routes": 9,
+    "widths": [320, 390, 768, 1024, 1440],
+    "height": 900,
+    "samples": 45,
+    "maxFinalOverflowPx": 0,
+    "firstFinding": "6px page overflow in history at 320px; fixed with a fluid seven-column week grid",
+    "measurements": [
+      {
+        "route": "/",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 320
+      },
+      {
+        "route": "/?view=bookmarks",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 320
+      },
+      {
+        "route": "/?view=history",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 320
+      },
+      {
+        "route": "/handoff",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 320
+      },
+      {
+        "route": "/problems/fe-search-race",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 320
+      },
+      {
+        "route": "/problems/handoff-cart",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 320
+      },
+      {
+        "route": "/login",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 320
+      },
+      {
+        "route": "/quality",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 320
+      },
+      {
+        "route": "/privacy",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 320
+      },
+      {
+        "route": "/",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 390
+      },
+      {
+        "route": "/?view=bookmarks",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 390
+      },
+      {
+        "route": "/?view=history",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 390
+      },
+      {
+        "route": "/handoff",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 390
+      },
+      {
+        "route": "/problems/fe-search-race",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 390
+      },
+      {
+        "route": "/problems/handoff-cart",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 390
+      },
+      {
+        "route": "/login",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 390
+      },
+      {
+        "route": "/quality",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 390
+      },
+      {
+        "route": "/privacy",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 390
+      },
+      {
+        "route": "/",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 768
+      },
+      {
+        "route": "/?view=bookmarks",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 768
+      },
+      {
+        "route": "/?view=history",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 768
+      },
+      {
+        "route": "/handoff",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 768
+      },
+      {
+        "route": "/problems/fe-search-race",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 768
+      },
+      {
+        "route": "/problems/handoff-cart",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 768
+      },
+      {
+        "route": "/login",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 768
+      },
+      {
+        "route": "/quality",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 768
+      },
+      {
+        "route": "/privacy",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 768
+      },
+      {
+        "route": "/",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1024
+      },
+      {
+        "route": "/?view=bookmarks",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1024
+      },
+      {
+        "route": "/?view=history",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1024
+      },
+      {
+        "route": "/handoff",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1024
+      },
+      {
+        "route": "/problems/fe-search-race",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1024
+      },
+      {
+        "route": "/problems/handoff-cart",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1024
+      },
+      {
+        "route": "/login",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1024
+      },
+      {
+        "route": "/quality",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1024
+      },
+      {
+        "route": "/privacy",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1024
+      },
+      {
+        "route": "/",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1440
+      },
+      {
+        "route": "/?view=bookmarks",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1440
+      },
+      {
+        "route": "/?view=history",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1440
+      },
+      {
+        "route": "/handoff",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1440
+      },
+      {
+        "route": "/problems/fe-search-race",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1440
+      },
+      {
+        "route": "/problems/handoff-cart",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1440
+      },
+      {
+        "route": "/login",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1440
+      },
+      {
+        "route": "/quality",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1440
+      },
+      {
+        "route": "/privacy",
+        "bodyFont": "15px",
+        "overflow": 0,
+        "width": 1440
+      }
+    ]
+  },
+  "fontPxAt16pxBrowserDefault": {
+    "body": 15,
+    "longReading": 16,
+    "navigation": 14,
+    "listTitle": 15,
+    "captionMinimum": 12,
+    "mobileInputs": 16,
+    "monacoDefaultUnchanged": 14
+  },
+  "manualChecks": [
+    "Inspected saved before/after screenshots",
+    "Mobile menu footer access",
+    "Help numbered steps stay on one line",
+    "Escape closes help and restores trigger focus",
+    "Final preview console errors absent"
+  ],
+  "limits": [
+    "No real provider OAuth sign-in tested in this pass",
+    "No live AI quality evaluation or paid AI calls",
+    "No production DB writes",
+    "No isolated PostgreSQL execution",
+    "No real-device touch or human screen-reader testing",
+    "Not a WCAG conformance certification or performance benchmark"
+  ],
+  "delivery": {
+    "committed": false,
+    "pushed": false,
+    "deployed": false
+  }
+}

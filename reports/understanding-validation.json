@@ -1,0 +1,108 @@
+{
+  "date": "2026-09-17",
+  "baselineCommit": "f71f39cab89b31fd01dd35001246b65ea341a1dc",
+  "scope": "Local AI code comprehension training implementation; no commit, push or deployment",
+  "environment": {
+    "os": "macOS 26.6.2",
+    "architecture": "arm64",
+    "node": "22.21.0",
+    "next": "16.3.4",
+    "build": "production",
+    "database": "isolated SQLite artifacts/e2e.sqlite",
+    "seedProblems": 24,
+    "playwright": "1.63.0",
+    "browsers": {
+      "chromium": "153.0.8010.12",
+      "firefox": "155.0",
+      "webkit": "26.6"
+    },
+    "viewports": [
+      {
+        "width": 1280,
+        "height": 720
+      },
+      {
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "cpuThrottling": false,
+    "networkThrottling": false,
+    "faultInjection": "Offline, delayed responses and mocked AI errors only in designated scenarios"
+  },
+  "validation": {
+    "unitAndSQLite": {
+      "passed": 90
+    },
+    "postgresql": {
+      "skipped": 19,
+      "reason": "No isolated PostgreSQL test server available; production DB not used"
+    },
+    "staticChecks": ["TypeScript", "production build", "ESLint", "knip", "Prettier"],
+    "browserFinalRun": {
+      "passed": 84,
+      "failed": 0,
+      "scenariosPerBrowser": 28,
+      "singleRun": true,
+      "reportedDuration": "4.9m",
+      "command": "npx playwright test"
+    },
+    "earlierRuns": [
+      {
+        "scope": "Chromium focused",
+        "passed": 12,
+        "failed": 1,
+        "cause": "Existing discovery locator matched both sidebar and main links; scoped to main entry"
+      },
+      {
+        "scope": "All browsers",
+        "passed": 83,
+        "failed": 1,
+        "cause": "WebKit focus restoration after draft conflict ran before editor was visible; fixed post-commit layout/focus"
+      },
+      {
+        "scope": "WebKit conflict focus after fix",
+        "passed": 3,
+        "failed": 0,
+        "repeatEach": 3
+      }
+    ],
+    "quickjs": {
+      "curriculumTasksVerified": 12,
+      "originalObservationsAndReferenceSolutions": true,
+      "limitsAndHostIsolation": true
+    },
+    "coaching": {
+      "provider": "mock",
+      "defaultModel": "gpt-5.6-luna",
+      "liveQuestionQualityEvaluated": false
+    },
+    "accessibility": {
+      "automated": "axe WCAG 2 A/AA and 2.1 AA in browser scenarios",
+      "interaction": "Playwright keyboard/input/focus and mobile navigation; agent-browser visual inspection",
+      "humanScreenReaderReview": false
+    },
+    "paidAICalls": 0,
+    "productionDatabaseWrites": 0
+  },
+  "loadingObservations": {
+    "wasmUncompressedBytes": 503134,
+    "monacoMountedOnInitialPrediction": false,
+    "comparativePerformanceMeasured": false
+  },
+  "screenshots": [
+    "docs/images/understanding-home.png",
+    "docs/images/understanding-predict.png",
+    "docs/images/understanding-observe.png",
+    "docs/images/understanding-repair.png",
+    "docs/images/understanding-mobile.png"
+  ],
+  "limitations": [
+    "Real AI coaching response quality and learning outcomes are not established by mocked provider tests.",
+    "New PostgreSQL contract is implemented but was not executed locally.",
+    "Browser execution covers 12 dependency-free JavaScript exercises, not every supported language.",
+    "Client execution records are learning evidence, not server-certified grading or skill certification.",
+    "Provider calls may duplicate after uncertain responses or lease expiry; database result fencing is separate.",
+    "No production performance, before/after responsiveness or human screen-reader evaluation is claimed."
+  ]
+}

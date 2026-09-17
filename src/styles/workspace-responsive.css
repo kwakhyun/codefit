@@ -14,10 +14,10 @@
     min-height: 730px;
   }
   .scenario {
-    font-size: 13px;
+    font-size: var(--text-body);
   }
   .requirements li > p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
 }
 
@@ -33,7 +33,7 @@
   }
   .problem-tabs button {
     padding: 0 6px;
-    font-size: 9px;
+    font-size: var(--text-ui);
     gap: 4px;
   }
   .problem-tabs button svg {
@@ -43,11 +43,11 @@
     font-size: 21px;
   }
   .review-action > span kbd {
-    font-size: 8px;
+    font-size: var(--text-caption);
     padding: 1px 3px;
   }
   .review-action .primary-button {
-    font-size: 10px;
+    font-size: var(--text-caption);
     gap: 6px;
     padding: 9px;
   }
@@ -56,13 +56,13 @@
     gap: 5px;
   }
   .review-action > span {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .review-action > span > small {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .editor-topbar > span {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .editor-topbar {
     padding: 0 11px;
@@ -71,7 +71,7 @@
     gap: 6px;
   }
   .console-heading > span {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
 }
 
@@ -90,7 +90,7 @@
   .problem-tabs button {
     flex: 0 1 auto;
     padding: 0 20px;
-    font-size: 11px;
+    font-size: var(--text-ui);
   }
   .workspace-heading h1 {
     font-size: 22px;
@@ -99,23 +99,23 @@
     height: 450px;
   }
   .editor-topbar > span {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .review-action .primary-button {
-    font-size: 12px;
+    font-size: var(--text-ui);
     padding: 10px 15px;
   }
   .review-action > span kbd {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .review-action {
     padding: 14px;
   }
   .review-action > span > small {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .console-heading > span {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .focus-mode .workbench {
     grid-template-columns: minmax(300px, 1fr) minmax(360px, 1.2fr);
@@ -130,7 +130,7 @@
   }
   .focus-mode .problem-tabs button {
     padding: 0 9px;
-    font-size: 10px;
+    font-size: var(--text-ui);
   }
 }
 
@@ -145,7 +145,7 @@
     margin: 18px 0 21px;
   }
   .workspace-id {
-    font-size: 7px;
+    font-size: var(--text-caption);
   }
   .problem-content {
     padding: 24px;
@@ -156,7 +156,7 @@
     padding-left: 10px;
   }
   .scenario {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .problem-tabs button {
     padding: 0 18px;
@@ -179,7 +179,7 @@
     padding: 17px 12px 0;
   }
   .workspace-breadcrumb {
-    font-size: 9px;
+    font-size: var(--text-caption);
     gap: 7px;
   }
   .workspace-breadcrumb a > svg {
@@ -204,21 +204,21 @@
     gap: 6px;
   }
   .workspace-heading-actions .icon-button {
-    width: 29px;
-    height: 29px;
+    width: var(--control-size);
+    height: var(--control-size);
   }
   .workspace-heading-actions .icon-button svg {
     width: 16px;
   }
   .problem-meta {
     gap: 8px;
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .problem-meta > .kind-label {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .problem-meta > span:last-child {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .problem-meta > span:last-child svg {
     width: 11px;
@@ -227,21 +227,21 @@
     border-radius: 0;
   }
   .problem-tabs {
-    height: 44px;
+    min-height: 48px;
     padding: 0 5px;
   }
   .problem-tabs button,
   .focus-mode .problem-tabs button {
     flex: 1;
     padding: 0 8px;
-    font-size: 10px;
+    font-size: var(--text-ui);
     gap: 5px;
   }
   .problem-tabs button svg {
     width: 14px;
   }
   .problem-tabs small {
-    font-size: 7px;
+    font-size: var(--text-caption);
   }
   .problem-content {
     padding: 22px 18px;
@@ -249,41 +249,41 @@
     min-height: 290px;
   }
   .scenario {
-    font-size: 11px;
+    font-size: var(--text-body);
     line-height: 1.95;
   }
   .requirements li > p {
-    font-size: 10px;
+    font-size: var(--text-body);
     line-height: 1.9;
   }
   .section-marker > span {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .example-box {
     padding: 12px;
   }
   .example-box code {
-    font-size: 9px;
+    font-size: var(--text-ui);
   }
   .example-box p {
-    font-size: 9px;
+    font-size: var(--text-ui);
   }
   .problem-tags {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .help-nudge {
-    font-size: 9px;
+    font-size: var(--text-caption);
     padding: 11px;
   }
   .editor-topbar {
-    height: 40px;
+    min-height: 48px;
     padding: 0 11px;
   }
   .editor-topbar > span {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .save-indicator {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .editor-topbar > div {
     gap: 4px;
@@ -293,14 +293,14 @@
     height: 390px;
   }
   .editor-filebar > span {
-    font-size: 9px;
+    font-size: var(--text-caption);
     padding: 10px 13px;
   }
   .editor-filebar strong {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .editor-statusbar {
-    font-size: 7px;
+    font-size: var(--text-caption);
     padding: 0 10px;
   }
   .editor-statusbar > span {
@@ -315,17 +315,17 @@
     flex-wrap: wrap;
   }
   .review-action > span {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .review-action > span kbd {
-    font-size: 7px;
+    font-size: var(--text-caption);
     padding: 1px 3px;
   }
   .review-action > span > small {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .review-action .primary-button {
-    font-size: 10px;
+    font-size: var(--text-caption);
     padding: 9px 11px;
     min-height: 38px;
     gap: 6px;
@@ -335,28 +335,28 @@
   }
   .console-heading {
     padding: 0 12px;
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .console-heading > span {
-    font-size: 7px;
+    font-size: var(--text-caption);
   }
   .console-heading strong {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .console-idle {
     padding: 21px 16px;
   }
   .console-idle > .mono {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .console-idle p {
-    font-size: 10px;
+    font-size: var(--text-body);
   }
   .review-result {
     padding: 17px 15px;
   }
   .review-result-title strong {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .review-result-title > b {
     font-size: 22px;
@@ -365,10 +365,10 @@
     width: 19px;
   }
   .review-result > p {
-    font-size: 10px;
+    font-size: var(--text-body);
   }
   .review-criteria p {
-    font-size: 10px;
+    font-size: var(--text-body);
   }
   .review-result-title {
     gap: 7px;
@@ -377,130 +377,163 @@
     padding: 35px 0;
   }
   .solution-locked p {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .solution-locked small {
-    font-size: 8px;
+    font-size: var(--text-caption);
   }
   .problem-content h2 {
     font-size: 17px;
   }
   .problem-content > .eyebrow {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
   .problem-content > .muted {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .hint-card p {
-    font-size: 10px;
+    font-size: var(--text-body);
   }
   .tab-empty small {
-    font-size: 9px;
+    font-size: var(--text-caption);
   }
 }
 
 @media (min-width: 1001px) {
   .problem-tabs button {
-    font-size: 11px;
+    font-size: var(--text-ui);
   }
   .scenario {
-    font-size: 13px;
+    font-size: var(--text-body);
   }
   .requirements li > p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .example-box code {
-    font-size: 11px;
+    font-size: var(--text-ui);
   }
   .example-box p {
-    font-size: 11px;
+    font-size: var(--text-ui);
   }
   .review-criteria p,
   .review-result > p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .review-criteria strong {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .console-idle p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .console-idle small {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
 }
 
 @media (max-width: 540px) {
   .scenario {
-    font-size: 13px;
+    font-size: var(--text-body);
   }
   .requirements li > p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .section-marker > span {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
   .example-box code {
-    font-size: 11px;
+    font-size: var(--text-ui);
   }
   .example-box p {
-    font-size: 11px;
+    font-size: var(--text-ui);
   }
   .help-nudge {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .problem-content > .muted {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
   .problem-tabs button,
   .focus-mode .problem-tabs button {
-    font-size: 12px;
+    font-size: var(--text-ui);
     padding: 0 6px;
     gap: 5px;
   }
   .hint-card p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .solution-locked p {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
   .solution-locked small {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .solution-code {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .review-result > p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .review-criteria p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .review-criteria strong {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .review-result-title strong {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
   .console-idle p {
-    font-size: 12px;
+    font-size: var(--text-body);
   }
   .console-idle small {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .review-action .primary-button {
-    font-size: 12px;
+    font-size: var(--text-ui);
   }
   .review-improvements ul {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .problem-meta {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .problem-meta > .kind-label {
-    font-size: 10px;
+    font-size: var(--text-caption);
   }
   .problem-meta > span:last-child {
-    font-size: 10px;
+    font-size: var(--text-caption);
+  }
+}
+
+@media (max-width: 760px) {
+  .editor-filebar {
+    padding-right: 0;
+  }
+  .editor-filebar > span {
+    border-right: 0;
+    padding: 10px 12px;
+  }
+  .editor-filebar > div {
+    flex-basis: 100%;
+    border-top: 1px solid var(--line);
+    padding: 4px 8px;
+    justify-content: flex-end;
+  }
+  .editor-filebar .icon-button {
+    width: var(--control-size);
+    height: var(--control-size);
+  }
+  .editor-topbar {
+    height: auto;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-block: 6px;
+  }
+  .console-heading {
+    height: auto;
+    padding-block: 10px;
+  }
+  .review-action > .primary-button {
+    min-height: 44px;
   }
 }

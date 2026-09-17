@@ -83,13 +83,13 @@
 }
 .handoff-skill {
   color: var(--handoff-accent);
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 .handoff-feedback {
   border-top: 1px solid var(--handoff-border);
   width: 100%;
   padding-top: 16px;
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 .handoff-feedback p,
 .handoff-feedback details {
@@ -116,13 +116,13 @@
 }
 .handoff-entry strong {
   color: #a4dce8;
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 .handoff-entry span {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 .handoff-guide nav {
   display: flex;
@@ -149,10 +149,10 @@
 }
 .handoff-fields strong {
   color: #e4e6eb;
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 .handoff-fields label > span {
-  font-size: 13px;
+  font-size: var(--text-body);
   color: var(--handoff-muted);
   line-height: 1.6;
 }
@@ -167,7 +167,7 @@
   padding: 12px;
   line-height: 1.7;
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-input);
 }
 .handoff-fields textarea:focus-visible,
 .handoff-page a:focus-visible,
@@ -200,7 +200,7 @@
     padding: 16px;
   }
   .handoff-page > header .brand-logo {
-    font-size: 16px;
+    font-size: var(--text-reading);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -216,7 +216,7 @@
   margin: 24px 0;
 }
 .handoff-metrics dt {
-  font-size: 13px;
+  font-size: var(--text-body);
   color: var(--handoff-muted);
   line-height: 1.6;
 }
@@ -235,7 +235,7 @@
 }
 .handoff-recommendation p,
 .handoff-next-reason {
-  font-size: 13px;
+  font-size: var(--text-body);
   color: var(--handoff-muted);
 }
 .handoff-recommendation .secondary-button {
@@ -248,7 +248,7 @@
   line-height: 1.8;
 }
 .handoff-measurement p {
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 .handoff-exercise-links {
   display: flex;
@@ -264,7 +264,7 @@
   overflow: auto;
   padding: 16px;
   background: var(--handoff-input);
-  font-size: 13px;
+  font-size: var(--text-body);
   line-height: 1.8;
 }
 .handoff-readiness {
@@ -273,7 +273,7 @@
   border-top: 1px solid var(--handoff-border);
 }
 .handoff-readiness p {
-  font-size: 13px;
+  font-size: var(--text-body);
   color: var(--handoff-muted);
   line-height: 1.7;
   margin: 8px 0;
@@ -313,5 +313,5 @@
 }
 .handoff-export small {
   color: var(--handoff-help);
-  font-size: 12px;
+  font-size: var(--text-ui);
 }

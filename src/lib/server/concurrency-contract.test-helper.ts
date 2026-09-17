@@ -33,6 +33,36 @@ export function concurrencyContract(
   getStore: () => ProblemStore,
   expire: (id: string) => unknown | Promise<unknown>,
 ) {
+  it("coaching is fenced, idempotent and records assistance without creating submissions", async () => {
+    const store = getStore(),
+      id = seedProblems[0].id;
+    const old = await claim(store, randomUUID(), `coach:${id}`);
+    await expire(old.id);
+    const current = await claim(store, old.owner, old.kind, old.id);
+    await expect(
+      Promise.resolve().then(() => store.completeCoaching(old, id, "late")),
+    ).rejects.toBeInstanceOf(StaleJob);
+    expect(await store.failJob(old)).toBe(false);
+    await expect(
+      Promise.resolve().then(() => store.completeCoaching(current, "other", "wrong")),
+    ).rejects.toBeInstanceOf(StaleJob);
+    await store.completeCoaching(current, id, "coaching result");
+    await expect(
+      Promise.resolve().then(() => store.completeCoaching(current, id, "duplicate")),
+    ).rejects.toBeInstanceOf(StaleJob);
+    expect(await store.startJob(current.owner, current.id, current.kind, "same-input")).toEqual({
+      state: "done",
+      result: "coaching result",
+    });
+    await expect(
+      Promise.resolve().then(() =>
+        store.startJob(current.owner, current.id, current.kind, "other-input"),
+      ),
+    ).rejects.toBeInstanceOf(RequestMismatch);
+    expect(await store.attempts(current.owner)).toHaveLength(0);
+    expect((await store.saveAttempt(current.owner, id, "code", review)).assisted).toBe(true);
+    expect((await store.saveAttempt("other-learner", id, "code", review)).assisted).toBe(false);
+  }, 30000);
   it("rejects a stale tab/offline revision, isolates metadata, and acknowledges identical retries", async () => {
     const store = getStore(),
       owner = randomUUID(),

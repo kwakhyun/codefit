@@ -29,6 +29,7 @@
     "eval:handoff": "node --import tsx scripts/evaluate-handoff.ts"
   },
   "dependencies": {
+    "@jitl/quickjs-wasmfile-release-sync": "0.32.0",
     "@monaco-editor/react": "^4.7.0",
     "better-auth": "^1.7.4",
     "lucide-react": "^1.39.0",
@@ -37,6 +38,7 @@
     "openai": "^7.9.0",
     "pg": "^8.23.0",
     "postgres": "^3.4.9",
+    "quickjs-emscripten-core": "0.32.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "zod": "^4.5.4"
