@@ -1,22 +1,13 @@
+import { SiteHeader } from "@/components/navigation/site-header";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { BrandIcon } from "@/components/ui/brand-icon";
+
 import report from "../../../reports/ai-review-luna.json";
 export const metadata = { title: "AI 검토 방식과 검증 결과 | CODE:FIT" };
 export default function QualityPage() {
   const result = report.summary;
   return (
-    <main className="quality-page">
-      <header>
-        <Link href="/" className="brand-logo">
-          <BrandIcon />
-          CODE:FIT_
-        </Link>
-        <Link href="/" className="text-button">
-          <ArrowLeft size={15} />
-          문제 보관함
-        </Link>
-      </header>
+    <main id="main-content" className="quality-page">
+      <SiteHeader />
       <span className="eyebrow">HOW WE REVIEW YOUR CODE</span>
       <h1>
         AI의 피드백도,
@@ -94,7 +85,7 @@ export default function QualityPage() {
       <section>
         <h2>입문 실습에서 확인하는 것</h2>
         <p>
-          기초 미션 6개와 앱 오류 해결 실습 3개는 미리 설계한 모의 앱입니다. 연결 끊기나 사용자
+          서비스 원리 학습과 오류 해결 실습은 미리 설계한 모의 서비스입니다. 연결 끊기나 사용자
           전환은 실제 네트워크나 계정을 바꾸지 않습니다. 검사 결과는 각 수정안의 모의 동작을 초기
           상태에서 재현해 계산하며 AI 점수가 아닙니다.
         </p>
@@ -103,7 +94,21 @@ export default function QualityPage() {
           GPT-5.6 Luna와 기존 검토 한도를 공유합니다. 문장 품질이나 실제 제품의 안전성을 인증하지
           않으며, 위의 코드 리뷰 평가 수치를 입문 코치의 정확도로 해석할 수 없습니다.
         </p>
-        <Link href="/learn">앱의 원리부터 배우기 →</Link>
+        <Link href="/learn">서비스 원리 배우기 →</Link>
+      </section>
+      <section>
+        <h2>내 프로젝트 점검에서 확인하는 것</h2>
+        <p>
+          공개 서비스 페이지의 텍스트와 작성한 설명을 바탕으로 GPT-5.6 Sol이 설계 질문을 만들고,
+          GPT-5.6 Luna가 답변을 검토합니다. 로그인 뒤의 화면, 소스 코드와 실제 데이터베이스는
+          검사하지 않습니다. 점수는 제출한 설명의 구체성이며 서비스 품질이나 보안 인증이 아닙니다.
+        </p>
+        <p>
+          가입자는 24시간에 새 분석 2회, 분석당 완료 평가 1회를 이용할 수 있습니다. 실패 재시도와
+          이전 분석의 평가를 포함한 평가 요청은 24시간 4회까지입니다. 호출을 시작한 뒤 실패해도
+          횟수에 포함될 수 있으며, 남은 횟수는 프로젝트 점검 화면에서 확인할 수 있습니다.
+        </p>
+        <Link href="/project-check">내 프로젝트 점검하기 →</Link>
       </section>
       <section>
         <h2>피드백은 이렇게 사용하세요</h2>

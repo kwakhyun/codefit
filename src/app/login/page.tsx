@@ -14,7 +14,9 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const returnTo = safeReturnTo(params.returnTo);
-  if (await accountUser(await headers())) redirect(returnTo);
+  const requestHeaders = await headers();
+  if (await accountUser(requestHeaders)) redirect(returnTo);
+  const localPreview = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(requestHeaders.get("host") || "");
   return (
     <AccountShell>
       <section className="auth-card">
@@ -40,7 +42,11 @@ export default async function LoginPage({
               Google 또는 GitHub 계정으로 로그인한 뒤 프로필에서 다른 계정을 연결하세요.
             </p>
           )}
-          <ProviderButtons providers={configuredProviders()} returnTo={returnTo} />
+          <ProviderButtons
+            providers={configuredProviders()}
+            returnTo={returnTo}
+            localPreview={localPreview}
+          />
           <p className="auth-privacy">
             이름과 이메일만으로 시작합니다. 저장소와 파일에 접근하지 않습니다.{" "}
             <Link href="/privacy">개인정보 안내</Link>

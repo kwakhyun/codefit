@@ -34,17 +34,11 @@
   .stat-note {
     font-size: var(--text-caption);
   }
-  .hero-start {
-    font-size: var(--text-ui);
-  }
 }
 
 @media (max-width: 1230px) {
   .library-main {
     padding: 30px 26px 0;
-  }
-  .hero-start > span {
-    display: none;
   }
   .stats-row > div {
     padding: 17px;
@@ -254,16 +248,6 @@
 @media (max-width: 540px) {
   .library-main {
     padding: 23px 17px 0;
-  }
-  .hero-start {
-    margin-top: 19px;
-    font-size: var(--text-small);
-  }
-  .hero-start > span {
-    display: inline;
-    margin-left: 3px;
-    font-size: var(--text-caption);
-    padding-left: 10px;
   }
   .stats-row {
     grid-template-columns: 1fr 1fr;
@@ -590,21 +574,12 @@
   .stats-row > div > span:first-child {
     font-size: var(--text-small);
   }
-  .hero-start {
-    font-size: var(--text-ui);
-  }
   .section-heading p {
     font-size: var(--text-small);
   }
 }
 
 @media (max-width: 540px) {
-  .hero-start {
-    font-size: var(--text-ui);
-  }
-  .hero-start > span {
-    font-size: var(--text-caption);
-  }
   .stats-row > div > span:first-child {
     font-size: var(--text-ui);
   }

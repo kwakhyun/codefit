@@ -66,4 +66,27 @@ export function* readMigrationData(source) {
       );
     yield { table, columns, rows };
   }
+  // Completed project jobs are durable private learning records, not disposable leases.
+  if (source.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='jobs'").get()) {
+    const columns = ["id", "owner", "kind", "state", "result", "expires", "token", "fingerprint"];
+    const available = new Set(
+      source
+        .prepare("PRAGMA table_info(jobs)")
+        .all()
+        .map((row) => row.name),
+    );
+    if (columns.every((column) => available.has(column))) {
+      const records = source
+        .prepare(
+          "SELECT * FROM jobs WHERE state='done' AND (kind='project-analysis' OR kind LIKE 'project-review:%')",
+        )
+        .all();
+      if (records.length)
+        yield {
+          table: "jobs",
+          columns,
+          rows: records.map((row) => columns.map((column) => row[column])),
+        };
+    }
+  }
 }

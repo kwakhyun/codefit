@@ -3,16 +3,17 @@
 .modal {
   padding: 0;
   border: 1px solid #505050;
-  border-radius: 0;
+  border-radius: var(--radius-panel);
   background: #1c1c1c;
   color: var(--text);
   max-width: min(640px, calc(100vw - 32px));
   width: 560px;
   max-height: calc(100dvh - 48px);
-  box-shadow: none;
+  box-shadow: 0 24px 80px #00000099;
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: #4f4f4f transparent;
+  border-color: #444c59;
 }
 
 .modal-heading {

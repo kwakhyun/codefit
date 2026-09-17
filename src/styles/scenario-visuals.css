@@ -1,0 +1,135 @@
+/* Artwork is context; the interactive example remains the main learning surface. */
+.scenario-art {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #101318;
+  flex-shrink: 0;
+}
+.scenario-art img {
+  position: absolute;
+  display: block;
+  width: 200%;
+  height: 200%;
+  max-width: none;
+}
+.scenario-thumbnail {
+  display: flex;
+  justify-content: center;
+  background: #101318;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.scenario-thumbnail .scenario-art {
+  width: 176px;
+}
+.training-paths > a > .scenario-art {
+  width: 144px;
+  margin: -8px auto 14px;
+  grid-column: 1 / -1;
+}
+.scenario-visual {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  margin: 0 0 24px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+.scenario-visual figcaption {
+  min-width: 0;
+}
+.scenario-visual strong {
+  display: block;
+  font-size: 16px;
+  margin: 5px 0;
+}
+.scenario-visual p {
+  font-size: var(--text-ui);
+  line-height: 1.75;
+  margin: 0;
+  color: var(--text);
+}
+.scenario-visual small {
+  display: block;
+  font-size: var(--text-caption);
+  line-height: 1.65;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.scenario-walkthrough {
+  margin: 18px 0 28px;
+}
+.scenario-walkthrough .scenario-visual {
+  margin-bottom: 8px;
+  grid-template-columns: 100px minmax(0, 1fr);
+  padding: 12px;
+  gap: 14px;
+}
+.scenario-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.scenario-controls button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 9px 10px;
+  min-height: 44px;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+.scenario-controls button[aria-pressed="true"] {
+  background: #1c3048;
+  color: #c4dfff;
+  border-color: #6689b5;
+}
+@media (max-width: 760px) {
+  .training-paths > a {
+    grid-template-columns: 88px minmax(0, 1fr);
+    column-gap: 16px;
+  }
+  .training-paths > a > .scenario-art {
+    width: 88px;
+    grid-column: 1;
+    grid-row: 1 / 4;
+    align-self: center;
+    margin: 0;
+  }
+  .scenario-thumbnail .scenario-art {
+    width: 148px;
+  }
+}
+@media (max-width: 600px) {
+  .scenario-visual {
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px;
+    align-items: start;
+  }
+  .scenario-walkthrough .scenario-visual {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+  .scenario-visual small {
+    font-size: 12px;
+  }
+  .scenario-visual .eyebrow {
+    font-size: 11px;
+  }
+  .scenario-visual strong {
+    font-size: 15px;
+  }
+  .scenario-visual p {
+    font-size: 14px;
+  }
+}

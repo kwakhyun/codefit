@@ -24,7 +24,7 @@ export async function POST(request: Request, c: { params: Promise<{ id: string }
     );
     const r = input.record;
     if (!validLearning(m, r) || !r.locked || !reproduced(m, r.actions))
-      throw new HttpError(400, "먼저 예상과 이유를 남기고 문제를 직접 재현해 주세요.");
+      throw new HttpError(400, "먼저 예상 결과를 고르고 문제를 직접 재현해 주세요.");
     const store = await getStore();
     const job = await store.startJob(
       owner,

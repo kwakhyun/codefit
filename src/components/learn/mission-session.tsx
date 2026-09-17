@@ -1,4 +1,6 @@
 "use client";
+import { ScenarioVisual } from "@/components/ui/scenario-visual";
+import { scenarioFor } from "@/lib/scenario-visuals";
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, Download, Lightbulb } from "lucide-react";
@@ -18,7 +20,7 @@ import { MissionPrediction } from "./mission-prediction";
 import { MissionObservation } from "./mission-observation";
 import { MissionRepair } from "./mission-repair";
 import { MissionTransfer } from "./mission-transfer";
-const stages = ["예상하기", "직접 확인", "수정과 검사", "응용하기"];
+import { LEARNING_STAGES as stages } from "@/lib/learn/overview";
 const labels = {
   saved: "서버에 저장됨",
   saving: "저장 중…",
@@ -84,11 +86,6 @@ export function MissionSession({
       document.getElementById("learn-choice-0")?.focus();
       return;
     }
-    if (record.reason.trim().length < 3) {
-      setNotice("예상한 이유를 짧게 남겨 주세요. 최소 3자입니다.");
-      document.getElementById("learn-reason")?.focus();
-      return;
-    }
     focusPending.current = true;
     controller.update((x) => ({ ...x, locked: true, stage: 1 }));
     setNotice("");
@@ -120,7 +117,7 @@ export function MissionSession({
     <main id="main-content" className="learn-page mission-page">
       <header className="learn-header">
         <Link href="/learn">
-          <ArrowLeft size={16} /> 앱의 원리 배우기
+          <ArrowLeft size={16} /> 서비스 원리 배우기
         </Link>
         <div className="learn-save">
           <span role="status">{labels[controller.draft.saveState]}</span>
@@ -138,7 +135,8 @@ export function MissionSession({
       </header>
       <div className="mission-title">
         <span className="eyebrow">
-          {mission.kind === "lab" ? "앱 오류 해결 실습" : "앱의 원리 배우기"} / {mission.minutes}분
+          {mission.kind === "lab" ? "서비스 오류 해결 실습" : "서비스 원리 배우기"} /{" "}
+          {mission.minutes}분
         </span>
         <h1>{mission.title}</h1>
         <p>{mission.task}</p>
@@ -201,6 +199,12 @@ export function MissionSession({
           <p>초안을 복원하는 중…</p>
         ) : (
           <>
+            {scenarioFor(mission.id) && (
+              <details className="mission-concept-art">
+                <summary>그림으로 원리 살펴보기</summary>
+                <ScenarioVisual scene={scenarioFor(mission.id)!} stage={record.stage} />
+              </details>
+            )}
             {record.stage === 0 && (
               <MissionPrediction
                 mission={mission}

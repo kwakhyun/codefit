@@ -1,25 +1,32 @@
 # CODE:FIT 설계와 검증
 
-CODE:FIT은 AI가 만든 앱과 코드를 이해하고, 문제를 재현하고, 수정 결과를 확인하는 연습 서비스입니다. 입문자는 모의 앱으로 개발 원리를 배우고, 개발자는 코드의 실행 결과를 예상하거나 기능 구현, 오류 수정과 리팩터링을 연습합니다.
+CODE:FIT은 AI가 만든 서비스와 코드를 이해하고, 문제를 재현하고, 수정 결과를 확인하는 연습 서비스입니다. 입문자는 실습 서비스로 개발 원리를 배우고, 개발자는 코드의 실행 결과를 예상하거나 기능 구현, 오류 수정과 리팩터링을 연습합니다.
 
 ## 현재 구조와 문서 안내
 
-프론트엔드와 백엔드는 하나의 Next.js App Router 프로젝트에 있습니다. 별도 Express 서버는 없으며 `src/app/api/**/route.ts`의 Route Handler가 Node.js 런타임에서 인증, 검증, 저장소와 AI 호출을 연결합니다. 로컬은 SQLite, Vercel은 PostgreSQL을 사용합니다. 코드 이해 훈련의 JavaScript 실행은 브라우저 Worker/QuickJS에서 수행하며 서버가 사용자 코드를 실행하지 않습니다. 입문 미션은 준비된 동작을 재현하는 모의 앱입니다.
+프론트엔드와 백엔드는 하나의 Next.js App Router 프로젝트에 있습니다. 별도 Express 서버는 없으며 `src/app/api/**/route.ts`의 Route Handler가 Node.js 런타임에서 인증, 검증, 저장소와 AI 호출을 연결합니다. 로컬은 SQLite, Vercel은 PostgreSQL을 사용합니다. 코드 이해 훈련의 JavaScript 실행은 브라우저 Worker/QuickJS에서 수행하며 서버가 사용자 코드를 실행하지 않습니다. 입문 미션은 준비된 동작을 재현하는 실습 서비스입니다.
 
-| 책임                                 | 위치                                                                                           |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| 페이지와 HTTP 경계                   | `src/app/`, `src/app/api/`                                                                     |
-| 화면과 접근 가능한 조작              | `src/components/`의 `library`, `workspace`, `handoff`, `learn`, `account`, `shell`             |
-| 요청 순서, 취소와 화면 상태          | `src/hooks/`                                                                                   |
-| 코드 초안 저장 상태와 브라우저 복구  | `src/lib/drafts/`                                                                              |
-| 코드 이해 훈련의 기록과 실행         | `src/lib/handoff/`                                                                             |
-| 입문 미션, 모의 동작과 완료 규칙     | `src/lib/learn/`                                                                               |
-| DB 계약, 공유 조회와 DB별 트랜잭션   | `src/lib/server/store-contract.ts`, `store-queries.ts`, `sqlite-store.ts`, `postgres-store.ts` |
-| 입문 기록의 조건부 저장              | `src/lib/server/learning-store.ts`                                                             |
-| 인증, AI 모델/지침과 사용량          | `src/lib/server/auth*.ts`, `ai*.ts`, `usage-policy.ts`, `generation-quota.ts`                  |
-| 개발/이관 도구, 평가 입력, 검증 자료 | `scripts/`, `evals/`, `reports/`, `e2e/`                                                       |
+| 책임                                 | 위치                                                                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| 페이지와 HTTP 경계                   | `src/app/`, `src/app/api/`                                                                                   |
+| 화면과 접근 가능한 조작              | `src/components/`의 `library`, `workspace`, `handoff`, `learn`, `account`, `shell`, `guide`, `project-check` |
+| 요청 순서, 취소와 화면 상태          | `src/hooks/`                                                                                                 |
+| 코드 초안 저장 상태와 브라우저 복구  | `src/lib/drafts/`                                                                                            |
+| 코드 이해 훈련의 기록과 실행         | `src/lib/handoff/`                                                                                           |
+| 입문 미션, 모의 동작과 완료 규칙     | `src/lib/learn/`                                                                                             |
+| DB 계약, 공유 조회와 DB별 트랜잭션   | `src/lib/server/store-contract.ts`, `store-queries.ts`, `sqlite-store.ts`, `postgres-store.ts`               |
+| 입문 기록의 조건부 저장              | `src/lib/server/learning-store.ts`                                                                           |
+| 인증, AI 모델/지침과 사용량          | `src/lib/server/auth*.ts`, `ai*.ts`, `usage-policy.ts`, `generation-quota.ts`                                |
+| 개발/이관 도구, 평가 입력, 검증 자료 | `scripts/`, `evals/`, `reports/`, `e2e/`                                                                     |
 
-[개발과 운영](development.md)은 실행 명령과 백업 범위를, [OAuth 설정](authentication.md)은 인증 환경을 설명합니다. [입문 훈련 설계](beginner-training.md)와 이 문서의 [코드 이해 훈련](#ai-코드-이해-훈련)은 현재 기능의 상세 설계입니다. 날짜가 있는 실험과 아래 인수인계 최초 설계는 당시 기록이며, 최신 실행 결과는 [검증 기록](VERIFICATION.md)의 맨 위에서 확인합니다. 로컬 검증 결과를 운영 성능이나 현재 배포 상태로 해석하지 않습니다.
+[개발과 운영](development.md)은 실행 명령과 백업 범위를, [OAuth 설정](authentication.md)은 인증 환경을 설명합니다. [입문 훈련 설계](beginner-training.md)와 이 문서의 [코드 이해 훈련](#ai-코드-이해-훈련)은 현재 기능의 상세 설계입니다. 날짜가 있는 실험과 아래 인수인계 최초 설계는 당시 기록이며, 최신 실행 결과는 [검증 기록](VERIFICATION.md)의 최신 검증 요약에서 확인합니다. 로컬 검증 결과를 운영 성능이나 현재 배포 상태로 해석하지 않습니다.
+
+## 서비스 분야와 AI 기능 확장
+
+- 입문 실습은 [5개 서비스 분야, 29개 사례](design/service-domain-curriculum.md)다. 서비스 분야를 주 분류, 기술 개념을 보조 필터로 사용한다. 화면과 데이터는 교육용이며 외부 서비스에 요청하지 않는다.
+- [핏 시작 가이드](design/fit-start-guide.md)는 제한된 미션 카탈로그에서 첫 시작점을 추천한다. 개발 경험, 목표, 시간을 사용하며 기존 코드나 개인 기록을 자동으로 보내지 않는다.
+- [내 프로젝트 점검](project-check.md)은 공개 HTTPS 페이지 수집, 근거 있는 질문 생성, 계정별 답변 평가와 기록을 담당한다. 질문 생성 Sol/평가 Luna를 분리하며, URL 접근 제한과 회원 한도, 소유 실행 토큰을 적용한다. 이 기능은 실제 소스 코드나 DB 감사가 아니다.
+- `src/components/ui/select.tsx`는 모든 실제 서비스 필터/생성 드롭다운을 담당한다. Popover API의 최상위 레이어를 이용해 모달과 스크롤 영역 안에서도 옵션을 표시하고 키보드와 포커스를 관리한다.
 
 ## 입문 화면과 이관 도구 책임 분리 — 2026-09-18
 

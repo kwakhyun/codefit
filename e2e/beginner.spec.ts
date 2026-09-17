@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { MISSIONS, ACTION_LABELS, type Mission } from "../src/lib/learn/catalog";
+import { MISSIONS, ACTION_LABELS, actionLabel, type Mission } from "../src/lib/learn/catalog";
 import { verification } from "../src/lib/learn/simulation";
 import { emptyLearning, requestFields } from "../src/lib/learn/progress";
 async function accessible(page: Page) {
@@ -21,7 +21,7 @@ async function reproduce(page: Page, m: Mission) {
   for (const a of m.reproduce)
     await page
       .getByRole("button", {
-        name: m.app === "filter" && a === "refresh" ? "전체 다시 보기" : ACTION_LABELS[a],
+        name: m.app === "filter" && a === "refresh" ? "전체 다시 보기" : actionLabel(m, a),
         exact: true,
       })
       .click();
@@ -81,7 +81,7 @@ for (const m of MISSIONS)
 test("stage navigation preserves observation undo and repair experiments", async ({ page }) => {
   const mission = MISSIONS.find((item) => item.id === "where-data-lives")!;
   await predict(page, mission);
-  const app = page.getByRole("region", { name: "교육용 앱", exact: true });
+  const app = page.getByRole("region", { name: "실습 서비스", exact: true });
   await app.getByRole("button", { name: ACTION_LABELS.save, exact: true }).click();
   await app.getByRole("button", { name: ACTION_LABELS.refresh, exact: true }).click();
   const observations = page.locator(".learn-observations ol li");
@@ -96,18 +96,18 @@ test("stage navigation preserves observation undo and repair experiments", async
   await expect(observations).toHaveText(original);
   await page.getByRole("button", { name: "수정 방법과 검사 살펴보기" }).click();
   await page.getByRole("radio", { name: /^서버 저장 결과를 확인/ }).check();
-  await page.getByText("수정안이 적용된 앱 사용해 보기", { exact: true }).click();
+  await page.getByText("수정안이 적용된 서비스 사용해 보기", { exact: true }).click();
   await app.getByRole("button", { name: ACTION_LABELS.save, exact: true }).click();
   await expect(app).toContainText("서버 응답 확인: 저장 완료");
   await navigation.getByRole("button", { name: /직접 확인/ }).click();
   await navigation.getByRole("button", { name: /수정과 검사/ }).click();
-  await page.getByText("수정안이 적용된 앱 사용해 보기", { exact: true }).click();
+  await page.getByText("수정안이 적용된 서비스 사용해 보기", { exact: true }).click();
   await expect(app).toContainText("서버 응답 확인: 저장 완료");
 });
 test("mobile keyboard entry, dashboard, hints and accessibility", async ({ page }, info) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/learn");
-  await expect(page.getByRole("heading", { name: "앱 오류 해결 실습" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "서비스 오류 해결 실습" })).toBeVisible();
   await accessible(page);
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/beginner-mobile.png", fullPage: true });
@@ -167,8 +167,11 @@ test("stale tabs retain drafts, recheck conflicts, isolate guests and recover of
     .toBe("연결이 끊겨도 생각을 기록합니다");
   const other = await browser.newContext();
   expect(
-    (await (await other.request.get("http://127.0.0.1:3010/api/learn/where-data-lives")).json())
-      .progress,
+    (
+      await (
+        await other.request.get(new URL("/api/learn/where-data-lives", page.url()).href)
+      ).json()
+    ).progress,
   ).toBeNull();
   await other.close();
   await b.close();
@@ -241,14 +244,40 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
   await page.evaluate(() => document.fonts.ready);
   const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 4");
-  await page.clock.fastForward(8100);
+  await expect(banner.locator(".feature-rotation-label")).toHaveText("8초");
+  const progress = () =>
+    banner
+      .locator(".feature-time-track > span")
+      .evaluate((el) => Number((el as HTMLElement).style.transform.match(/scaleX\(([^)]+)\)/)![1]));
+  expect(await progress()).toBeLessThan(0.2);
+  await expect(banner.locator(".feature-time-track")).toHaveCSS("height", "1px");
+  await page.clock.fastForward(3000);
+  expect(await progress()).toBeGreaterThanOrEqual(0.35);
+  expect(await progress()).toBeLessThan(0.5);
+  await expect(banner.locator(".feature-rotation-label")).toHaveText("5초");
+  await banner.hover();
+  await page.clock.fastForward(10000);
+  await expect(banner.locator(".feature-rotation-label")).toHaveText("5초");
+  await page.mouse.move(0, 0);
+  await page.clock.fastForward(5100);
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "2 / 4");
   await banner.getByRole("button", { name: "다음 기능", exact: true }).focus();
   await page.clock.fastForward(20000);
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "2 / 4");
   await page.keyboard.press("Enter");
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "3 / 4");
-  await banner.getByRole("button", { name: "1번 기능: 앱의 원리부터 배우기" }).click();
+  await expect(banner.locator(".feature-rotation-label")).toHaveText("8초");
+  const activeStyle = await banner.getByRole("group").evaluate((el) => ({
+    animation: getComputedStyle(el).animationName,
+    duration: getComputedStyle(el).animationDuration,
+    background: getComputedStyle(el).backgroundColor,
+  }));
+  expect(activeStyle).toEqual({
+    animation: "feature-enter",
+    duration: "1s",
+    background: "rgb(16, 19, 24)",
+  });
+  await banner.getByRole("button", { name: "1번 기능: 서비스 원리 배우기" }).click();
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     const heights: number[] = [];
@@ -271,7 +300,7 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
       `${width}px: ${heights.join(", ")}`,
     ).toBeLessThanOrEqual(1);
   }
-  await banner.getByRole("button", { name: "1번 기능: 앱의 원리부터 배우기" }).click();
+  await banner.getByRole("button", { name: "1번 기능: 서비스 원리 배우기" }).click();
   await accessible(page);
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/beginner-banner.png", fullPage: true });
@@ -288,8 +317,8 @@ test("banner entrypoints open lessons, labs, code understanding and generation",
 }) => {
   const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
   for (const [index, title, url] of [
-    [1, "앱의 원리부터 배우기", /\/learn$/],
-    [2, "앱 오류 해결 연습하기", /\/learn#labs$/],
+    [1, "서비스 원리 배우기", /\/learn$/],
+    [2, "서비스 오류 해결 연습하기", /\/learn#labs$/],
     [3, "AI 코드 이해 훈련", /\/handoff$/],
   ] as const) {
     await page.goto("/");
@@ -303,7 +332,9 @@ test("banner entrypoints open lessons, labs, code understanding and generation",
   const create = banner.getByRole("button", { name: "AI 문제 만들기", exact: true });
   await create.click();
   await expect(page.getByRole("dialog")).toBeVisible();
-  await expect(page.getByRole("link", { name: "로그인 / 가입하고 생성하기" })).toBeVisible();
+  await expect(
+    page.getByRole("dialog").getByRole("link", { name: "간편 로그인하고 AI 기능 사용하기" }),
+  ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(create).toBeFocused();

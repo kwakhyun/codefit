@@ -1,3 +1,4 @@
+import { E2E_BASE_URL } from "../scripts/lib/e2e-environment";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readCode, setCode } from "./editor-helpers";
@@ -71,7 +72,7 @@ test("handoff discovery, no answer leak, mobile layout, keyboard navigation and 
   await page.goto("/");
   await page
     .locator(".training-paths")
-    .getByRole("link", { name: /AI 코드 이해 훈련/ })
+    .getByRole("link", { name: /AI 코드 분석하기/ })
     .click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "직접 분석하고 수정해 보세요",
@@ -136,8 +137,7 @@ test("handoff code and report persist together, retain offline edits, and remain
     .toBe(offline);
   const other = await browser.newContext();
   expect(
-    (await (await other.request.get("http://127.0.0.1:3010/api/problems/handoff-cart")).json())
-      .progress,
+    (await (await other.request.get(`${E2E_BASE_URL}/api/problems/handoff-cart`)).json()).progress,
   ).toBeNull();
   await other.close();
   const response = await page.request.post("/api/problems/handoff-cart/review", {
@@ -266,7 +266,7 @@ test("private learning feedback shows a due transfer and survives backup roundtr
   const exported = await (await page.request.get("/api/export")).json();
   expect(exported.attempts.some((a: { code: string }) => a.code === code)).toBe(true);
   const other = await browser.newContext();
-  const otherData = await (await other.request.get("http://127.0.0.1:3010/api/handoff")).json();
+  const otherData = await (await other.request.get(`${E2E_BASE_URL}/api/handoff`)).json();
   expect(otherData.learning.every((t: { base: unknown }) => t.base === null)).toBe(true);
   await other.close();
   await card.getByRole("link", { name: /예약 인원 변경/ }).click();
@@ -364,8 +364,10 @@ test("audit: original code, stable labels, missing-note focus and handoff docume
     await page.screenshot({ path: "artifacts/handoff-audit-workspace.png", fullPage: true });
   await expect.poll(async () => readHandoffDraft((await saved(page)) ?? "").notes).toEqual(notes);
   await page.goto("/handoff");
-  await expect(page.locator(".handoff-recommendation")).toContainText("작성 중인 과제 이어가기");
-  await expect(page.locator(".handoff-recommendation")).toContainText(base.title);
+  await expect(page.getByRole("region", { name: "추천 코드 이해 훈련" })).toContainText(
+    "작성 중인 과제 이어가기",
+  );
+  await expect(page.getByRole("region", { name: "추천 코드 이해 훈련" })).toContainText(base.title);
 });
 
 test("audit: revisiting the base preserves retention and latest variant feedback drives next practice", async ({

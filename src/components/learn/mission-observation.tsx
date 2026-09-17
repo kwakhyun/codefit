@@ -46,9 +46,7 @@ export function MissionObservation({
                   <li key={`${i}:${t}`}>{t}</li>
                 ))}
             </ol>
-          ) : (
-            <p>왼쪽 앱의 버튼을 눌러 보세요. 모바일에서는 위쪽에 있습니다.</p>
-          )}
+          ) : null}
           {record.actions.length > 12 && (
             <small>최근 12개 동작을 표시합니다. 전체 기록은 내려받을 수 있습니다.</small>
           )}
@@ -67,11 +65,7 @@ export function MissionObservation({
           )}
           {evidence && (
             <div className="learn-concept">
-              <strong>
-                {record.prediction === mission.answer
-                  ? "예상한 대로 동작했습니다. 이유를 살펴보세요."
-                  : "예상과 다른 결과가 나왔습니다. 이유를 살펴보세요."}
-              </strong>
+              <strong>예상과 실제 결과를 비교해 보세요.</strong>
               <p>{mission.lesson}</p>
             </div>
           )}

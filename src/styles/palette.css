@@ -1,4 +1,4 @@
-/* DOS monochrome: black canvas, neutral surfaces, and white controls. */
+/* Black canvas with neutral panel levels and functional accent colors. */
 
 .topbar,
 .editor-loading {
@@ -10,24 +10,24 @@
 }
 
 .modal-heading {
-  background: #c0c0c0;
-  color: var(--black);
-  border-bottom-color: var(--white);
+  background: #191c22;
+  color: var(--text);
+  border-bottom-color: var(--line);
 }
 
 .modal-heading > .mono,
 .modal-heading .icon-button {
-  color: var(--black);
+  color: var(--text);
 }
 
 .modal-heading .icon-button:hover {
-  background: #a0a0a0;
-  color: var(--black);
+  background: #30343c;
+  color: var(--text);
 }
 
 .secondary-button {
-  background: #080808;
-  border-color: #555555;
+  background: var(--surface);
+  border-color: #48515f;
   color: #d0d0d0;
 }
 
@@ -36,14 +36,14 @@
 }
 
 .nav-item.active {
-  background: #e6e6e6;
-  border-color: #e6e6e6;
-  color: var(--black);
+  background: #182333;
+  border-color: #344b68;
+  color: var(--action-soft);
 }
 
 .nav-item.active svg,
 .nav-item.active small {
-  color: var(--black);
+  color: var(--action-soft);
 }
 
 .domain-active {
@@ -62,11 +62,11 @@
 .problem-row,
 .modal,
 .review-console {
-  background: #080808;
+  background: var(--surface);
 }
 
 .problem-row:hover {
-  background: #181818;
+  background: var(--surface-hover);
 }
 
 .editor-topbar,
@@ -133,7 +133,6 @@ summary:focus-visible {
   border-color: var(--action);
 }
 
-.hero-start:hover,
 .text-button:hover:not(:disabled),
 .icon-button.active {
   color: var(--action);

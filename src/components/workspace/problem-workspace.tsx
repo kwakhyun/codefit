@@ -237,6 +237,7 @@ export function ProblemWorkspace({
       )}
       {learningEnabled ? (
         <LearningLab
+          problemId={id}
           controller={labControl}
           starterCode={problem.starterCode}
           aiReady={aiReady}

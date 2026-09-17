@@ -1,5 +1,8 @@
-import { ACTION_LABELS, type Action, type Mission } from "./catalog";
+import type { ServiceState } from "./services/types";
+import { evaluateService, describeResult } from "./services/rules";
+import { actionLabel, type Action, type Mission } from "./catalog";
 export type Simulation = {
+  service: ServiceState;
   online: boolean;
   memo: string;
   stored: string;
@@ -18,6 +21,7 @@ export type Simulation = {
 };
 export function initialSimulation(): Simulation {
   return {
+    service: { selected: 0, result: null, history: [] },
     online: true,
     memo: "다음 주에 출시하기",
     stored: "",
@@ -26,7 +30,7 @@ export function initialSimulation(): Simulation {
     quantity: 1,
     amount: 10000,
     todos: [
-      { title: "앱 만들기", done: true },
+      { title: "서비스 만들기", done: true },
       { title: "다른 사용자로 검사하기", done: false },
       { title: "실패 상황 확인하기", done: false },
     ],
@@ -47,7 +51,21 @@ export function applyAction(m: Mission, s: Simulation, a: Action, fix = ""): Sim
     todos: s.todos.map((x) => ({ ...x })),
     trace: [...s.trace],
   };
-  if (a === "offline" || a === "online") {
+  if (m.service) {
+    const selected = ["case-standard", "case-edge", "case-other"].indexOf(a);
+    if (selected >= 0) {
+      n.service = { ...s.service, selected, result: null };
+      n.message = `${m.service.samples[selected].label} 선택`;
+    } else if (a === "case-submit") {
+      const result = evaluateService(m.service, s.service.selected, fix);
+      n.service = {
+        ...s.service,
+        result,
+        history: [...s.service.history, { sample: s.service.selected, result }],
+      };
+      n.message = result.detail;
+    }
+  } else if (a === "offline" || a === "online") {
     n.online = a === "online";
     n.message = n.online ? "모의 연결이 복구됐습니다." : "모의 네트워크가 끊겼습니다.";
   } else if (m.app === "memo" || m.app === "request") {
@@ -64,11 +82,15 @@ export function applyAction(m: Mission, s: Simulation, a: Action, fix = ""): Sim
     }
     if (a === "refresh") {
       n.memo = fix === "server" ? n.stored : n.browserMemo;
-      n.message = n.memo ? "새로고침 후 메모가 남았습니다." : "새로고침 후 메모가 사라졌습니다.";
+      n.message = n.memo
+        ? "새로고침 후 작성한 내용이 남았습니다."
+        : "새로고침 후 작성한 내용이 사라졌습니다.";
     }
     if (a === "other-device") {
       n.memo = n.stored;
-      n.message = n.memo ? "다른 기기에서도 메모를 읽었습니다." : "다른 기기에는 메모가 없습니다.";
+      n.message = n.memo
+        ? "다른 기기에서도 저장한 데이터를 읽었습니다."
+        : "다른 기기에는 저장한 데이터가 없습니다.";
     }
   } else if (m.app === "access") {
     if (a === "switch-user") {
@@ -127,19 +149,40 @@ export function applyAction(m: Mission, s: Simulation, a: Action, fix = ""): Sim
       n.message = `${key} 접수 완료`;
     }
   }
-  n.trace.push(`${ACTION_LABELS[a]} → ${n.message}`);
+  n.trace.push(`${actionLabel(m, a)} → ${n.message}`);
   return n;
 }
 export function simulate(m: Mission, actions: Action[], fix = "") {
   return actions.reduce((s, a) => applyAction(m, s, a, fix), initialSimulation());
 }
 export function reproduced(m: Mission, actions: Action[]) {
+  if (m.service) {
+    let selected = "case-standard";
+    for (const action of actions) {
+      if (["case-standard", "case-edge", "case-other"].includes(action)) selected = action;
+      if (action === "case-submit" && selected === "case-edge") return true;
+    }
+    return false;
+  }
   let index = 0;
   for (const action of actions) if (action === m.reproduce[index]) index++;
   return index === m.reproduce.length;
 }
 export type CheckResult = { id: string; label: string; passed: boolean; evidence: string };
 export function verification(m: Mission, fix: string): CheckResult[] {
+  if (m.service) {
+    const c = m.service;
+    return c.samples.map((sample, index) => {
+      const actual = evaluateService(c, index, fix);
+      return {
+        id: `sample-${index}`,
+        label: sample.label,
+        passed:
+          actual.allowed === sample.expected.allowed && actual.amount === sample.expected.amount,
+        evidence: `실제: ${actual.detail} / 기대: ${describeResult(c, sample.expected)}`,
+      };
+    });
+  }
   const run = (actions: Action[]) => simulate(m, actions, fix);
   const item = (id: string, label: string, s: Simulation, passed: boolean): CheckResult => ({
     id,

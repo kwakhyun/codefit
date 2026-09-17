@@ -1,6 +1,7 @@
+import { SimulationView } from "./simulation-view";
+import { VoiceInput } from "@/components/ui/voice-input";
 import type { Mission } from "@/lib/learn/catalog";
 import type { LearningRecord, LearningRecordUpdate } from "@/lib/learn/progress";
-
 export function MissionPrediction({
   mission,
   record,
@@ -14,37 +15,56 @@ export function MissionPrediction({
 }) {
   return (
     <div className="learn-prediction">
-      <p>아직 실행하지 말고, 어떻게 될지 먼저 생각해 보세요. 틀려도 괜찮습니다.</p>
-      <fieldset disabled={record.locked}>
-        <legend>{mission.prediction}</legend>
-        {mission.choices.map((choice, i) => (
-          <label className="learn-option" key={choice}>
-            <input
-              id={`learn-choice-${i}`}
-              name="prediction"
-              type="radio"
-              checked={record.prediction === i}
-              onChange={() => update((x) => ({ ...x, prediction: i }))}
-            />
-            <span>{choice}</span>
-          </label>
-        ))}
-      </fieldset>
-      <label htmlFor="learn-reason">
-        왜 그렇게 생각했나요?
+      <div className="prediction-example">
+        <SimulationView mission={mission} actions={[]} preview />
+        <p className="learn-fineprint">
+          자유롭게 눌러보세요. 여기서 사용한 내용은 다음 단계의 관찰 기록에 포함되지 않습니다.
+        </p>
+      </div>
+      <div className="prediction-answer">
+        <span className="eyebrow">내 예상</span>
+        <h3>어떻게 동작할까요?</h3>
+        <fieldset disabled={record.locked}>
+          <legend>{mission.prediction}</legend>
+          {mission.choices.map((choice, i) => (
+            <label className="learn-option" key={choice}>
+              <input
+                id={`learn-choice-${i}`}
+                name="prediction"
+                type="radio"
+                checked={record.prediction === i}
+                onChange={() => update((x) => ({ ...x, prediction: i }))}
+              />
+              <span>{choice}</span>
+            </label>
+          ))}
+        </fieldset>
+        <label htmlFor="learn-reason">
+          왜 그렇게 생각했나요? <span className="optional-label">선택</span>
+        </label>
         <textarea
           id="learn-reason"
           value={record.reason}
           readOnly={record.locked}
           rows={3}
           maxLength={800}
-          placeholder="지금 알고 있는 만큼만 적어 주세요."
+          placeholder="떠오르는 이유가 있다면 적거나 말해 주세요."
           onChange={(e) => update((x) => ({ ...x, reason: e.target.value }))}
         />
-      </label>
-      <button className="primary-button" onClick={onContinue}>
-        {record.locked ? "내 첫 예상으로 다시 살펴보기" : "예상 남기고 직접 확인 →"}
-      </button>
+        <VoiceInput
+          targetId="learn-reason"
+          disabled={record.locked}
+          onTranscript={(text) =>
+            update((x) => ({
+              ...x,
+              reason: `${x.reason}${x.reason ? " " : ""}${text}`.slice(0, 800),
+            }))
+          }
+        />
+        <button className="primary-button" onClick={onContinue}>
+          {record.locked ? "내 첫 예상으로 다시 살펴보기" : "예상 남기고 직접 확인 →"}
+        </button>
+      </div>
     </div>
   );
 }

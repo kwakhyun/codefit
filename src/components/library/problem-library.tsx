@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 
 import type { LibraryController } from "@/hooks/use-library-controller";
 
@@ -43,6 +44,11 @@ export function ProblemLibrary({
   exportData,
   exporting,
 }: ProblemLibraryProps) {
+  useEffect(() => {
+    // The workspace gate can mount the library after the browser's initial anchor lookup.
+    if (window.location.hash === "#problem-library")
+      document.getElementById("problem-library")?.scrollIntoView();
+  }, []);
   const {
     recommended,
     libraryHref,
@@ -63,6 +69,7 @@ export function ProblemLibrary({
     <>
       {initialView === "library" && initialDomain === "all" ? (
         <TrainingHero
+          scope={data.scope}
           recommended={recommended}
           libraryHref={libraryHref}
           resume={resume}
@@ -85,7 +92,7 @@ export function ProblemLibrary({
           </p>
         </div>
       )}
-      <div className="stats-row">
+      <div className="stats-row library-stats" aria-label="코딩 문제 현황">
         <div>
           <span>
             <FolderCode size={16} />
@@ -132,11 +139,11 @@ export function ProblemLibrary({
           </strong>
           <span className="stat-note">
             <span className="status-dot" />
-            생성하면 자동으로 저장
+            함께 푸는 공개 문제
           </span>
         </div>
       </div>
-      <section className="problem-library" aria-label="문제 목록">
+      <section id="problem-library" className="problem-library" aria-label="문제 목록">
         <div className="section-heading">
           <div>
             <h2>

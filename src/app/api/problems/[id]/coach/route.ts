@@ -26,12 +26,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const t = draft.training;
     if (
       !t?.prediction.locked ||
-      t.prediction.reason.trim().length < 10 ||
       !lab.choices.some((c) => c.id === t.prediction.choice) ||
       t.observation?.id !== "prediction" ||
       t.observation.status !== "ok"
     )
-      throw new HttpError(400, "먼저 예측과 이유를 남기고 원본 실행 결과를 확인해 주세요.");
+      throw new HttpError(400, "먼저 예상 결과를 고르고 원본 실행 결과를 확인해 주세요.");
     const store = await getStore();
     const job = await store.startJob(
       owner,

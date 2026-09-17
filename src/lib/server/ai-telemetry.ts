@@ -9,13 +9,14 @@ export async function withAiTelemetry<T>(
   promptVersion: string,
   task: (capture: (response: Pick<Response, "usage" | "model">) => void) => Promise<T>,
   record?: RunRecorder,
+  model = aiModel(operation),
 ): Promise<T> {
   const started = performance.now();
   const run: AiRun = {
     id: randomUUID(),
     operation,
     promptVersion,
-    model: aiModel(operation),
+    model,
     outcome: "error",
     latencyMs: 0,
     inputTokens: null,

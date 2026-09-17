@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { Script, createContext } from "node:vm";
 import { handoffProblems, handoffSpecs } from "../../data/handoff-problems";
 import { readHandoffDraft, writeHandoffDraft, missingHandoffFields } from "./draft";
-import { handoffLearning, TRANSFER_DELAY_MS } from "./learning";
+import { handoffLearning, recommendedHandoff, TRANSFER_DELAY_MS } from "./learning";
 import { problemSchema, publicProblem, type AttemptSummary } from "../problem";
 import { safeReturnTo } from "../library-state";
 
@@ -195,4 +195,13 @@ it("exports the complete report without allowing code fences to truncate the cod
   expect(doc).toContain("````javascript\n" + code + "\n````");
   expect(doc).toContain(notes.verification);
   expect(doc).toContain("실행 검증을 의미하지 않습니다");
+});
+
+it("recommends the accessible first exercise but gives an existing draft priority", () => {
+  expect(recommendedHandoff(handoffLearning([], start))?.key).toBe("cart");
+  expect(
+    recommendedHandoff(
+      handoffLearning([], start, [{ problemId: "handoff-latest", hasDraft: true }]),
+    )?.key,
+  ).toBe("latest");
 });

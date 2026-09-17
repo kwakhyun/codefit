@@ -7,8 +7,10 @@ import type { LibraryView } from "@/lib/library-state";
 import type { ProblemSummary, Workspace } from "@/lib/problem";
 import {
   BookOpen,
+  ClipboardCheck,
   Bookmark,
   History,
+  Home,
   LayoutGrid,
   Settings2,
   Terminal,
@@ -43,11 +45,14 @@ export function Sidebar({
     <aside
       className={`sidebar ${mobileMenu ? "open" : ""}`}
       aria-label="주 메뉴"
+      onClick={(event) => {
+        if ((event.target as HTMLElement).closest("a")) setMobileMenu(false);
+      }}
       onKeyDown={(event) => {
         if (!mobileMenu || event.key !== "Tab") return;
         const controls = Array.from(
-          event.currentTarget.querySelectorAll<HTMLElement>("a, button:not(:disabled)"),
-        );
+          event.currentTarget.querySelectorAll<HTMLElement>("a, button:not(:disabled), summary"),
+        ).filter((element) => element.getClientRects().length > 0);
         const first = controls[0],
           last = controls[controls.length - 1];
         if (event.shiftKey && document.activeElement === first) {
@@ -82,15 +87,26 @@ export function Sidebar({
         <span className="status-dot" />
       </div>
       <nav>
-        <span className="nav-caption">WORKSPACE</span>
+        <span className="nav-caption">나의 연습실</span>
         <Link
           className={`nav-item ${!initialProblemId && initialView === "library" && initialDomain === "all" ? "active" : ""}`}
           href="/"
         >
+          <Home size={17} />
+          <span>홈</span>
+        </Link>
+        <a
+          className="nav-item"
+          href={
+            !initialProblemId && initialView === "library" && initialDomain === "all"
+              ? "#problem-library"
+              : "/#problem-library"
+          }
+        >
           <LayoutGrid size={17} />
           <span>문제 보관함</span>
           <small>{data?.stats.total ?? "—"}</small>
-        </Link>
+        </a>
         <Link
           className={`nav-item ${!initialProblemId && initialView === "bookmarks" ? "active" : ""}`}
           href="/?view=bookmarks"
@@ -104,29 +120,38 @@ export function Sidebar({
           href="/?view=history"
         >
           <History size={17} />
-          <span>학습 기록</span>
+          <span>내 학습 기록</span>
         </Link>
         <Link className="nav-item" href="/learn">
           <BookOpen size={17} />
-          <span>앱의 원리 배우기</span>
+          <span>서비스 원리 배우기</span>
+        </Link>
+        <Link className="nav-item" href="/project-check">
+          <ClipboardCheck size={17} />
+          <span>내 프로젝트 점검</span>
         </Link>
         <Link className="nav-item" href="/handoff">
           <Terminal size={17} />
           <span>AI 코드 이해 훈련</span>
         </Link>
-        <span className="nav-caption domains-caption">
-          EXPLORE BY DOMAIN <span>{DOMAINS.length}</span>
-        </span>
-        {DOMAINS.map((d) => (
-          <Link
-            key={d.id}
-            href={`/?domain=${d.id}`}
-            className={`nav-item domain-nav ${(!initialProblemId && initialDomain === d.id) || activeProblem?.domain === d.id ? "domain-active" : ""}`}
-          >
-            <DomainIcon domain={d.id} />
-            <span>{d.label}</span>
-          </Link>
-        ))}
+        <details
+          className="domain-disclosure"
+          open={initialDomain !== "all" || Boolean(activeProblem)}
+        >
+          <summary>
+            분야별 문제 <span>{DOMAINS.length}</span>
+          </summary>
+          {DOMAINS.map((d) => (
+            <Link
+              key={d.id}
+              href={`/?domain=${d.id}`}
+              className={`nav-item domain-nav ${(!initialProblemId && initialDomain === d.id) || activeProblem?.domain === d.id ? "domain-active" : ""}`}
+            >
+              <DomainIcon domain={d.id} />
+              <span>{d.label}</span>
+            </Link>
+          ))}
+        </details>
       </nav>
       <div className="sidebar-bottom">
         <a
@@ -156,7 +181,7 @@ export function Sidebar({
           <span>환경 설정</span>
         </button>
         <div className="sidebar-version">
-          <span>CODE:FIT v2.0</span>
+          <span>CODE:FIT</span>
           <span>
             <i />
             {data ? "CONNECTED" : "CONNECTING"}

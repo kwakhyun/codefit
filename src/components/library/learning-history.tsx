@@ -1,4 +1,5 @@
 "use client";
+import { LearningResume } from "@/components/learn/learning-resume";
 
 import { useLearningHistory } from "@/hooks/use-learning-history";
 import type { LibraryController } from "@/hooks/use-library-controller";
@@ -31,6 +32,15 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
         <h1>내 학습 기록</h1>
         <p>제출한 코드와 검토 결과를 확인하고, 보완할 문제를 다시 풀어보세요.</p>
       </div>
+      <LearningResume key={data.scope} scope={data.scope} showEmpty />
+      <Link className="history-track-link" href="/handoff">
+        <div>
+          <strong>AI 코드 이해 훈련 기록</strong>
+          <p>분석한 과제와 복습할 내용을 확인하세요.</p>
+        </div>
+        <ArrowRight size={18} />
+      </Link>
+      <h2 className="history-coding-title">코딩 문제 풀이 기록</h2>
       <div className="stats-row history-stats">
         <div>
           <span>

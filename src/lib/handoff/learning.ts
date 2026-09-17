@@ -112,3 +112,11 @@ function newest(a: AttemptSummary, b: AttemptSummary) {
 }
 type HandoffLearning = ReturnType<typeof handoffLearning>;
 export type HandoffDashboard = { scope: string; learning: HandoffLearning; generatedAt: string };
+
+/** Resolve ties with the accessible first exercise without replacing draft/review priorities. */
+export function recommendedHandoff(learning: HandoffDashboard["learning"]) {
+  return learning.toSorted(
+    (a, b) =>
+      a.next.priority - b.next.priority || Number(b.key === "cart") - Number(a.key === "cart"),
+  )[0];
+}

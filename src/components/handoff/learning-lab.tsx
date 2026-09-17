@@ -1,4 +1,7 @@
 "use client";
+import { ScenarioVisual } from "@/components/ui/scenario-visual";
+import { VoiceInput } from "@/components/ui/voice-input";
+import { scenarioFor } from "@/lib/scenario-visuals";
 import { ArrowRight, Check, LoaderCircle, Play, Sparkles } from "lucide-react";
 import { sameOutput } from "@/lib/handoff/training";
 import type { LearningLabController } from "@/hooks/use-learning-lab";
@@ -10,11 +13,13 @@ const steps = [
   { title: "설명하기", description: "이유를 정리하고 응용" },
 ];
 export function LearningLab({
+  problemId,
   controller: c,
   starterCode,
   aiReady,
   blocked,
 }: {
+  problemId: string;
   controller: LearningLabController;
   starterCode: string;
   aiReady: boolean;
@@ -68,6 +73,7 @@ export function LearningLab({
           }
         </p>
       </div>
+      {scenarioFor(problemId) && <ScenarioVisual scene={scenarioFor(problemId)!} stage={stage} />}
       {c.loadError ? (
         <p className="inline-error" role="alert">
           {c.loadError}{" "}
@@ -121,14 +127,16 @@ export function LearningLab({
                 </label>
               ))}
             </fieldset>
-            <label htmlFor="prediction-reason">왜 그렇게 생각했나요?</label>
+            <label htmlFor="prediction-reason">
+              왜 그렇게 생각했나요? <span className="optional-label">선택</span>
+            </label>
             <textarea
               id="prediction-reason"
               value={t.prediction.reason}
               readOnly={t.prediction.locked}
               maxLength={800}
               rows={3}
-              placeholder="어떤 코드 줄이나 실행 순서를 근거로 예상했는지 적어 주세요."
+              placeholder="떠오르는 이유가 있다면 적거나 말해 주세요."
               aria-describedby="prediction-help"
               onChange={(e) =>
                 c.update((current) => ({
@@ -138,8 +146,25 @@ export function LearningLab({
               }
             />
             <small id="prediction-help">
-              10자 이상 · {t.prediction.reason.length}/800자 · 실행 후에도 첫 예상은 보존됩니다.
+              {t.prediction.reason.length}/800자 · 실행 후에도 첫 예상은 보존됩니다.
             </small>
+            <VoiceInput
+              targetId="prediction-reason"
+              disabled={t.prediction.locked}
+              onTranscript={(text) =>
+                c.update((current) => ({
+                  ...current,
+                  prediction: {
+                    ...current.prediction,
+                    reason:
+                      `${current.prediction.reason}${current.prediction.reason ? " " : ""}${text}`.slice(
+                        0,
+                        800,
+                      ),
+                  },
+                }))
+              }
+            />
             {t.prediction.locked && (
               <p className="lab-saved-prediction">
                 <Check size={14} /> 첫 예측을 보관했습니다. 달라진 생각은 마지막 분석 메모에

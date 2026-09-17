@@ -1,3 +1,4 @@
+import { E2E_BASE_URL } from "../scripts/lib/e2e-environment";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { handoffProblems } from "../src/data/handoff-problems";
@@ -210,8 +211,7 @@ test("coaching API validates observations, isolates accounts and does not execut
   await expect.poll(async () => (await saved(page)).training?.observation?.actual).toBe("[3,3]");
   const other = await browser.newContext();
   expect(
-    (await (await other.request.get("http://127.0.0.1:3010/api/problems/handoff-cart")).json())
-      .progress,
+    (await (await other.request.get(`${E2E_BASE_URL}/api/problems/handoff-cart`)).json()).progress,
   ).toBeNull();
   await other.close();
   const workspace = await (await page.request.get("/api/workspace")).json();

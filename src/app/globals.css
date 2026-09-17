@@ -20,3 +20,17 @@
 @import "../styles/learning-lab.css";
 
 @import "../styles/beginner.css";
+
+@import "../styles/navigation.css";
+
+@import "../styles/scenario-visuals.css";
+@import "../styles/guide.css";
+@import "../styles/simulation.css";
+
+@import "../styles/service-examples.css";
+
+@import "../styles/media-surfaces.css";
+
+@import "../styles/project-check.css";
+
+@import "../styles/select.css";

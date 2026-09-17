@@ -1,7 +1,9 @@
 "use client";
+import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 
 import type { Workspace } from "@/lib/problem";
+import { BrandIcon } from "@/components/ui/brand-icon";
 import { CircleHelp, Menu, RotateCcw, Sparkles } from "lucide-react";
 interface AppHeaderProps {
   setMobileMenu: Dispatch<SetStateAction<boolean>>;
@@ -33,9 +35,12 @@ export function AppHeader({
         >
           <Menu size={21} />
         </button>
-        <span className="mono path-root">workspace</span>
+        <Link className="path-root" href="/" aria-label="CODE:FIT 홈">
+          <BrandIcon size={30} />
+          <span>CODE:FIT</span>
+        </Link>
         <span>/</span>
-        <strong>{initialProblemId ? "문제 풀이" : title}</strong>
+        <strong>{initialProblemId ? "문제 풀이" : title === "문제 보관함" ? "홈" : title}</strong>
       </div>
       <div className="topbar-actions">
         <span className="connection">
@@ -64,7 +69,7 @@ export function AppHeader({
           <CircleHelp size={18} />
         </button>
         <button
-          className="primary-button small"
+          className="secondary-button small"
           onClick={(event) => {
             // Safari does not focus buttons on pointer activation; retain a dialog return target.
             event.currentTarget.focus();
@@ -73,7 +78,7 @@ export function AppHeader({
           disabled={!data}
         >
           <Sparkles size={15} />
-          AI 문제 생성<span className="new-label">NEW</span>
+          AI 문제 생성
         </button>
       </div>
     </header>

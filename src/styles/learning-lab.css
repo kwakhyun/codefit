@@ -447,40 +447,6 @@
     width: 100%;
   }
 }
-.handoff-quickstart {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  padding: 24px;
-  border: 1px solid #456081;
-  background: #101820;
-  margin-bottom: 24px;
-}
-.handoff-quickstart .eyebrow {
-  color: var(--action);
-}
-.handoff-quickstart h2 {
-  font-size: 21px;
-  line-height: 1.5;
-  margin: 12px 0;
-}
-.handoff-quickstart p {
-  font-size: var(--text-body);
-  color: var(--muted);
-  line-height: 1.8;
-  margin: 0;
-}
-.handoff-quickstart .primary-button {
-  flex-shrink: 0;
-}
-@media (max-width: 700px) {
-  .handoff-quickstart {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: 20px;
-  }
-}
 .lab-learning-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

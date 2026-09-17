@@ -1,3 +1,4 @@
+import { projectContract } from "./project-contract.test-helper";
 import { concurrencyContract } from "./concurrency-contract.test-helper";
 import { queryContract } from "./query-contract.test-helper";
 import { randomUUID } from "node:crypto";
@@ -39,6 +40,7 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
     }
   }, 30_000);
   queryContract(() => store);
+  projectContract(() => store);
   concurrencyContract(
     () => store,
     (id) => sql`UPDATE jobs SET expires=0 WHERE id=${id}`,

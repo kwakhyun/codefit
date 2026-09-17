@@ -1,6 +1,7 @@
+import { SiteHeader } from "@/components/navigation/site-header";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { BrandIcon } from "@/components/ui/brand-icon";
+
 import { HandoffDashboard } from "@/components/handoff/handoff-dashboard";
 export const metadata: Metadata = {
   title: "AI 코드 이해 훈련 | CODE:FIT",
@@ -10,17 +11,9 @@ export const metadata: Metadata = {
 export default function HandoffPage() {
   return (
     <main id="main-content" className="handoff-page">
-      <header>
-        <Link className="brand-logo" href="/">
-          <BrandIcon />
-          CODE:FIT_
-        </Link>
-        <Link className="text-button" href="/">
-          문제 보관함으로
-        </Link>
-      </header>
+      <SiteHeader />
       <section className="handoff-intro">
-        <span className="eyebrow">PREDICT. RUN. UNDERSTAND.</span>
+        <span className="eyebrow">읽고, 실행하고, 내 말로 설명하기</span>
         <h1>
           AI가 작성한 코드를
           <br />
@@ -40,16 +33,6 @@ export default function HandoffPage() {
           로그인 없이 시작 · JavaScript 실무 과제 6개와 변형 과제 6개 · 약 25~35분
         </p>
       </section>
-      <div className="handoff-quickstart">
-        <div>
-          <span className="eyebrow">처음이라면 여기서 시작하세요</span>
-          <h2>장바구니 코드부터 살펴보세요</h2>
-          <p>상품 수량을 바꾸면 원본 데이터도 바뀔까요? 짧은 함수를 읽고 직접 실행해 확인하세요.</p>
-        </div>
-        <Link href="/problems/handoff-cart?from=%2Fhandoff" className="primary-button">
-          코드 이해 훈련 시작 →
-        </Link>
-      </div>
       <HandoffDashboard />
       <aside className="handoff-quality">
         <h2>어디까지 검증하나요?</h2>

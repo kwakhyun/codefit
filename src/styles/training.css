@@ -6,19 +6,6 @@
   letter-spacing: 0;
 }
 
-.hero-start {
-  flex-wrap: wrap;
-  row-gap: 8px;
-  color: var(--action);
-}
-
-@media (max-width: 600px) {
-  .hero-start > span {
-    margin-left: 0;
-    padding-left: 9px;
-  }
-}
-
 /* Navigation context, recoverable editing and training activity. */
 
 .draft-notice,
@@ -102,10 +89,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  background: #080808;
+  background: var(--surface);
   border: 1px solid var(--line);
   padding: 24px;
   margin: 24px 0 32px;
+  border-radius: var(--radius-panel);
 }
 
 .training-overview h2 {

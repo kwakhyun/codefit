@@ -14,15 +14,18 @@ npm run dev
 
 기존 `.env.local`이 있으면 덮어쓰지 마세요. 기본 주소는 `http://localhost:3000`입니다. OAuth를 사용하면 [인증 환경 변수](authentication.md#서버-환경-변수)의 `AUTH_BASE_URL`, `BETTER_AUTH_SECRET`과 제공자 키를 설정하고 콜백도 같은 주소로 맞춥니다. API 키 없이도 입문 미션, 내장 문제, 코드 작성/저장, 코드 이해 훈련의 예측과 실행 테스트, 힌트, 정답, 백업을 사용할 수 있습니다.
 
-| 환경 변수                 | 용도                                                                                               |
-| ------------------------- | -------------------------------------------------------------------------------------------------- |
-| `OPENAI_API_KEY`          | 서버 전용 AI 키. 생성과 검토에 사용                                                                |
-| `OPENAI_GENERATION_MODEL` | 문제 생성 기본 `gpt-5.6-sol` (GPT-5.6 Sol)                                                         |
-| `OPENAI_REVIEW_MODEL`     | 풀이 검토와 맞춤 질문 기본 `gpt-5.6-luna`, `medium` 추론. 이전 `OPENAI_MODEL`은 검토에만 호환 적용 |
-| `DATABASE_URL`            | PostgreSQL 연결 주소. Vercel에서 필수                                                              |
-| `DATABASE_PATH`           | SQLite 절대 경로. 기본 `data/recode.sqlite`                                                        |
-| `RATE_LIMIT_SALT`         | Vercel에서 접속 IP를 HMAC으로 변환할 비밀 값. 32바이트 이상 난수 권장                              |
-| `APP_ORIGIN`              | 프록시 운영 시 실제 HTTPS origin. 끝의 `/` 제외                                                    |
+| 환경 변수                     | 용도                                                                                               |
+| ----------------------------- | -------------------------------------------------------------------------------------------------- |
+| `OPENAI_API_KEY`              | 서버 전용 AI 키. 문제 생성, 풀이 검토, 학습 가이드와 프로젝트 점검에 사용                          |
+| `OPENAI_GENERATION_MODEL`     | 문제 생성 기본 `gpt-5.6-sol` (GPT-5.6 Sol)                                                         |
+| `OPENAI_REVIEW_MODEL`         | 풀이 검토와 맞춤 질문 기본 `gpt-5.6-luna`, `medium` 추론. 이전 `OPENAI_MODEL`은 검토에만 호환 적용 |
+| `OPENAI_GUIDE_MODEL`          | 핏 시작 가이드 기본 `gpt-5.6-luna`                                                                 |
+| `OPENAI_PROJECT_MODEL`        | 내 프로젝트 분석과 질문 생성 기본 `gpt-5.6-sol`, `medium` 추론                                     |
+| `OPENAI_PROJECT_REVIEW_MODEL` | 내 프로젝트 답변 평가 기본 `gpt-5.6-luna`, `medium` 추론                                           |
+| `DATABASE_URL`                | PostgreSQL 연결 주소. Vercel에서 필수                                                              |
+| `DATABASE_PATH`               | SQLite 절대 경로. 기본 `data/recode.sqlite`                                                        |
+| `RATE_LIMIT_SALT`             | Vercel에서 접속 IP를 HMAC으로 변환할 비밀 값. 32바이트 이상 난수 권장                              |
+| `APP_ORIGIN`                  | 프록시 운영 시 실제 HTTPS origin. 끝의 `/` 제외                                                    |
 
 비밀 값은 `NEXT_PUBLIC_*`나 Git에 넣지 않습니다. `.env.local`, `.vercel`, 데이터베이스, 테스트 임시 데이터는 Git에서 제외됩니다.
 
@@ -75,9 +78,9 @@ npm run eval:ai -- --live
 ```bash
 # 터미널 1: 빌드 후 임시 로컬 서버 실행
 DATABASE_PATH="$PWD/artifacts/oauth-live.sqlite" DATABASE_URL='' VERCEL='' \
-AUTH_BASE_URL=http://127.0.0.1:3010 \
+AUTH_BASE_URL=http://127.0.0.1:3012 \
 BETTER_AUTH_SECRET=codefit-isolated-test-secret-never-use-in-production \
-PORT=3010 HOSTNAME=127.0.0.1 npm start
+PORT=3012 HOSTNAME=127.0.0.1 npm start
 ```
 
 ```bash
@@ -86,14 +89,14 @@ node --import tsx --input-type=module <<'JS'
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { testAccount } from './scripts/lib/test-account.ts';
-const fixture = await testAccount(resolve('artifacts/oauth-live.sqlite'), 'http://127.0.0.1:3010');
+const fixture = await testAccount(resolve('artifacts/oauth-live.sqlite'), 'http://127.0.0.1:3012');
 writeFileSync('artifacts/oauth-live-cookie.txt', fixture.cookie, { mode: 0o600 });
 fixture.store.db.close();
 JS
-VERIFY_COOKIE_FILE=artifacts/oauth-live-cookie.txt npm run test:ai-live -- --live
+VERIFY_BASE_URL=http://127.0.0.1:3012 VERIFY_COOKIE_FILE=artifacts/oauth-live-cookie.txt npm run test:ai-live -- --live
 ```
 
-일반 테스트와 CI는 유료 AI를 호출하지 않습니다. 평가 명령은 실제 결과를 `reports/ai-evaluation.json`에 기록하며 오답 통과, 정답 거절, 제공자 오류가 있으면 실패 종료합니다. API 통합 검증은 임시 서버에 `VERIFY_BASE_URL=http://127.0.0.1:3010 npm run test:api`로 실행합니다. 이 명령은 운영 URL에 테스트 데이터를 쓰지 못하도록 제한했습니다.
+일반 테스트와 CI는 유료 AI를 호출하지 않습니다. 평가 명령은 실제 결과를 `reports/ai-evaluation.json`에 기록하며 오답 통과, 정답 거절, 제공자 오류가 있으면 실패 종료합니다. API 통합 검증은 임시 서버에 `VERIFY_BASE_URL=http://127.0.0.1:3012 npm run test:api`로 실행합니다. 이 명령은 운영 URL에 테스트 데이터를 쓰지 못하도록 제한했습니다.
 
 ## 백업과 구조
 
@@ -115,7 +118,7 @@ SQLite backup API로 실행 중인 WAL 데이터베이스의 일관된 스냅샷
 
 `src/components`는 화면, `src/hooks`는 상태와 저장 흐름, `src/lib`는 공통 모델, `src/lib/server`는 요청 검증, 저장소와 AI를 담당합니다. 핵심 파일의 책임과 선택한 설계의 한계는 [engineering.md](engineering.md)에 정리했습니다.
 
-이관 대상/변환 규칙은 `scripts/lib/migration-data.mjs`, PostgreSQL 쓰기 트랜잭션은 `scripts/migrate-sqlite-to-postgres.mjs`에 있습니다. 입문 기록은 테이블이 있는 원본에서만 읽으므로 이전 버전 DB도 지원합니다. 실행 중인 AI 작업과 세션은 복사하지 않으며, 진행 중인 요청과 쓰기를 멈춘 뒤 이관합니다. 조회용 문제 목록은 대상 앱이 시작할 때 재구성합니다. 이관 결과의 `learning_progress.source`와 `inserted`를 확인하고, 대상에 같은 소유자/미션 기록이 있으면 삽입 수가 작아질 수 있습니다.
+이관 대상/변환 규칙은 `scripts/lib/migration-data.mjs`, PostgreSQL 쓰기 트랜잭션은 `scripts/migrate-sqlite-to-postgres.mjs`에 있습니다. 입문 기록은 테이블이 있는 원본에서만 읽으므로 이전 버전 DB도 지원합니다. 완료된 프로젝트 점검은 복사하지만 실행 중인 AI 작업과 세션은 복사하지 않으며, 진행 중인 요청과 쓰기를 멈춘 뒤 이관합니다. 조회용 문제 목록은 대상 앱이 시작할 때 재구성합니다. 이관 결과의 `learning_progress.source`와 `inserted`를 확인하고, 대상에 같은 소유자/미션 기록이 있으면 삽입 수가 작아질 수 있습니다.
 
 ## 코드 리비전과 AI 작업 마이그레이션
 
@@ -171,4 +174,16 @@ npm run eval:handoff -- --strengthened --live
 
 `learning_progress` 테이블은 기존 공유 스키마 초기화 때 생성된다. 새 환경 변수나 외부 인프라는 필요하지 않다. 입문 기록은 사용자용 코딩 JSON 백업의 내보내기/가져오기 대상이 아니며 미션별 텍스트 내보내기만 제공한다. 운영용 전체 SQLite 스냅샷과 SQLite→PostgreSQL 이관에는 포함된다.
 
-`npm test`로 모의 동작과 저장 계약을, `npx playwright test e2e/beginner.spec.ts`로 아홉 미션과 배너의 브라우저 흐름을 검사한다. E2E는 기존처럼 운영 DB/AI 키를 비운 격리 서버를 사용한다. 테스트 시작 전 3010 포트를 비워야 한다.
+`npm test`로 모의 동작과 저장 계약을, `npx playwright test e2e/beginner.spec.ts`로 기본 9개와 확장 20개 미션, 배너의 브라우저 흐름을 검사한다. E2E는 기존처럼 운영 DB/AI 키를 비운 격리 서버를 사용한다. 기본 테스트 주소는 `http://127.0.0.1:3012`이며 3010 미리보기와 분리한다. `e2e/service-domains.spec.ts`와 `e2e/simulation-voice.spec.ts`는 확장한 29개 실습과 서비스 화면을 확인한다.
+
+## 내 프로젝트 점검
+
+`/project-check`와 `/api/project-check`는 가입자 전용 분석/평가를 제공합니다. 기존 서버 API 키와 DB를 재사용하며 추가 인프라는 필요하지 않습니다. 주소 수집 제한, 개인 한도, 실패 시 차감 정책과 모델 비용은 [설계 기록](project-check.md)에 있습니다. SQLite→PostgreSQL 이관에서는 완료된 프로젝트 질문과 평가만 복사하고 진행 중인 AI 작업은 제외합니다. 일반 DB 백업에도 기록이 포함됩니다.
+
+## 미리보기와 검증 환경 구분
+
+로컬 `.env.local`에 OAuth 제공자 키가 없다면 로그인은 비활성화된다. 기능 삭제나 운영 장애를 뜻하지 않는다. 로컬 로그인 화면에는 설정이 없는 상태와 운영 로그인 링크가 표시된다. [로컬 콜백과 별도 OAuth 앱 설정](authentication.md#서버-환경-변수)을 완료해야 로컬에서 실제 로그인이 가능하다.
+
+브라우저 테스트의 기본 포트는 **3012**이며 `scripts/lib/e2e-environment.ts`가 테스트 코드와 Playwright 설정의 주소를 공유한다. `CODEFIT_E2E_BASE_URL`로 다른 로컬 주소를 지정할 수 있지만 운영 호스트는 거부한다. 기존 3010 미리보기나 실제 연습 DB를 종료·초기화하지 않는다. 테스트 DB는 `artifacts/e2e.sqlite`, OAuth는 테스트 세션, AI 응답은 모의 데이터다.
+
+프로젝트 질문 비교 도구는 `npm run eval:project -- --model gpt-5.6-luna`로 호출 수만 확인한다. 실제 과금 실행에는 환경에 API 키를 로드하고 `--snapshot <공개 페이지 스냅샷> --live`를 명시한다. [동일 입력의 모델 비교](project-check.md)에 사용량과 한계를 기록했다.

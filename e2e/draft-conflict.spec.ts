@@ -1,9 +1,10 @@
+import { E2E_BASE_URL } from "../scripts/lib/e2e-environment";
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { resolve } from "node:path";
 import { testAccount } from "../scripts/lib/test-account";
 import { editor, setCode, readCode } from "./editor-helpers";
-const base = "http://127.0.0.1:3010";
+const base = E2E_BASE_URL;
 const endpoint = "/api/progress/be-pagination";
 const saved = async (page: Page) =>
   (await (await page.request.get("/api/problems/be-pagination")).json()).progress;

@@ -1,4 +1,5 @@
 "use client";
+import { VoiceInput } from "@/components/ui/voice-input";
 import {
   HANDOFF_FIELDS,
   HANDOFF_MIN_LENGTH,
@@ -29,35 +30,56 @@ export function HandoffFields({
   return (
     <div className="handoff-fields">
       {fields.map((field) => (
-        <label key={field.key} htmlFor={`${prefix}-${field.key}`}>
-          <strong id={`${prefix}-${field.key}-label`}>{field.label}</strong>
-          <span id={`${prefix}-${field.key}-help`}>{field.prompt}</span>
-          <textarea
-            id={`${prefix}-${field.key}`}
-            aria-labelledby={`${prefix}-${field.key}-label`}
-            aria-describedby={`${prefix}-${field.key}-help`}
-            placeholder={field.outline}
-            value={notes[field.key]}
-            readOnly={readOnly}
-            maxLength={field.max}
-            rows={section === "after" ? 5 : 3}
-            onChange={(event) =>
+        <div key={field.key}>
+          <label htmlFor={`${prefix}-${field.key}`}>
+            <strong id={`${prefix}-${field.key}-label`}>{field.label}</strong>
+            <span id={`${prefix}-${field.key}-help`}>{field.prompt}</span>
+            <textarea
+              id={`${prefix}-${field.key}`}
+              aria-labelledby={`${prefix}-${field.key}-label`}
+              aria-describedby={`${prefix}-${field.key}-help`}
+              placeholder={field.outline}
+              value={notes[field.key]}
+              readOnly={readOnly}
+              maxLength={field.max}
+              rows={section === "after" ? 5 : 3}
+              onChange={(event) =>
+                onChange?.(
+                  writeHandoffDraft(
+                    implementation,
+                    { ...notes, [field.key]: event.target.value },
+                    training,
+                  ),
+                )
+              }
+            />
+            {!readOnly && (
+              <small>
+                {HANDOFF_MIN_LENGTH}자 이상 · {notes[field.key].length}/{field.max}자 · 코드와 함께
+                자동 저장
+              </small>
+            )}
+          </label>
+          <VoiceInput
+            targetId={`${prefix}-${field.key}`}
+            disabled={readOnly || !onChange}
+            onTranscript={(text) =>
               onChange?.(
                 writeHandoffDraft(
                   implementation,
-                  { ...notes, [field.key]: event.target.value },
+                  {
+                    ...notes,
+                    [field.key]: `${notes[field.key]}${notes[field.key] ? " " : ""}${text}`.slice(
+                      0,
+                      field.max,
+                    ),
+                  },
                   training,
                 ),
               )
             }
           />
-          {!readOnly && (
-            <small>
-              {HANDOFF_MIN_LENGTH}자 이상 · {notes[field.key].length}/{field.max}자 · 코드와 함께
-              자동 저장
-            </small>
-          )}
-        </label>
+        </div>
       ))}
     </div>
   );

@@ -1,3 +1,4 @@
+import { E2E_BASE_URL } from "../scripts/lib/e2e-environment";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { editor, setCode, readCode } from "./editor-helpers";
@@ -83,7 +84,7 @@ test("draft survives reload; anonymous browsers remain isolated; hints preserve 
   await page.getByRole("button", { name: /힌트/ }).first().click();
   expect(await readCode(page)).toBe(draft);
   const other = await browser.newContext();
-  const response = await other.request.get("http://127.0.0.1:3010/api/problems/be-pagination");
+  const response = await other.request.get(`${E2E_BASE_URL}/api/problems/be-pagination`);
   expect((await response.json()).progress).toBeNull();
   await other.close();
 });
@@ -147,7 +148,7 @@ test("mobile navigation, search and workspace have no horizontal overflow", asyn
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await accessible(page);
   await page.getByRole("button", { name: /메뉴 열기/ }).click();
-  await expect(page.getByRole("link", { name: "학습 기록" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "내 학습 기록" })).toBeVisible();
   await page.keyboard.press("Escape");
   await editor(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -202,7 +203,7 @@ test("backup import keeps the active draft and old history links open the select
   await expect(page.locator(".timeline-item")).toHaveCount(23);
   const last = page.locator(".timeline-item").last();
   const href = (await last.getAttribute("href"))!;
-  const attemptId = new URL(href, "http://127.0.0.1:3010").searchParams.get("attempt");
+  const attemptId = new URL(href, E2E_BASE_URL).searchParams.get("attempt");
   const detail = await (
     await page.request.get(`/api/problems/be-pagination?attempt=${attemptId}`)
   ).json();

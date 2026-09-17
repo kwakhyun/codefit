@@ -20,9 +20,9 @@ describe("beginner training scenarios", () => {
         fix: fixes[0].id,
         checked: verification(m, fixes[0].id).map((c) => c.id),
         request: {
-          where: "앱 화면",
+          where: "서비스 화면",
           steps: "실제 재현 순서",
-          actual: "현재 앱의 결과",
+          actual: "현재 서비스의 결과",
           expected: "요구한 결과",
           keep: "정상 동작 유지",
         },
@@ -32,6 +32,9 @@ describe("beginner training scenarios", () => {
       };
       expect(validLearning(m, r)).toBe(true);
       expect(canComplete(m, r)).toBe(true);
+      expect(validLearning(m, { ...r, reason: "" })).toBe(true);
+      expect(canComplete(m, { ...r, reason: "" })).toBe(true);
+      expect(validLearning(m, { ...r, prediction: -1, reason: "" })).toBe(false);
       expect(validLearning(m, { ...r, checked: [] })).toBe(false);
       expect(canComplete(m, { ...r, transfer: (m.transfer.answer + 1) % 3 })).toBe(false);
       expect(readLearning(JSON.stringify(r))).toEqual(r);

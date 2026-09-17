@@ -96,7 +96,7 @@ select {
   color: var(--text);
   background: #141414;
   border: 1px solid var(--line);
-  border-radius: 0;
+  border-radius: var(--radius-control);
 }
 
 input::placeholder,
@@ -131,7 +131,7 @@ kbd {
   font-size: var(--text-caption);
   border: 1px solid #3e3e3e;
   background: #212121;
-  border-radius: 0;
+  border-radius: var(--radius-control);
   padding: 1px 5px;
   color: #adadad;
   white-space: nowrap;
@@ -190,7 +190,7 @@ small {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0;
+  border-radius: var(--radius-control);
   color: var(--muted);
   flex-shrink: 0;
 }
@@ -212,7 +212,7 @@ small {
   gap: 9px;
   min-height: 44px;
   padding: 10px 16px;
-  border-radius: 0;
+  border-radius: var(--radius-control);
   font-size: var(--text-ui);
   font-weight: 650;
   white-space: normal;
@@ -256,7 +256,7 @@ small {
   display: inline-block;
   width: 6px;
   height: 6px;
-  border-radius: 0;
+  border-radius: var(--radius-control);
   box-shadow: none;
   flex-shrink: 0;
 }

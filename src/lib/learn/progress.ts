@@ -82,7 +82,6 @@ export function canComplete(m: Mission, r: LearningRecord) {
   return (
     r.locked &&
     r.prediction >= 0 &&
-    r.reason.trim().length >= 3 &&
     reproduced(m, r.actions) &&
     checksPassed(m, r) &&
     (m.kind !== "lab" || requestReady(r)) &&
@@ -94,7 +93,7 @@ export function validLearning(m: Mission, r: LearningRecord) {
   return (
     r.actions.every((a) => m.actions.includes(a)) &&
     (!r.fix || m.fixes.some((f) => f.id === r.fix)) &&
-    (!r.locked || (r.prediction >= 0 && r.reason.trim().length >= 3)) &&
+    (!r.locked || r.prediction >= 0) &&
     r.checked.every((id) => verification(m, r.fix).some((c) => c.id === id)) &&
     (!r.completed || canComplete(m, r))
   );

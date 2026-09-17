@@ -1,3 +1,4 @@
+import { ProjectCheckStore } from "./project-check-store";
 import { LearningStore } from "./learning-store";
 import { HANDOFF_TRACKS, handoffId } from "../handoff/catalog";
 import type { AiRun, AiUsage } from "../ai-telemetry";
@@ -42,6 +43,10 @@ export class StoreQueries {
     private query: Query,
     private dialect: "sqlite" | "postgres",
   ) {}
+
+  get projectChecks() {
+    return new ProjectCheckStore(this.query);
+  }
 
   get learning() {
     return new LearningStore(this.query);

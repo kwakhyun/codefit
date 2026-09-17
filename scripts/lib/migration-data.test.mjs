@@ -69,4 +69,36 @@ describe("SQLite migration source", () => {
     for (const excluded of ["auth_session", "auth_verification", "jobs", "problem_catalog"])
       expect(entries.map((entry) => entry.table)).not.toContain(excluded);
   });
+  it("migrates completed project records without copying running or unrelated AI jobs", () => {
+    const source = database(storageSchema);
+    source.exec(
+      "ALTER TABLE jobs ADD COLUMN token TEXT DEFAULT ''; ALTER TABLE jobs ADD COLUMN fingerprint TEXT DEFAULT '';",
+    );
+    const insert = source.prepare("INSERT INTO jobs VALUES (?,?,?,?,?,?,?,?)");
+    insert.run("analysis", "user:a", "project-analysis", "done", "{}", 1, "token", "fingerprint");
+    insert.run(
+      "review",
+      "user:a",
+      "project-review:analysis",
+      "done",
+      "{}",
+      1,
+      "token",
+      "fingerprint",
+    );
+    insert.run(
+      "pending",
+      "user:a",
+      "project-analysis",
+      "pending",
+      null,
+      999,
+      "token",
+      "fingerprint",
+    );
+    insert.run("other", "user:a", "generate", "done", "{}", 1, "token", "fingerprint");
+    const jobs = [...readMigrationData(source)].find((entry) => entry.table === "jobs");
+    expect(jobs.rows.map((row) => row[0])).toEqual(["analysis", "review"]);
+    expect(jobs.rows[0][7]).toBe("fingerprint");
+  });
 });

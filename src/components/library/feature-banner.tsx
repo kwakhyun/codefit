@@ -1,26 +1,27 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+const SLIDE_DURATION = 8000;
 const slides = [
   {
-    tag: "01 / 앱의 원리 배우기",
-    title: "앱이 작동하는 원리를\n기초부터 배워보세요",
+    tag: "01 / 서비스 원리 배우기",
+    title: "서비스가 작동하는 원리를\n기초부터 배워보세요",
     description:
-      "코딩 경험이 없어도 시작할 수 있습니다. 예제 앱으로 실습하며 데이터 저장, 서버 통신, 접근 권한을 배웁니다.",
+      "코딩 경험이 없어도 시작할 수 있습니다. 예제 서비스로 실습하며 데이터 저장, 서버 통신, 접근 권한을 배웁니다.",
     href: "/learn",
-    cta: "앱의 원리부터 배우기",
+    cta: "서비스 원리 배우기",
     image: "app-foundations",
     accent: "mint",
   },
   {
-    tag: "02 / 앱 오류 해결 실습",
-    title: "앱 오류를 찾고\n수정하는 방법을 익혀보세요",
+    tag: "02 / 서비스 오류 해결 실습",
+    title: "서비스 오류를 찾고\n수정하는 방법을 익혀보세요",
     description:
-      "메모 저장 실패부터 중복 예약까지. 예제 앱의 오류를 재현하고, AI에게 보낼 수정 요청을 작성한 뒤 수정 결과를 확인합니다.",
+      "데이터 저장 실패부터 중복 요청까지. 예제 서비스의 오류를 재현하고, AI에게 보낼 수정 요청을 작성한 뒤 수정 결과를 확인합니다.",
     href: "/learn#labs",
-    cta: "앱 오류 해결 연습하기",
+    cta: "서비스 오류 해결 연습하기",
     image: "debug-lab",
     accent: "amber",
   },
@@ -60,6 +61,9 @@ export function FeatureBanner({ onGenerate }: { onGenerate: () => void }) {
     [paused, setPaused] = useState(false),
     [hover, setHover] = useState(false),
     [hidden, setHidden] = useState(false);
+  const [remaining, setRemaining] = useState(SLIDE_DURATION);
+  const [direction, setDirection] = useState("forward");
+  const clock = useRef({ remaining: SLIDE_DURATION, updatedAt: 0 });
   useEffect(() => {
     const update = () => setHidden(document.hidden);
     document.addEventListener("visibilitychange", update);
@@ -68,17 +72,39 @@ export function FeatureBanner({ onGenerate }: { onGenerate: () => void }) {
   const playing = !paused && !reduced && !hover && !hidden;
   useEffect(() => {
     if (!playing) return;
-    const timer = setInterval(() => setIndex((i) => (i + 1) % slides.length), 8000);
-    return () => clearInterval(timer);
+    clock.current.updatedAt = Date.now();
+    const timer = setInterval(() => {
+      const now = Date.now();
+      clock.current.remaining -= now - clock.current.updatedAt;
+      clock.current.updatedAt = now;
+      if (clock.current.remaining <= 0) {
+        clock.current.remaining = SLIDE_DURATION;
+        setDirection("forward");
+        setIndex((i) => (i + 1) % slides.length);
+      }
+      setRemaining(clock.current.remaining);
+    }, 100);
+    return () => {
+      clearInterval(timer);
+      clock.current.remaining = Math.max(
+        0,
+        clock.current.remaining -
+          (clock.current.updatedAt ? Date.now() - clock.current.updatedAt : 0),
+      );
+    };
   }, [playing]);
   const slide = slides[index];
-  const go = (next: number) => {
+  const handleGo = (next: number) => {
     setPaused(true);
+    setDirection(next < index ? "backward" : "forward");
+    clock.current = { remaining: SLIDE_DURATION, updatedAt: 0 };
+    setRemaining(SLIDE_DURATION);
     setIndex((next + slides.length) % slides.length);
   };
   return (
     <section
       className={`feature-banner ${slide.accent}`}
+      data-direction={direction}
       aria-label="코드핏 핵심 기능"
       aria-roledescription="캐러셀"
       onMouseEnter={() => setHover(true)}
@@ -92,7 +118,7 @@ export function FeatureBanner({ onGenerate }: { onGenerate: () => void }) {
       <div className="feature-stage">
         {slides.map((slide, slideIndex) => (
           <div
-            className={`feature-slide ${slideIndex === index ? "is-active" : ""}`}
+            className={`feature-slide ${slide.accent} ${slideIndex === index ? "is-active" : ""}`}
             style={{ left: `${-100 * slideIndex}%` }}
             key={slide.tag}
             inert={slideIndex !== index}
@@ -102,7 +128,7 @@ export function FeatureBanner({ onGenerate }: { onGenerate: () => void }) {
             aria-label={`${slideIndex + 1} / 4`}
             aria-live={paused && slideIndex === index ? "polite" : "off"}
           >
-            <div>
+            <div className="feature-copy">
               <span className="eyebrow">{slide.tag}</span>
               <h2>{slide.title}</h2>
               <p>{slide.description}</p>
@@ -138,6 +164,9 @@ export function FeatureBanner({ onGenerate }: { onGenerate: () => void }) {
           </div>
         ))}
       </div>
+      <div className="feature-time-track" aria-hidden="true">
+        <span style={{ transform: `scaleX(${1 - remaining / SLIDE_DURATION})` }} />
+      </div>
       <div className="feature-banner-controls">
         <div className="feature-dots">
           {slides.map((s, i) => (
@@ -145,19 +174,21 @@ export function FeatureBanner({ onGenerate }: { onGenerate: () => void }) {
               key={s.tag}
               aria-label={`${i + 1}번 기능: ${s.cta}`}
               aria-current={i === index ? "true" : undefined}
-              onClick={() => go(i)}
+              onClick={() => handleGo(i)}
             >
               <span />
             </button>
           ))}
         </div>
-        <span className="feature-rotation-label">
-          {reduced ? "동작 줄이기 적용" : paused ? "자동 전환 멈춤" : "8초마다 다음 기능"}
-        </span>
-        <button className="icon-button" aria-label="이전 기능" onClick={() => go(index - 1)}>
+        {!reduced && (
+          <span className="feature-rotation-label" aria-label="배너 남은 시간">
+            {Math.ceil(remaining / 1000)}초
+          </span>
+        )}
+        <button className="icon-button" aria-label="이전 기능" onClick={() => handleGo(index - 1)}>
           <ChevronLeft size={18} />
         </button>
-        <button className="icon-button" aria-label="다음 기능" onClick={() => go(index + 1)}>
+        <button className="icon-button" aria-label="다음 기능" onClick={() => handleGo(index + 1)}>
           <ChevronRight size={18} />
         </button>
         <button

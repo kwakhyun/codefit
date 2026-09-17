@@ -1,0 +1,4 @@
+{
+  "tool": "Built-in image_gen",
+  "prompt": "Edit the provided CODE:FIT logo ONLY in color. Preserve its exact silhouette, the C shape and detached rounded square, their positions, spacing, dimensions, curves and canvas margins. Replace all purple/lavender color with pure white #FFFFFF. Replace the entire background with solid opaque pure black #000000. A strictly monochrome black-and-white terminal-theme logo. No colored tint anywhere, no gradient, texture, glow, shadow or extra elements. Clean antialiased edges (neutral grayscale allowed only at edges). Full square opaque canvas, no transparency. Do not redesign or add text. Deliver one production icon image."
+}

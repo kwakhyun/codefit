@@ -74,7 +74,7 @@ export function PracticeApp({
     return () => {
       cancelAnimationFrame(frame);
       document.body.style.overflow = overflow;
-      before?.focus();
+      before?.focus({ preventScroll: true });
     };
   }, [mobileMenu]);
 
@@ -156,9 +156,7 @@ export function PracticeApp({
               <span className="terminal-icon">
                 <Terminal size={26} />
               </span>
-              <span className="mono">
-                INITIALIZING WORKSPACE<span className="blink">_</span>
-              </span>
+              <span className="mono">연습실을 준비하고 있어요</span>
               <p>문제와 학습 기록을 불러오는 중입니다.</p>
             </div>
           ) : initialProblemId ? (

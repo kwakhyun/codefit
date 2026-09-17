@@ -1,6 +1,6 @@
 export interface AiRun {
   id: string;
-  operation: "generate" | "review";
+  operation: "generate" | "review" | "guide" | "project";
   model: string;
   promptVersion: string;
   outcome: "success" | "error";

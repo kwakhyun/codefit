@@ -24,7 +24,7 @@ export function MissionLoader({ mission }: { mission: Mission }) {
   if (!data)
     return (
       <main id="main-content" className="learn-page">
-        <Link href="/learn">← 앱의 원리 배우기로</Link>
+        <Link href="/learn">← 서비스 원리 배우기로</Link>
         <h1>{mission.title}</h1>
         {error ? (
           <p role="alert">

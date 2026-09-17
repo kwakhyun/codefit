@@ -7,6 +7,7 @@ import {
   type LearningRecordUpdate,
 } from "@/lib/learn/progress";
 import type { Mission } from "@/lib/learn/catalog";
+import { VoiceInput } from "@/components/ui/voice-input";
 export function MissionRequest({
   mission,
   record,
@@ -34,23 +35,38 @@ export function MissionRequest({
       </p>
       <span className="learn-chip">요청 항목 {filled} / 5</span>
       {requestFields.map((f) => (
-        <label key={f.key} htmlFor={`request-${f.key}`}>
-          {f.label}
-          <textarea
-            id={`request-${f.key}`}
-            value={record.request[f.key]}
-            placeholder={f.placeholder}
-            maxLength={500}
-            rows={2}
-            onChange={(e) =>
+        <div key={f.key}>
+          <label htmlFor={`request-${f.key}`}>
+            {f.label}
+            <textarea
+              id={`request-${f.key}`}
+              value={record.request[f.key]}
+              placeholder={f.placeholder}
+              maxLength={500}
+              rows={2}
+              onChange={(e) =>
+                update((r) => ({
+                  ...r,
+                  completed: false,
+                  request: { ...r.request, [f.key]: e.target.value },
+                }))
+              }
+            />
+          </label>
+          <VoiceInput
+            targetId={`request-${f.key}`}
+            onTranscript={(text) =>
               update((r) => ({
                 ...r,
                 completed: false,
-                request: { ...r.request, [f.key]: e.target.value },
+                request: {
+                  ...r.request,
+                  [f.key]: `${r.request[f.key]}${r.request[f.key] ? " " : ""}${text}`.slice(0, 500),
+                },
               }))
             }
           />
-        </label>
+        </div>
       ))}
       <p className="learn-fineprint">
         각 항목에 3자 이상 적어 주세요. 작성 여부만 확인하며, 내용의 정확성을 자동으로 판정하지는

@@ -28,6 +28,7 @@
   display: block;
   flex-shrink: 0;
   object-fit: contain;
+  border-radius: 22%;
 }
 
 .brand-logo small {
@@ -46,12 +47,13 @@
   gap: 10px;
   align-items: center;
   border: 1px solid var(--line);
-  border-radius: 0;
-  padding: 11px 10px;
+  border-radius: 12px;
+  padding: 14px 10px;
   margin-top: 32px;
   margin-bottom: 28px;
   font-weight: 550;
   font-size: var(--text-ui);
+  background: var(--surface);
 }
 
 .workspace-avatar {
@@ -62,7 +64,7 @@
   border: 1px solid #525252;
   color: #c7c7c7;
   background: #2c2c2c;
-  border-radius: 0;
+  border-radius: 6px;
   font: 500 var(--text-body) var(--mono);
 }
 
@@ -107,7 +109,7 @@
   border: 1px solid transparent;
   padding: 11px 12px;
   min-height: 44px;
-  border-radius: 0;
+  border-radius: 6px;
   color: #a1a1a1;
   font-size: var(--text-ui);
   font-weight: 450;
@@ -162,7 +164,7 @@
   display: flex;
   gap: 10px;
   border: 1px dashed #3d3d3d;
-  border-radius: 0;
+  border-radius: 6px;
   padding: 13px 11px;
   color: #a3a3a3;
   font-size: var(--text-caption);
@@ -205,7 +207,7 @@
   width: 4px;
   height: 4px;
   background: #929292;
-  border-radius: 0;
+  border-radius: 6px;
 }
 
 .main-shell {
@@ -241,6 +243,10 @@
 .path-root {
   color: #8c8c8c;
   font-size: var(--text-caption);
+}
+
+.path-root .brand-icon {
+  display: none;
 }
 
 .topbar-path strong {

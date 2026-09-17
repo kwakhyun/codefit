@@ -18,7 +18,7 @@ export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
             <div>
               <strong>지금 나에게 맞는 출발점을 고르세요.</strong>
               <p>
-                처음이라면 앱의 원리 배우기에서 시작하세요. 코드를 읽을 수 있다면 AI 코드 이해
+                처음이라면 서비스 원리 배우기에서 시작하세요. 코드를 읽을 수 있다면 AI 코드 이해
                 훈련이나 문제 보관함을 이용하세요.
               </p>
             </div>
@@ -28,8 +28,8 @@ export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
             <div>
               <strong>예상하고, 직접 확인하세요.</strong>
               <p>
-                앱을 조작하거나 코드를 실행하며 예상과 실제 결과를 비교하세요. 단계별 힌트를 볼 수
-                있고 작성 내용은 자동 저장됩니다.
+                서비스를 조작하거나 코드를 실행하며 예상과 실제 결과를 비교하세요. 단계별 힌트를 볼
+                수 있고 작성 내용은 자동 저장됩니다.
               </p>
             </div>
           </li>

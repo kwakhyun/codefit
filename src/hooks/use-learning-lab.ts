@@ -124,7 +124,7 @@ export function useLearningLab({
     if (!lab || operation.current) return;
     const snapshot = readHandoffDraft(latest.current.value);
     if (kind === "observing" && !snapshot.training?.prediction.locked) {
-      setError("결과를 보기 전에 예상과 이유를 먼저 남겨 주세요.");
+      setError("결과를 보기 전에 예상 결과를 먼저 골라 주세요.");
       return;
     }
     const controller = new AbortController();
@@ -197,14 +197,9 @@ export function useLearningLab({
   }
   function lockPrediction() {
     const t = readHandoffDraft(latest.current.value).training ?? emptyTraining();
-    if (
-      !lab?.choices.some((c) => c.id === t.prediction.choice) ||
-      t.prediction.reason.trim().length < 10
-    ) {
-      setError("예상 결과를 고르고 이유를 10자 이상 적어 주세요.");
-      document
-        .getElementById(t.prediction.choice ? "prediction-reason" : "prediction-choice-0")
-        ?.focus();
+    if (!lab?.choices.some((c) => c.id === t.prediction.choice)) {
+      setError("예상 결과를 하나 골라 주세요.");
+      document.getElementById("prediction-choice-0")?.focus();
       return;
     }
     if (update((current) => ({ ...current, prediction: { ...current.prediction, locked: true } })))

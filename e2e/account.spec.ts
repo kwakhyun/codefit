@@ -1,9 +1,10 @@
+import { E2E_BASE_URL } from "../scripts/lib/e2e-environment";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { testAccount } from "../scripts/lib/test-account";
 import { resolve } from "node:path";
 import { editor, setCode } from "./editor-helpers";
-const base = "http://127.0.0.1:3010";
+const base = E2E_BASE_URL;
 test("guests can practice, see login guidance, and cannot generate or read profiles", async ({
   page,
   request,
@@ -19,14 +20,24 @@ test("guests can practice, see login guidance, and cannot generate or read profi
   ).toBe(503);
   await page.goto("/?generate=1");
   await expect(page.getByRole("heading", { name: /내게 필요한 문제를 만드세요/ })).toBeVisible();
-  await page.getByRole("link", { name: "로그인 / 가입하고 생성하기" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("link", { name: "간편 로그인하고 AI 기능 사용하기" })
+    .click();
   await expect(page.getByRole("heading", { name: /연습 기록을 이어가세요/ })).toBeVisible();
+  await expect(
+    page.getByText("로컬 미리보기에는 로그인 설정이 없습니다.", { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "운영 사이트에서 로그인하기 ↗" })).toHaveAttribute(
+    "href",
+    "https://codefit-five.vercel.app/login",
+  );
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.goto("/profile");
   await expect(page).toHaveURL(/\/login\?returnTo=/);
   await page.getByRole("link", { name: "로그인 없이 연습하기" }).click();
   await expect(
-    page.getByRole("heading", { level: 1, name: /앱의 원리부터 코드 이해까지/ }),
+    page.getByRole("heading", { level: 1, name: /오늘은 무엇을 연습할까요/ }),
   ).toBeVisible();
 });
 test("profile, account ownership, generation quota and logout work together", async ({

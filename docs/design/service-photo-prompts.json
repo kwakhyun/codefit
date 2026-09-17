@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-09-18",
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "output": "public/images/services/lifestyle.webp",
+      "prompt": "Create a premium authentic ecommerce product photograph, not an illustration or UI mockup. Landscape 3:2 image. A matte warm ivory ceramic mug, a small unbranded portable brushed cream desk lamp and a linen hardcover notebook arranged on pale beige stone tabletop. Natural window light, genuine imperfect ceramic texture, sophisticated Korean lifestyle editorial photography, subtle shadows, sage wall background. Objects clearly visible, centered composition with sufficient crop safety. No text, no logos, no watermark, no border. For a fictional lifestyle shop's interactive educational website product cards."
+    },
+    {
+      "output": "public/images/services/studio.webp",
+      "prompt": "Create one photorealistic architectural interior photograph for a premium Korean space booking service. Wide landscape 3:2. A bright rentable creative workshop and meeting studio in Seongsu Seoul: warm oak oval meeting table, six elegant ivory chairs, large floor to ceiling windows on the left, sheer curtains, leafy olive tree, shelving with a few ceramics, small presentation monitor on a slim stand, neutral white plaster walls. Sunlight and realistic soft shadows, quiet sophisticated editorial architecture photography, believable usable proportions. No people, no text, no logos, no watermark, no border, not a UI mockup. Full bleed photo with crop safe center."
+    }
+  ],
+  "processing": "Resize to 1200px wide and encode WebP quality 83 with sharp. Original generated files retained."
+}

@@ -1,4 +1,5 @@
 "use client";
+import { ScenarioWalkthrough } from "@/components/ui/scenario-walkthrough";
 import Link from "next/link";
 import type { ConfirmationAction } from "@/components/workspace/types";
 import type { Dispatch, SetStateAction } from "react";
@@ -113,6 +114,7 @@ export function ProblemMaterials({
               01 <span>상황</span>
             </div>
             <p className="scenario">{problem.scenario}</p>
+            {!problem.handoff && <ScenarioWalkthrough key={problem.id} problemId={problem.id} />}
             <div className="section-marker">
               02 <span>구현 요구사항</span>
             </div>

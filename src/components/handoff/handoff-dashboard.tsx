@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError, errorMessage } from "@/lib/client-api";
 import { HANDOFF_TRACKS } from "@/lib/handoff/catalog";
-import type { HandoffDashboard as Dashboard } from "@/lib/handoff/learning";
+import { recommendedHandoff, type HandoffDashboard as Dashboard } from "@/lib/handoff/learning";
 import { problemUrl } from "@/lib/library-state";
 import { HandoffCard } from "./handoff-card";
 
@@ -47,10 +47,29 @@ export function HandoffDashboard() {
       document.removeEventListener("visibilitychange", refresh);
     };
   }, [reload]);
-  const recommended = data?.learning.toSorted((a, b) => a.next.priority - b.next.priority)[0];
+  const recommended = data ? recommendedHandoff(data.learning) : undefined;
   const recommendedTrack = HANDOFF_TRACKS.find((t) => t.key === recommended?.key);
   return (
     <>
+      {recommended && recommendedTrack && (
+        <section className="resume-card" aria-label="추천 코드 이해 훈련">
+          <div>
+            <span className="eyebrow">
+              {recommended.next.priority === 3
+                ? "처음이라면 여기서 시작하세요"
+                : "내 기록에 맞는 다음 훈련"}
+            </span>
+            <h2>{recommendedTrack.title}</h2>
+            <p>{recommended.next.reason}</p>
+          </div>
+          <Link
+            className="primary-button"
+            href={problemUrl(recommended.next.problemId, "/handoff")}
+          >
+            {recommended.next.priority === 3 ? "코드 이해 훈련 시작" : recommended.next.label} →
+          </Link>
+        </section>
+      )}
       <section className="handoff-progress" aria-label="내 코드 이해 훈련 기록">
         <h2>내 코드 이해 훈련 기록</h2>
         {error ? (
@@ -85,20 +104,6 @@ export function HandoffDashboard() {
                 </div>
               </dl>
             </div>
-            {recommended && recommendedTrack && (
-              <div className="handoff-recommendation">
-                <div>
-                  <strong>다음 훈련: {recommendedTrack.title}</strong>
-                  <p>{recommended.next.reason}</p>
-                </div>
-                <Link
-                  className="secondary-button"
-                  href={problemUrl(recommended.next.problemId, "/handoff")}
-                >
-                  {recommended.next.label} →
-                </Link>
-              </div>
-            )}
           </>
         )}
         <details className="handoff-measurement">

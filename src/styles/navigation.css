@@ -1,0 +1,401 @@
+/* Shared public navigation and task entry. Keep the terminal identity, with a clear action hierarchy. */
+.site-header.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  min-height: 76px;
+  margin: 0 0 24px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--line);
+}
+.site-header .brand-logo {
+  font-size: 22px;
+  padding: 0;
+}
+.site-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.site-navigation a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  color: var(--muted);
+  border-radius: var(--radius-control);
+  font-size: var(--text-ui);
+}
+.site-navigation a:hover {
+  background: #191b20;
+  color: var(--text);
+}
+.site-navigation [aria-current] {
+  color: var(--action-soft);
+  background: #18212f;
+}
+.home-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-direction: column;
+}
+.home-heading h1 {
+  font-size: clamp(27px, 3vw, 38px);
+  line-height: 1.45;
+  letter-spacing: -0.045em;
+  margin-top: 8px;
+  font-weight: 750;
+}
+.home-heading p {
+  font-size: var(--text-reading);
+  color: var(--muted);
+  line-height: 1.8;
+}
+.resume-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px;
+  margin: 0 0 20px;
+  border: 1px solid #3a4b64;
+  border-radius: var(--radius-panel);
+  background: #111c2b;
+  border-color: #3a506c;
+}
+.resume-card > div {
+  min-width: 0;
+}
+.resume-card h2 {
+  font-size: 20px;
+  line-height: 1.5;
+  margin: 6px 0;
+}
+.resume-card p {
+  color: var(--muted);
+  font-size: var(--text-ui);
+  line-height: 1.7;
+}
+.resume-card .primary-button {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+.resume-status {
+  font-size: var(--text-small);
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.resume-status button {
+  margin-left: 8px;
+}
+.course-shortcuts {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.course-shortcuts a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  font-size: var(--text-ui);
+}
+.course-shortcuts a:hover {
+  border-color: var(--action);
+}
+.history-track-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 20px 24px;
+  background: var(--surface);
+  margin-bottom: 32px;
+}
+.history-track-link p {
+  color: var(--muted);
+  font-size: var(--text-ui);
+  margin-top: 4px;
+}
+.history-track-link:hover {
+  border-color: var(--action);
+}
+.history-coding-title {
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+.domain-disclosure {
+  margin: 22px 0 12px;
+}
+.domain-disclosure > summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 12px;
+  color: var(--muted);
+  font-size: var(--text-ui);
+}
+.domain-disclosure > summary span {
+  margin-left: 8px;
+  font: var(--text-caption) var(--mono);
+}
+.domain-disclosure[open] > summary {
+  color: var(--text);
+}
+.mobile-filter-toggle,
+.filter-summary {
+  display: none;
+}
+#problem-library {
+  scroll-margin-top: 85px;
+}
+@media (max-width: 760px) {
+  .site-header.site-header {
+    gap: 16px;
+    margin-bottom: 12px;
+    padding-bottom: 14px;
+  }
+  .site-navigation {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .site-navigation a {
+    font-size: 12px;
+    white-space: nowrap;
+    justify-content: center;
+    padding: 8px 4px;
+  }
+  .resume-card {
+    padding: 18px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .resume-card .primary-button {
+    width: 100%;
+  }
+  .resume-card h2 {
+    font-size: 18px;
+  }
+  .home-heading {
+    margin-bottom: 20px;
+  }
+  .home-heading .eyebrow {
+    letter-spacing: 0.02em;
+  }
+  .home-heading p {
+    font-size: var(--text-ui);
+  }
+  .history-track-link {
+    padding: 18px;
+  }
+  .mobile-filter-toggle {
+    display: inline-flex;
+  }
+  .filter-bottom .select-filters {
+    display: none;
+  }
+  .filter-bottom.filters-expanded .select-filters {
+    display: flex;
+    flex-wrap: wrap;
+    order: 3;
+    width: 100%;
+  }
+  .filter-bottom .sort-select {
+    margin-left: auto;
+  }
+  .filter-summary {
+    display: flex;
+    order: 4;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    color: var(--action-soft);
+    font-size: var(--text-small);
+  }
+  .filter-summary .text-button {
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+}
+
+/* Library totals are context, not four competing hero cards. */
+.library-stats.stats-row {
+  min-height: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-block: 1px solid var(--line);
+  margin-bottom: 26px;
+  border-radius: 12px;
+}
+.library-stats.stats-row > div {
+  display: flex;
+  min-height: 0;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+}
+.library-stats.stats-row strong {
+  font-size: 19px;
+  margin: 0;
+}
+.library-stats .stat-note,
+.library-stats .stat-progress {
+  display: none;
+}
+.handoff-card .primary-button {
+  background: transparent;
+  color: var(--action-soft);
+  border-color: #4c6079;
+}
+.handoff-card .primary-button:hover {
+  background: #192334;
+}
+@media (max-width: 760px) {
+  .feature-slide p {
+    font-size: var(--text-ui);
+    line-height: 1.75;
+  }
+  .feature-slide h2 {
+    white-space: normal;
+    margin: 10px 0;
+  }
+  .feature-slide .primary-button {
+    font-size: var(--text-small);
+    padding: 9px 10px;
+  }
+  .feature-slide > div:first-child {
+    min-width: 0;
+  }
+  .library-stats.stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .library-stats.stats-row > div {
+    padding: 12px 8px;
+  }
+  .library-stats.stats-row > div + div {
+    border: 0;
+  }
+  .library-stats.stats-row strong {
+    font-size: 17px;
+  }
+  .topbar-actions > .secondary-button {
+    padding: 8px 10px;
+    font-size: var(--text-small);
+  }
+  .topbar-path > span {
+    display: none;
+  }
+}
+
+/* Visual roles: the canvas stays black; panels and controls have distinct surface levels. */
+.training-path-foundation {
+  --path-color: #8fdfbb;
+  --path-surface: #183129;
+}
+.training-path-analysis {
+  --path-color: #c9baff;
+  --path-surface: #2a2340;
+}
+.training-path-practice {
+  --path-color: #a5ceff;
+  --path-surface: #182b43;
+}
+.training-paths > a:focus-visible,
+.learn-card:focus-visible,
+.problem-row:focus-within {
+  background: var(--surface-hover);
+}
+.learn-card > div span:last-child {
+  padding: 4px 8px;
+  background: var(--surface-raised);
+  border-radius: var(--radius-small);
+  color: #c6cfdb;
+}
+.learn-steps button {
+  border-radius: var(--radius-control);
+}
+.select-filters select,
+.sort-select select {
+  border-radius: var(--radius-control);
+}
+.handoff-card:hover {
+  border-color: var(--handoff-outline);
+}
+.handoff-progress,
+.handoff-quality,
+.handoff-guide,
+.profile-panel {
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+.problem-tabs {
+  background: var(--surface-raised);
+}
+.workbench {
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  border-color: #3b4350;
+}
+.problem-tabs button[aria-selected="true"]::after {
+  background: var(--action);
+}
+@media (max-width: 760px) {
+  .training-paths > a {
+    grid-template-columns: 42px minmax(0, 1fr);
+    column-gap: 16px;
+    padding: 20px;
+  }
+  .training-paths > a > svg {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    width: 42px;
+    height: 42px;
+    padding: 10px;
+    margin: 0;
+  }
+  .training-paths > a > span,
+  .training-paths > a > strong,
+  .training-paths > a > p {
+    grid-column: 2;
+    min-width: 0;
+  }
+  .training-paths strong {
+    font-size: 18px;
+    margin: 6px 0;
+  }
+  .training-paths p {
+    margin: 0;
+  }
+  .home-heading {
+    gap: 8px;
+  }
+  .home-heading h1 {
+    font-size: 27px;
+  }
+  .home-heading p {
+    font-size: var(--text-ui);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .training-paths > a,
+  .learn-card {
+    transition: none;
+  }
+}

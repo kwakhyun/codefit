@@ -1,4 +1,10 @@
+import type { ServiceCase } from "./services/types";
+import { serviceMissions } from "./services/missions";
 export type Action =
+  | "case-standard"
+  | "case-edge"
+  | "case-other"
+  | "case-submit"
   | "save"
   | "refresh"
   | "other-device"
@@ -23,7 +29,8 @@ export type Mission = {
   kind: "foundation" | "lab";
   concept: string;
   minutes: number;
-  app: "memo" | "request" | "access" | "price" | "filter" | "search" | "booking";
+  service?: ServiceCase;
+  app: "service" | "memo" | "request" | "access" | "price" | "filter" | "search" | "booking";
   task: string;
   prediction: string;
   choices: string[];
@@ -70,13 +77,13 @@ export const MISSIONS: Mission[] = [
   {
     id: "where-data-lives",
     kind: "foundation",
-    title: "메모는 어디에 저장될까요?",
-    summary: "새로고침하거나 다른 기기로 접속해 메모가 어디에 저장되는지 확인합니다.",
+    title: "데이터는 어디에 저장될까요?",
+    summary: "새로고침하거나 다른 기기로 접속해 저장한 데이터가 남아 있는지 확인합니다.",
     concept: "화면 상태와 저장소",
     minutes: 5,
     app: "memo",
-    task: "이 메모를 저장한 뒤 새로고침하고, 다른 기기에서도 읽을 수 있게 만들어 보세요.",
-    prediction: "지금 앱에서 저장한 뒤 새로고침하면 메모가 남을까요?",
+    task: "글을 작성하고 저장하는 예제 서비스입니다. 저장한 데이터가 새로고침 후에도, 다른 기기에서도 보이도록 만들어 보세요.",
+    prediction: "이 서비스에서 데이터를 저장한 뒤 새로고침하면 작성한 내용이 남을까요?",
     choices: [
       "저장 완료라고 했으니 남는다",
       "화면에만 있어 사라질 수 있다",
@@ -108,12 +115,12 @@ export const MISSIONS: Mission[] = [
   {
     id: "follow-a-request",
     kind: "foundation",
-    title: "저장 요청은 어디에서 멈췄을까요?",
-    summary: "화면, 요청, 서버 응답의 흐름을 따라갑니다.",
+    title: "인터넷 연결이 끊겨도 저장될까요?",
+    summary: "저장 버튼을 누른 뒤 서버가 결과를 돌려주기까지의 과정을 확인합니다.",
     concept: "요청과 응답",
     minutes: 5,
     app: "request",
-    task: "네트워크를 끊고 저장해 보세요. 실패를 성공으로 알리지 않고, 연결 복구 뒤 다시 저장해야 합니다.",
+    task: "데이터를 서버에 저장하는 예제 서비스입니다. 연결을 끊고 저장해 보세요. 실패를 정확히 안내하고, 연결이 복구되면 다시 저장할 수 있어야 합니다.",
     prediction: "연결이 끊긴 상태에서 버튼을 누르면 서버에 저장될까요?",
     choices: [
       "클릭했으니 저장된다",
@@ -127,7 +134,7 @@ export const MISSIONS: Mission[] = [
       "클릭은 요청의 시작입니다. 연결 문제나 서버 오류로 저장이 실패할 수 있습니다. 화면은 실제 응답에 맞춰 대기, 성공, 실패를 구분해야 합니다.",
     hint: [
       "연결 끊기를 누른 다음 저장해 보세요.",
-      "앱 안내와 서버 저장 수를 비교하세요.",
+      "화면 안내와 서버 저장 수를 비교하세요.",
       "서버 응답을 확인하는 안을 선택하고 연결 복구도 검사하세요.",
     ],
     fixes: memoFixes,
@@ -147,12 +154,12 @@ export const MISSIONS: Mission[] = [
   {
     id: "who-can-read",
     kind: "foundation",
-    title: "로그인만 하면 안전할까요?",
+    title: "누가 비공개 데이터를 볼 수 있을까요?",
     summary: "로그인한 사용자를 바꿔 다른 사람의 비공개 글이 보이는지 확인합니다.",
     concept: "로그인과 접근 권한",
     minutes: 6,
     app: "access",
-    task: "지민의 비공개 글입니다. 민수로 전환한 뒤 직접 주소로 열어 보고, 글 주인만 읽도록 바꾸세요.",
+    task: "자신이 쓴 비공개 글을 보관하는 예제 게시판입니다. 다른 사용자로 바꿔 글 주소에 직접 접속해 보고, 작성자만 읽을 수 있도록 수정하세요.",
     prediction: "민수가 로그인하면 지민의 비공개 글을 읽어도 될까요?",
     choices: [
       "로그인했으니 읽어도 된다",
@@ -186,12 +193,12 @@ export const MISSIONS: Mission[] = [
   {
     id: "price-and-rules",
     kind: "foundation",
-    title: "수량에 따라 가격 계산하기",
-    summary: "입력값과 조건이 계산 결과를 바꾸는 과정을 봅니다.",
+    title: "입력값에 따라 계산 결과는 어떻게 달라질까요?",
+    summary: "상품 수량과 할인 조건을 바꾸며 입력값을 검사하는 방법을 배웁니다.",
     concept: "변수와 조건",
     minutes: 5,
     app: "price",
-    task: "한 개에 10,000원, 세 개부터 10% 할인입니다. 수량 3과 잘못된 수량 -1을 넣어 규칙을 확인하세요.",
+    task: "상품 가격을 계산하는 예제 쇼핑몰입니다. 한 개에 10,000원이고 세 개부터 10% 할인합니다. 수량 3과 잘못된 수량 -1을 입력해 계산 규칙을 확인하세요.",
     prediction: "세 개를 구매하면 얼마여야 할까요?",
     choices: ["30,000원", "27,000원", "9,000원"],
     answer: 1,
@@ -229,12 +236,12 @@ export const MISSIONS: Mission[] = [
   {
     id: "lists-and-filters",
     kind: "foundation",
-    title: "완료한 할 일만 보고 싶어요",
-    summary: "여러 항목에 같은 조건을 적용합니다.",
+    title: "조건에 맞는 데이터만 보여주려면?",
+    summary: "목록에서 조건에 맞는 항목만 골라 보여주고 원본 데이터는 유지하는 방법을 배웁니다.",
     concept: "목록과 필터",
     minutes: 4,
     app: "filter",
-    task: "완료한 항목만 표시하되, 전체 목록으로 돌아왔을 때 미완료 항목도 남아 있어야 합니다.",
+    task: "할 일을 관리하는 예제 서비스입니다. 완료한 항목만 표시했다가 전체 목록으로 돌아와도, 미완료 항목이 그대로 남아 있어야 합니다.",
     prediction: "완료 필터로 바꾸면 미완료 할 일은 어떻게 되어야 할까요?",
     choices: ["영구 삭제된다", "모두 완료로 바뀐다", "원본에 남고 현재 화면에서만 숨겨진다"],
     answer: 2,
@@ -275,12 +282,12 @@ export const MISSIONS: Mission[] = [
   {
     id: "late-search",
     kind: "foundation",
-    title: "나중에 온 결과가 최신일까요?",
+    title: "검색 결과가 뒤바뀌는 이유는 무엇일까요?",
     summary: "검색 요청과 응답의 순서가 다를 수 있음을 확인합니다.",
     concept: "비동기와 순서",
     minutes: 6,
     app: "search",
-    task: "고양이 다음 강아지를 검색하세요. 강아지 응답을 먼저, 고양이 응답을 나중에 보내 최신 검색어의 결과를 유지하세요.",
+    task: "반려동물을 검색하는 예제 서비스입니다. 고양이 다음에 강아지를 검색하고, 강아지 응답부터 도착하게 해보세요. 응답 순서가 바뀌어도 현재 검색어에 맞는 결과가 나와야 합니다.",
     prediction: "먼저 시작한 검색의 응답이 늦게 도착하면 무엇을 보여야 할까요?",
     choices: ["마지막에 도착한 응답", "가장 최근 검색어에 해당하는 응답", "두 응답을 섞어서 표시"],
     answer: 1,
@@ -303,7 +310,7 @@ export const MISSIONS: Mission[] = [
       { id: "label", title: "검색어 표시 숨기기", detail: "검색어 대신 결과 목록만 보여 줍니다." },
     ],
     transfer: {
-      question: "지역을 빠르게 바꾸는 날씨 앱에도 같은 문제가 생길까요?",
+      question: "지역을 빠르게 바꾸는 날씨 서비스에도 같은 문제가 생길까요?",
       choices: [
         "검색 기능에서만 생긴다",
         "응답이 빠르면 절대 없다",
@@ -320,8 +327,8 @@ MISSIONS.push(
     ...MISSIONS[1],
     id: "broken-memo",
     kind: "lab",
-    title: "메모 저장 오류 해결하기",
-    summary: "저장에 실패해도 완료 안내가 뜨는 앱을 점검합니다.",
+    title: "데이터 저장 오류 해결하기",
+    summary: "저장에 실패해도 완료 안내가 뜨는 서비스를 점검합니다.",
     minutes: 10,
   },
   {
@@ -340,7 +347,7 @@ MISSIONS.push(
     concept: "중복 처리와 재시도",
     minutes: 12,
     app: "booking",
-    task: "같은 예약 요청을 반복해도 한 번만 저장되고, 다른 예약은 새로 저장되어야 합니다. 연결 실패 후 재시도도 확인하세요.",
+    task: "촬영 스튜디오를 예약하는 예제 서비스입니다. 같은 요청을 다시 보내도 한 번만 예약되고, 새로운 요청은 별도로 등록되어야 합니다. 연결이 끊겼다가 복구된 경우도 확인하세요.",
     prediction: "예약 버튼을 숨기면 중복 요청도 확실히 막힐까요?",
     choices: [
       "버튼을 숨기면 서버도 안전하다",
@@ -384,11 +391,16 @@ MISSIONS.push(
     code: "if (results.has(requestId)) return results.get(requestId);\n// 실제 서버에서는 동시 요청도 원자적으로 처리해야 합니다.\nreturn createAndRemember(requestId);",
   },
 );
+MISSIONS.push(...serviceMissions());
 export function missionById(id: string) {
   return MISSIONS.find((m) => m.id === id);
 }
 export const ACTION_LABELS: Record<Action, string> = {
-  save: "메모 저장",
+  "case-standard": "첫 번째 사례 선택",
+  "case-edge": "두 번째 사례 선택",
+  "case-other": "세 번째 사례 선택",
+  "case-submit": "요청 처리",
+  save: "데이터 저장",
   refresh: "새로고침 실험",
   "other-device": "다른 기기에서 보기",
   offline: "연결 끊기",
@@ -406,3 +418,10 @@ export const ACTION_LABELS: Record<Action, string> = {
   "repeat-book": "같은 예약 다시 보내기",
   "new-booking": "새 예약 보내기",
 };
+
+export function actionLabel(m: Mission, a: Action): string {
+  if (!m.service) return ACTION_LABELS[a];
+  if (a === "case-submit") return m.service.operation;
+  const index = ["case-standard", "case-edge", "case-other"].indexOf(a);
+  return index >= 0 ? m.service.samples[index].label : ACTION_LABELS[a];
+}

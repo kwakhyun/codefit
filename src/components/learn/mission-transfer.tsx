@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { VoiceInput } from "@/components/ui/voice-input";
 import type { Mission } from "@/lib/learn/catalog";
 import type { LearningRecord, LearningRecordUpdate } from "@/lib/learn/progress";
 import { canComplete } from "@/lib/learn/progress";
@@ -59,6 +60,16 @@ export function MissionTransfer({
             placeholder="예: 저장 완료 안내뿐 아니라 새로고침 후에도 데이터가 남는지 확인하겠습니다."
           />
         </label>
+        <VoiceInput
+          targetId="learn-reflection"
+          onTranscript={(text) =>
+            update((x) => ({
+              ...x,
+              reflection: `${x.reflection}${x.reflection ? " " : ""}${text}`.slice(0, 1000),
+              completed: false,
+            }))
+          }
+        />
         <small>10자 이상 · 실제로 해볼 검사를 내 말로 남겨 주세요.</small>
         <button className="primary-button" onClick={onComplete}>
           학습 기록 마치기 <Check size={16} />

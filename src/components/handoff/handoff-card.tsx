@@ -1,3 +1,5 @@
+import { ScenarioImage } from "@/components/ui/scenario-visual";
+import { scenarioFor } from "@/lib/scenario-visuals";
 import Link from "next/link";
 import { HANDOFF_TRACKS, handoffId } from "@/lib/handoff/catalog";
 import type { HandoffDashboard } from "@/lib/handoff/learning";
@@ -18,6 +20,9 @@ export function HandoffCard({
   const latest = learning?.latest;
   return (
     <article className="handoff-card">
+      <span className="scenario-thumbnail">
+        <ScenarioImage scene={scenarioFor(handoffId(track.key))!} />
+      </span>
       <span className="eyebrow">
         {String(index + 1).padStart(2, "0")} /{" "}
         {track.domain === "frontend" ? "FRONTEND" : "BACKEND"}

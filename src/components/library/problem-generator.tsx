@@ -11,7 +11,8 @@ import {
   type Language,
 } from "@/lib/catalog";
 import { api, ApiError, errorMessage } from "@/lib/client-api";
-import Link from "next/link";
+import { Select } from "@/components/ui/select";
+import { GuestLogin } from "@/components/account/guest-login";
 import type { AccountState } from "@/lib/auth-types";
 import type { AiUsage } from "@/lib/ai-telemetry";
 import type { PublicProblem } from "@/lib/problem";
@@ -120,13 +121,7 @@ export function Generator({
             <Database size={16} />
             <span>생성한 문제는 공개 보관함에 저장되어 누구나 풀 수 있습니다.</span>
           </div>
-          <Link
-            className="primary-button"
-            href={`/login?returnTo=${encodeURIComponent(`/?domain=${initialDomain}&generate=1`)}`}
-          >
-            로그인 / 가입하고 생성하기
-            <ArrowRight size={16} />
-          </Link>
+          <GuestLogin returnTo={`/?domain=${initialDomain}&generate=1`} />
           <p>문제 풀이, 힌트, 정답 확인, AI 풀이 검토는 로그인 없이도 이용할 수 있습니다.</p>
         </div>
       </Modal>
@@ -175,30 +170,28 @@ export function Generator({
           <div className="form-row">
             <label>
               분야
-              <select
+              <Select
+                label="분야"
                 value={domain}
-                onChange={(e) => {
-                  const next = e.target.value as DomainId;
+                onValueChange={(value) => {
+                  const next = value as DomainId;
                   setDomain(next);
                   setLanguage(DOMAINS.find((d) => d.id === next)!.languages[0]);
                 }}
-              >
-                {DOMAINS.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
+                options={DOMAINS.map((d) => ({ value: d.id, label: d.label }))}
+              />
             </label>
             <label>
               언어 / 기술
-              <select value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
-                {DOMAINS.find((d) => d.id === domain)!.languages.map((l) => (
-                  <option value={l} key={l}>
-                    {LANGUAGES[l].label}
-                  </option>
-                ))}
-              </select>
+              <Select
+                label="언어 / 기술"
+                value={language}
+                onValueChange={(value) => setLanguage(value as Language)}
+                options={DOMAINS.find((d) => d.id === domain)!.languages.map((value) => ({
+                  value,
+                  label: LANGUAGES[value].label,
+                }))}
+              />
             </label>
           </div>
           <label className="field-label">문제 유형</label>
@@ -267,7 +260,7 @@ export function Generator({
         )}
         <div className="generation-note">
           <Database size={15} />
-          <span>생성된 문제는 보관함에 자동으로 영구 저장됩니다.</span>
+          <span>생성한 문제는 공개 보관함에 저장됩니다.</span>
         </div>
         {busy && (
           <div className="generation-progress" role="status">
@@ -276,7 +269,7 @@ export function Generator({
               <strong>
                 문제와 힌트, 정답을 구성하고 있습니다<span className="blink">_</span>
               </strong>
-              <span>보통 30–90초가 걸립니다. 저장이 끝나면 문제를 열어 드립니다.</span>
+              <span>보통 30–90초가 걸립니다.</span>
             </div>
           </div>
         )}

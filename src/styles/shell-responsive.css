@@ -168,6 +168,16 @@
     font-size: var(--text-caption);
   }
   .path-root {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .path-root .brand-icon {
+    display: block;
+  }
+  .path-root > span {
     display: none;
   }
   .topbar-path > span:nth-child(3) {
@@ -246,14 +256,14 @@
     overflow: visible;
   }
 }
-@media (max-width: 360px) {
+@media (max-width: 420px) {
   .topbar-path > strong {
     display: none;
   }
   .topbar-actions {
     margin-left: auto;
   }
-  .topbar .primary-button {
+  .topbar .secondary-button {
     white-space: nowrap;
     flex-shrink: 0;
   }

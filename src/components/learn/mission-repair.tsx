@@ -76,7 +76,7 @@ export function MissionRepair({
       {record.fix && (
         <>
           <details className="learn-sandbox">
-            <summary>수정안이 적용된 앱 사용해 보기</summary>
+            <summary>수정안이 적용된 서비스 사용해 보기</summary>
             <SimulationView
               mission={mission}
               fix={record.fix}

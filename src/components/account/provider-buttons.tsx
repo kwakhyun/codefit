@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { GitBranch, Check, LoaderCircle } from "lucide-react";
+import { Check, LoaderCircle } from "lucide-react";
+import { ProviderIcon } from "./provider-icon";
 import { authClient } from "@/lib/auth-client";
 import type { OAuthProvider } from "@/lib/auth-types";
 
@@ -8,10 +9,12 @@ export function ProviderButtons({
   providers,
   returnTo,
   linked,
+  localPreview = false,
 }: {
   providers: OAuthProvider[];
   returnTo: string;
   linked?: string[];
+  localPreview?: boolean;
 }) {
   const [busy, setBusy] = useState<OAuthProvider | null>(null);
   const [error, setError] = useState("");
@@ -51,12 +54,8 @@ export function ProviderButtons({
           >
             {busy === provider ? (
               <LoaderCircle size={19} className="spin" />
-            ) : provider === "github" ? (
-              <GitBranch size={19} />
             ) : (
-              <span className="google-symbol" aria-hidden="true">
-                G
-              </span>
+              <ProviderIcon provider={provider} />
             )}
             <span>
               {provider === "google" ? "Google" : "GitHub"}
@@ -68,7 +67,7 @@ export function ProviderButtons({
                 <Check size={16} />
               </>
             ) : !enabled ? (
-              <small>연결 준비 중</small>
+              <small>사용 불가</small>
             ) : linked ? (
               <small>연결하기</small>
             ) : null}
@@ -82,7 +81,16 @@ export function ProviderButtons({
       )}
       {!providers.length && (
         <p className="inline-warning">
-          로그인 연결을 준비 중입니다. 보관함의 모든 문제는 지금도 풀 수 있습니다.
+          {localPreview ? (
+            <>
+              로컬 미리보기에는 로그인 설정이 없습니다.{" "}
+              <a href="https://codefit-five.vercel.app/login" target="_blank" rel="noreferrer">
+                운영 사이트에서 로그인하기 ↗
+              </a>
+            </>
+          ) : (
+            "지금은 로그인을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."
+          )}
         </p>
       )}
     </div>

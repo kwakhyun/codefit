@@ -22,17 +22,18 @@
 .auth-card {
   max-width: 550px;
   margin: 0 auto;
-  background: #0c0c0e;
+  background: var(--surface);
   border: 1px solid #303036;
-  border-radius: 9px;
+  border-radius: var(--radius-panel);
   overflow: hidden;
+  border-color: var(--line);
 }
 .account-terminal-bar {
   display: flex;
   align-items: center;
   gap: 7px;
   border-bottom: 1px solid #2b2b30;
-  background: #151518;
+  background: var(--surface-raised);
   padding: 14px 20px;
 }
 .account-terminal-bar > span {
@@ -74,20 +75,14 @@
   min-height: 49px;
   background: #18181b;
 }
-.oauth-button > span:not(.google-symbol) {
+.oauth-button > span {
   flex: 1;
   text-align: left;
 }
 .oauth-button small {
   font-size: var(--text-small);
 }
-.google-symbol {
-  font:
-    700 20px/1 Arial,
-    sans-serif;
-  color: #8fb2ff;
-  width: 19px;
-}
+
 .auth-card-content .auth-privacy {
   font-size: var(--text-small);
   color: #9999a5;
@@ -256,5 +251,64 @@
   }
   .generation-allowance {
     flex-wrap: wrap;
+  }
+}
+
+.provider-icon {
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.provider-google {
+  background: #fff;
+  border-radius: 50%;
+}
+.guest-login {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 24px;
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #111418;
+}
+.guest-login-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #f4f4f5;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.guest-login-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.guest-login-providers,
+.guest-login-providers > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.guest-login-providers {
+  gap: 18px;
+  font-size: 13px;
+  color: #b8bec8;
+}
+.learn-progress + .guest-login {
+  margin-bottom: 24px;
+}
+.generator-login .guest-login,
+.project-guest .guest-login {
+  margin: 20px 0;
+}
+@media (max-width: 480px) {
+  .guest-login {
+    padding: 16px;
+  }
+  .guest-login-link {
+    font-size: 14px;
   }
 }

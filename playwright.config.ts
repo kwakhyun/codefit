@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 import { resolve } from "node:path";
 import { TEST_AUTH_SECRET } from "./scripts/lib/test-account";
+import { E2E_BASE_URL, E2E_PORT, E2E_HOST } from "./scripts/lib/e2e-environment";
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -10,7 +11,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: "http://127.0.0.1:3010",
+    baseURL: E2E_BASE_URL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
@@ -23,17 +24,17 @@ export default defineConfig({
     ? undefined
     : {
         command: "npm start",
-        url: "http://127.0.0.1:3010",
+        url: E2E_BASE_URL,
         reuseExistingServer: false,
         timeout: 60_000,
         env: {
-          PORT: "3010",
-          HOSTNAME: "127.0.0.1",
+          PORT: E2E_PORT,
+          HOSTNAME: E2E_HOST,
           DATABASE_PATH: resolve("artifacts/e2e.sqlite"),
           DATABASE_URL: "",
           OPENAI_API_KEY: "",
           VERCEL: "",
-          AUTH_BASE_URL: "http://127.0.0.1:3010",
+          AUTH_BASE_URL: E2E_BASE_URL,
           BETTER_AUTH_SECRET: TEST_AUTH_SECRET,
           GOOGLE_CLIENT_ID: "",
           GOOGLE_CLIENT_SECRET: "",
