@@ -142,7 +142,8 @@ test("mobile prediction, offline preservation, late AI coaching does not overwri
   });
   const request = page.waitForRequest((r) => r.url().endsWith("/coach"));
   await page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" }).click();
-  await request;
+  const outgoing = (await request).postDataJSON();
+  expect(readHandoffDraft(outgoing.code).implementation).toBe(base.starterCode);
   await stage(page, 2);
   await readCode(page);
   await setCode(page, base.solution);
@@ -150,11 +151,17 @@ test("mobile prediction, offline preservation, late AI coaching does not overwri
   await page
     .getByRole("textbox", { name: "구조 이해", exact: true })
     .fill("AI 질문을 기다리는 동안 추가로 분석한 입력과 출력입니다.");
+  // Prove the user edit reached app state/storage before releasing the old reply.
+  // Reading Monaco alone can hide a change emitted before its listener was ready.
+  await expect.poll(async () => (await saved(page)).implementation).toBe(base.solution);
   release();
   await expect
     .poll(async () => (await saved(page)).training?.coach?.question)
     .toContain("원본 배열");
   expect(await readCode(page)).toBe(base.solution);
+  const persisted = await saved(page);
+  expect(persisted.implementation).toBe(base.solution);
+  expect(persisted.notes.understanding).toContain("AI 질문을 기다리는 동안");
   await stage(page, 1);
   await expect(page.getByLabel("AI 맞춤 질문")).toContainText("코드가 바뀌었습니다");
   await context.setOffline(true);
