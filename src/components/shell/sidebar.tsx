@@ -81,7 +81,9 @@ export function Sidebar({
       <div className="sidebar-workspace" aria-label="현재 이용 상태">
         <strong>{data?.account.user?.name || "로그인 없이 이용 중"}</strong>
         <small>
-          {data?.account.user ? "계정에 연결된 학습 기록" : "이 브라우저에서 기록을 이어갑니다."}
+          {data?.account.user
+            ? "계정에 연결된 학습 기록"
+            : "로그인 없이도 학습 기록을 확인할 수 있어요."}
         </small>
         {!data?.account.user && (
           <Link className="workspace-login" href="/login">
