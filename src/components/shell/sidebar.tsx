@@ -78,13 +78,17 @@ export function Sidebar({
       >
         <X size={20} />
       </button>
-      <div className="sidebar-workspace">
-        <span className="workspace-avatar">{data?.account.user?.name.slice(0, 1) || "F"}</span>
-        <span>
-          {data?.account.user?.name || "게스트 연습실"}
-          <small>{data?.account.user ? "계정에 기록 저장 중" : "로그인 없이 연습 중"}</small>
-        </span>
-        <span className="status-dot" />
+      <div className="sidebar-workspace" aria-label="현재 이용 상태">
+        <strong>{data?.account.user?.name || "로그인 없이 이용 중"}</strong>
+        <small>
+          {data?.account.user ? "계정에 연결된 학습 기록" : "이 브라우저에서 기록을 이어갑니다."}
+        </small>
+        {!data?.account.user && (
+          <Link className="workspace-login" href="/login">
+            <UserRound size={15} aria-hidden="true" />
+            로그인 / 가입
+          </Link>
+        )}
       </div>
       <nav>
         <span className="nav-caption">나의 연습실</span>
@@ -154,13 +158,12 @@ export function Sidebar({
         </details>
       </nav>
       <div className="sidebar-bottom">
-        <a
-          className="nav-item"
-          href={data?.account.user ? "/profile" : "/login?returnTo=%2Fprofile"}
-        >
-          <UserRound size={17} />
-          <span>{data?.account.user ? "내 프로필" : "로그인 / 가입"}</span>
-        </a>
+        {data?.account.user && (
+          <Link className="nav-item" href="/profile">
+            <UserRound size={17} />
+            <span>내 프로필</span>
+          </Link>
+        )}
         <div className="sidebar-note">
           <Terminal size={17} />
           <span>

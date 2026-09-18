@@ -243,8 +243,12 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
+  await expect(page.locator(".workspace-avatar")).toHaveCount(0);
+  await expect(page.getByLabel("현재 이용 상태")).toContainText("로그인 없이 이용 중");
+  await expect(page.getByRole("button", { name: /배너 자동 전환/ })).toHaveCount(0);
+
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 4");
-  await expect(banner.locator(".feature-rotation-label")).toHaveText("8초");
+  await expect(banner.locator(".feature-rotation-label")).toHaveCount(0);
   const progress = () =>
     banner
       .locator(".feature-time-track > span")
@@ -254,10 +258,10 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
   await page.clock.fastForward(3000);
   expect(await progress()).toBeGreaterThanOrEqual(0.35);
   expect(await progress()).toBeLessThan(0.5);
-  await expect(banner.locator(".feature-rotation-label")).toHaveText("5초");
+  expect(await progress()).toBeGreaterThanOrEqual(0.35);
   await banner.hover();
   await page.clock.fastForward(10000);
-  await expect(banner.locator(".feature-rotation-label")).toHaveText("5초");
+  expect(await progress()).toBeGreaterThanOrEqual(0.35);
   await page.mouse.move(0, 0);
   await page.clock.fastForward(5100);
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "2 / 4");
@@ -266,7 +270,7 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "2 / 4");
   await page.keyboard.press("Enter");
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "3 / 4");
-  await expect(banner.locator(".feature-rotation-label")).toHaveText("8초");
+  await expect(banner.locator(".feature-rotation-label")).toHaveCount(0);
   const activeStyle = await banner.getByRole("group").evaluate((el) => ({
     animation: getComputedStyle(el).animationName,
     duration: getComputedStyle(el).animationDuration,
@@ -287,6 +291,11 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
         true,
       );
       await expect(banner.getByRole("group")).toHaveCount(1);
+      const button = banner.getByRole("group").locator(".primary-button");
+      await expect(button).toHaveCSS(
+        "background-color",
+        ["rgb(125, 211, 172)", "rgb(242, 200, 121)", "rgb(147, 197, 253)", "rgb(196, 181, 253)"][i],
+      );
       const art = banner.getByRole("group").locator(".feature-art img");
       await expect(art).toBeVisible();
       await expect
@@ -309,7 +318,7 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 4");
   await page.clock.fastForward(30000);
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 4");
-  await expect(banner.getByRole("button", { name: "배너 자동 전환 멈춤" })).toBeDisabled();
+  await expect(banner.getByRole("button", { name: /배너 자동 전환/ })).toHaveCount(0);
 });
 
 test("banner entrypoints open lessons, labs, code understanding and generation", async ({

@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "backup": "node scripts/backup-database.mjs",
     "test:api": "node scripts/verify-api.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:unused": "knip",

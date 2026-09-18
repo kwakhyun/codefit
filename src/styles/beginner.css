@@ -81,9 +81,18 @@
   line-height: 1.85;
 }
 .feature-slide .primary-button {
-  background: var(--action);
-  border-color: var(--action);
+  background: var(--feature);
+  border-color: var(--feature);
   color: #101412;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 #ffffff30;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+.feature-slide .primary-button:hover {
+  background: color-mix(in srgb, var(--feature) 82%, white);
+  border-color: color-mix(in srgb, var(--feature) 82%, white);
 }
 .feature-art {
   position: relative;
@@ -128,11 +137,6 @@
 .feature-dots [aria-current] span {
   width: 22px;
   background: var(--feature);
-}
-.feature-rotation-label {
-  color: var(--muted);
-  font-size: var(--text-caption);
-  margin-right: 12px;
 }
 .training-paths {
   display: grid;
@@ -654,9 +658,6 @@
   .feature-dots button {
     width: 32px;
     height: 44px;
-  }
-  .feature-rotation-label {
-    display: none;
   }
   .training-paths {
     grid-template-columns: 1fr;

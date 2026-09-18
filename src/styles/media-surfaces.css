@@ -409,20 +409,9 @@
   transform-origin: left;
   transition: transform 100ms linear;
 }
-.feature-rotation-label {
-  display: block;
-  min-width: 28px;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
 @media (max-width: 760px) {
   .feature-banner-controls {
     flex-wrap: wrap;
-  }
-  .feature-rotation-label {
-    text-align: right;
-    margin: 0;
-    font-size: 12px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

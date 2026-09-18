@@ -64,6 +64,8 @@ npm run test:e2e
 npm run benchmark
 ```
 
+`npm run typecheck`는 `next typegen`으로 이미지 및 라우트 타입을 준비한 뒤 TypeScript를 검사합니다. 새 체크아웃에는 자동 생성 파일인 `next-env.d.ts`가 없으므로, 빌드 후 남은 파일에 의존해 `tsc`만 실행하지 않습니다.
+
 브라우저 테스트는 자동으로 별도 SQLite 서버를 시작합니다. 실행 중인 서버를 임의로 재사용하지 않으며 API 키도 비웁니다. 직접 검증 서버를 준비한 경우에만 `CODEFIT_E2E_EXTERNAL_SERVER=1`을 지정하세요. PostgreSQL 검증은 **테스트 전용 DB**를 `TEST_DATABASE_URL`에 지정합니다. 이 변수가 없으면 PostgreSQL 테스트는 건너뜁니다. 설정된 경우 매번 임시 스키마를 만들고, 스키마 격리를 확인한 후 테스트합니다. GitHub Actions는 별도 PostgreSQL 16 서비스를 사용합니다.
 
 ```bash

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 const SLIDE_DURATION = 8000;
 const slides = [
   {
@@ -180,24 +180,11 @@ export function FeatureBanner({ onGenerate }: { onGenerate: () => void }) {
             </button>
           ))}
         </div>
-        {!reduced && (
-          <span className="feature-rotation-label" aria-label="배너 남은 시간">
-            {Math.ceil(remaining / 1000)}초
-          </span>
-        )}
         <button className="icon-button" aria-label="이전 기능" onClick={() => handleGo(index - 1)}>
           <ChevronLeft size={18} />
         </button>
         <button className="icon-button" aria-label="다음 기능" onClick={() => handleGo(index + 1)}>
           <ChevronRight size={18} />
-        </button>
-        <button
-          className="icon-button"
-          aria-label={paused ? "배너 자동 전환 시작" : "배너 자동 전환 멈춤"}
-          disabled={reduced}
-          onClick={() => setPaused((p) => !p)}
-        >
-          {paused || reduced ? <Play size={16} /> : <Pause size={16} />}
         </button>
       </div>
     </section>
