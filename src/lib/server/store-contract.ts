@@ -1,5 +1,5 @@
 import type { StoreQueries } from "./store-queries";
-import type { Backup } from "../backup";
+import type { Backup, BackupImportResult } from "../backup";
 import type { Attempt, Problem, ProblemSummary, Progress, Review } from "../problem";
 
 type Stored<T> = T | Promise<T>;
@@ -33,7 +33,8 @@ export interface ProblemStore {
   startJob(owner: string, id: string, kind: string, fingerprint: string): Stored<JobClaim>;
   failJob(lease: JobLease): Stored<boolean>;
   completeCoaching(lease: JobLease, problemId: string, result: string): Stored<void>;
-  importBackup(owner: string, backup: Backup): Stored<{ problems: number; attempts: number }>;
+  exportBackup(owner: string): Stored<Backup>;
+  importBackup(owner: string, backup: Backup): Stored<BackupImportResult>;
   archiveLegacy(owner: string, content: unknown): Stored<void>;
   legacy(owner: string): Stored<unknown>;
 }

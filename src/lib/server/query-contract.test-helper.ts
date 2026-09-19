@@ -8,6 +8,15 @@ import type { Problem, Review } from "../problem";
 import type { AiRun } from "../ai-telemetry";
 
 export function queryContract(getStore: () => ProblemStore & { addProblem(p: Problem): unknown }) {
+  it("counts existing backup IDs across batches without counting duplicates or SQL-like IDs", async () => {
+    const ids = Array.from({ length: 1001 }, (_, i) => `absent-${i}`);
+    ids[499] = seedProblems[0].id;
+    ids[500] = seedProblems[1].id;
+    ids[1000] = seedProblems[2].id;
+    const queries = getStore().queries;
+    expect(await queries.countExistingProblems([...ids, ids[499], "x') OR 1=1 --"])).toBe(3);
+    expect(await queries.countExistingProblems([])).toBe(0);
+  });
   it("isolates beginner records and atomically rejects simultaneous stale writes", async () => {
     const learning = getStore().queries.learning;
     const owner = `beginner:${randomUUID()}`,

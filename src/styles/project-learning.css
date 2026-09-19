@@ -1,0 +1,263 @@
+.training-panel {
+  scroll-margin-top: 28px;
+}
+.training-panel .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.training-topics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 24px 0;
+}
+.training-topics button {
+  display: grid;
+  gap: 8px;
+  padding: 14px 8px;
+  border: 1px solid #465366;
+  background: #111820;
+  color: #dce6f3;
+  border-radius: 10px;
+  min-height: 76px;
+  font-size: 14px;
+}
+.training-topics button[aria-pressed="true"] {
+  border-color: #bdd7fb;
+  background: #243447;
+  color: #fff;
+}
+.training-topics span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+.training-topics small {
+  font-size: 12px;
+  color: #bcc8d6;
+}
+.training-panel h3 {
+  font-size: 22px;
+  line-height: 1.5;
+  margin: 20px 0 8px;
+}
+.training-reason summary,
+.training-explanation summary {
+  cursor: pointer;
+  padding: 14px 0;
+  line-height: 1.6;
+  min-height: 44px;
+  color: #caddf7;
+}
+.training-stages {
+  display: flex;
+  gap: 8px 22px;
+  flex-wrap: wrap;
+  margin: 22px 0;
+  padding: 16px 16px 16px 34px;
+  border-block: 1px solid #34404c;
+  color: #aab8c9;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.training-stages li[aria-current="step"] {
+  color: #fff;
+  font-weight: 700;
+}
+.training-panel .training-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.training-panel .training-question,
+.training-panel .training-confidence {
+  min-width: 0;
+  border: 1px solid #394656;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 24px 0;
+}
+.training-panel .training-question legend,
+.training-panel .training-confidence legend {
+  padding: 0 8px;
+  color: #f1f5fa;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.7;
+  max-width: 100%;
+}
+.training-panel .training-scenario {
+  background: #1c2733;
+  border-radius: 8px;
+  padding: 16px;
+  color: #e3ebf5;
+  margin: 0 0 16px;
+}
+.training-panel .training-question label,
+.training-panel .training-confidence label,
+.training-panel label.training-assisted {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 4px 0;
+  padding: 12px 8px;
+  line-height: 1.75;
+  cursor: pointer;
+  min-height: 44px;
+  color: #d5dfec;
+  font-size: 15px;
+}
+.training-question label:has(input:checked) {
+  background: #26374b;
+  border-radius: 8px;
+  color: #fff;
+}
+.project-page .training-panel input[type="radio"],
+.training-panel input[type="checkbox"] {
+  appearance: auto;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  margin: 4px 0 0;
+  padding: 0;
+  accent-color: #b6d5ff;
+}
+.training-panel label.training-assisted {
+  margin-bottom: 20px;
+}
+.training-fields:disabled {
+  opacity: 0.65;
+}
+.training-panel .training-note {
+  padding: 14px 16px;
+  border-left: 3px solid #deb974;
+  background: #30291d;
+  color: #f3dfb7;
+  font-size: 14px;
+}
+.training-practice {
+  padding: 20px;
+  background: #18212d;
+  border: 1px solid #3b4d65;
+  border-radius: 12px;
+}
+.training-practice .primary-button {
+  display: inline-flex;
+  gap: 10px;
+  margin: 8px 0 16px;
+  text-align: center;
+  line-height: 1.7;
+}
+.training-result h4 {
+  font-size: 20px;
+  line-height: 1.6;
+  margin: 24px 0 16px;
+}
+.training-comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 14px;
+  align-items: center;
+  background: #182330;
+  border: 1px solid #40566e;
+  border-radius: 14px;
+  padding: 22px 16px;
+  margin: 18px 0;
+}
+.training-comparison div {
+  display: grid;
+  gap: 12px;
+  text-align: center;
+}
+.training-comparison strong {
+  font-size: 32px;
+  color: #e7f1ff;
+}
+.training-comparison span,
+.training-comparison small {
+  color: #c6d5e6;
+  font-size: 14px;
+}
+.training-evidence {
+  padding-left: 20px;
+  color: #bfcede;
+  font-size: 14px;
+  line-height: 1.9;
+}
+.training-evidence li {
+  margin: 8px 0;
+}
+.training-explanation {
+  border-top: 1px solid #344352;
+}
+.training-explanation article {
+  margin: 14px 0;
+  padding: 16px;
+  background: #18202b;
+  border-radius: 8px;
+}
+.training-explanation h5 {
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0;
+}
+.training-explanation p {
+  font-size: 14px;
+}
+.training-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+.training-return {
+  max-width: 1440px;
+  margin: 20px auto 0;
+  padding: 0 24px;
+}
+.training-return a {
+  display: inline-block;
+  min-height: 44px;
+  padding: 12px 0;
+  color: #c6dcfa;
+  line-height: 1.7;
+}
+@media (max-width: 760px) {
+  .training-topics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .training-topics button:last-child {
+    grid-column: 1/-1;
+  }
+  .training-panel .training-question,
+  .training-panel .training-confidence {
+    padding: 12px;
+  }
+  .training-practice {
+    padding: 16px;
+  }
+  .training-actions > button {
+    width: 100%;
+  }
+  .training-comparison {
+    padding: 18px 10px;
+    gap: 8px;
+  }
+}
+.project-feedback-list {
+  margin-top: 20px;
+}
+.project-feedback-list > summary {
+  cursor: pointer;
+  padding: 16px 0;
+  min-height: 44px;
+  line-height: 1.7;
+  color: #cadcf5;
+}
+.project-results > .primary-button {
+  display: inline-flex;
+  margin-top: 12px;
+}

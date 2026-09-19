@@ -9,6 +9,14 @@ import postgres, { type Sql, type TransactionSql } from "postgres";
 import { seedProblems } from "../../data/problems";
 import type { Backup } from "../backup";
 import {
+  backupReads,
+  backupParameters,
+  buildBackup,
+  prepareBackup,
+  restoredProjectId,
+  restoredProjectJobs,
+} from "./workspace-backup";
+import {
   validateReview,
   type Attempt,
   type Problem,
@@ -232,7 +240,26 @@ export class PostgresStore implements ProblemStore {
       return true;
     });
   }
+  async exportBackup(owner: string): Promise<Backup> {
+    return (await (this.sql as Sql).begin(
+      "isolation level repeatable read read only",
+      async (sql) => {
+        const rows = [];
+        for (const [i, text] of backupReads.entries()) {
+          let index = 0;
+          rows.push(
+            await sql.unsafe(
+              text.replace(/\?/g, () => `$${++index}`),
+              backupParameters(i, owner),
+            ),
+          );
+        }
+        return buildBackup(rows);
+      },
+    )) as unknown as Backup;
+  }
   async importBackup(owner: string, backup: Backup) {
+    const extra = prepareBackup(backup);
     return this.transaction(async (store) => {
       await store.sql`SELECT pg_advisory_xact_lock(704712003)`;
       let problems = 0,
@@ -242,6 +269,7 @@ export class PostgresStore implements ProblemStore {
           await store.sql`INSERT INTO problems VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt}) ON CONFLICT(id) DO NOTHING RETURNING id`;
         if (rows.length) await store.addCatalog(problem);
         problems += rows.length;
+        await store.sql`INSERT INTO restored_problems(owner,problem_id) VALUES(${owner},${problem.id}) ON CONFLICT(owner,problem_id) DO NOTHING`;
       }
       for (const p of Object.values(backup.progress)) {
         if (!(await store.problem(p.problemId)))
@@ -261,8 +289,27 @@ export class PostgresStore implements ProblemStore {
           await store.sql`INSERT INTO attempts VALUES(${id},${owner},${attempt.problemId},${attempt.code},${JSON.stringify(review)},${Number(attempt.assisted)},${attempt.createdAt}) ON CONFLICT(id) DO NOTHING RETURNING id`;
         attempts += rows.length;
       }
+      let learning = 0,
+        projects = 0;
+      for (const item of extra.learning) {
+        const rows =
+          await store.sql`INSERT INTO learning_progress(owner,lesson_id,content,revision,updated_at) VALUES(${owner},${item.id},${item.content},1,${item.updatedAt}) ON CONFLICT(owner,lesson_id) DO NOTHING RETURNING lesson_id`;
+        learning += rows.length;
+      }
+      for (const project of extra.projects) {
+        const own =
+          await store.sql`SELECT 1 FROM jobs WHERE id=${project.check.id} AND owner=${owner}`;
+        const id = own.length ? project.check.id : restoredProjectId(owner, project.check.id);
+        const [analysis, review] = restoredProjectJobs(project, id);
+        const rows =
+          await store.sql`INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES(${id},${owner},${analysis.kind},'done',${analysis.result},${analysis.expires},'',${analysis.fingerprint}) ON CONFLICT(id) DO NOTHING RETURNING id`;
+        if (!rows.length) continue;
+        if (review)
+          await store.sql`INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES(${review.id},${owner},${review.kind},'done',${review.result},${review.expires},'',${review.fingerprint})`;
+        projects++;
+      }
       if (backup.legacy) await store.archiveLegacy(owner, backup.legacy);
-      return { problems, attempts };
+      return { problems, attempts, learning, projects };
     });
   }
   async archiveLegacy(owner: string, content: unknown) {

@@ -13,6 +13,11 @@ CREATE TABLE IF NOT EXISTS problems (
   content TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS restored_problems (
+  owner TEXT NOT NULL,
+  problem_id TEXT NOT NULL REFERENCES problems(id),
+  PRIMARY KEY(owner, problem_id)
+);
 CREATE TABLE IF NOT EXISTS problem_catalog (
   id TEXT PRIMARY KEY REFERENCES problems(id),
   title TEXT NOT NULL,
@@ -79,6 +84,7 @@ CREATE TABLE IF NOT EXISTS legacy (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS jobs_owner_kind_state ON jobs(owner,kind,state);
+CREATE INDEX IF NOT EXISTS jobs_owner_kind_state_cursor ON jobs(owner,kind,state,expires DESC,id DESC);
 CREATE TABLE IF NOT EXISTS generation_usage (
   request_id TEXT PRIMARY KEY,
   owner TEXT NOT NULL,

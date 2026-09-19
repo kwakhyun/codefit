@@ -33,9 +33,11 @@ export function useLearningOverview(scope?: string) {
       if (document.visibilityState === "visible") void load();
     };
     document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("codefit:backup-imported", refresh);
     return () => {
       controller.abort();
       document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("codefit:backup-imported", refresh);
     };
   }, [scope, retry]);
   return {

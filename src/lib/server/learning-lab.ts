@@ -1,10 +1,10 @@
-import { handoffSpecs } from "../../data/handoff-problems";
+import { handoffProblems, handoffSpecs } from "../../data/handoff-problems";
 import { handoffId } from "../handoff/catalog";
-import { LAB_VERSION, type LearningLab } from "../handoff/training";
+import { LAB_VERSION, sameOutput, type LearningLab } from "../handoff/training";
 import type { Problem } from "../problem";
 import { HttpError } from "./http";
 
-const probes: Record<string, Omit<LearningLab, "version" | "checkpoints">> = {
+const probes: Record<string, Omit<LearningLab, "version" | "checkpoints" | "contract">> = {
   cart: {
     question: "수량을 1 늘린 뒤, 원본과 반환값의 수량은 각각 얼마일까요?",
     choices: [
@@ -100,6 +100,40 @@ const probes: Record<string, Omit<LearningLab, "version" | "checkpoints">> = {
   },
 };
 
+// Server-only expectations for the fixed prediction probes, checked against actual
+// QuickJS execution for every base/transfer source in training.test.ts. Never grades
+// a learner's prediction and never executes submitted code on the server.
+const originalOutputs: Record<string, [unknown, unknown]> = {
+  cart: [
+    [3, 3],
+    [3, 3],
+  ],
+  latest: [
+    ["new", "old"],
+    ["new", "old"],
+  ],
+  page: [0, 0],
+  config: [true, false],
+  dedupe: [1, 2],
+  total: [
+    [100, 50],
+    [100, 50],
+  ],
+};
+
+export function originalObservationMatches(problem: Problem, actual: string) {
+  const canonical = handoffProblems.find((p) => p.id === problem.id);
+  if (
+    !canonical?.handoff ||
+    canonical.starterCode !== problem.starterCode ||
+    canonical.handoff.track !== problem.handoff?.track ||
+    canonical.handoff.variant !== problem.handoff?.variant
+  )
+    throw new HttpError(409, "원본 코드가 현재 훈련 버전과 다릅니다. 페이지를 새로고침해 주세요.");
+  const expected = originalOutputs[canonical.handoff.track][canonical.handoff.variant ? 1 : 0];
+  return sameOutput(actual, expected);
+}
+
 /** Exact curated IDs only: an imported problem cannot turn arbitrary data into a trusted suite. */
 export function learningLab(problem: Problem): LearningLab {
   const track = problem.handoff?.track;
@@ -108,6 +142,11 @@ export function learningLab(problem: Problem): LearningLab {
   return {
     ...probes[track],
     version: LAB_VERSION,
+    contract: [
+      handoffSpecs[track].contract,
+      handoffSpecs[track].core,
+      handoffSpecs[track].extension,
+    ].join("\n"),
     checkpoints: handoffSpecs[track].cases.map((c, index) => ({ ...c, id: `case-${index + 1}` })),
   };
 }

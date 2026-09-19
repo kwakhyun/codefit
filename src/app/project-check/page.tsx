@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/navigation/site-header";
 import { ProjectCheckApp } from "@/components/project-check/project-check";
 export const metadata = {
@@ -18,16 +19,18 @@ export default function ProjectCheckPage() {
         </h1>
         <p>
           서비스 링크를 넣으면 AI가 프로젝트에 맞는 질문을 준비합니다.
-          <br />내 말로 설계를 설명하고, 아직 모호한 부분을 찾아보세요.
+          <br />내 말로 설계를 설명하고, 모호했던 부분을 실습으로 확인하세요.
         </p>
         <ol className="learn-journey">
           <li>서비스 링크 분석</li>
           <li>설계 질문 5개</li>
           <li>답변과 이해도 점검</li>
-          <li>내 프로젝트에서 확인</li>
+          <li>맞춤 실습 후 다시 확인</li>
         </ol>
       </section>
-      <ProjectCheckApp />
+      <Suspense fallback={<p role="status">점검 기록 불러오는 중…</p>}>
+        <ProjectCheckApp />
+      </Suspense>
     </main>
   );
 }

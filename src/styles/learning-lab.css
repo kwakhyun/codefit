@@ -480,3 +480,98 @@
   padding: 14px 20px;
   border-bottom: 1px solid var(--line);
 }
+
+.lab-experiment {
+  border: 1px solid var(--line);
+  padding: 20px;
+  margin-bottom: 22px;
+  min-width: 0;
+}
+.lab-experiment h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: var(--text-body);
+}
+.lab-experiment p,
+.lab-experiment small {
+  font-size: var(--text-ui);
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.lab-experiment small {
+  display: block;
+  color: var(--muted);
+  margin: 8px 0 16px;
+}
+.lab-experiment details {
+  margin: 12px 0;
+}
+.lab-experiment summary {
+  cursor: pointer;
+  line-height: 1.8;
+}
+.lab-experiment label {
+  display: block;
+  margin: 16px 0 8px;
+}
+.lab-experiment textarea {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.lab-experiment #experiment-expression {
+  font-family: var(--mono);
+}
+.lab-experiment pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.lab-experiment-results {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+.lab-experiment .lab-comparison > div {
+  padding: 12px;
+}
+@media (max-width: 600px) {
+  .lab-experiment {
+    padding: 14px;
+  }
+}
+
+.lab-coach-focus {
+  border-left: 2px solid var(--line);
+  padding: 4px 0 4px 14px;
+  margin: 14px 0;
+}
+.lab-coach-focus blockquote {
+  margin: 6px 0;
+  font-size: var(--text-body);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.lab-coach-focus p {
+  margin: 8px 0;
+}
+.lab-experiment-reflection {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.lab-experiment-reflection p {
+  margin: 0;
+}

@@ -83,7 +83,7 @@ export function SettingsDialog({
         )}
         <button className="secondary-button full-width" onClick={exportData} disabled={exporting}>
           {exporting ? <LoaderCircle className="spin" size={16} /> : <ArrowDownToLine size={16} />}
-          전체 문제와 내 코딩 기록 내보내기
+          내 학습 기록 내보내기
         </button>
         <input
           ref={importFile}
@@ -115,8 +115,8 @@ export function SettingsDialog({
         )}
         <p className="import-note">이미 있는 문제와 작성 코드는 유지하고 새 기록을 추가합니다.</p>
         <p className="import-note">
-          입문 실습 기록은 이 백업에 포함되지 않습니다. 각 미션 상단에서 별도로 내려받을 수 있으며,
-          가져오기는 지원하지 않습니다.
+          내 코딩 기록, 입문 실습과 프로젝트 평가와 학습 기록을 함께 백업합니다. 프로젝트 주소와
+          작성한 답변도 파일에 포함됩니다. 기존 백업 파일도 가져올 수 있습니다.
         </p>
       </div>
     </Modal>

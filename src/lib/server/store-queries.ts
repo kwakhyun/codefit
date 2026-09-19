@@ -1,3 +1,4 @@
+import { ProjectLearningStore } from "./project-learning";
 import { ProjectCheckStore } from "./project-check-store";
 import { LearningStore } from "./learning-store";
 import { HANDOFF_TRACKS, handoffId } from "../handoff/catalog";
@@ -44,12 +45,31 @@ export class StoreQueries {
     private dialect: "sqlite" | "postgres",
   ) {}
 
+  get projectLearning() {
+    return new ProjectLearningStore(this.query);
+  }
+
   get projectChecks() {
     return new ProjectCheckStore(this.query);
   }
 
   get learning() {
     return new LearningStore(this.query);
+  }
+
+  async countExistingProblems(problemIds: string[]): Promise<number> {
+    const ids = [...new Set(problemIds)];
+    let count = 0;
+    // Bound parameters for both adapters, without fetching full problem content.
+    for (let offset = 0; offset < ids.length; offset += 500) {
+      const batch = ids.slice(offset, offset + 500);
+      const [row] = await this.query(
+        `SELECT COUNT(*) AS count FROM problems WHERE id IN (${batch.map(() => "?").join(",")})`,
+        batch,
+      );
+      count += Number(row.count);
+    }
+    return count;
   }
 
   async library(owner: string, params: URLSearchParams): Promise<LibraryPage> {

@@ -2,7 +2,8 @@ import { E2E_BASE_URL } from "../scripts/lib/e2e-environment";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { handoffProblems } from "../src/data/handoff-problems";
-import { readHandoffDraft } from "../src/lib/handoff/draft";
+import { readHandoffDraft, writeHandoffDraft } from "../src/lib/handoff/draft";
+import type { TrainingDraft } from "../src/lib/handoff/training";
 import { readCode, setCode } from "./editor-helpers";
 
 const base = handoffProblems.find((p) => p.id === "handoff-cart")!;
@@ -223,6 +224,19 @@ test("coaching API validates observations, isolates accounts and does not execut
   await other.close();
   const workspace = await (await page.request.get("/api/workspace")).json();
   const code = (await (await page.request.get("/api/problems/handoff-cart")).json()).progress.code;
+  const incompatible = readHandoffDraft(code);
+  const forged = await page.request.post("/api/problems/handoff-cart/coach", {
+    headers: { "X-Codefit-Workspace": workspace.scope },
+    data: {
+      code: writeHandoffDraft(incompatible.implementation, incompatible.notes, {
+        ...incompatible.training!,
+        observation: { id: "prediction", status: "ok", actual: "[2,3]" },
+      }),
+      requestId: crypto.randomUUID(),
+    },
+  });
+  expect(forged.status()).toBe(400);
+  expect((await forged.json()).error).toContain("다시 실행");
   const changed = await page.request.post("/api/problems/handoff-cart/coach", {
     headers: { "X-Codefit-Workspace": "user:someone-else" },
     data: { code, requestId: crypto.randomUUID() },
@@ -271,5 +285,154 @@ test("coaching failure retries the same snapshot and preserves prediction and no
   await expect.poll(() => requests.length).toBe(3);
   expect(requests[2].requestId).not.toBe(requests[1].requestId);
   await expect.poll(async () => (await saved(page)).notes.diagnosis).toContain("추가로 비교");
+  expect((await saved(page)).training?.prediction.reason).toBe(reason);
+});
+
+test("tampered intrinsics and lossy outputs cannot pass, and valid code recovers", async ({
+  page,
+}) => {
+  await page.goto("/problems/handoff-cart");
+  await stage(page, 2);
+  await readCode(page);
+  const spoof = `JSON.stringify = () => '{"before":2,"after":3,"label":"상품","copied":true}';\n${base.starterCode}`;
+  await setCode(page, spoof);
+  await page.getByRole("button", { name: "내 코드 테스트", exact: true }).click();
+  const first = page.locator(".lab-test-list details").first();
+  await expect(first.locator("summary")).toContainText("불일치");
+  await first.locator("summary").click();
+  await expect(first.locator("pre").last()).toContainText('"before":3');
+  await expect(first.locator("pre").last()).toContainText('"copied":false');
+  await setCode(page, "function changeQuantity(){return [{id:'a',quantity:NaN}]}");
+  await page.getByRole("button", { name: "내 코드 테스트", exact: true }).click();
+  await expect(page.locator(".lab-test-list summary").filter({ hasText: "오류" })).toHaveCount(3);
+  await expect(first.locator("pre").last()).toContainText("NaN과 Infinity");
+  await expect(page.locator(".lab-test-summary")).toHaveText("제공된 테스트 0/3개 통과");
+  await setCode(page, base.solution);
+  await page.getByRole("button", { name: "내 코드 테스트", exact: true }).click();
+  await expect(page.locator(".lab-test-summary")).toHaveText("제공된 테스트 3/3개 통과");
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await accessible(page);
+});
+
+test("an older execution version is retained as historical until rerun", async ({ page }) => {
+  let old = true;
+  await page.route("**/api/problems/handoff-cart/lab", async (route) => {
+    const response = await route.fetch();
+    const lab = await response.json();
+    await route.fulfill({
+      response,
+      json: { ...lab, ...(old ? { version: "2026-09-17.1" } : {}) },
+    });
+  });
+  await page.goto("/problems/handoff-cart");
+  await stage(page, 2);
+  await readCode(page);
+  await setCode(page, base.solution);
+  await page.getByRole("button", { name: "내 코드 테스트", exact: true }).click();
+  await expect(page.locator(".lab-test-summary")).toHaveText("제공된 테스트 3/3개 통과");
+  await expect
+    .poll(async () => (await saved(page)).training?.run?.suiteVersion)
+    .toBe("2026-09-17.1");
+  old = false;
+  await page.reload();
+  await stage(page, 2);
+  await expect(page.locator(".lab-tests .inline-warning")).toContainText("이전 실행 결과");
+  expect(await readCode(page)).toBe(base.solution);
+  await page.getByRole("button", { name: "내 코드 테스트", exact: true }).click();
+  await expect(page.locator(".lab-test-summary")).toHaveText("제공된 테스트 3/3개 통과");
+  await expect(page.locator(".lab-tests .inline-warning")).toHaveCount(0);
+});
+
+async function replaceObservation(page: Page, change: (training: TrainingDraft) => void) {
+  await expect
+    .poll(async () => (await saved(page)).training?.observationSource)
+    .toMatch(/^[a-f0-9]{64}$/);
+  const { progress } = await (await page.request.get("/api/problems/handoff-cart")).json();
+  const { scope } = await (await page.request.get("/api/workspace")).json();
+  const draft = readHandoffDraft(progress.code);
+  change(draft.training!);
+  const code = writeHandoffDraft(draft.implementation, draft.notes, draft.training);
+  const response = await page.request.put("/api/progress/handoff-cart", {
+    headers: { "X-Codefit-Workspace": scope },
+    data: { code, baseRevision: progress.codeRevision },
+  });
+  expect(response.status()).toBe(200);
+  return { code, scope };
+}
+
+test("legacy observation preserves prediction and requires rerun before coaching", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/workspace?*", async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({ response, json: { ...(await response.json()), aiReady: true } });
+  });
+  await predict(page);
+  const { code, scope } = await replaceObservation(page, (t) => {
+    delete t.observationSource;
+  });
+  const denied = await page.request.post("/api/problems/handoff-cart/coach", {
+    headers: { "X-Codefit-Workspace": scope },
+    data: { code, requestId: crypto.randomUUID() },
+  });
+  expect(denied.status()).toBe(400);
+  await page.reload();
+  await stage(page, 1);
+  await expect(page.locator(".lab-comparison")).toContainText("이전에 보관한 실행 결과");
+  await expect(page.locator(".lab-coach button")).toBeDisabled();
+  await expect(page.locator(".lab-observation")).toContainText("첫 예상은 유지");
+  await accessible(page);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({
+    path: `artifacts/coaching-stale-${testInfo.project.name}.png`,
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "원본 다시 실행", exact: true }).click();
+  await expect(page.locator(".lab-comparison")).toContainText("원본의 실제 실행 결과");
+  await expect(page.locator(".lab-coach button")).toBeEnabled();
+  await expect
+    .poll(async () => (await saved(page)).training?.observationSource)
+    .toMatch(/^[a-f0-9]{64}$/);
+  expect((await saved(page)).training?.prediction.reason).toBe(reason);
+  await accessible(page);
+});
+
+test("late coaching cannot attach to replaced observation with the same prediction", async ({
+  page,
+}) => {
+  await page.route("**/api/workspace?*", async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({ response, json: { ...(await response.json()), aiReady: true } });
+  });
+  await predict(page);
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/problems/handoff-cart/coach", async (route) => {
+    await gate;
+    await route.fulfill({
+      json: {
+        evidenceId: "prediction",
+        observation: "이전 결과는 둘 다 3입니다.",
+        question: "이전 질문이 새 기록에 붙으면 안 됩니다.",
+        nextCheck: "두 참조를 비교해 보세요.",
+      },
+    });
+  });
+  const requested = page.waitForRequest((r) => r.url().endsWith("/coach"));
+  await page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" }).click();
+  await requested;
+  await replaceObservation(page, (t) => {
+    t.observation = { id: "prediction", status: "ok", actual: "[2,3]" };
+  });
+  await page.evaluate(() => window.dispatchEvent(new Event("codefit:backup-imported")));
+  await expect(page.locator(".lab-comparison")).toContainText("[2,3]");
+  release();
+  await expect(page.locator(".lab-error")).toContainText("예측이나 실행 기록이 바뀌었습니다");
+  await expect(page.getByLabel("AI 맞춤 질문")).toHaveCount(0);
+  expect((await saved(page)).training?.observation?.actual).toBe("[2,3]");
   expect((await saved(page)).training?.prediction.reason).toBe(reason);
 });

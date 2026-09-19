@@ -39,3 +39,35 @@ it("requires a matching workspace and rejects unexpected request fields", async 
   expect(response.status).toBe(400);
   expect(getStore).not.toHaveBeenCalled();
 });
+
+const detailRoute = () => import("../../app/api/project-check/[id]/route");
+it("requires ownership for deep links and returns a private 404 for absent records", async () => {
+  const { GET: detail } = await detailRoute();
+  const id = "b9b6c81e-28e0-456f-9a05-2fbc19f2c864";
+  const params = Promise.resolve({ id });
+  const request = new Request(`https://codefit.test/api/project-check/${id}`, {
+    headers: { "x-codefit-workspace": "user:a" },
+  });
+  current.mockResolvedValue({ owner: "user:a", scope: "user:a", user: { id: "a" } });
+  const find = vi.fn().mockResolvedValue(null);
+  getStore.mockResolvedValue({ queries: { projectChecks: { detail: find } } });
+  expect((await detail(request, { params })).status).toBe(404);
+  expect(find).toHaveBeenCalledWith("user:a", id);
+  expect((await detail(request, { params: Promise.resolve({ id: "bad" }) })).status).toBe(400);
+  current.mockResolvedValue({ owner: "user:b", scope: "user:b", user: { id: "b" } });
+  expect((await detail(request, { params })).status).toBe(409);
+  expect(find).toHaveBeenCalledTimes(1);
+  current.mockResolvedValue({ owner: "guest", scope: "guest:1", user: null });
+  expect((await detail(request, { params })).status).toBe(401);
+});
+it("passes an opaque cursor to the owned page query and keeps the response uncached", async () => {
+  current.mockResolvedValue({ owner: "user:a", scope: "user:a", user: { id: "a" } });
+  const page = vi.fn().mockResolvedValue({ checks: [], nextCursor: "next" });
+  getStore.mockResolvedValue({
+    queries: { projectChecks: { page, usage: vi.fn().mockResolvedValue({}) } },
+  });
+  const response = await GET(new Request("https://codefit.test/api/project-check?cursor=previous"));
+  expect(page).toHaveBeenCalledWith("user:a", "previous");
+  expect(await response.json()).toMatchObject({ nextCursor: "next", checks: [] });
+  expect(response.headers.get("cache-control")).toBe("no-store");
+});

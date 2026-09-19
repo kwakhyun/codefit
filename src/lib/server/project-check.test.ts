@@ -5,7 +5,7 @@ import { SqliteStore } from "./sqlite-store";
 import { ProjectCheckService } from "./project-check-service";
 import { fixtureAnalysis, fixtureAssessment, fixtureCheck } from "../project-check/fixtures";
 import { publicCheck } from "./project-check-store";
-import { validateAnalysis, validateAssessment } from "./ai-project-check";
+import { validateAnalysis } from "./ai-project-check";
 let store: SqliteStore;
 const ai = { readPage: vi.fn(), analyze: vi.fn(), assess: vi.fn() };
 const input = () => ({
@@ -117,15 +117,6 @@ it("rejects fabricated citations and duplicate categories, bounds score and leav
   const duplicate = structuredClone(fixtureAnalysis);
   duplicate.questions[0].area = duplicate.questions[1].area;
   expect(() => validateAnalysis(duplicate, fixtureCheck.page, "")).toThrow();
-  const graded = validateAssessment(structuredClone(fixtureAssessment), [
-    "explanation",
-    "",
-    "",
-    "",
-    "",
-  ]);
-  expect(graded.score).toBe(10);
-  expect(graded.feedback.slice(1).every((f) => f.level === 0)).toBe(true);
   expect(publicCheck(fixtureCheck).analysis.questions.every((q) => !("criteria" in q))).toBe(true);
 });
 

@@ -12,6 +12,7 @@ function overview(): CheckOverview {
       analysis: { limit: 2, remaining: 2, resetsAt: null },
       review: { limit: 4, remaining: 4, resetsAt: null },
     },
+    nextCursor: null,
     checks: [],
   };
 }
@@ -78,7 +79,6 @@ test("link to questions, draft restore, keyboard navigation, assessment and dele
     .getByLabel("내 설계 설명")
     .fill("서버에 예약을 보내고 실패하면 이전 화면을 유지합니다.");
   await page.reload();
-  await page.getByRole("button", { name: /예약 서비스 설계 점검/ }).click();
   await expect(page.getByLabel("내 설계 설명")).toHaveValue(
     "서버에 예약을 보내고 실패하면 이전 화면을 유지합니다.",
   );

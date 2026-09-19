@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { fixtureAnalysis, fixtureAssessment, fixtureCheck } from "../project-check/fixtures";
+import { fixtureAnalysis, fixtureCheck } from "../project-check/fixtures";
 const { parse } = vi.hoisted(() => ({ parse: vi.fn() }));
 vi.mock("openai", () => ({
   default: class {
@@ -39,9 +39,24 @@ it("uses Sol structured output, bounded tokens, no tools or storage, and separat
   );
 });
 it("grades only the stored project/questions and computes totals server-side", async () => {
-  const { score: _score, ...response } = fixtureAssessment;
-  void _score;
-  parse.mockResolvedValue({ output_parsed: structuredClone(response), model: "gpt-5.6-luna" });
+  const response = {
+    summary: "설명을 확인했습니다.",
+    feedback: Array.from({ length: 5 }, (_, questionIndex) => ({
+      questionIndex,
+      feedback: "흐름 설명을 확인했습니다.",
+      nextStep: "결과를 확인해 보세요.",
+      blockingIssue: null,
+      evidence: {
+        feature: null,
+        flow: questionIndex === 0 ? "q0s0" : null,
+        reason: null,
+        failure: null,
+        verification: null,
+        tradeoff: null,
+      },
+    })),
+  };
+  parse.mockResolvedValue({ output_parsed: response, model: "gpt-5.6-luna" });
   const result = await assessProject(
     fixtureCheck,
     ["설명", "", "", "", ""],
@@ -49,7 +64,10 @@ it("grades only the stored project/questions and computes totals server-side", a
   );
   expect(result.score).toBe(10);
   expect(parse.mock.calls[0][0].model).toBe("gpt-5.6-luna");
-  expect(parse.mock.calls[0][0].max_output_tokens).toBe(4200);
+  expect(parse.mock.calls[0][0].max_output_tokens).toBe(6500);
+  const data = JSON.parse(parse.mock.calls[0][0].input[1].content);
+  expect(data.questions).toEqual(fixtureCheck.analysis.questions);
+  expect(data.answerUnits[0].units).toEqual([{ id: "q0s0", text: "설명" }]);
 });
 it("does not silently replace refused or malformed model responses with invented assessments", async () => {
   parse.mockResolvedValue({ output_parsed: null, model: "gpt-5.6-luna" });

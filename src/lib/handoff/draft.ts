@@ -122,5 +122,35 @@ export function formatTraining(t: TrainingDraft) {
     `원본 관찰: ${t.observation?.actual ?? "미실행"}`,
     ...(t.run?.results.map((r) => `테스트 ${r.id} (${r.status}): ${r.actual}`) ?? []),
     ...(t.coach ? [`AI 질문: ${t.coach.question}`] : []),
+    ...(t.coach?.focus
+      ? [
+          ...(t.coach.focus.learnerQuote === null
+            ? []
+            : [`질문 당시 내 설명: ${t.coach.focus.learnerQuote}`]),
+          `질문으로 확인할 점: ${t.coach.focus.goal}`,
+        ]
+      : []),
+    ...(t.experiment
+      ? [
+          `추가 실험 코드: ${t.experiment.expression || "미작성"}`,
+          `추가 실험 예상: ${t.experiment.prediction || "미작성"}`,
+          ...(t.experiment.reflection
+            ? [
+                `실험 후 알게 된 점: ${t.experiment.reflection.text || "미작성"}`,
+                `설명이 연결된 실험: ${t.experiment.reflection.runHash}`,
+              ]
+            : []),
+          ...(t.experiment.run
+            ? [
+                `마지막 실행식: ${t.experiment.run.expression}`,
+                `실행 당시 예상: ${t.experiment.run.prediction || "미작성"}`,
+                `실험 원본 (${t.experiment.run.original.status}): ${t.experiment.run.original.actual}`,
+                `실험 수정 코드 (${t.experiment.run.current.status}): ${t.experiment.run.current.actual}`,
+                `실험 출처: ${t.experiment.run.sourceHash}; 수정 코드: ${t.experiment.run.codeHash}; 실행기: ${t.experiment.run.suiteVersion}`,
+                "마지막 실행 당시의 기록입니다. 현재 코드나 실험 조건과 다를 수 있습니다.",
+              ]
+            : ["추가 실험: 미실행"]),
+        ]
+      : []),
   ].join("\n");
 }

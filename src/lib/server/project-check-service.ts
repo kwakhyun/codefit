@@ -9,7 +9,7 @@ import type { ProblemStore } from "./store-contract";
 import { analyzeProject, assessProject } from "./ai-project-check";
 import { readPublicPage, publicUrl } from "./project-page";
 import { requestFingerprint } from "./write-conflicts";
-import { publicCheck } from "./project-check-store";
+import { publicCheck, publicReview } from "./project-check-store";
 import { HttpError } from "./http";
 const defaults = { readPage: readPublicPage, analyze: analyzeProject, assess: assessProject };
 export class ProjectCheckService {
@@ -103,7 +103,7 @@ export class ProjectCheckService {
       `project-review:${input.id}`,
       requestFingerprint(...input.answers),
     );
-    if (claim.state === "done") return JSON.parse(claim.result);
+    if (claim.state === "done") return publicReview(claim.result);
     if (claim.state === "pending")
       throw new HttpError(409, "답변을 검토하고 있습니다. 잠시 후 기록을 새로고침해 주세요.");
     try {

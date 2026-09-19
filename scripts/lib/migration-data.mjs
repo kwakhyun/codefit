@@ -17,6 +17,7 @@ const tables = {
   ],
   generation_usage: ["request_id", "owner", "day", "state", "expires"],
   problems: ["id", "content", "created_at"],
+  restored_problems: ["owner", "problem_id"],
   progress: [
     "owner",
     "problem_id",

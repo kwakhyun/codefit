@@ -5,6 +5,8 @@ import { scenarioFor } from "@/lib/scenario-visuals";
 import { ArrowRight, Check, LoaderCircle, Play, Sparkles } from "lucide-react";
 import { sameOutput } from "@/lib/handoff/training";
 import type { LearningLabController } from "@/hooks/use-learning-lab";
+import { LearningCoachQuestion } from "./learning-coach-question";
+import { LearningExperiment } from "./learning-experiment";
 
 const steps = [
   { title: "예측하기", description: "실행 전에 내 생각 남기기" },
@@ -215,44 +217,53 @@ export function LearningLab({
                   <strong>{choice?.label || "예측 기록 없음"}</strong>
                   <p>{t.prediction.reason}</p>
                 </div>
-                <div className={correct ? "matches" : "differs"}>
-                  <span>원본의 실제 실행 결과</span>
+                <div className={!c.observationStale && correct ? "matches" : "differs"}>
+                  <span>
+                    {c.observationStale ? "이전에 보관한 실행 결과" : "원본의 실제 실행 결과"}
+                  </span>
                   <pre>{observation.actual}</pre>
                   <strong>
-                    {observation.status === "error"
-                      ? "실행 오류를 확인해 주세요"
-                      : correct
-                        ? "예상과 일치했어요"
-                        : "예상과 다른 결과가 나왔어요"}
+                    {c.observationStale
+                      ? "현재 원본으로 다시 확인해 주세요"
+                      : observation.status === "error"
+                        ? "실행 오류를 확인해 주세요"
+                        : correct
+                          ? "예상과 일치했어요"
+                          : "예상과 다른 결과가 나왔어요"}
                   </strong>
                 </div>
               </div>
-              <p className="lab-evidence-note">
-                내 브라우저에서 원본 코드를 실행한 결과입니다. AI 판정이 아닙니다.{" "}
-                {correct
-                  ? "한 사례를 맞혔다면, 경계 조건까지 설명해 보세요."
-                  : "오답 점수는 없습니다. 예상이 어긋난 지점을 찾는 것이 이번 훈련입니다."}
-              </p>
+              {c.observationStale ? (
+                <p className="inline-warning" role="status">
+                  원본 코드나 실행 조건이 바뀌었거나 확인되지 않는 이전 기록입니다. 첫 예상은
+                  유지하며, 원본을 다시 실행한 뒤 AI 질문을 받을 수 있습니다.
+                </p>
+              ) : (
+                <p className="lab-evidence-note">
+                  내 브라우저에서 원본 코드를 실행한 결과입니다. AI 판정이 아닙니다.{" "}
+                  {correct
+                    ? "한 사례를 맞혔다면, 경계 조건까지 설명해 보세요."
+                    : "오답 점수는 없습니다. 예상이 어긋난 지점을 찾는 것이 이번 훈련입니다."}
+                </p>
+              )}
+              <button
+                className="secondary-button"
+                disabled={busy}
+                onClick={() => void c.execute("observing")}
+              >
+                {activity === "observing" ? "원본 실행 중" : "원본 다시 실행"}
+              </button>
               <div className="lab-coach">
                 <span className="eyebrow">생각해 볼 질문</span>
                 <p>{lab.reflection}</p>
-                {t.coach && (
-                  <div className="lab-ai-question" aria-label="AI 맞춤 질문">
-                    <strong>AI와 한 단계 더 생각하기</strong>
-                    <p className="muted">{t.coach.observation}</p>
-                    <p>{t.coach.question}</p>
-                    <small>다음 확인: {t.coach.nextCheck}</small>
-                    {t.coach.snapshot !== c.currentHash && (
-                      <p className="inline-warning">
-                        질문을 받은 뒤 코드가 바뀌었습니다. 이 질문은 요청 당시 코드에 대한
-                        내용입니다.
-                      </p>
-                    )}
-                  </div>
+                {t.coach && t.coach.evidenceId !== "experiment" && (
+                  <LearningCoachQuestion controller={c} />
                 )}
                 <button
                   className="secondary-button"
-                  disabled={busy || !aiReady || blocked || observation.status !== "ok"}
+                  disabled={
+                    busy || !aiReady || blocked || observation.status !== "ok" || c.observationStale
+                  }
                   onClick={() => void c.coach()}
                 >
                   {activity === "coaching" ? (
@@ -272,6 +283,7 @@ export function LearningLab({
                   {blocked && " 저장 충돌을 먼저 해결해 주세요."}
                 </small>
               </div>
+              <LearningExperiment controller={c} blocked={blocked} aiReady={aiReady} />
               <button className="primary-button" onClick={() => move(2)}>
                 내 코드 수정하고 테스트하기 <ArrowRight size={16} />
               </button>
@@ -391,6 +403,11 @@ export function LabTests({ controller: c }: { controller: LearningLabController 
       <small>
         JavaScript 함수 전용 · DOM, 네트워크, 타이머, import 미지원 · 테스트별 0.6초 / 16MB 제한.
         테스트 통과는 모든 입력의 정답이나 이해도 인증을 뜻하지 않습니다.
+      </small>
+      <small>
+        결과는 문자열, 유한한 숫자, 불리언, null, 일반 객체와 빈 자리가 없는 배열로 비교합니다. NaN,
+        undefined와 getter 등은 다른 값으로 바꾸지 않고 오류로 안내합니다. 기본 내장 함수와
+        프로토타입은 변경할 수 없습니다.
       </small>
       <button
         className="text-button"

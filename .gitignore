@@ -7,6 +7,7 @@
 
 # production
 /build
+/output/
 
 # local environment files
 .env*

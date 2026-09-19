@@ -1,6 +1,8 @@
 "use client";
 
 import { api, errorMessage } from "@/lib/client-api";
+import { BACKUP_MAX_SIZE_LABEL, BACKUP_MAX_BYTES } from "@/lib/backup-limits";
+import type { BackupImportResult } from "@/lib/backup";
 import type { ProblemSummary, Progress } from "@/lib/problem";
 import { useEffect, useRef, useState } from "react";
 export function useWorkspaceActions({
@@ -47,7 +49,7 @@ export function useWorkspaceActions({
     try {
       const result = await api<unknown>("/api/export");
       const url = URL.createObjectURL(
-        new Blob([JSON.stringify(result, null, 2)], { type: "application/json" }),
+        new Blob([JSON.stringify(result)], { type: "application/json" }),
       );
       const a = document.createElement("a");
       a.href = url;
@@ -70,20 +72,21 @@ export function useWorkspaceActions({
     setImporting(true);
     setSettingsNotice(null);
     try {
-      if (file.size > 10_000_000) throw new Error("백업 파일은 10 MB까지 가져올 수 있습니다.");
+      if (file.size > BACKUP_MAX_BYTES)
+        throw new Error(`백업 파일은 ${BACKUP_MAX_SIZE_LABEL}까지 가져올 수 있습니다.`);
       let body: unknown;
       try {
         body = JSON.parse(await file.text());
       } catch {
         throw new Error("올바른 JSON 백업 파일이 아닙니다. 내보낸 백업 파일을 선택해 주세요.");
       }
-      const result = await api<{ problems: number; attempts: number }>("/api/import", {
+      const result = await api<BackupImportResult>("/api/import", {
         method: "POST",
         body,
       });
       await load();
       window.dispatchEvent(new Event("codefit:backup-imported"));
-      const message = `백업을 가져왔습니다. 새 문제 ${result.problems}개, 풀이 기록 ${result.attempts}개가 추가되었습니다.`;
+      const message = `백업을 가져왔습니다. 새 문제 ${result.problems}개, 풀이 ${result.attempts}개, 입문 실습 ${result.learning ?? 0}개, 프로젝트 ${result.projects ?? 0}개가 추가되었습니다. 기존 기록은 유지했습니다.`;
       setToastError(false);
       setToast(message);
       setSettingsNotice({ text: message, error: false });

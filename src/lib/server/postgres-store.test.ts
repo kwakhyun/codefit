@@ -1,3 +1,7 @@
+import { projectLearningContract } from "./project-learning-contract.test-helper";
+import { workspaceBackupContract } from "./workspace-backup-contract.test-helper";
+import { learningFixture } from "./project-learning-contract.test-helper";
+import { emptyLearning } from "../learn/progress";
 import { projectContract } from "./project-contract.test-helper";
 import { concurrencyContract } from "./concurrency-contract.test-helper";
 import { queryContract } from "./query-contract.test-helper";
@@ -41,6 +45,32 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
   }, 30_000);
   queryContract(() => store);
   projectContract(() => store);
+  projectLearningContract(() => store);
+  workspaceBackupContract(() => store);
+  it("backup: rolls back the whole restore if its final review insert fails", async () => {
+    const { owner } = await learningFixture(store);
+    const target = `restore-rollback-${randomUUID()}`;
+    await store.saveProgress(owner, seedProblems[0].id, { code: "source", baseRevision: 0 });
+    await store.queries.learning.save(
+      owner,
+      "where-data-lives",
+      JSON.stringify(emptyLearning()),
+      0,
+    );
+    const file = await store.exportBackup(owner);
+    await sql.unsafe(
+      `CREATE FUNCTION reject_restore() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.owner='${target}' AND NEW.kind LIKE 'project-review:%' THEN RAISE EXCEPTION 'injected restore failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER reject_restore BEFORE INSERT ON jobs FOR EACH ROW EXECUTE FUNCTION reject_restore();`,
+    );
+    try {
+      await expect(store.importBackup(target, file)).rejects.toThrow();
+      expect(await store.progress(target)).toEqual({});
+      expect(await store.queries.learning.all(target)).toEqual([]);
+      expect(await store.queries.projectChecks.list(target)).toEqual([]);
+      expect(await sql`SELECT * FROM restored_problems WHERE owner=${target}`).toHaveLength(0);
+    } finally {
+      await sql.unsafe("DROP TRIGGER reject_restore ON jobs; DROP FUNCTION reject_restore();");
+    }
+  });
   concurrencyContract(
     () => store,
     (id) => sql`UPDATE jobs SET expires=0 WHERE id=${id}`,
@@ -216,12 +246,28 @@ describe.skipIf(!url)("PostgreSQL persistence and concurrency", () => {
     );
   }, 30000);
   it("imports idempotently and rolls back a malformed backup atomically", async () => {
+    // This contract must also run on its own, without earlier tests seeding alice.
+    const owner = `import-source:${randomUUID()}`;
+    const problem = (await store.problem("be-pagination"))!;
+    await store.saveProgress(owner, problem.id, { code: "newer draft", baseRevision: 0 });
+    await store.saveAttempt(owner, problem.id, "submitted draft", {
+      score: 100,
+      passed: true,
+      summary: "모든 요구사항을 충족했습니다.",
+      criteria: problem.requirements.map((_, requirementIndex) => ({
+        requirementIndex,
+        passed: true,
+        feedback: "충족했습니다.",
+      })),
+      strengths: [],
+      improvements: [],
+    });
     const backup = {
       version: 2 as const,
       exportedAt: new Date().toISOString(),
       problems: seedProblems,
-      progress: await store.progress("alice"),
-      attempts: await store.attempts("alice"),
+      progress: await store.progress(owner),
+      attempts: await store.attempts(owner),
       legacy: null,
     };
     const first = await store.importBackup("restored", backup);

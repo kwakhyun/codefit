@@ -11,6 +11,14 @@ import { DatabaseSync } from "node:sqlite";
 import { seedProblems } from "../../data/problems";
 import type { Backup } from "../backup";
 import {
+  backupReads,
+  backupParameters,
+  buildBackup,
+  prepareBackup,
+  restoredProjectId,
+  restoredProjectJobs,
+} from "./workspace-backup";
+import {
   validateReview,
   type Attempt,
   type Problem,
@@ -312,7 +320,15 @@ export class SqliteStore implements ProblemStore {
       return true;
     });
   }
+  exportBackup(owner: string) {
+    return this.transaction(() =>
+      buildBackup(
+        backupReads.map((sql, i) => this.db.prepare(sql).all(...backupParameters(i, owner))),
+      ),
+    );
+  }
   importBackup(owner: string, backup: Backup) {
+    const extra = prepareBackup(backup);
     return this.transaction(() => {
       let problems = 0,
         attempts = 0;
@@ -321,6 +337,11 @@ export class SqliteStore implements ProblemStore {
           this.addProblem(problem);
           problems++;
         }
+        this.db
+          .prepare(
+            "INSERT INTO restored_problems(owner,problem_id) VALUES (?,?) ON CONFLICT(owner,problem_id) DO NOTHING",
+          )
+          .run(owner, problem.id);
       }
       for (const p of Object.values(backup.progress)) {
         if (!this.problem(p.problemId)) throw new Error("Backup references an unknown problem");
@@ -364,8 +385,35 @@ export class SqliteStore implements ProblemStore {
           );
         attempts += Number(result.changes);
       }
+      let learning = 0,
+        projects = 0;
+      for (const item of extra.learning) {
+        learning += Number(
+          this.db
+            .prepare(
+              "INSERT INTO learning_progress(owner,lesson_id,content,revision,updated_at) VALUES (?,?,?,1,?) ON CONFLICT(owner,lesson_id) DO NOTHING",
+            )
+            .run(owner, item.id, item.content, item.updatedAt).changes,
+        );
+      }
+      for (const project of extra.projects) {
+        const own = this.db
+          .prepare("SELECT 1 FROM jobs WHERE id=? AND owner=?")
+          .get(project.check.id, owner);
+        const id = own ? project.check.id : restoredProjectId(owner, project.check.id);
+        // Preserve an existing whole project, including a pending analysis or newer training.
+        if (this.db.prepare("SELECT 1 FROM jobs WHERE id=?").get(id)) continue;
+        for (const job of restoredProjectJobs(project, id)) {
+          this.db
+            .prepare(
+              "INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES (?,?,?,'done',?,?,'',?)",
+            )
+            .run(job.id, owner, job.kind, job.result, job.expires, job.fingerprint);
+        }
+        projects++;
+      }
       if (backup.legacy) this.archiveLegacy(owner, backup.legacy);
-      return { problems, attempts };
+      return { problems, attempts, learning, projects };
     });
   }
   archiveLegacy(owner: string, content: unknown) {

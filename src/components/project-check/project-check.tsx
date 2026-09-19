@@ -1,9 +1,11 @@
 "use client";
+import { ProjectLearning } from "@/components/project-learning/project-learning";
 import { GuestLogin } from "@/components/account/guest-login";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, Globe2, RefreshCw, ShieldCheck } from "lucide-react";
-import { api, dateLabel, errorMessage } from "@/lib/client-api";
+import { useProjectHistory, type UpdateOverview } from "@/hooks/use-project-history";
+import { api, dateLabel, errorMessage, setWorkspaceScope } from "@/lib/client-api";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import { ProjectQuestions } from "./project-questions";
 export function ProjectCheckApp() {
@@ -11,18 +13,35 @@ export function ProjectCheckApp() {
   const [error, setError] = useState("");
   const [refresh, setRefresh] = useState(0);
   const [checking, setChecking] = useState(true);
+  const knownScope = useRef<string | undefined>(undefined);
   useEffect(() => {
     const refreshAccount = () => {
       setChecking(true);
       setRefresh((n) => n + 1);
     };
     window.addEventListener("focus", refreshAccount);
-    return () => window.removeEventListener("focus", refreshAccount);
+    window.addEventListener("codefit:backup-imported", refreshAccount);
+    return () => {
+      window.removeEventListener("focus", refreshAccount);
+      window.removeEventListener("codefit:backup-imported", refreshAccount);
+    };
   }, []);
   useEffect(() => {
     const controller = new AbortController();
-    api<CheckOverview>("/api/project-check", { signal: controller.signal })
+    api<CheckOverview>("/api/project-check", {
+      scope: null,
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15_000)]),
+    })
       .then((value) => {
+        if (controller.signal.aborted) return;
+        if (knownScope.current && knownScope.current !== value.scope) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete("check");
+          url.hash = "";
+          window.history.replaceState(null, "", url);
+        }
+        knownScope.current = value.scope;
+        setWorkspaceScope(value.scope);
         setData(value);
         setError("");
         setChecking(false);
@@ -62,8 +81,8 @@ export function ProjectCheckApp() {
             <MemberWorkspace
               key={data.scope}
               data={data}
-              onChange={(value) =>
-                setData((current) => (current?.scope === value.scope ? value : current))
+              onChange={(update) =>
+                setData((current) => (current?.scope === data.scope ? update(current) : current))
               }
             />
           ) : (
@@ -83,14 +102,17 @@ export function ProjectCheckApp() {
     </>
   );
 }
-function MemberWorkspace({
-  data,
-  onChange,
-}: {
-  data: CheckOverview;
-  onChange: (data: CheckOverview) => void;
-}) {
-  const [selected, setSelected] = useState<string | null>(null);
+function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: UpdateOverview }) {
+  const history = useProjectHistory(data, onChange);
+  const { selected, check, select } = history;
+  const alive = useRef(true);
+  const activeMutation = useRef(false);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [consent, setConsent] = useState(false);
@@ -98,16 +120,22 @@ function MemberWorkspace({
   const [error, setError] = useState("");
   const request = useRef<{ payload: string; id: string } | null>(null);
   const resultHeading = useRef<HTMLHeadingElement>(null);
-  const check = data.checks.find((c) => c.id === selected);
+  const historyPanel = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
-    if (selected) resultHeading.current?.focus();
+    if (selected && historyPanel.current) historyPanel.current.open = false;
   }, [selected]);
+  const checkId = check?.id;
+  useEffect(() => {
+    if (checkId) resultHeading.current?.focus();
+  }, [checkId]);
   async function reload() {
     const result = await api<CheckOverview>("/api/project-check", { scope: data.scope });
-    onChange(result);
+    if (alive.current) onChange(() => result);
   }
   async function create(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (activeMutation.current) return;
+    activeMutation.current = true;
     setBusy(true);
     setError("");
     const payload = JSON.stringify([url.trim(), description.trim()]);
@@ -119,13 +147,19 @@ function MemberWorkspace({
         scope: data.scope,
         body: { requestId: request.current!.id, url, description, consent },
       });
-      onChange({ ...data, checks: [result, ...data.checks.filter((c) => c.id !== result.id)] });
-      setSelected(result.id);
+      if (!alive.current) return;
+      request.current = null;
+      onChange((current) => ({
+        ...current,
+        checks: [result, ...current.checks.filter((c) => c.id !== result.id)],
+      }));
+      select(result.id);
       await reload();
     } catch (e) {
       setError(errorMessage(e));
       await reload().catch(() => {});
     } finally {
+      activeMutation.current = false;
       setBusy(false);
     }
   }
@@ -141,12 +175,22 @@ function MemberWorkspace({
       });
       try {
         sessionStorage.removeItem(`codefit-project:${data.scope}:${check.id}`);
+        for (const key of Object.keys(sessionStorage)) {
+          if (key.startsWith(`codefit-training:${data.scope}:${check.id}:`))
+            sessionStorage.removeItem(key);
+        }
       } catch {}
-      onChange({ ...data, checks: data.checks.filter((c) => c.id !== check.id) });
-      setSelected(null);
+      if (!alive.current) return;
+      onChange((current) => ({
+        ...current,
+        checks: current.checks.filter((c) => c.id !== check.id),
+      }));
+      select(null, true);
+      await reload();
     } catch (e) {
       setError(errorMessage(e));
     } finally {
+      activeMutation.current = false;
       setBusy(false);
     }
   }
@@ -190,34 +234,70 @@ function MemberWorkspace({
       )}
       <div className="project-layout">
         <aside className="project-history" aria-label="내 프로젝트 점검 기록">
-          <button className="secondary-button" disabled={busy} onClick={() => setSelected(null)}>
+          <button
+            className="secondary-button"
+            disabled={busy}
+            onClick={() => {
+              request.current = null;
+              setError("");
+              select(null);
+            }}
+          >
             + 새 프로젝트 점검
           </button>
-          <h2>
-            최근 점검 <small>(최대 20개)</small>
-          </h2>
-          {data.checks.length === 0 ? (
-            <p>첫 분석을 마치면 여기에 기록이 쌓입니다.</p>
-          ) : (
-            data.checks.map((c) => (
-              <button
-                key={c.id}
-                aria-pressed={selected === c.id}
-                disabled={busy}
-                onClick={() => setSelected(c.id)}
-              >
-                <strong>{c.analysis.title}</strong>
-                <span>{new URL(c.page.url).hostname}</span>
-                <small>
-                  {c.review ? `평가 완료 ${c.review.assessment.score}점` : "질문에 답변하기"} ·{" "}
-                  {dateLabel(c.createdAt)}
-                </small>
-              </button>
-            ))
-          )}
+          <details ref={historyPanel} className="project-history-list" open={!selected}>
+            <summary>
+              {selected ? "다른 점검 기록 보기" : "점검 기록"}{" "}
+              <small>({data.checks.length}개 불러옴)</small>
+            </summary>
+            <div className="project-history-items">
+              {data.checks.length === 0 ? (
+                <p>첫 분석을 마치면 여기에 기록이 쌓입니다.</p>
+              ) : (
+                data.checks.map((c) => (
+                  <button
+                    key={c.id}
+                    aria-pressed={selected === c.id}
+                    disabled={busy}
+                    onClick={() => select(c.id)}
+                  >
+                    <strong>{c.analysis.title}</strong>
+                    <span>{new URL(c.page.url).hostname}</span>
+                    <small>
+                      {c.review ? `평가 완료 ${c.review.assessment.score}점` : "질문에 답변하기"} ·{" "}
+                      {dateLabel(c.createdAt)}
+                    </small>
+                  </button>
+                ))
+              )}
+              {data.nextCursor && (
+                <button
+                  className="secondary-button"
+                  disabled={busy || history.paging}
+                  onClick={() => void history.loadMore()}
+                >
+                  {history.paging ? "이전 기록 불러오는 중…" : "이전 기록 더 보기"}
+                </button>
+              )}
+              {history.pageError && <p role="alert">{history.pageError}</p>}
+            </div>
+          </details>
         </aside>
         <div className="project-main">
-          {!check ? (
+          {selected && !check ? (
+            <section className="project-panel">
+              {history.detailError ? (
+                <>
+                  <p role="alert">{history.detailError}</p>
+                  <button className="secondary-button" onClick={history.reloadDetail}>
+                    기록 다시 불러오기
+                  </button>
+                </>
+              ) : (
+                <p role="status">선택한 점검 기록 불러오는 중…</p>
+              )}
+            </section>
+          ) : !check ? (
             <form className="project-panel project-form" onSubmit={create}>
               <Globe2 size={28} />
               <h2>어떤 서비스를 만드셨나요?</h2>
@@ -314,13 +394,17 @@ function MemberWorkspace({
                 scope={data.scope}
                 enabled={data.aiReady && data.usage.review.remaining > 0}
                 onReviewed={async (review) => {
-                  onChange({
-                    ...data,
-                    checks: data.checks.map((c) => (c.id === check.id ? { ...c, review } : c)),
-                  });
+                  history.updateDetail({ ...check, review });
+                  onChange((current) => ({
+                    ...current,
+                    checks: current.checks.map((c) => (c.id === check.id ? { ...c, review } : c)),
+                  }));
                   await reload();
                 }}
               />
+              {check.review && (
+                <ProjectLearning key={`training:${check.id}`} id={check.id} scope={data.scope} />
+              )}
             </>
           )}
         </div>

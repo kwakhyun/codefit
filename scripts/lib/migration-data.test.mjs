@@ -102,3 +102,16 @@ describe("SQLite migration source", () => {
     expect(jobs.rows[0][7]).toBe("fingerprint");
   });
 });
+it("preserves restored problem ownership when moving databases", () => {
+  const db = new DatabaseSync(":memory:");
+  try {
+    db.exec(storageSchema);
+    db.prepare("INSERT INTO problems VALUES (?,?,?)").run("saved", "{}", "2026-09-19");
+    db.prepare("INSERT INTO restored_problems VALUES (?,?)").run("alice", "saved");
+    expect(
+      [...readMigrationData(db)].find((entry) => entry.table === "restored_problems").rows,
+    ).toEqual([["alice", "saved"]]);
+  } finally {
+    db.close();
+  }
+});

@@ -67,6 +67,11 @@ export default function QualityPage() {
           JavaScript 코드를 브라우저의 QuickJS 실행 환경에서 제공된 사례로 테스트합니다. DOM,
           네트워크, 타이머는 지원하지 않습니다.
         </p>
+        <p>
+          실행 결과는 일반 객체와 배열 등 JSON으로 비교할 수 있는 값으로 제한합니다. NaN과 같은
+          지원하지 않는 값은 오류로 표시합니다. getter나 toJSON으로 결과를 바꾸는 객체도 허용하지
+          않습니다. 테스트에 사용되는 기본 내장 함수와 프로토타입도 변경할 수 없도록 보호합니다.
+        </p>
         <Link href="/handoff">AI 코드 이해 훈련 살펴보기 →</Link>
       </section>
       <section>

@@ -86,7 +86,7 @@ const after = await a(`/api/problems/${id}`);
 assert.equal(after.data.hints.length, 3);
 assert.ok(after.data.solution);
 const backup = await a("/api/export");
-assert.equal(backup.data.version, 2);
+assert.equal(backup.data.version, 3);
 assert.ok(backup.data.problems[0].solution);
 assert.equal((await b("/api/import", { method: "POST", body: backup.data })).status, 200);
 assert.equal((await b(`/api/problems/${id}`)).data.progress.code, "print('persisted draft')");

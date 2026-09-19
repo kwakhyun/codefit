@@ -1,5 +1,6 @@
 import type { QuickJSWASMModule, QuickJSHandle } from "quickjs-emscripten-core";
 import type { ExecutionResult } from "./training";
+import { SANDBOX_BOOTSTRAP } from "./sandbox-bootstrap";
 
 const EXECUTION_LIMITS = { timeMs: 600, memoryBytes: 16 * 1024 * 1024, stackBytes: 256 * 1024 };
 
@@ -18,7 +19,9 @@ export function executeCase(
   runtime.setInterruptHandler(() => performance.now() > deadline);
   const vm = runtime.newContext();
   let result: QuickJSHandle | undefined;
+  let serialize: QuickJSHandle | undefined;
   try {
+    serialize = vm.unwrapResult(vm.evalCode(SANDBOX_BOOTSTRAP, "bootstrap.js"));
     // Evaluate separately so comments in the learner's source cannot absorb the test.
     const loaded = vm.evalCode(code, "learner.js", { type: "global" });
     if (loaded.error) {
@@ -27,10 +30,7 @@ export function executeCase(
       throw new Error(String(error?.message || "코드를 읽지 못했습니다."));
     }
     loaded.value.dispose();
-    const evaluated = vm.evalCode(
-      `(async () => JSON.stringify(await (${test.expression})))()`,
-      "check.js",
-    );
+    const evaluated = vm.evalCode(`(async () => await (${test.expression}))()`, "check.js");
     if (evaluated.error) {
       const error = vm.dump(evaluated.error);
       evaluated.error.dispose();
@@ -44,6 +44,8 @@ export function executeCase(
         throw new Error("비동기 작업 실행 중 오류가 발생했습니다.");
       }
     }
+    if (performance.now() > deadline || runtime.hasPendingJob())
+      throw new Error("실행 시간이 초과됐습니다. 비동기 작업의 종료 조건을 확인해 주세요.");
     const state = vm.getPromiseState(result);
     if (state.type === "pending")
       throw new Error("완료되지 않은 Promise 또는 실행 시간 초과입니다.");
@@ -52,10 +54,21 @@ export function executeCase(
       state.error.dispose();
       throw new Error(String(error?.message || "실행 중 오류가 발생했습니다."));
     }
-    const actual = vm.getString(state.value);
-    state.value.dispose();
-    if (actual.length > 1600) throw new Error("출력은 1,600자까지만 확인할 수 있습니다.");
-    return { id: test.id, status: "ok", actual: actual || "undefined" };
+    try {
+      const serialized = vm.callFunction(serialize, vm.undefined, state.value);
+      if (serialized.error) {
+        const error = vm.dump(serialized.error);
+        serialized.error.dispose();
+        throw new Error(String(error?.message || "실행 결과를 비교할 수 없습니다."));
+      }
+      try {
+        return { id: test.id, status: "ok", actual: vm.getString(serialized.value) };
+      } finally {
+        serialized.value.dispose();
+      }
+    } finally {
+      state.value.dispose();
+    }
   } catch (error) {
     return {
       id: test.id,
@@ -64,6 +77,7 @@ export function executeCase(
     };
   } finally {
     result?.dispose();
+    serialize?.dispose();
     vm.dispose();
     runtime.dispose();
   }

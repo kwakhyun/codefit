@@ -2,7 +2,13 @@ import type { Query } from "./store-queries";
 import type { JobLease } from "./store-contract";
 import type { Assessment, Check, StoredCheck } from "../project-check/types";
 import { PROJECT_LIMITS } from "../project-check/types";
+import { z } from "zod";
+import { HttpError } from "./http";
 import { StaleJob } from "./write-conflicts";
+export function publicReview(raw: string): NonNullable<Check["review"]> {
+  const { answers, assessment } = JSON.parse(raw);
+  return { answers, assessment };
+}
 export function publicCheck(check: StoredCheck): Check {
   const { text: _text, ...page } = check.page;
   void _text;
@@ -32,20 +38,57 @@ export class ProjectCheckStore {
       "SELECT result FROM jobs WHERE id=? AND owner=? AND kind=? AND state='done'",
       [`project-review-${id}`, owner, `project-review:${id}`],
     );
-    return row ? JSON.parse(String(row.result)) : undefined;
+    return row ? publicReview(String(row.result)) : undefined;
+  }
+  async detail(owner: string, id: string): Promise<Check | null> {
+    const rows = await this.query(
+      "SELECT j.result,r.result AS review FROM jobs j LEFT JOIN jobs r ON r.id='project-review-' || j.id AND r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.id=? AND j.kind='project-analysis' AND j.state='done'",
+      [owner, id],
+    );
+    return rows.length ? this.readCheck(rows[0]) : null;
+  }
+  private readCheck(row: Record<string, unknown>): Check {
+    return {
+      ...publicCheck(JSON.parse(String(row.result))),
+      ...(row.review ? { review: publicReview(String(row.review)) } : {}),
+    };
   }
   async list(owner: string): Promise<Check[]> {
+    return (await this.page(owner)).checks;
+  }
+  async page(owner: string, cursor?: string | null) {
+    let after: { expires: number; id: string } | undefined;
+    if (cursor !== undefined && cursor !== null) {
+      try {
+        if (cursor.length > 256) throw new Error();
+        after = z
+          .object({ expires: z.number().int().nonnegative().safe(), id: z.uuid() })
+          .strict()
+          .parse(JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")));
+      } catch {
+        throw new HttpError(
+          400,
+          "기록 목록 주소가 올바르지 않습니다. 처음부터 다시 불러와 주세요.",
+        );
+      }
+    }
+    // Completed jobs keep their lease timestamp. Pair it with the unique ID so
+    // insertions, deletions and equal timestamps do not shift the next page.
     const rows = await this.query(
-      "SELECT j.result,r.result AS review FROM jobs j LEFT JOIN jobs r ON r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.kind='project-analysis' AND j.state='done' ORDER BY j.expires DESC LIMIT 20",
-      [owner],
+      `SELECT j.id,j.expires,j.result,r.result AS review FROM jobs j LEFT JOIN jobs r ON r.id='project-review-' || j.id AND r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.kind='project-analysis' AND j.state='done' ${after ? "AND (j.expires<? OR (j.expires=? AND j.id<?))" : ""} ORDER BY j.expires DESC,j.id DESC LIMIT 21`,
+      [owner, ...(after ? [after.expires, after.expires, after.id] : [])],
     );
-    return rows
-      .map((row) => ({
-        ...publicCheck(JSON.parse(String(row.result))),
-        ...(row.review ? { review: JSON.parse(String(row.review)) } : {}),
-      }))
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .slice(0, 20);
+    const visible = rows.slice(0, 20);
+    const last = visible.at(-1);
+    return {
+      checks: visible.map((row) => this.readCheck(row)),
+      nextCursor:
+        rows.length > 20 && last
+          ? Buffer.from(
+              JSON.stringify({ expires: Number(last.expires), id: String(last.id) }),
+            ).toString("base64url")
+          : null,
+    };
   }
   async usage(owner: string) {
     const result = {} as Record<

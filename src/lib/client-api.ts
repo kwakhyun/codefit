@@ -18,18 +18,18 @@ export async function api<T>(
     body?: unknown;
     signal?: AbortSignal;
     keepalive?: boolean;
-    scope?: string;
+    // null explicitly discovers the current session without a stale workspace header.
+    scope?: string | null;
   },
 ): Promise<T> {
+  const scope = options?.scope === null ? undefined : options?.scope || workspaceScope;
   const response = await fetch(url, {
     method: options?.method || "GET",
     credentials: "same-origin",
     cache: "no-store",
     headers: {
       ...(options?.body !== undefined && { "Content-Type": "application/json" }),
-      ...((options?.scope || workspaceScope) && {
-        "X-Codefit-Workspace": options?.scope || workspaceScope!,
-      }),
+      ...(scope && { "X-Codefit-Workspace": scope }),
     },
     body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
     signal: options?.signal || AbortSignal.timeout(115_000),

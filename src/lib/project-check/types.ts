@@ -52,7 +52,29 @@ export const assessmentSchema = z
   })
   .strict();
 export type Analysis = z.infer<typeof analysisSchema>;
-export type Assessment = z.infer<typeof assessmentSchema> & { score: number };
+export const evidenceLabels = {
+  feature: "기능 설명",
+  flow: "처리 흐름",
+  reason: "선택 이유",
+  failure: "실패 상황",
+  verification: "확인 방법",
+  tradeoff: "대안 비교",
+} as const;
+export type AssessmentEvidence = Record<keyof typeof evidenceLabels, string | null>;
+export const assessmentIssueSchema = z
+  .object({
+    evidence: z.array(z.string().min(1).max(1500)).min(1).max(3),
+    explanation: z.string().min(1).max(350),
+  })
+  .strict();
+export type Assessment = Omit<z.infer<typeof assessmentSchema>, "feedback"> & {
+  score: number;
+  rubricVersion?: "evidence-v1" | "evidence-v2" | "evidence-v3";
+  feedback: (z.infer<typeof assessmentSchema>["feedback"][number] & {
+    evidence?: AssessmentEvidence;
+    blockingIssue?: z.infer<typeof assessmentIssueSchema> | null;
+  })[];
+};
 export interface PageSnapshot {
   url: string;
   text: string;
@@ -85,4 +107,5 @@ export interface CheckOverview {
   aiReady: boolean;
   usage: { analysis: CheckUsage; review: CheckUsage };
   checks: Check[];
+  nextCursor: string | null;
 }

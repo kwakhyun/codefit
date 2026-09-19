@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
 import type { UsageLimit } from "./store-contract";
 import { DAILY_GENERATIONS } from "./generation-quota";
+import { BACKUP_MAX_PROBLEMS } from "../backup-limits";
 
 export const AI_ALLOWANCE = { generate: DAILY_GENERATIONS, review: 20 } as const;
 const day = 86_400_000;
@@ -45,7 +46,7 @@ export function importLimits(
     { key: `import:${owner}`, max: 5, windowMs: day },
     { key: `import:network:${network}`, max: 10, windowMs: day },
     { key: "import:global", max: 20, windowMs: day },
-    { key: "import:problems", max: 100, cost: newProblems, windowMs: day },
+    { key: "import:problems", max: BACKUP_MAX_PROBLEMS, cost: newProblems, windowMs: day },
     { key: "import:attempts", max: 10_000, cost: attempts, windowMs: day },
   ];
 }

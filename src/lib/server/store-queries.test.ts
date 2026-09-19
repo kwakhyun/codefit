@@ -1,9 +1,9 @@
 import { seedProblems } from "../../data/problems";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import { DatabaseSync } from "node:sqlite";
 import { SqliteStore } from "./sqlite-store";
 import { queryContract } from "./query-contract.test-helper";
-import { decodeCursor } from "./store-queries";
+import { decodeCursor, StoreQueries } from "./store-queries";
 import { networkIdentity, aiLimits, validateLimits } from "./usage-policy";
 
 describe("SQLite read model contract", () => {
@@ -39,4 +39,17 @@ it("reuses initialized SQLite connections after module reload", async () => {
     seedProblems.length,
   );
   original.db.close();
+});
+
+it("preflights 2500 backup IDs in five bounded queries without reading problem bodies", async () => {
+  const query = vi.fn(async () => [{ count: "0" }]);
+  const queries = new StoreQueries(query, "postgres");
+  expect(
+    await queries.countExistingProblems(Array.from({ length: 2500 }, (_, i) => `p-${i}`)),
+  ).toBe(0);
+  expect(query).toHaveBeenCalledTimes(5);
+  for (const [sql, values] of query.mock.calls as unknown as [string, string[]][]) {
+    expect(sql).toMatch(/^SELECT COUNT/);
+    expect(values).toHaveLength(500);
+  }
 });

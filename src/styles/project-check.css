@@ -64,21 +64,29 @@
   margin-top: 12px;
   color: var(--action);
 }
-.project-history {
+.project-history,
+.project-history-items {
   display: grid;
   gap: 12px;
 }
-.project-history h2 {
+.project-page .project-history-list {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.project-history-list summary {
   font-size: 15px;
   color: #bbc5d4;
-  margin: 20px 0 0;
+  padding: 12px 0;
+  cursor: pointer;
 }
-.project-history > p {
+.project-history-items > p {
   font-size: 14px;
   line-height: 1.8;
   color: var(--muted);
 }
-.project-history > button:not(.secondary-button) {
+.project-history-items > button:not(.secondary-button) {
   display: grid;
   gap: 8px;
   text-align: left;
@@ -343,12 +351,11 @@
   .project-panel h2 {
     font-size: 21px;
   }
-  .project-history {
+  .project-history-items {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .project-history h2,
-  .project-history > .secondary-button,
-  .project-history > p {
+  .project-history-items > .secondary-button,
+  .project-history-items > p {
     grid-column: 1/-1;
   }
   .project-usage {
@@ -367,4 +374,41 @@
   .project-panel .project-help {
     font-size: 13px;
   }
+}
+
+.project-assessment-evidence dl {
+  display: grid;
+  gap: 16px;
+}
+.project-assessment-evidence dt {
+  font-weight: 600;
+}
+.project-assessment-evidence dd {
+  margin: 6px 0 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.project-assessment-evidence blockquote {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--action);
+  white-space: pre-wrap;
+  color: var(--text);
+}
+.project-assessment-issue {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid #886b38;
+  border-radius: 10px;
+  background: #211d15;
+  overflow-wrap: anywhere;
+}
+.project-assessment-issue strong {
+  color: #f3d297;
+}
+.project-assessment-issue blockquote {
+  margin: 12px 0;
+  padding-left: 12px;
+  border-left: 2px solid #bca06d;
+  white-space: pre-wrap;
 }
