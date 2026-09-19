@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-19T12:34:49.381Z",
+  "status": "passed",
+  "path": "SQLite actual AI result → PostgreSQL 18.4 → fresh SQLite",
+  "additionalPaidCalls": 0,
+  "projects": 1,
+  "lessons": 1,
+  "checks": [
+    "saved AI assessment preserved",
+    "pinned curriculum and first answers preserved",
+    "same v3 export/import contract on both adapters"
+  ],
+  "sourceHash": "cbd1d56dcc9f7b606dd702de569d6cbfc26f6c68247a8215a6c141f88cc46783"
+}

@@ -1,0 +1,46 @@
+{
+  "date": "2026-09-19",
+  "status": "passed",
+  "feature": "workspace backup v3",
+  "sqliteApiMigrationTests": {
+    "files": 4,
+    "passed": 34
+  },
+  "postgresTests": {
+    "version": "18.4",
+    "passed": 14,
+    "outOfScopeNotSelected": 20,
+    "environment": "temporary local cluster, isolated schemas; stopped after verification"
+  },
+  "browserTests": {
+    "browsers": ["chromium", "firefox", "webkit"],
+    "backupPassed": 3,
+    "affectedHistoryPassed": 9,
+    "backupDurationSeconds": 13.6,
+    "mobileWidth": 390,
+    "axeAutomaticChecksPassed": true
+  },
+  "liveIntegration": {
+    "paidCalls": 2,
+    "estimatedCostUsd": 0.023251,
+    "report": "reports/project-recovery-live-203d37c1-c205-4d4c-a464-7945bfc17bc4.json",
+    "crossDatabaseReport": "reports/project-backup-portability.json"
+  },
+  "checks": {
+    "productionBuild": true,
+    "typescript": true,
+    "changedFileEslint": true,
+    "changedFilePrettier": true,
+    "gitDiffCheck": true
+  },
+  "sotaEstablished": false,
+  "productionDatabaseAccess": false,
+  "deployed": false,
+  "limitations": [
+    "Synthetic live inputs; no independent scoring or learning study",
+    "Single file max 10,000,000 UTF-8 bytes; no split backups",
+    "Daily aggregate restore limits and host-specific limits still apply",
+    "No browser-only unsaved drafts, auth credentials or pending jobs restored"
+  ],
+  "documentation": "docs/workspace-backup.md"
+}

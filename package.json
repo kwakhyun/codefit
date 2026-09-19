@@ -27,7 +27,9 @@
     "measure:interactions": "node --import tsx scripts/measure-interactions.mjs",
     "measure:typing-pair": "node scripts/measure-typing-pair.mjs",
     "eval:handoff": "node --import tsx scripts/evaluate-handoff.ts",
-    "eval:project": "node --import tsx scripts/evaluate-project-questions.ts"
+    "eval:project": "node --import tsx scripts/evaluate-project-questions.ts",
+    "eval:project-assessment": "node --import tsx scripts/evaluate-project-assessment.ts",
+    "eval:prepare-review": "node --import tsx scripts/prepare-assessment-review.ts"
   },
   "dependencies": {
     "@jitl/quickjs-wasmfile-release-sync": "0.32.0",

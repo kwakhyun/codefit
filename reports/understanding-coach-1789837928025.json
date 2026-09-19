@@ -1,0 +1,1058 @@
+{
+  "measuredAt": "2026-09-19T17:12:57.749Z",
+  "promptVersion": "2026-09-20.coach.3",
+  "model": "gpt-5.6-luna",
+  "suite": "transfer",
+  "sourceHash": "959d6f88a0fa271436bfbf25e3a7652793fe255cfb1560ac85d08003ca6d93e0",
+  "fixtureHash": "e32e8a791ef6c23d1fe5a6a879212ed5c1169dcc33b2f5399631d310c049bb74",
+  "completed": 8,
+  "total": 8,
+  "complete": true,
+  "entries": [
+    {
+      "case": {
+        "id": "shallow-copy-reference",
+        "problem": "handoff-cart-transfer",
+        "choice": "preserved",
+        "reason": "전개 문법으로 배열을 복사했으므로 내부 객체도 독립적입니다.",
+        "focus": "Experiment should distinguish array identity from item identity on the shallow-copy original.",
+        "actualExecution": {
+          "id": "prediction",
+          "status": "ok",
+          "actual": "[3,3]"
+        },
+        "input": {
+          "originalCode": "function changeQuantity(items, id, delta) {\n  const next = [...items];\n  const item = next.find(item => item.id === id);\n  if (item) item.quantity = Math.max(0, item.quantity + delta);\n  return next;\n}",
+          "currentCode": "function changeQuantity(items, id, delta) {\n  return items.flatMap(item => {\n    if (item.id !== id) return [item];\n    const quantity = Math.max(0, item.quantity + delta);\n    return quantity === 0 ? [] : [{ ...item, quantity }];\n  });\n}",
+          "lab": {
+            "question": "수량을 1 늘린 뒤, 원본과 반환값의 수량은 각각 얼마일까요?",
+            "choices": [
+              {
+                "id": "preserved",
+                "label": "원본 2, 반환값 3",
+                "output": "[2,3]"
+              },
+              {
+                "id": "shared",
+                "label": "원본 3, 반환값 3",
+                "output": "[3,3]"
+              },
+              {
+                "id": "unchanged",
+                "label": "원본 2, 반환값 2",
+                "output": "[2,2]"
+              }
+            ],
+            "probe": {
+              "id": "prediction",
+              "expression": "(() => { const items = [{id:'a', quantity:2}]; const next = changeQuantity(items, 'a', 1); return [items[0].quantity, next[0].quantity]; })()",
+              "note": "같은 항목을 두 배열에서 읽습니다. [원본 수량, 반환 수량] 순서입니다."
+            },
+            "reflection": "배열과 내부 객체의 참조를 따로 따라가 보세요. 바꾸지 않은 항목까지 복사해야 할까요?",
+            "version": "2026-09-20.1",
+            "contract": "changeQuantity(items, id, delta)는 새 배열을 반환합니다. items는 고유한 문자열 id와 0 이상의 정수 quantity를 가진 객체 배열입니다. delta는 정수이며 합계는 안전한 정수 범위입니다. 항목의 다른 필드는 보존합니다.",
+            "checkpoints": [
+              {
+                "expression": "(() => { const items = [{id:'a', quantity:2, label:'상품'}]; const next = changeQuantity(items, 'a', 1); return { before:items[0].quantity, after:next[0].quantity, label:next[0].label, copied:next !== items && next[0] !== items[0] }; })()",
+                "expected": {
+                  "before": 2,
+                  "after": 3,
+                  "label": "상품",
+                  "copied": true
+                },
+                "note": "원본과 추가 필드를 보존합니다.",
+                "id": "case-1"
+              },
+              {
+                "expression": "changeQuantity([{id:'a',quantity:1},{id:'b',quantity:2}], 'a', -5)",
+                "expected": [
+                  {
+                    "id": "b",
+                    "quantity": 2
+                  }
+                ],
+                "note": "대상 항목의 수량이 소진되면 제거합니다.",
+                "id": "case-2"
+              },
+              {
+                "expression": "changeQuantity([{id:'a',quantity:0}], 'missing', 3)",
+                "expected": [
+                  {
+                    "id": "a",
+                    "quantity": 0
+                  }
+                ],
+                "note": "관계없는 0개 항목은 제거하지 않습니다.",
+                "id": "case-3"
+              }
+            ]
+          },
+          "training": {
+            "version": 1,
+            "prediction": {
+              "choice": "preserved",
+              "reason": "전개 문법으로 배열을 복사했으므로 내부 객체도 독립적입니다.",
+              "locked": true
+            },
+            "observation": {
+              "id": "prediction",
+              "status": "ok",
+              "actual": "[3,3]"
+            }
+          }
+        }
+      },
+      "result": {
+        "evidenceId": "prediction",
+        "observation": "브라우저에 표시된 결과는 [3,3]으로, 원본 배열의 수량도 3이 되었습니다.",
+        "question": "원본 코드에서 [...items]가 복사하는 것은 배열 자체뿐인지, 내부 item 객체까지 새로 만드는지 `items[0] === next[0]`의 결과와 함께 추적해 볼까요?",
+        "nextCheck": "같은 입력으로 두 버전을 실행해 수량과 두 배열이 같은 item 객체를 참조하는지 비교해 보세요.",
+        "experiment": {
+          "expression": "(() => { const items = [{id:'a', quantity:2}]; const next = changeQuantity(items, 'a', 1); return { originalQuantity: items[0].quantity, returnedQuantity: next[0].quantity, sameItemReference: items[0] === next[0] }; })()"
+        }
+      },
+      "run": {
+        "id": "329ca0b9-8de1-4156-bf77-af8d2d927d51",
+        "operation": "review",
+        "promptVersion": "2026-09-20.coach.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 4937,
+        "inputTokens": 1173,
+        "cachedInputTokens": 0,
+        "outputTokens": 435,
+        "estimatedCostUsd": 0.0007566000000000001,
+        "createdAt": "2026-09-19T17:12:08.026Z"
+      },
+      "experimentExecution": {
+        "original": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"originalQuantity\":3,\"returnedQuantity\":3,\"sameItemReference\":true}"
+        },
+        "current": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"originalQuantity\":2,\"returnedQuantity\":3,\"sameItemReference\":false}"
+        }
+      },
+      "semanticReview": null
+    },
+    {
+      "case": {
+        "id": "unconditional-publish",
+        "problem": "handoff-latest",
+        "choice": "both",
+        "reason": "원본에는 완료된 응답을 거르는 조건이 없습니다.",
+        "focus": "Respect correct explanation and probe ordering/dispose without timers.",
+        "actualExecution": {
+          "id": "prediction",
+          "status": "ok",
+          "actual": "[\"new\",\"old\"]"
+        },
+        "input": {
+          "originalCode": "function createLatest(load, publish) {\n  return {\n    async run(query) { publish(await load(query)); },\n    dispose() {}\n  };\n}",
+          "currentCode": "function createLatest(load, publish) {\n  let revision = 0;\n  let disposed = false;\n  return {\n    async run(query) {\n      if (disposed) return;\n      const mine = ++revision;\n      const value = await load(query);\n      if (!disposed && mine === revision) publish(value);\n    },\n    dispose() { disposed = true; revision++; }\n  };\n}",
+          "lab": {
+            "question": "같은 검색어로 두 번 요청했습니다. 두 번째 응답이 먼저 오면 어떤 순서로 표시될까요?",
+            "choices": [
+              {
+                "id": "latest-only",
+                "label": "최신 결과만: [\"new\"]",
+                "output": "[\"new\"]"
+              },
+              {
+                "id": "both",
+                "label": "최신 뒤에 오래된 결과: [\"new\", \"old\"]",
+                "output": "[\"new\",\"old\"]"
+              },
+              {
+                "id": "old-only",
+                "label": "오래된 결과만: [\"old\"]",
+                "output": "[\"old\"]"
+              }
+            ],
+            "probe": {
+              "id": "prediction",
+              "expression": "(async () => { const pending = []; const out = []; const c = createLatest(() => new Promise(r => pending.push(r)), v => out.push(v)); const a = c.run('same'), b = c.run('same'); pending[1]('new'); await b; pending[0]('old'); await a; return out; })()",
+              "note": "검색어는 같지만 요청은 서로 다릅니다. Promise를 직접 완료시켜 응답 순서를 고정합니다."
+            },
+            "reflection": "검색어가 같다는 사실로 같은 요청이라고 판단할 수 있을까요? 요청 시작과 완료를 구분해 보세요.",
+            "version": "2026-09-20.1",
+            "contract": "createLatest(load, publish)는 { run(query), dispose() }를 반환합니다. load는 Promise를 반환합니다. run은 성공 시 undefined로 완료되고 load 실패는 호출자에게 거절됩니다. query는 문자열이며 publish는 예외를 던지지 않습니다.",
+            "checkpoints": [
+              {
+                "expression": "(async () => { const pending = []; const out = []; const c = createLatest(() => new Promise(r => pending.push(r)), v => out.push(v)); const a = c.run('same'), b = c.run('same'); pending[1]('new'); await b; pending[0]('old'); await a; return out; })()",
+                "expected": [
+                  "new"
+                ],
+                "note": "같은 검색어여도 마지막 호출의 결과만 반영합니다.",
+                "id": "case-1"
+              },
+              {
+                "expression": "(async () => { let resolve; let calls = 0; const out = []; const c = createLatest(() => { calls++; return new Promise(r => resolve = r); }, v => out.push(v)); const pending = c.run('x'); c.dispose(); resolve('late'); await pending; await c.run('y'); return { out, calls }; })()",
+                "expected": {
+                  "out": [],
+                  "calls": 1
+                },
+                "note": "해제 뒤의 요청과 응답을 모두 차단합니다.",
+                "id": "case-2"
+              },
+              {
+                "expression": "(async () => { const out = []; const c = createLatest(async () => { throw Error('load failed'); }, v => out.push(v)); try { await c.run('x'); } catch (e) { return [e.message, out.length]; } })()",
+                "expected": [
+                  "load failed",
+                  0
+                ],
+                "note": "실패는 호출자에게 전달합니다.",
+                "id": "case-3"
+              }
+            ]
+          },
+          "training": {
+            "version": 1,
+            "prediction": {
+              "choice": "both",
+              "reason": "원본에는 완료된 응답을 거르는 조건이 없습니다.",
+              "locked": true
+            },
+            "observation": {
+              "id": "prediction",
+              "status": "ok",
+              "actual": "[\"new\",\"old\"]"
+            }
+          }
+        }
+      },
+      "result": {
+        "evidenceId": "prediction",
+        "observation": "브라우저에 표시된 결과는 [\"new\",\"old\"]였고, 이는 원본 코드에서 두 run의 완료마다 publish하는 흐름과 맞습니다.",
+        "question": "같은 query라도 각 run은 별도의 비동기 호출인데, 첫 번째 요청이 끝날 때 dispose()가 이미 호출되었다면 원본 코드와 수정 중인 코드의 publish 결과가 왜 달라질지 추적해 볼까요?",
+        "nextCheck": "두 버전에서 아래 실험을 각각 실행해 dispose()가 응답 완료 전에 호출될 때 표시 결과를 비교해 보세요.",
+        "experiment": {
+          "expression": "(async () => { const pending = []; const out = []; const c = createLatest(() => new Promise(resolve => pending.push(resolve)), value => out.push(value)); const run = c.run('same'); c.dispose(); pending[0]('value'); await run; return out; })()"
+        }
+      },
+      "run": {
+        "id": "c4dc3fff-e8b7-49c8-9ade-296cbaf10d07",
+        "operation": "review",
+        "promptVersion": "2026-09-20.coach.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 6810,
+        "inputTokens": 1204,
+        "cachedInputTokens": 0,
+        "outputTokens": 645,
+        "estimatedCostUsd": 0.0010148,
+        "createdAt": "2026-09-19T17:12:12.974Z"
+      },
+      "experimentExecution": {
+        "original": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "[\"value\"]"
+        },
+        "current": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "[]"
+        }
+      },
+      "semanticReview": null
+    },
+    {
+      "case": {
+        "id": "truthy-string",
+        "problem": "handoff-config",
+        "choice": "true",
+        "reason": "비어 있지 않은 문자열이라 Boolean 변환 결과가 true입니다.",
+        "focus": "Observe true original versus false repaired and/or input mutation using string inputs.",
+        "actualExecution": {
+          "id": "prediction",
+          "status": "ok",
+          "actual": "true"
+        },
+        "input": {
+          "originalCode": "function parseConfig(env) {\n  env.DEBUG = Boolean(env.DEBUG);\n  return { debug: env.DEBUG, port: parseInt(env.PORT || '3000', 10) };\n}",
+          "currentCode": "function parseConfig(env) {\n  if (env.DEBUG !== undefined && env.DEBUG !== 'true' && env.DEBUG !== 'false') throw new Error('Invalid DEBUG');\n  const raw = env.PORT ?? '3000';\n  if (!/^[1-9][0-9]{0,4}$/.test(raw) || Number(raw) > 65535) throw new Error('Invalid PORT');\n  return { debug: env.DEBUG === 'true', port: Number(raw) };\n}",
+          "lab": {
+            "question": "DEBUG에 문자열 false를 넣으면, debug는 어떤 값일까요?",
+            "choices": [
+              {
+                "id": "false",
+                "label": "불리언 false",
+                "output": "false"
+              },
+              {
+                "id": "true",
+                "label": "불리언 true",
+                "output": "true"
+              },
+              {
+                "id": "string",
+                "label": "문자열 \"false\"",
+                "output": "\"false\""
+              }
+            ],
+            "probe": {
+              "id": "prediction",
+              "expression": "parseConfig({DEBUG:'false', PORT:'8080'}).debug",
+              "note": "문자열과 불리언은 다릅니다. 정상 동작한다면 그 근거도 설명해 보세요."
+            },
+            "reflection": "이 입력이 정상이더라도 모든 입력이 안전한 것은 아닙니다. 허용되지 않은 문자열은 어떻게 되나요?",
+            "version": "2026-09-20.1",
+            "contract": "parseConfig(env)는 { debug, port }를 반환합니다. env는 문자열 또는 undefined 값을 가진 객체입니다. DEBUG 생략 시 false, PORT 생략 시 3000입니다. DEBUG는 정확히 true 또는 false만 허용합니다. PORT는 선행 0 없는 1~65535의 10진 정수 문자열입니다. 그 외에는 Error를 던지며 입력을 수정하지 않습니다.",
+            "checkpoints": [
+              {
+                "expression": "(() => { const env = {DEBUG:'false',PORT:'8080'}; return { result:parseConfig(env), env }; })()",
+                "expected": {
+                  "result": {
+                    "debug": false,
+                    "port": 8080
+                  },
+                  "env": {
+                    "DEBUG": "false",
+                    "PORT": "8080"
+                  }
+                },
+                "note": "false 문자열과 원본을 보존합니다.",
+                "id": "case-1"
+              },
+              {
+                "expression": "parseConfig({})",
+                "expected": {
+                  "debug": false,
+                  "port": 3000
+                },
+                "note": "생략한 필드만 기본값을 씁니다.",
+                "id": "case-2"
+              },
+              {
+                "expression": "['', '0', '65536', '01', '1e2', '30x', ' 80', '8.5'].every(PORT => { try { parseConfig({PORT}); return false; } catch { return true; } })",
+                "expected": true,
+                "note": "잘못된 포트를 모두 거부합니다.",
+                "id": "case-3"
+              },
+              {
+                "expression": "['TRUE', '', 'yes'].every(DEBUG => { try { parseConfig({DEBUG}); return false; } catch { return true; } })",
+                "expected": true,
+                "note": "허용하지 않은 DEBUG 값은 거부합니다.",
+                "id": "case-4"
+              }
+            ]
+          },
+          "training": {
+            "version": 1,
+            "prediction": {
+              "choice": "true",
+              "reason": "비어 있지 않은 문자열이라 Boolean 변환 결과가 true입니다.",
+              "locked": true
+            },
+            "observation": {
+              "id": "prediction",
+              "status": "ok",
+              "actual": "true"
+            }
+          }
+        }
+      },
+      "result": {
+        "evidenceId": "prediction",
+        "observation": "브라우저에 표시된 결과는 `true`였습니다.",
+        "question": "원본 코드에서 `Boolean('false')`가 `true`가 되는 이유를, `DEBUG`를 생략한 경우와 비교해 설명할 수 있나요?",
+        "nextCheck": "다음 표현식을 원본 코드와 수정 중인 코드에서 각각 실행해 `DEBUG: 'false'`와 생략된 `DEBUG`의 반환값을 비교해 보세요.",
+        "experiment": {
+          "expression": "(()=>{const withString={DEBUG:'false',PORT:'8080'};const omitted={PORT:'8080'};return{withString:parseConfig(withString),omitted:parseConfig(omitted)}})()"
+        }
+      },
+      "run": {
+        "id": "5a14fbd6-09c5-4a7a-b172-f23bd1ea016b",
+        "operation": "review",
+        "promptVersion": "2026-09-20.coach.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 5517,
+        "inputTokens": 1162,
+        "cachedInputTokens": 0,
+        "outputTokens": 539,
+        "estimatedCostUsd": 0.0008791999999999999,
+        "createdAt": "2026-09-19T17:12:19.801Z"
+      },
+      "experimentExecution": {
+        "original": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"withString\":{\"debug\":true,\"port\":8080},\"omitted\":{\"debug\":false,\"port\":8080}}"
+        },
+        "current": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"withString\":{\"debug\":false,\"port\":8080},\"omitted\":{\"debug\":false,\"port\":8080}}"
+        }
+      },
+      "semanticReview": null
+    },
+    {
+      "case": {
+        "id": "cache-after-await",
+        "problem": "handoff-dedupe-transfer",
+        "choice": "twice",
+        "reason": "작업이 끝나기 전에 Map에 값이 없어서 두 번 시작합니다.",
+        "focus": "Self-contained concurrent experiment observes actual call count and/or public results.",
+        "actualExecution": {
+          "id": "prediction",
+          "status": "ok",
+          "actual": "2"
+        },
+        "input": {
+          "originalCode": "function createOnce(work) {\n  const results = new Map();\n  return async function run(id) {\n    if (results.has(id)) return results.get(id);\n    const result = await work(id);\n    results.set(id, result);\n    return result;\n  };\n}",
+          "currentCode": "function createOnce(work) {\n  const jobs = new Map();\n  return function run(id) {\n    if (jobs.has(id)) return jobs.get(id);\n    const promise = Promise.resolve().then(() => work(id)).catch(error => {\n      jobs.delete(id);\n      throw error;\n    });\n    jobs.set(id, promise);\n    return promise;\n  };\n}",
+          "lab": {
+            "question": "같은 id를 동시에 두 번 호출하면 실제 작업은 몇 번 시작될까요?",
+            "choices": [
+              {
+                "id": "once",
+                "label": "1번",
+                "output": "1"
+              },
+              {
+                "id": "twice",
+                "label": "2번",
+                "output": "2"
+              },
+              {
+                "id": "none",
+                "label": "0번",
+                "output": "0"
+              }
+            ],
+            "probe": {
+              "id": "prediction",
+              "expression": "(async () => { let calls = 0; const run = createOnce(async () => ++calls); await Promise.all([run('a'),run('a')]); return calls; })()",
+              "note": "성공 결과와 진행 중인 작업을 구분합니다. 실행 횟수만 관찰합니다."
+            },
+            "reflection": "한 번 실행됐다는 사실만으로 성공 결과 재사용과 실패 재시도까지 보장할 수 있을까요?",
+            "version": "2026-09-20.1",
+            "contract": "createOnce(work)는 run(id)를 반환합니다. id는 문자열이며 work(id)는 Promise 또는 동기 값을 반환하거나 예외를 던질 수 있습니다. run은 항상 Promise입니다. 하나의 createOnce 인스턴스 안에서만 중복을 합칩니다. 분산 처리나 영구 저장은 범위 밖입니다.",
+            "checkpoints": [
+              {
+                "expression": "(async () => { let calls = 0; const run = createOnce(async () => ++calls); const values = await Promise.all([run('a'),run('a')]); return {values,calls}; })()",
+                "expected": {
+                  "values": [
+                    1,
+                    1
+                  ],
+                  "calls": 1
+                },
+                "note": "동시 호출을 하나로 합칩니다.",
+                "id": "case-1"
+              },
+              {
+                "expression": "(async () => { let calls = 0; const run = createOnce(() => { if (++calls === 1) throw Error('retry'); return 7; }); try { await run('a'); } catch {} return [await run('a'), await run('a'), calls]; })()",
+                "expected": [
+                  7,
+                  7,
+                  2
+                ],
+                "note": "실패는 재시도하고 성공은 재사용합니다.",
+                "id": "case-2"
+              },
+              {
+                "expression": "(async () => { let calls = 0; const run = createOnce(id => { calls++; return id; }); return [await run('a'), await run('b'), calls]; })()",
+                "expected": [
+                  "a",
+                  "b",
+                  2
+                ],
+                "note": "다른 id는 별도로 실행합니다.",
+                "id": "case-3"
+              }
+            ]
+          },
+          "training": {
+            "version": 1,
+            "prediction": {
+              "choice": "twice",
+              "reason": "작업이 끝나기 전에 Map에 값이 없어서 두 번 시작합니다.",
+              "locked": true
+            },
+            "observation": {
+              "id": "prediction",
+              "status": "ok",
+              "actual": "2"
+            }
+          }
+        }
+      },
+      "result": {
+        "evidenceId": "prediction",
+        "observation": "브라우저에 표시된 결과는 2였으며, 이는 원본 코드에서 work가 완료되어 results.set(id, result)를 실행하기 전에 두 번째 호출이 들어가는 흐름과 맞습니다.",
+        "question": "원본 코드에서 첫 번째 run('a')가 work를 시작한 뒤 results.set 전인 순간, 두 번째 run('a')는 무엇을 확인하며, 수정 중인 코드에서는 jobs에 무엇이 먼저 저장되는지 추적해 볼까요?",
+        "nextCheck": "같은 id를 동시에 두 번 호출하고 두 버전의 실제 호출 횟수와 반환값을 각각 비교해 보세요.",
+        "experiment": {
+          "expression": "(async () => { let calls = 0; const run = createOnce(async id => { calls += 1; return id + ':' + calls; }); const values = await Promise.all([run('a'), run('a')]); return { calls, values }; })()"
+        }
+      },
+      "run": {
+        "id": "6b83f358-a9a1-4076-b100-8f75c6b7b158",
+        "operation": "review",
+        "promptVersion": "2026-09-20.coach.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 6716,
+        "inputTokens": 1175,
+        "cachedInputTokens": 0,
+        "outputTokens": 655,
+        "estimatedCostUsd": 0.001021,
+        "createdAt": "2026-09-19T17:12:25.336Z"
+      },
+      "experimentExecution": {
+        "original": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"calls\":2,\"values\":[\"a:1\",\"a:2\"]}"
+        },
+        "current": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"calls\":1,\"values\":[\"a:1\",\"a:1\"]}"
+        }
+      },
+      "semanticReview": null
+    },
+    {
+      "case": {
+        "id": "coercive-page",
+        "problem": "handoff-page-transfer",
+        "choice": "zero",
+        "reason": "빈 배열은 0페이지입니다. Number 변환이 문자열 입력도 안전하게 처리하니 고칠 필요는 없을 것 같습니다.",
+        "focus": "Distinguish original result prediction from invalid string coercion according to the contract.",
+        "actualExecution": {
+          "id": "prediction",
+          "status": "ok",
+          "actual": "0"
+        },
+        "input": {
+          "originalCode": "function paginate(items, page, size) {\n  size = Number(size) || 10;\n  page = Number(page) || 1;\n  return { items: items.slice((page - 1) * size, page * size), page, totalPages: Math.ceil(items.length / size) };\n}",
+          "currentCode": "function paginate(items, page, size) {\n  size = Number.isInteger(size) && size >= 1 && size <= 100 ? size : 10;\n  const totalPages = Math.max(1, Math.ceil(items.length / size));\n  page = Number.isInteger(page) ? page : 1;\n  page = Math.min(totalPages, Math.max(1, page));\n  return { items: items.slice((page - 1) * size, page * size), page, totalPages };\n}",
+          "lab": {
+            "question": "빈 목록의 페이지 수는 원본 코드에서 얼마로 계산될까요?",
+            "choices": [
+              {
+                "id": "one",
+                "label": "1페이지",
+                "output": "1"
+              },
+              {
+                "id": "zero",
+                "label": "0페이지",
+                "output": "0"
+              },
+              {
+                "id": "null",
+                "label": "값이 없음 (null)",
+                "output": "null"
+              }
+            ],
+            "probe": {
+              "id": "prediction",
+              "expression": "paginate([], 1, 10).totalPages",
+              "note": "화면에 필요한 최소 페이지와 현재 계산식의 결과를 구분하세요."
+            },
+            "reflection": "데이터가 없는 상태도 화면의 정상 상태입니다. 계산 결과와 화면의 약속이 일치하나요?",
+            "version": "2026-09-20.1",
+            "contract": "paginate(items, page, size)는 { items, page, totalPages }를 반환합니다. items는 배열입니다. page는 유한한 정수일 때만 사용하며 나머지는 1로 정규화합니다. size는 1~100 사이 정수만 사용하고 나머지는 10입니다. 문자열 숫자도 잘못된 입력으로 취급합니다.",
+            "checkpoints": [
+              {
+                "expression": "paginate([1,2,3], 99, 2)",
+                "expected": {
+                  "items": [
+                    3
+                  ],
+                  "page": 2,
+                  "totalPages": 2
+                },
+                "note": "마지막 페이지로 제한합니다.",
+                "id": "case-1"
+              },
+              {
+                "expression": "paginate([], -3, 0)",
+                "expected": {
+                  "items": [],
+                  "page": 1,
+                  "totalPages": 1
+                },
+                "note": "빈 목록에도 표시할 페이지 1이 존재합니다.",
+                "id": "case-2"
+              },
+              {
+                "expression": "(() => { const items = [1,2,3]; const result = paginate(items, '2', '1'); return { result, items }; })()",
+                "expected": {
+                  "result": {
+                    "items": [
+                      1,
+                      2,
+                      3
+                    ],
+                    "page": 1,
+                    "totalPages": 1
+                  },
+                  "items": [
+                    1,
+                    2,
+                    3
+                  ]
+                },
+                "note": "문자열을 숫자로 강제 변환하지 않습니다.",
+                "id": "case-3"
+              },
+              {
+                "expression": "paginate([1], NaN, 1.5)",
+                "expected": {
+                  "items": [
+                    1
+                  ],
+                  "page": 1,
+                  "totalPages": 1
+                },
+                "note": "비정상 숫자도 기본값으로 처리합니다.",
+                "id": "case-4"
+              }
+            ]
+          },
+          "training": {
+            "version": 1,
+            "prediction": {
+              "choice": "zero",
+              "reason": "빈 배열은 0페이지입니다. Number 변환이 문자열 입력도 안전하게 처리하니 고칠 필요는 없을 것 같습니다.",
+              "locked": true
+            },
+            "observation": {
+              "id": "prediction",
+              "status": "ok",
+              "actual": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "evidenceId": "prediction",
+        "observation": "브라우저에 표시된 결과는 `paginate([], 1, 10).totalPages`가 0이었습니다.",
+        "question": "빈 배열에서 원본 코드의 `Math.ceil(items.length / size)`가 왜 0이 되는지, 배열에 항목이 하나만 생기면 결과가 어떻게 달라지는지 추적해 볼 수 있을까요?",
+        "nextCheck": "원본 코드와 수정 중인 코드에서 각각 실행해 빈 배열과 항목 하나인 배열의 반환값을 비교해 보세요.",
+        "experiment": {
+          "expression": "(()=>{const empty=paginate([],1,10);const one=paginate([0],1,10);return {empty:{page:empty.page,totalPages:empty.totalPages,items:empty.items},one:{page:one.page,totalPages:one.totalPages,items:one.items}}})()"
+        }
+      },
+      "run": {
+        "id": "44339e17-7ea9-4e74-87d1-d5a40ea29608",
+        "operation": "review",
+        "promptVersion": "2026-09-20.coach.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 6296,
+        "inputTokens": 1186,
+        "cachedInputTokens": 0,
+        "outputTokens": 579,
+        "estimatedCostUsd": 0.000932,
+        "createdAt": "2026-09-19T17:12:32.071Z"
+      },
+      "experimentExecution": {
+        "original": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"empty\":{\"page\":1,\"totalPages\":0,\"items\":[]},\"one\":{\"page\":1,\"totalPages\":1,\"items\":[0]}}"
+        },
+        "current": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"empty\":{\"page\":1,\"totalPages\":1,\"items\":[]},\"one\":{\"page\":1,\"totalPages\":1,\"items\":[0]}}"
+        }
+      },
+      "semanticReview": null
+    },
+    {
+      "case": {
+        "id": "existing-loop-totals",
+        "problem": "handoff-total-transfer",
+        "choice": "preserved",
+        "reason": "두 반복문은 각각 해당 상태만 더하므로 기존 합계는 정상입니다.",
+        "focus": "Respect correct totals; inspect missing cancelled via JSON-safe public output without a false bug claim.",
+        "actualExecution": {
+          "id": "prediction",
+          "status": "ok",
+          "actual": "[100,50]"
+        },
+        "input": {
+          "originalCode": "function summarize(orders) {\n  let paid = 0;\n  for (const order of orders) if (order.status === 'paid') paid += order.amount;\n  let pending = 0;\n  for (const order of orders) if (order.status === 'pending') pending += order.amount;\n  return { paid, pending };\n}",
+          "currentCode": "function summarize(orders) {\n  const result = { paid: 0, pending: 0, cancelled: 0 };\n  for (const order of orders) result[order.status] += order.amount;\n  return result;\n}",
+          "lab": {
+            "question": "paid 100원, pending 50원, cancelled 20원을 넣으면 기존 두 합계는 얼마일까요?",
+            "choices": [
+              {
+                "id": "preserved",
+                "label": "paid 100, pending 50",
+                "output": "[100,50]"
+              },
+              {
+                "id": "cancel-added",
+                "label": "paid 120, pending 50",
+                "output": "[120,50]"
+              },
+              {
+                "id": "combined",
+                "label": "paid 170, pending 0",
+                "output": "[170,0]"
+              }
+            ],
+            "probe": {
+              "id": "prediction",
+              "expression": "(() => { const result = summarize([{status:'paid',amount:100},{status:'pending',amount:50},{status:'cancelled',amount:20}]); return [result.paid,result.pending]; })()",
+              "note": "현재 정상인 동작을 먼저 확인합니다. 기능 추가와 버그 수정을 혼동하지 마세요."
+            },
+            "reflection": "기존 합계가 정상이면 무엇을 유지해야 할까요? 취소 합계 추가는 기존 버그와 별개의 요구사항입니다.",
+            "version": "2026-09-20.1",
+            "contract": "summarize(orders)는 { paid, pending, cancelled }를 반환합니다. 각 주문은 status(paid, pending, cancelled 중 하나), 0 이상의 안전한 정수 amount(원 단위)를 가집니다. 합계도 안전한 정수입니다. 기존 paid와 pending 합산은 정상입니다. 입력을 변경하지 않습니다.",
+            "checkpoints": [
+              {
+                "expression": "summarize([{status:'paid',amount:100},{status:'pending',amount:50},{status:'cancelled',amount:20},{status:'paid',amount:30}])",
+                "expected": {
+                  "paid": 130,
+                  "pending": 50,
+                  "cancelled": 20
+                },
+                "note": "기존 합계와 새 합계를 구분합니다.",
+                "id": "case-1"
+              },
+              {
+                "expression": "summarize([])",
+                "expected": {
+                  "paid": 0,
+                  "pending": 0,
+                  "cancelled": 0
+                },
+                "note": "빈 입력의 기본값을 유지합니다.",
+                "id": "case-2"
+              },
+              {
+                "expression": "(() => { const orders = [{status:'paid',amount:0}]; const before = JSON.stringify(orders); summarize(orders); return JSON.stringify(orders) === before; })()",
+                "expected": true,
+                "note": "입력을 수정하지 않습니다.",
+                "id": "case-3"
+              }
+            ]
+          },
+          "training": {
+            "version": 1,
+            "prediction": {
+              "choice": "preserved",
+              "reason": "두 반복문은 각각 해당 상태만 더하므로 기존 합계는 정상입니다.",
+              "locked": true
+            },
+            "observation": {
+              "id": "prediction",
+              "status": "ok",
+              "actual": "[100,50]"
+            }
+          }
+        }
+      },
+      "result": {
+        "evidenceId": "prediction",
+        "observation": "브라우저에 표시된 결과는 [100,50]이었고, 이는 예측과 일치합니다.",
+        "question": "각 반복문이 같은 orders를 독립적으로 처음부터 순회하므로 주문 순서가 바뀌어도 paid와 pending 합계가 유지되는 이유를 다음 실행으로 추적해 볼까요?",
+        "nextCheck": "같은 세 주문을 정방향과 역방향으로 각각 호출해 두 결과의 합계가 같은지 비교하세요.",
+        "experiment": {
+          "expression": "(() => { const orders = [{status:'paid',amount:100},{status:'pending',amount:50},{status:'cancelled',amount:20}]; const reversed = [...orders].reverse(); return { forward: summarize(orders), reversed: summarize(reversed) }; })()"
+        }
+      },
+      "run": {
+        "id": "ff6d18e2-7c09-4966-81a3-80b3805273a6",
+        "operation": "review",
+        "promptVersion": "2026-09-20.coach.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 6016,
+        "inputTokens": 1179,
+        "cachedInputTokens": 0,
+        "outputTokens": 556,
+        "estimatedCostUsd": 0.000903,
+        "createdAt": "2026-09-19T17:12:38.380Z"
+      },
+      "experimentExecution": {
+        "original": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"forward\":{\"paid\":100,\"pending\":50},\"reversed\":{\"paid\":100,\"pending\":50}}"
+        },
+        "current": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"forward\":{\"paid\":100,\"pending\":50,\"cancelled\":20},\"reversed\":{\"paid\":100,\"pending\":50,\"cancelled\":20}}"
+        }
+      },
+      "semanticReview": null
+    },
+    {
+      "case": {
+        "id": "incomplete-current-source",
+        "problem": "handoff-cart",
+        "choice": "shared",
+        "reason": "같은 객체를 수정합니다. 복사를 구현하는 중입니다.",
+        "currentCode": "function changeQuantity(items, id, delta) {",
+        "focus": "Do not replace the incomplete implementation. Original experiment should execute, current should retain syntax error.",
+        "actualExecution": {
+          "id": "prediction",
+          "status": "ok",
+          "actual": "[3,3]"
+        },
+        "input": {
+          "originalCode": "function changeQuantity(items, id, delta) {\n  const item = items.find(item => item.id === id);\n  if (item) item.quantity += delta;\n  return items;\n}",
+          "currentCode": "function changeQuantity(items, id, delta) {",
+          "lab": {
+            "question": "수량을 1 늘린 뒤, 원본과 반환값의 수량은 각각 얼마일까요?",
+            "choices": [
+              {
+                "id": "preserved",
+                "label": "원본 2, 반환값 3",
+                "output": "[2,3]"
+              },
+              {
+                "id": "shared",
+                "label": "원본 3, 반환값 3",
+                "output": "[3,3]"
+              },
+              {
+                "id": "unchanged",
+                "label": "원본 2, 반환값 2",
+                "output": "[2,2]"
+              }
+            ],
+            "probe": {
+              "id": "prediction",
+              "expression": "(() => { const items = [{id:'a', quantity:2}]; const next = changeQuantity(items, 'a', 1); return [items[0].quantity, next[0].quantity]; })()",
+              "note": "같은 항목을 두 배열에서 읽습니다. [원본 수량, 반환 수량] 순서입니다."
+            },
+            "reflection": "배열과 내부 객체의 참조를 따로 따라가 보세요. 바꾸지 않은 항목까지 복사해야 할까요?",
+            "version": "2026-09-20.1",
+            "contract": "changeQuantity(items, id, delta)는 새 배열을 반환합니다. items는 고유한 문자열 id와 0 이상의 정수 quantity를 가진 객체 배열입니다. delta는 정수이며 합계는 안전한 정수 범위입니다. 항목의 다른 필드는 보존합니다.",
+            "checkpoints": [
+              {
+                "expression": "(() => { const items = [{id:'a', quantity:2, label:'상품'}]; const next = changeQuantity(items, 'a', 1); return { before:items[0].quantity, after:next[0].quantity, label:next[0].label, copied:next !== items && next[0] !== items[0] }; })()",
+                "expected": {
+                  "before": 2,
+                  "after": 3,
+                  "label": "상품",
+                  "copied": true
+                },
+                "note": "원본과 추가 필드를 보존합니다.",
+                "id": "case-1"
+              },
+              {
+                "expression": "changeQuantity([{id:'a',quantity:1},{id:'b',quantity:2}], 'a', -5)",
+                "expected": [
+                  {
+                    "id": "b",
+                    "quantity": 2
+                  }
+                ],
+                "note": "대상 항목의 수량이 소진되면 제거합니다.",
+                "id": "case-2"
+              },
+              {
+                "expression": "changeQuantity([{id:'a',quantity:0}], 'missing', 3)",
+                "expected": [
+                  {
+                    "id": "a",
+                    "quantity": 0
+                  }
+                ],
+                "note": "관계없는 0개 항목은 제거하지 않습니다.",
+                "id": "case-3"
+              }
+            ]
+          },
+          "training": {
+            "version": 1,
+            "prediction": {
+              "choice": "shared",
+              "reason": "같은 객체를 수정합니다. 복사를 구현하는 중입니다.",
+              "locked": true
+            },
+            "observation": {
+              "id": "prediction",
+              "status": "ok",
+              "actual": "[3,3]"
+            }
+          }
+        }
+      },
+      "result": {
+        "evidenceId": "prediction",
+        "observation": "브라우저에 표시된 결과는 [3,3]이었고, 학습자는 같은 객체가 수정되었다고 설명했습니다.",
+        "question": "[3,3]만으로는 배열까지 같은지 알 수 없습니다. 이 입력에서 items와 next가 같은 배열 참조인지, 그리고 각 배열의 첫 객체가 같은 참조인지 어떻게 확인할 수 있을까요?",
+        "nextCheck": "원본 코드와 수정 중인 코드에서 각각 아래 실험을 실행해 수량과 배열·객체 참조의 관계를 비교해 보세요.",
+        "experiment": {
+          "expression": "(() => { try { const items = [{id:'a', quantity:2}]; const next = changeQuantity(items, 'a', 1); return {quantities:[items[0].quantity,next[0].quantity], sameArray:items===next, sameItem:items[0]===next[0]}; } catch (error) { return {error:String(error)}; } })()"
+        }
+      },
+      "run": {
+        "id": "404c87be-25d7-460f-9235-4f68a3b7309d",
+        "operation": "review",
+        "promptVersion": "2026-09-20.coach.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 6720,
+        "inputTokens": 1087,
+        "cachedInputTokens": 0,
+        "outputTokens": 652,
+        "estimatedCostUsd": 0.0009998,
+        "createdAt": "2026-09-19T17:12:44.415Z"
+      },
+      "experimentExecution": {
+        "original": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"quantities\":[3,3],\"sameArray\":true,\"sameItem\":true}"
+        },
+        "current": {
+          "id": "experiment",
+          "status": "error",
+          "actual": "unexpected token in expression: ''"
+        }
+      },
+      "semanticReview": null
+    },
+    {
+      "case": {
+        "id": "wrong-current-noop",
+        "problem": "handoff-cart",
+        "choice": "shared",
+        "reason": "수정 코드가 원본을 안 바꾸는지 먼저 확인하고 싶습니다.",
+        "currentCode": "function changeQuantity(items, id, delta) { return [...items]; }",
+        "focus": "Experiment calls actual no-op current implementation rather than supplying a repaired solution or fabricated pass.",
+        "actualExecution": {
+          "id": "prediction",
+          "status": "ok",
+          "actual": "[3,3]"
+        },
+        "input": {
+          "originalCode": "function changeQuantity(items, id, delta) {\n  const item = items.find(item => item.id === id);\n  if (item) item.quantity += delta;\n  return items;\n}",
+          "currentCode": "function changeQuantity(items, id, delta) { return [...items]; }",
+          "lab": {
+            "question": "수량을 1 늘린 뒤, 원본과 반환값의 수량은 각각 얼마일까요?",
+            "choices": [
+              {
+                "id": "preserved",
+                "label": "원본 2, 반환값 3",
+                "output": "[2,3]"
+              },
+              {
+                "id": "shared",
+                "label": "원본 3, 반환값 3",
+                "output": "[3,3]"
+              },
+              {
+                "id": "unchanged",
+                "label": "원본 2, 반환값 2",
+                "output": "[2,2]"
+              }
+            ],
+            "probe": {
+              "id": "prediction",
+              "expression": "(() => { const items = [{id:'a', quantity:2}]; const next = changeQuantity(items, 'a', 1); return [items[0].quantity, next[0].quantity]; })()",
+              "note": "같은 항목을 두 배열에서 읽습니다. [원본 수량, 반환 수량] 순서입니다."
+            },
+            "reflection": "배열과 내부 객체의 참조를 따로 따라가 보세요. 바꾸지 않은 항목까지 복사해야 할까요?",
+            "version": "2026-09-20.1",
+            "contract": "changeQuantity(items, id, delta)는 새 배열을 반환합니다. items는 고유한 문자열 id와 0 이상의 정수 quantity를 가진 객체 배열입니다. delta는 정수이며 합계는 안전한 정수 범위입니다. 항목의 다른 필드는 보존합니다.",
+            "checkpoints": [
+              {
+                "expression": "(() => { const items = [{id:'a', quantity:2, label:'상품'}]; const next = changeQuantity(items, 'a', 1); return { before:items[0].quantity, after:next[0].quantity, label:next[0].label, copied:next !== items && next[0] !== items[0] }; })()",
+                "expected": {
+                  "before": 2,
+                  "after": 3,
+                  "label": "상품",
+                  "copied": true
+                },
+                "note": "원본과 추가 필드를 보존합니다.",
+                "id": "case-1"
+              },
+              {
+                "expression": "changeQuantity([{id:'a',quantity:1},{id:'b',quantity:2}], 'a', -5)",
+                "expected": [
+                  {
+                    "id": "b",
+                    "quantity": 2
+                  }
+                ],
+                "note": "대상 항목의 수량이 소진되면 제거합니다.",
+                "id": "case-2"
+              },
+              {
+                "expression": "changeQuantity([{id:'a',quantity:0}], 'missing', 3)",
+                "expected": [
+                  {
+                    "id": "a",
+                    "quantity": 0
+                  }
+                ],
+                "note": "관계없는 0개 항목은 제거하지 않습니다.",
+                "id": "case-3"
+              }
+            ]
+          },
+          "training": {
+            "version": 1,
+            "prediction": {
+              "choice": "shared",
+              "reason": "수정 코드가 원본을 안 바꾸는지 먼저 확인하고 싶습니다.",
+              "locked": true
+            },
+            "observation": {
+              "id": "prediction",
+              "status": "ok",
+              "actual": "[3,3]"
+            }
+          }
+        }
+      },
+      "result": {
+        "evidenceId": "prediction",
+        "observation": "브라우저에 표시된 결과는 [3,3]으로, 원본과 반환값에서 모두 수량 3을 읽었습니다.",
+        "question": "가능성으로, 같은 배열인지와 같은 항목 객체인지가 섞여 있을 수 있습니다. 원본 코드에서 수량을 바꾼 뒤 반환된 배열과 항목이 각각 원본과 같은 참조인지 어떻게 추적할 수 있을까요?",
+        "nextCheck": "아래 실험을 원본 코드와 수정 중인 코드에서 각각 실행해, 수량 변화와 배열·항목 참조의 차이를 비교해 보세요.",
+        "experiment": {
+          "expression": "(() => { const items = [{id:'a', quantity:2}]; const before = items[0].quantity; const next = changeQuantity(items, 'a', 1); return {before, originalQuantity: items[0].quantity, returnedQuantity: next[0].quantity, sameArray: next === items, sameItem: next[0] === items[0]}; })()"
+        }
+      },
+      "run": {
+        "id": "7e77384d-265c-4001-840e-344cd5bf4169",
+        "operation": "review",
+        "promptVersion": "2026-09-20.coach.3",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 6588,
+        "inputTokens": 1096,
+        "cachedInputTokens": 0,
+        "outputTokens": 667,
+        "estimatedCostUsd": 0.0010196,
+        "createdAt": "2026-09-19T17:12:51.146Z"
+      },
+      "experimentExecution": {
+        "original": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"before\":2,\"originalQuantity\":3,\"returnedQuantity\":3,\"sameArray\":true,\"sameItem\":true}"
+        },
+        "current": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "{\"before\":2,\"originalQuantity\":2,\"returnedQuantity\":2,\"sameArray\":false,\"sameItem\":true}"
+        }
+      },
+      "semanticReview": null
+    }
+  ],
+  "limitations": "Author-created diagnostic cases and agent review, not independent labels or proof of learning effectiveness."
+}

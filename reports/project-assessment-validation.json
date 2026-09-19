@@ -1,0 +1,54 @@
+{
+  "date": "2026-09-19",
+  "scope": "Project explanation assessment grounding",
+  "rubricVersion": "evidence-v1",
+  "unit": {
+    "files": 4,
+    "passed": 27,
+    "realProviderCalls": 0
+  },
+  "browser": {
+    "scenarios": 1,
+    "browsers": ["chromium", "firefox", "webkit"],
+    "passed": 3,
+    "seconds": 18.2,
+    "retries": 0,
+    "widths": [320, 390, 1440],
+    "axeViolations": 0,
+    "manualScreenshotInspection": ["chromium"],
+    "screenReaderListening": false
+  },
+  "liveEvaluation": {
+    "casesPrepared": 12,
+    "calls": 60,
+    "status": "completed with user approval",
+    "v1LunaPassed": 23,
+    "v1LunaCalls": 24,
+    "v1TerraPassed": 9,
+    "v1TerraCalls": 12,
+    "v2LunaPassed": 24,
+    "v2LunaCalls": 24,
+    "independentBenchmark": false,
+    "report": "reports/project-assessment-comparison.json"
+  },
+  "limitations": [
+    "Exact quotation validation does not prove semantic correctness",
+    "Scoring remains dependent on model-selected evidence",
+    "Output budget increased from 4200 to 6500; actual latency and usage not yet measured",
+    "No learning efficacy or SOTA claim"
+  ],
+  "committed": false,
+  "deployed": false,
+  "currentRubricVersion": "evidence-v2",
+  "currentValidation": {
+    "rubricVersion": "evidence-v2",
+    "unitFiles": 5,
+    "unitPassed": 38,
+    "productionBuild": "passed",
+    "typecheck": "passed",
+    "changedFileEslint": "passed",
+    "browserRerun": false,
+    "browserReason": "No UI structure changes; prior UI verification retained",
+    "postLiveChange": "Internal reference display conversion, covered by unit tests"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-19",
+  "design": "12 authored regression cases; Luna twice per protocol, Terra once on v1. Not independent holdout or efficacy study. v2 repetitions overlapped in time.",
+  "runs": [
+    {
+      "file": "reports/project-assessment-gpt-5.6-luna-1789750108024.json",
+      "model": "gpt-5.6-luna",
+      "rubric": "evidence-v1",
+      "passed": 11,
+      "calls": 12,
+      "costUsd": 0.01651,
+      "medianMs": 9120,
+      "inputTokens": 13473,
+      "outputTokens": 11513
+    },
+    {
+      "file": "reports/project-assessment-gpt-5.6-luna-1789750254048.json",
+      "model": "gpt-5.6-luna",
+      "rubric": "evidence-v1",
+      "passed": 12,
+      "calls": 12,
+      "costUsd": 0.012952,
+      "medianMs": 8002,
+      "inputTokens": 13473,
+      "outputTokens": 10563
+    },
+    {
+      "file": "reports/project-assessment-gpt-5.6-luna-1789750480445.json",
+      "model": "gpt-5.6-luna",
+      "rubric": "evidence-v2",
+      "passed": 12,
+      "calls": 12,
+      "costUsd": 0.014775,
+      "medianMs": 9130,
+      "inputTokens": 15411,
+      "outputTokens": 11325
+    },
+    {
+      "file": "reports/project-assessment-gpt-5.6-luna-1789750481692.json",
+      "model": "gpt-5.6-luna",
+      "rubric": "evidence-v2",
+      "passed": 12,
+      "calls": 12,
+      "costUsd": 0.015595,
+      "medianMs": 9162,
+      "inputTokens": 15411,
+      "outputTokens": 10969
+    },
+    {
+      "file": "reports/project-assessment-gpt-5.6-terra-1789750230469.json",
+      "model": "gpt-5.6-terra",
+      "rubric": "evidence-v1",
+      "passed": 9,
+      "calls": 12,
+      "costUsd": 0.136134,
+      "medianMs": 9606,
+      "inputTokens": 13473,
+      "outputTokens": 9099
+    }
+  ],
+  "totalCalls": 60,
+  "totalEstimatedCostUsd": 0.195966
+}

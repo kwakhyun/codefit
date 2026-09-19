@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-19T12:26:26.192Z",
+  "status": "passed",
+  "calls": 2,
+  "estimatedCostUsd": 0.023251,
+  "runs": [
+    {
+      "id": "8e5d1ec4-5275-4d08-a9ce-8d8574c9e787",
+      "operation": "project",
+      "promptVersion": "2026-09-18.project.analysis.1",
+      "model": "gpt-5.6-sol",
+      "outcome": "success",
+      "latencyMs": 14717,
+      "inputTokens": 826,
+      "cachedInputTokens": 0,
+      "outputTokens": 869,
+      "estimatedCostUsd": 0.020684,
+      "createdAt": "2026-09-19T12:26:00.154Z"
+    },
+    {
+      "id": "ce710f82-782a-4aef-ab77-04f6d3664f68",
+      "operation": "project",
+      "promptVersion": "2026-09-19.project.assessment.evidence-v2",
+      "model": "gpt-5.6-luna",
+      "outcome": "success",
+      "latencyMs": 11290,
+      "inputTokens": 2233,
+      "cachedInputTokens": 0,
+      "outputTokens": 1767,
+      "estimatedCostUsd": 0.002567,
+      "createdAt": "2026-09-19T12:26:14.873Z"
+    }
+  ],
+  "sourceHash": "a05b6a164c83988b4c3bf1cb6f3ccb5d041ddada3464015783682c4618d12a85",
+  "fixtureHash": "de6f56e1d1bc414e6d4bcbd96de5aee64d695c416a584df08f344451eefdae6a",
+  "limitations": "Synthetic page snapshot (no public URL fetch), two actual provider calls, local service and two isolated SQLite databases. Functional integration only, not independent scoring accuracy, real-user learning benefit or SOTA evidence."
+}

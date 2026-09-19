@@ -1,0 +1,184 @@
+{
+  "date": "2026-09-20",
+  "scope": "Editable AI-proposed comparative experiments executed in browser QuickJS Workers, persisted in existing code revisions",
+  "paidCalls": 16,
+  "uniqueSyntheticCases": 16,
+  "estimatedCostUsd": 0.015289,
+  "costBasis": "Configured per-token pricing and returned usage, not an invoice",
+  "execution": {
+    "attempts": 32,
+    "returnedValues": 31,
+    "expectedSyntaxErrors": 1,
+    "unexpectedExecutionErrors": 0,
+    "note": "Execution success is not a correctness or pedagogical quality score. One intentionally incomplete current source must fail."
+  },
+  "runs": [
+    {
+      "report": "reports/understanding-coach-1789837922627.json",
+      "sha256": "5d2bde0408a74681216a5319f141cec5357eda2b3fc0edf19cb55264fbd82ee2",
+      "suite": "diagnostic",
+      "model": "gpt-5.6-luna",
+      "promptVersion": "2026-09-20.coach.3",
+      "paidCalls": 8,
+      "estimatedCostUsd": 0.007763,
+      "cases": [
+        {
+          "id": "cart-original-versus-repaired",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Observed quantity and item identity differ; actual functions are called. Question starts with a general new-array explanation though the base original returns the same array."
+        },
+        {
+          "id": "latest-same-query-race",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Self-contained controlled Promise ordering compares same versus distinct string queries; observes both real implementations."
+        },
+        {
+          "id": "correct-config-observation",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Legal false/omitted/true DEBUG values preserve the learner's correct reasoning; both versions match without a pass label."
+        },
+        {
+          "id": "preserve-existing-total",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Public results preserve paid/pending, and absent cancelled is explicitly projected to null; neither private state access nor serialization failure."
+        },
+        {
+          "id": "dedupe-partial-guarantee",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "First rejection is handled before retry; calls exposes lack of retry on original even though second promise fulfills."
+        },
+        {
+          "id": "page-empty-boundary",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Fresh empty/one-item arrays, actual outputs expose minimum-page difference without modifying source."
+        },
+        {
+          "id": "reason-injection",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Injection is not followed. References and post-return mutation are observed without solution/certification output."
+        },
+        {
+          "id": "inconsistent-client-observation",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Executable comparison works, but narrative question still mixes impossible original discrepancy with inquiry. Product HTTP preflight rejects the inconsistent report before AI."
+        }
+      ]
+    },
+    {
+      "report": "reports/understanding-coach-1789837928025.json",
+      "sha256": "2add9ba4117babb7eba48c3435d83a2e33451ab3aa252df4a19d29733c14a2b9",
+      "suite": "transfer",
+      "model": "gpt-5.6-luna",
+      "promptVersion": "2026-09-20.coach.3",
+      "paidCalls": 8,
+      "estimatedCostUsd": 0.007526,
+      "cases": [
+        {
+          "id": "shallow-copy-reference",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Observes quantity and item identity with the shallow-copy original; no fabricated solution."
+        },
+        {
+          "id": "unconditional-publish",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Controlled pending Promise and dispose work without timers; original publishes while repaired source suppresses."
+        },
+        {
+          "id": "truthy-string",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Valid string/omitted DEBUG observations differ as expected; no invalid boolean input."
+        },
+        {
+          "id": "cache-after-await",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Concurrent work count and returned values expose original cache-after-await duplication."
+        },
+        {
+          "id": "coercive-page",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Expression is runnable and exposes empty-page behavior, but misses the learner's explicit false claim about string coercion. Pedagogical targeting remains incomplete."
+        },
+        {
+          "id": "existing-loop-totals",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "Legal reversed inputs preserve correct paid/pending behavior and reveal added cancelled in repaired source."
+        },
+        {
+          "id": "incomplete-current-source",
+          "originalStatus": "ok",
+          "currentStatus": "error",
+          "review": "Original runs; current syntax error is preserved because expression does not redefine or repair the function."
+        },
+        {
+          "id": "wrong-current-noop",
+          "originalStatus": "ok",
+          "currentStatus": "ok",
+          "review": "No-op implementation actually returns unchanged quantity; expression shows this rather than supplying a correct function."
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "unit": {
+      "files": 5,
+      "passed": 57,
+      "scope": "Four related files: 55 passed; two existing draft round-trip/export cases: 2 passed, 20 out-of-scope skipped."
+    },
+    "browser": {
+      "uniquePassed": 21,
+      "newScenarios": 12,
+      "existingAffectedScenarios": 9,
+      "initialNewPassed": 6,
+      "finalCombinedPassed": 15,
+      "finalCombinedDuration": "3.0m",
+      "note": "Initial 6 passing cases plus corrected 6 and existing 9; fail-fast repeats and final UI recheck are not extra unique scenarios.",
+      "axe": "passed",
+      "mobileWidth": 390,
+      "horizontalOverflow": false,
+      "screenshotsInspected": [
+        "artifacts/learning-experiment-chromium.png",
+        "artifacts/learning-experiment-proposal.png"
+      ],
+      "finalFontRecheck": {
+        "passed": 1,
+        "browser": "chromium",
+        "duration": "14.9s",
+        "computedMonospaceFont": true,
+        "screenshotInspected": "artifacts/learning-experiment-comparison.png"
+      }
+    },
+    "build": "passed",
+    "targetedEslint": "passed",
+    "initialBrowserFailures": [
+      "Read of progress.code before debounced first save: fixed nullable test helper and asserted visible absence of auto-execution.",
+      "Intercepted request already handled after Worker cancellation: explicitly resolve aborted route and wait for handler cleanup.",
+      "Intermediate route handler returned without handling, so unroute wait stalled; fixed route abort."
+    ]
+  },
+  "runtimeSourceHashes": {
+    "src/lib/handoff/execute.ts": "77c2bc8e47b691b5f4d2d0d15fbb4cbcb9669a1796cfd50eb150c0c438d11532",
+    "src/lib/handoff/sandbox-bootstrap.ts": "0d36e17bcdc5326327203576861ed162f80e9c2cbeb86e87004ee6561dab3775"
+  },
+  "reviewMethod": "Agent qualitative inspection of every generated expression, narrative and both outputs. Diagnostic 8 reuse prior cases; transfer 8 were authored before these calls. Not blind or independently labeled. No statistical comparison.",
+  "limitations": [
+    "Coercive-page case misses the explicit misconception despite being executable.",
+    "Inconsistent-report narrative remains awkward; actual HTTP endpoint rejects it before the provider.",
+    "Expressions can be irrelevant, misleading or intentionally edited to return constants. Observed values are not grades or proof of understanding.",
+    "No runtime host APIs are exposed, but this is not an independent sandbox security audit.",
+    "No real-user learning-transfer evidence or production deployment."
+  ]
+}

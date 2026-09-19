@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-19",
+  "scope": "immutable project learning curriculum snapshots",
+  "tests": {
+    "unitFiles": 3,
+    "unitPassed": 19,
+    "browserScenarios": 2,
+    "browsers": ["chromium", "firefox", "webkit"],
+    "browserPassed": 6,
+    "durationSeconds": 33.2,
+    "retries": 0
+  },
+  "snapshotUtf8Bytes": 10330,
+  "legacyV1ContentId": "6983bc2c9faa3434428b0570d406268999f179512e610df29fbaa8ac3e39d67f",
+  "checks": ["production build", "TypeScript", "changed-source ESLint"],
+  "postgres": "shared contract added; not executed without isolated test database",
+  "liveAiCalls": 0,
+  "limitations": [
+    "No evidence of learning efficacy or SOTA",
+    "Hash is not protection against a database writer",
+    "Legacy submissions require the original v1 content or explicit migration",
+    "Snapshot covers probes and keys, not the entire practice engine"
+  ],
+  "committed": false,
+  "deployed": false
+}

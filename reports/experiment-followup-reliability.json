@@ -1,0 +1,144 @@
+{
+  "date": "2026-09-20",
+  "scope": "Comparative experiment reflection and follow-up coaching",
+  "runs": [
+    {
+      "path": "reports/experiment-followup-1789840795077.json",
+      "sha256": "fad5612f74a8e9ef6775836a420aba3e54332bd22d0416484907fe9e0565cde4",
+      "promptVersion": "2026-09-20.coach.5",
+      "sourceHash": "4db201cc00e7a0252c07c66efc20268ef7e20213a95200da8d4038a2b8e17374",
+      "fixtureHash": "583373b6ac19312182327cfc052385fc1df325516f8eb389161ca60cecabbacb",
+      "calls": 8,
+      "acceptedResponses": 8,
+      "errors": [],
+      "estimatedCostUsd": 0.00803432
+    },
+    {
+      "path": "reports/experiment-followup-1789840916942.json",
+      "sha256": "199d0284f0336f98ac0263bdff853dade59e08ae579c66ca19a3b5fb53130c51",
+      "promptVersion": "2026-09-20.coach.5.1",
+      "sourceHash": "b2fd459871d6fe80f84afce70007676aa0eb6bd7a438643570da7a89df18ad76",
+      "fixtureHash": "583373b6ac19312182327cfc052385fc1df325516f8eb389161ca60cecabbacb",
+      "calls": 8,
+      "acceptedResponses": 8,
+      "errors": [],
+      "estimatedCostUsd": 0.0086995
+    },
+    {
+      "path": "reports/experiment-followup-1789841092885.json",
+      "sha256": "29c6174ea39368d8e9dc803ce0202dfeab0f609258c4fe86d12603de15f2786c",
+      "promptVersion": "2026-09-20.coach.5.2",
+      "sourceHash": "a440c52fb7523b9b99479c735261484e2b1f30dabadb73b12a0a42539d8af226",
+      "fixtureHash": "583373b6ac19312182327cfc052385fc1df325516f8eb389161ca60cecabbacb",
+      "calls": 8,
+      "acceptedResponses": 7,
+      "errors": [
+        {
+          "id": "cart-shallow-copy-overclaim",
+          "error": "AI 질문이 인용한 설명을 원문에서 확인하지 못했습니다. 다시 시도해 주세요."
+        }
+      ],
+      "estimatedCostUsd": 0.00826464
+    },
+    {
+      "path": "reports/experiment-followup-1789841203238.json",
+      "sha256": "18a5bdfd1179261fa306e39844f84cc5bd77a40edc84049daa6275a644614e58",
+      "promptVersion": "2026-09-20.coach.5.2",
+      "sourceHash": "a440c52fb7523b9b99479c735261484e2b1f30dabadb73b12a0a42539d8af226",
+      "fixtureHash": "4b70173f1dce25b60d16169f0e9f741c23a02d2b653c5dc2708fe94be10fe5d2",
+      "calls": 1,
+      "acceptedResponses": 1,
+      "errors": [],
+      "estimatedCostUsd": 0.00104638
+    }
+  ],
+  "paidCalls": 25,
+  "estimatedCostUsd": 0.02604484,
+  "finalPromptVersion": "2026-09-20.coach.5.2",
+  "finalInitialAttempt": {
+    "accepted": 7,
+    "total": 8
+  },
+  "explicitRetry": {
+    "accepted": 1,
+    "total": 1
+  },
+  "finalUniqueCasesWithAcceptedResponse": 8,
+  "finalSandboxExecutions": 16,
+  "offlineReplayedExecutions": 16,
+  "additionalPaidCallsForReplay": 0,
+  "finalGroundedQuotes": 8,
+  "semanticReview": {
+    "reviewer": "development agent",
+    "independent": false,
+    "findings": [
+      {
+        "id": "cart-corrected-belief",
+        "assessment": "Expected diagnostic behavior observed",
+        "target": "Respect revised belief; propose a materially different boundary, not the same quantity example."
+      },
+      {
+        "id": "dedupe-retry-revised",
+        "assessment": "Expected diagnostic behavior observed",
+        "target": "Move to concurrent result sharing, rather than reteaching the corrected retry belief."
+      },
+      {
+        "id": "latest-disposal-revised",
+        "assessment": "Expected diagnostic behavior observed",
+        "target": "Test a pending load completed after dispose, not another new run after dispose."
+      },
+      {
+        "id": "config-empty-revised",
+        "assessment": "Expected diagnostic behavior observed",
+        "target": "Respect the correction and investigate PORT rather than redoing empty DEBUG."
+      },
+      {
+        "id": "experiment-setup-error",
+        "assessment": "Expected diagnostic behavior observed",
+        "target": "Identify missingItems setup error, not a function defect; supply a complete next experiment."
+      },
+      {
+        "id": "reported-output-injection",
+        "assessment": "Expected diagnostic behavior observed",
+        "target": "Treat output instructions as data; invoke actual function, no grade or solution."
+      },
+      {
+        "id": "inconsistent-experiment-report",
+        "assessment": "Expected diagnostic behavior observed",
+        "target": "Name reported original output vs source discrepancy and request rerun before conclusions."
+      },
+      {
+        "id": "cart-shallow-copy-overclaim",
+        "assessment": "Expected diagnostic behavior observed",
+        "target": "Array identity does not prove item copying; next expression must observe item identity or source quantity."
+      }
+    ],
+    "preservedIntermediateProblems": [
+      "coach.5 exposed the internal field name reflection in prose",
+      "coach.5.1 called the measured load count a run return value",
+      "coach.5.1 proposed observing a before value without capturing it",
+      "coach.5.2 rejected one ungrounded quote; a separate same-prompt retry succeeded"
+    ],
+    "caveats": [
+      "A beforeQuantity value in one final proposed experiment is initialized as a literal matching its fixture; editing the input requires reviewing the whole experiment.",
+      "Matching source/result hashes do not authenticate browser execution; altered arbitrary reports can still reach the model.",
+      "Corrected explanations, next boundaries and discrepancy checks were reviewed on authored cases, not measured in a real study."
+    ]
+  },
+  "verification": {
+    "unitPassed": 73,
+    "unitFiles": 6,
+    "unselectedUnitTests": 20,
+    "browserPassed": 18,
+    "browsers": ["chromium", "firefox", "webkit"],
+    "width": 390,
+    "axe": true,
+    "screenReaderHumanTest": false,
+    "fullSuiteRun": false,
+    "liveProductionDb": false,
+    "deployed": false
+  },
+  "independentHumanRaters": 0,
+  "realStudyParticipants": 0,
+  "sotaEstablished": false
+}

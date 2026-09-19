@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-19",
+  "scope": "durable project history navigation, session recovery and distinct analysis intents",
+  "environment": {
+    "node": "22.21.0",
+    "next": "16.3.4",
+    "playwright": "1.63.0",
+    "database": "isolated local SQLite artifacts/e2e.sqlite",
+    "build": "production",
+    "paidAiCalls": 0,
+    "productionDatabaseWrites": 0
+  },
+  "unitTests": {
+    "files": 5,
+    "passed": 25
+  },
+  "browserTests": {
+    "browsers": ["Chromium", "Firefox", "WebKit"],
+    "scenariosPerBrowser": 6,
+    "passed": 18,
+    "finalLayoutSubsetRerun": 3,
+    "rerunIsSubset": true
+  },
+  "checks": {
+    "productionBuild": "passed",
+    "changedFileEslint": "passed",
+    "changedFilePrettier": "passed",
+    "gitDiffCheck": "passed"
+  },
+  "postgres": "not run locally; shared pagination contract added to existing PostgreSQL test suite",
+  "sotaEstablished": false,
+  "limitations": [
+    "No independent human assessment or user learning study",
+    "No paid model calls",
+    "No full regression suite or production performance measurement",
+    "Pending analysis request IDs remain in component memory; cross-reload recovery is outside this change"
+  ]
+}

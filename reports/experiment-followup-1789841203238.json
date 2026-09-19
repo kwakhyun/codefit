@@ -1,0 +1,169 @@
+{
+  "measuredAt": "2026-09-19T18:06:51.922Z",
+  "promptVersion": "2026-09-20.coach.5.2",
+  "sourceHash": "a440c52fb7523b9b99479c735261484e2b1f30dabadb73b12a0a42539d8af226",
+  "fixtureHash": "4b70173f1dce25b60d16169f0e9f741c23a02d2b653c5dc2708fe94be10fe5d2",
+  "total": 1,
+  "completed": 1,
+  "complete": true,
+  "entries": [
+    {
+      "fixture": {
+        "id": "cart-shallow-copy-overclaim",
+        "target": "Array identity does not prove item copying; next expression must observe item identity or source quantity.",
+        "actualOriginalExecution": {
+          "id": "experiment",
+          "status": "ok",
+          "actual": "true"
+        },
+        "input": {
+          "originalCode": "function changeQuantity(items, id, delta) {\n  const item = items.find(item => item.id === id);\n  if (item) item.quantity += delta;\n  return items;\n}",
+          "currentCode": "function changeQuantity(items,id,delta){const next=[...items];const item=next.find(x=>x.id===id);if(item)item.quantity+=delta;return next;}",
+          "lab": {
+            "question": "수량을 1 늘린 뒤, 원본과 반환값의 수량은 각각 얼마일까요?",
+            "choices": [
+              {
+                "id": "preserved",
+                "label": "원본 2, 반환값 3",
+                "output": "[2,3]"
+              },
+              {
+                "id": "shared",
+                "label": "원본 3, 반환값 3",
+                "output": "[3,3]"
+              },
+              {
+                "id": "unchanged",
+                "label": "원본 2, 반환값 2",
+                "output": "[2,2]"
+              }
+            ],
+            "probe": {
+              "id": "prediction",
+              "expression": "(() => { const items = [{id:'a', quantity:2}]; const next = changeQuantity(items, 'a', 1); return [items[0].quantity, next[0].quantity]; })()",
+              "note": "같은 항목을 두 배열에서 읽습니다. [원본 수량, 반환 수량] 순서입니다."
+            },
+            "reflection": "배열과 내부 객체의 참조를 따로 따라가 보세요. 바꾸지 않은 항목까지 복사해야 할까요?",
+            "version": "2026-09-20.1",
+            "contract": "changeQuantity(items, id, delta)는 새 배열을 반환합니다. items는 고유한 문자열 id와 0 이상의 정수 quantity를 가진 객체 배열입니다. delta는 정수이며 합계는 안전한 정수 범위입니다. 항목의 다른 필드는 보존합니다.\n일치하는 항목의 수량만 delta만큼 바꾸되 입력 배열과 객체는 변경하지 않는다. 새 수량은 0보다 작지 않다.\n새 수량이 0인 대상 항목은 제거한다. 존재하지 않는 id는 내용 변경 없이 반환한다.",
+            "checkpoints": [
+              {
+                "expression": "(() => { const items = [{id:'a', quantity:2, label:'상품'}]; const next = changeQuantity(items, 'a', 1); return { before:items[0].quantity, after:next[0].quantity, label:next[0].label, copied:next !== items && next[0] !== items[0] }; })()",
+                "expected": {
+                  "before": 2,
+                  "after": 3,
+                  "label": "상품",
+                  "copied": true
+                },
+                "note": "원본과 추가 필드를 보존합니다.",
+                "id": "case-1"
+              },
+              {
+                "expression": "changeQuantity([{id:'a',quantity:1},{id:'b',quantity:2}], 'a', -5)",
+                "expected": [
+                  {
+                    "id": "b",
+                    "quantity": 2
+                  }
+                ],
+                "note": "대상 항목의 수량이 소진되면 제거합니다.",
+                "id": "case-2"
+              },
+              {
+                "expression": "changeQuantity([{id:'a',quantity:0}], 'missing', 3)",
+                "expected": [
+                  {
+                    "id": "a",
+                    "quantity": 0
+                  }
+                ],
+                "note": "관계없는 0개 항목은 제거하지 않습니다.",
+                "id": "case-3"
+              }
+            ]
+          },
+          "evidence": "experiment",
+          "training": {
+            "version": 1,
+            "prediction": {
+              "choice": "shared",
+              "reason": "배열을 복사하면 항목도 복사됩니다.",
+              "locked": true
+            },
+            "observation": {
+              "id": "prediction",
+              "status": "ok",
+              "actual": "[3,3]"
+            },
+            "observationSource": "44f62d0ac21579192a970b59a90ff8a5f870d1c443b1cc56117327b7c79d83ab",
+            "experiment": {
+              "expression": "(() => { const xs=[{id:'a',quantity:2}]; const ys=changeQuantity(xs,'a',1); return xs===ys; })()",
+              "prediction": "배열을 복사하면 항목도 복사됩니다.",
+              "run": {
+                "expression": "(() => { const xs=[{id:'a',quantity:2}]; const ys=changeQuantity(xs,'a',1); return xs===ys; })()",
+                "prediction": "배열을 복사하면 항목도 복사됩니다.",
+                "sourceHash": "44f62d0ac21579192a970b59a90ff8a5f870d1c443b1cc56117327b7c79d83ab",
+                "codeHash": "952b8cc25b77422fdaf523252f642271ac502c965b52f845dc369443db7c528e",
+                "suiteVersion": "2026-09-20.1",
+                "original": {
+                  "id": "experiment",
+                  "status": "ok",
+                  "actual": "true"
+                },
+                "current": {
+                  "id": "experiment",
+                  "status": "ok",
+                  "actual": "false"
+                }
+              },
+              "reflection": {
+                "text": "수정 코드가 false를 반환했으므로 항목 객체도 복사되어 원본 수량은 보존됩니다.",
+                "runHash": "4c0a0c00a8477fe10c09dbe2b419a7ba07d4b9d810721d6c7bbf0e84602fb171"
+              }
+            }
+          }
+        }
+      },
+      "reply": {
+        "evidenceId": "experiment",
+        "observation": "실험 결과에서 원본 코드의 배열 비교는 true, 수정 중인 코드의 배열 비교는 false였습니다. 이 비교는 배열 참조만 확인하고 항목 객체의 참조는 확인하지 않습니다.",
+        "question": "가능한 혼동은 배열 참조가 다르다는 사실을 항목 객체도 복사되었다는 뜻으로 본 점입니다. `item`과 `ys[0]`의 참조 및 호출 전후 수량을 함께 추적하면 어떻게 될까요?",
+        "nextCheck": "같은 항목 객체를 배열에 넣고 호출한 뒤, 배열 참조·항목 참조·원본 수량·반환 수량을 원본 코드와 수정 중인 코드에서 각각 비교해 보세요.",
+        "experiment": {
+          "expression": "(() => { const item = {id:'a', quantity:2}; const xs = [item]; const before = item.quantity; const ys = changeQuantity(xs, 'a', 1); return {arraySame: xs === ys, itemSame: item === ys[0], before, originalQuantity: item.quantity, returnedQuantity: ys[0].quantity}; })()"
+        },
+        "focus": {
+          "learnerQuote": "수정 코드가 false를 반환했으므로 항목 객체도 복사되어 원본 수량은 보존됩니다.",
+          "goal": "배열 참조 비교 결과와 배열 안 항목 객체의 참조·수량 변화를 구분해 확인하기"
+        }
+      },
+      "run": {
+        "id": "f42d0b3d-2ac7-4d4d-926b-b1c84a65393b",
+        "operation": "review",
+        "promptVersion": "2026-09-20.coach.5.2",
+        "model": "gpt-5.6-luna",
+        "outcome": "success",
+        "latencyMs": 8656,
+        "inputTokens": 2192,
+        "cachedInputTokens": 2189,
+        "outputTokens": 835,
+        "estimatedCostUsd": 0.0010463800000000002,
+        "createdAt": "2026-09-19T18:06:43.241Z"
+      },
+      "execution": {
+        "original": {
+          "id": "next-experiment",
+          "status": "ok",
+          "actual": "{\"arraySame\":true,\"itemSame\":true,\"before\":2,\"originalQuantity\":3,\"returnedQuantity\":3}"
+        },
+        "current": {
+          "id": "next-experiment",
+          "status": "ok",
+          "actual": "{\"arraySame\":false,\"itemSame\":true,\"before\":2,\"originalQuantity\":3,\"returnedQuantity\":3}"
+        }
+      },
+      "semanticReview": null
+    }
+  ],
+  "limitations": "Developer-authored synthetic diagnostics. Includes a deliberately altered client report. Runtime success is not tutoring accuracy; no independent raters or study."
+}

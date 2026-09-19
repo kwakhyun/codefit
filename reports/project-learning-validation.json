@@ -1,0 +1,54 @@
+{
+  "date": "2026-09-18",
+  "scope": "project assessment to practice and first-attempt transfer checks",
+  "environment": {
+    "os": "macOS",
+    "arch": "arm64",
+    "node": "22.21.0",
+    "next": "16.3.4",
+    "playwright": "1.63.0",
+    "build": "production",
+    "network": "local; no throttling; selected transport failures injected",
+    "cpu": "no artificial throttling",
+    "data": "synthetic project assessments; five linked missions; twenty authored probe items"
+  },
+  "tests": {
+    "vitest": {
+      "passed": 49,
+      "files": 5
+    },
+    "e2e": {
+      "uniquePassed": 18,
+      "browsers": ["Chromium", "Firefox", "WebKit"],
+      "seconds": 57.1,
+      "retries": 0
+    },
+    "finalUiAffectedRerun": {
+      "passed": 6,
+      "seconds": 34.8,
+      "subsetOfE2e": true
+    },
+    "postgres": {
+      "status": "not run",
+      "contractsAdded": 4,
+      "reason": "No TEST_DATABASE_URL or running local test DB"
+    },
+    "build": "passed",
+    "typescript": "passed",
+    "changedFileEslint": "passed",
+    "axeQuestionAndResultPanels": "zero violations",
+    "manualVisualInspection": "desktop and mobile screenshots reviewed",
+    "humanScreenReader": "not performed"
+  },
+  "paidAiCalls": 0,
+  "humanLearningStudy": false,
+  "claimsNotEstablished": [
+    "SOTA",
+    "learning effect",
+    "equivalent pre/post difficulty",
+    "general assessment accuracy",
+    "superiority over a general chatbot"
+  ],
+  "committed": false,
+  "deployed": false
+}

@@ -1,0 +1,528 @@
+{
+  "measuredAt": "2026-09-19T16:41:46.219Z",
+  "node": "v22.21.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "quickjsVersion": "0.32.0",
+  "baselineCommit": "43eb771e1cf3aa7e40dd6c9e626e7c07364f60b8",
+  "baselineSourceHash": "eaea05d6c181e39f611f4b25cd69a074a4abacd45112d85dfb466705ce87b5c8",
+  "sourceHashes": {
+    "src/lib/handoff/execute.ts": "77c2bc8e47b691b5f4d2d0d15fbb4cbcb9669a1796cfd50eb150c0c438d11532",
+    "src/lib/handoff/sandbox-bootstrap.ts": "0d36e17bcdc5326327203576861ed162f80e9c2cbeb86e87004ee6561dab3775",
+    "src/lib/handoff/training.ts": "3de6e17b214d3b72f3a2113bb2e51b2e6d5e065a80794ef3a91b4a7b22c8e5d8"
+  },
+  "labVersion": "2026-09-20.1",
+  "reproductions": [
+    {
+      "id": "replaced-json",
+      "code": "JSON.stringify = () => \"true\";",
+      "expression": "false",
+      "expected": true,
+      "before": {
+        "id": "replaced-json",
+        "status": "ok",
+        "actual": "true"
+      },
+      "after": {
+        "id": "replaced-json",
+        "status": "ok",
+        "actual": "false"
+      },
+      "falsePassBefore": true,
+      "falsePassAfter": false
+    },
+    {
+      "id": "spoofed-toJSON",
+      "code": "",
+      "expression": "({valid:false,toJSON(){return {valid:true}}})",
+      "expected": {
+        "valid": true
+      },
+      "before": {
+        "id": "spoofed-toJSON",
+        "status": "ok",
+        "actual": "{\"valid\":true}"
+      },
+      "after": {
+        "id": "spoofed-toJSON",
+        "status": "error",
+        "actual": "실행 결과는 JSON으로 비교할 수 있는 값이어야 합니다. undefined, 함수, Symbol, BigInt는 지원하지 않습니다."
+      },
+      "falsePassBefore": true,
+      "falsePassAfter": false
+    },
+    {
+      "id": "nonfinite-null",
+      "code": "",
+      "expression": "NaN",
+      "expected": null,
+      "before": {
+        "id": "nonfinite-null",
+        "status": "ok",
+        "actual": "null"
+      },
+      "after": {
+        "id": "nonfinite-null",
+        "status": "error",
+        "actual": "NaN과 Infinity는 null과 다른 값입니다. 유한한 숫자를 반환해 주세요."
+      },
+      "falsePassBefore": true,
+      "falsePassAfter": false
+    },
+    {
+      "id": "sparse-array",
+      "code": "",
+      "expression": "Array(1)",
+      "expected": [
+        null
+      ],
+      "before": {
+        "id": "sparse-array",
+        "status": "ok",
+        "actual": "[null]"
+      },
+      "after": {
+        "id": "sparse-array",
+        "status": "error",
+        "actual": "배열의 빈 자리와 getter는 null로 바꾸지 않습니다. 각 값을 직접 지정해 주세요."
+      },
+      "falsePassBefore": true,
+      "falsePassAfter": false
+    }
+  ],
+  "curriculum": [
+    {
+      "id": "handoff-latest",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "[\"new\"]"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "{\"out\":[],\"calls\":1}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "[\"load failed\",0]"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-latest-transfer",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "[\"new\"]"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "{\"out\":[],\"calls\":1}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "[\"load failed\",0]"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-cart",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "{\"before\":2,\"after\":3,\"label\":\"상품\",\"copied\":true}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "[{\"id\":\"b\",\"quantity\":2}]"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "[{\"id\":\"a\",\"quantity\":0}]"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-cart-transfer",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "{\"before\":2,\"after\":3,\"label\":\"상품\",\"copied\":true}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "[{\"id\":\"b\",\"quantity\":2}]"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "[{\"id\":\"a\",\"quantity\":0}]"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-page",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "{\"items\":[3],\"page\":2,\"totalPages\":2}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "{\"items\":[],\"page\":1,\"totalPages\":1}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "{\"result\":{\"items\":[1,2,3],\"page\":1,\"totalPages\":1},\"items\":[1,2,3]}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-4",
+          "result": {
+            "id": "case-4",
+            "status": "ok",
+            "actual": "{\"items\":[1],\"page\":1,\"totalPages\":1}"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-page-transfer",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "{\"items\":[3],\"page\":2,\"totalPages\":2}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "{\"items\":[],\"page\":1,\"totalPages\":1}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "{\"result\":{\"items\":[1,2,3],\"page\":1,\"totalPages\":1},\"items\":[1,2,3]}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-4",
+          "result": {
+            "id": "case-4",
+            "status": "ok",
+            "actual": "{\"items\":[1],\"page\":1,\"totalPages\":1}"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-config",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "{\"result\":{\"debug\":false,\"port\":8080},\"env\":{\"DEBUG\":\"false\",\"PORT\":\"8080\"}}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "{\"debug\":false,\"port\":3000}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "true"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-4",
+          "result": {
+            "id": "case-4",
+            "status": "ok",
+            "actual": "true"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-config-transfer",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "{\"result\":{\"debug\":false,\"port\":8080},\"env\":{\"DEBUG\":\"false\",\"PORT\":\"8080\"}}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "{\"debug\":false,\"port\":3000}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "true"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-4",
+          "result": {
+            "id": "case-4",
+            "status": "ok",
+            "actual": "true"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-dedupe",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "{\"values\":[1,1],\"calls\":1}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "[7,7,2]"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "[\"a\",\"b\",2]"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-dedupe-transfer",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "{\"values\":[1,1],\"calls\":1}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "[7,7,2]"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "[\"a\",\"b\",2]"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-total",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "{\"paid\":130,\"pending\":50,\"cancelled\":20}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "{\"paid\":0,\"pending\":0,\"cancelled\":0}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "true"
+          },
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "handoff-total-transfer",
+      "cases": [
+        {
+          "id": "case-1",
+          "result": {
+            "id": "case-1",
+            "status": "ok",
+            "actual": "{\"paid\":130,\"pending\":50,\"cancelled\":20}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-2",
+          "result": {
+            "id": "case-2",
+            "status": "ok",
+            "actual": "{\"paid\":0,\"pending\":0,\"cancelled\":0}"
+          },
+          "passed": true
+        },
+        {
+          "id": "case-3",
+          "result": {
+            "id": "case-3",
+            "status": "ok",
+            "actual": "true"
+          },
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "falsePassesBefore": 4,
+    "falsePassesAfter": 0,
+    "referenceProblems": 12,
+    "referenceCheckpoints": 40,
+    "referenceCheckpointsPassed": 40
+  },
+  "limitations": [
+    "Four authored reproductions, not an exhaustive adversarial security audit.",
+    "Browser-side exercise evidence is not a server-certified grade.",
+    "No paid AI calls or production database access.",
+    "This script checks values and curriculum compatibility, not performance or learning effectiveness."
+  ]
+}

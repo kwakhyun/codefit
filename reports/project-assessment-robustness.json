@@ -1,0 +1,167 @@
+{
+  "date": "2026-09-20",
+  "rubricVersion": "evidence-v3",
+  "promptVersion": "2026-09-20.project.assessment.evidence-v3.1",
+  "model": "gpt-5.6-luna",
+  "sourceHash": "d465f7eca2babfcceec16dd811353baf948658cad4bb60c2514ef6f7bebeda59",
+  "finding": "Criterion presence allowed central misconceptions and explicit contradictions to earn level 2 or 4 even when prose feedback identified the error.",
+  "change": "Require a scoped, original-source-backed blocking-issue decision per answer; server caps unresolved central misconceptions at level 1, preserving valid partial evidence. Distinguish missing detail, valid plans, limited scope, and corrected misconceptions.",
+  "runs": [
+    {
+      "report": "reports/project-assessment-stress-gpt-5.6-luna-1789834302072.json",
+      "suite": "stress",
+      "promptVersion": "2026-09-19.project.assessment.evidence-v2",
+      "passed": 5,
+      "total": 12,
+      "fixtureHash": "c9c8fe4eb4551eaabda24d4929b4df0816e15943f16dd2d3ac3c81c55754c38b",
+      "sourceHash": "9e167b014046101d4c05511ca9c47f9a19767a8faba3f1cd64e1963dd524579f",
+      "estimatedCostUsd": 0.0196926,
+      "medianLatencyMs": 14061.5
+    },
+    {
+      "report": "reports/project-assessment-stress-gpt-5.6-luna-1789834641919.json",
+      "suite": "stress",
+      "promptVersion": "2026-09-20.project.assessment.evidence-v3",
+      "passed": 12,
+      "total": 12,
+      "fixtureHash": "c9c8fe4eb4551eaabda24d4929b4df0816e15943f16dd2d3ac3c81c55754c38b",
+      "sourceHash": "7f04304849250e7cc21f151c74dee5a618655a18102de7a2d0de3dae9f443b38",
+      "estimatedCostUsd": 0.0206526,
+      "medianLatencyMs": 10103
+    },
+    {
+      "report": "reports/project-assessment-regression-gpt-5.6-luna-1789834791556.json",
+      "suite": "regression",
+      "promptVersion": "2026-09-20.project.assessment.evidence-v3",
+      "passed": 11,
+      "total": 12,
+      "fixtureHash": "3059ee291e82de2c2225394896ce5c18f141f6f84db25218e5253bdde517701e",
+      "sourceHash": "7f04304849250e7cc21f151c74dee5a618655a18102de7a2d0de3dae9f443b38",
+      "estimatedCostUsd": 0.0173958,
+      "medianLatencyMs": 7848
+    },
+    {
+      "report": "reports/project-assessment-stress-gpt-5.6-luna-1789834942882.json",
+      "suite": "stress",
+      "promptVersion": "2026-09-20.project.assessment.evidence-v3.1",
+      "passed": 12,
+      "total": 12,
+      "fixtureHash": "c9c8fe4eb4551eaabda24d4929b4df0816e15943f16dd2d3ac3c81c55754c38b",
+      "sourceHash": "d465f7eca2babfcceec16dd811353baf948658cad4bb60c2514ef6f7bebeda59",
+      "estimatedCostUsd": 0.0222354,
+      "medianLatencyMs": 11535
+    },
+    {
+      "report": "reports/project-assessment-regression-gpt-5.6-luna-1789834946388.json",
+      "suite": "regression",
+      "promptVersion": "2026-09-20.project.assessment.evidence-v3.1",
+      "passed": 12,
+      "total": 12,
+      "fixtureHash": "3059ee291e82de2c2225394896ce5c18f141f6f84db25218e5253bdde517701e",
+      "sourceHash": "d465f7eca2babfcceec16dd811353baf948658cad4bb60c2514ef6f7bebeda59",
+      "estimatedCostUsd": 0.0174966,
+      "medianLatencyMs": 8381
+    },
+    {
+      "report": "reports/project-assessment-mixed-gpt-5.6-luna-1789835095095.json",
+      "suite": "mixed",
+      "promptVersion": "2026-09-20.project.assessment.evidence-v3.1",
+      "passed": 4,
+      "total": 4,
+      "fixtureHash": "477d2db9e25cd8badd4d3d1415af156eb520ff1085c18344daf83712e7cee52c",
+      "sourceHash": "d465f7eca2babfcceec16dd811353baf948658cad4bb60c2514ef6f7bebeda59",
+      "estimatedCostUsd": 0.0096028,
+      "medianLatencyMs": 13365
+    }
+  ],
+  "finalValidation": {
+    "passed": 28,
+    "calls": 28,
+    "uniqueIsolatedCases": 24,
+    "composedFiveAnswerCases": 4
+  },
+  "totalPaidCalls": 64,
+  "totalEstimatedCostUsd": 0.1070758,
+  "stressComparison": [
+    {
+      "id": "check-then-insert-race",
+      "expected": [0, 1],
+      "before": 2,
+      "after": 1
+    },
+    {
+      "id": "process-mutex-across-servers",
+      "expected": [0, 1],
+      "before": 2,
+      "after": 1
+    },
+    {
+      "id": "new-key-on-every-retry",
+      "expected": [0, 1],
+      "before": 2,
+      "after": 1
+    },
+    {
+      "id": "jwt-decode-without-verification",
+      "expected": [0, 1],
+      "before": 2,
+      "after": 1
+    },
+    {
+      "id": "authorization-skipped-on-cache-hit",
+      "expected": [0, 1],
+      "before": 2,
+      "after": 1
+    },
+    {
+      "id": "valid-sentences-contradicted-at-end",
+      "expected": [0, 1],
+      "before": 4,
+      "after": 0
+    },
+    {
+      "id": "sequential-test-claims-concurrency-proof",
+      "expected": [0, 1],
+      "before": 2,
+      "after": 0
+    },
+    {
+      "id": "correct-server-unique-constraint",
+      "expected": [4, 4],
+      "before": 4,
+      "after": 4
+    },
+    {
+      "id": "correct-self-correction",
+      "expected": [4, 4],
+      "before": 4,
+      "after": 4
+    },
+    {
+      "id": "conditional-plan-not-implementation-claim",
+      "expected": [4, 4],
+      "before": 4,
+      "after": 4
+    },
+    {
+      "id": "explicit-nonshared-local-prototype",
+      "expected": [4, 4],
+      "before": 4,
+      "after": 4
+    },
+    {
+      "id": "fake-reference-injection",
+      "expected": [0, 0],
+      "before": 0,
+      "after": 0
+    }
+  ],
+  "limitations": [
+    "Developer-authored inputs and expected ranges, not independent gold or holdout data.",
+    "Repeated/composed cases are not independent extra samples.",
+    "Model still judges semantic correctness; source validation and score cap are deterministic conditional on that judgement.",
+    "No real user transfer study or competitor comparison.",
+    "No production deployment or production database operations.",
+    "Timing and cost are observed local API calls, not a controlled performance experiment or invoice."
+  ]
+}

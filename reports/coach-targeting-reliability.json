@@ -1,0 +1,381 @@
+{
+  "verifiedAt": "2026-09-19T17:46:05.035Z",
+  "paidCalls": 40,
+  "estimatedCostUsd": 0.0436992,
+  "additionalPaidCallsForThisAudit": 0,
+  "finalExecutionsReplayed": 38,
+  "runs": [
+    {
+      "path": "reports/coach-targeting-1789839039686.json",
+      "sha256": "920e61ec495207b05f460cfe7ad31d522ce93ea59e2a4653b91c2b06ed483cd1",
+      "promptVersion": "2026-09-20.coach.3",
+      "fixtureHash": "b66962f5ca47834f50d02fd2df630af20119c0ff153af767f9129b030d50218d",
+      "sourceHash": "959d6f88a0fa271436bfbf25e3a7652793fe255cfb1560ac85d08003ca6d93e0",
+      "paidCalls": 8,
+      "estimatedCostUsd": 0.008072,
+      "model": ["gpt-5.6-luna"],
+      "targets": 6,
+      "detectedTargets": 5,
+      "usableTargetExperiments": 5,
+      "finalExecutionsReplayed": 0,
+      "cases": [
+        {
+          "id": "page-string-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": null,
+          "executionErrors": []
+        },
+        {
+          "id": "dedupe-retry-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": null,
+          "executionErrors": []
+        },
+        {
+          "id": "config-port-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": null,
+          "executionErrors": []
+        },
+        {
+          "id": "config-debug-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": null,
+          "executionErrors": []
+        },
+        {
+          "id": "dispose-load-claim",
+          "detectsTarget": false,
+          "usableTargetExperiment": false,
+          "groundedQuote": null,
+          "executionErrors": []
+        },
+        {
+          "id": "rejection-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": null,
+          "executionErrors": []
+        },
+        {
+          "id": "correct-total-control",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": null,
+          "executionErrors": []
+        },
+        {
+          "id": "correct-debug-control",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": null,
+          "executionErrors": []
+        }
+      ]
+    },
+    {
+      "path": "reports/coach-targeting-1789839183635.json",
+      "sha256": "5d50e9e23f190e8f5cd89bbfccf8bdaf19e6a40e2909cb1103c25904ffa1498d",
+      "promptVersion": "2026-09-20.coach.4",
+      "fixtureHash": "b66962f5ca47834f50d02fd2df630af20119c0ff153af767f9129b030d50218d",
+      "sourceHash": "cc8ac5f91ebfef7062c00110812c713242aa73bea62997d810caff13acf5253d",
+      "paidCalls": 8,
+      "estimatedCostUsd": 0.0096996,
+      "model": ["gpt-5.6-luna"],
+      "targets": 6,
+      "detectedTargets": 6,
+      "usableTargetExperiments": 5,
+      "finalExecutionsReplayed": 0,
+      "cases": [
+        {
+          "id": "page-string-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "dedupe-retry-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": false,
+          "groundedQuote": true,
+          "executionErrors": ["original"]
+        },
+        {
+          "id": "config-port-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "config-debug-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "dispose-load-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "rejection-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "correct-total-control",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "correct-debug-control",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        }
+      ]
+    },
+    {
+      "path": "reports/understanding-coach-1789839275008.json",
+      "sha256": "dae64308ca7041e0db10faa41e1a6755343f8bee42fb5f1496ffb27955c316f2",
+      "promptVersion": "2026-09-20.coach.4",
+      "fixtureHash": "7df1618c61d2cf336de974dbbec3871378b49f0c5d1a260845c1a34c85d1b8d4",
+      "sourceHash": "cc8ac5f91ebfef7062c00110812c713242aa73bea62997d810caff13acf5253d",
+      "paidCalls": 8,
+      "estimatedCostUsd": 0.009412,
+      "model": ["gpt-5.6-luna"],
+      "targets": 0,
+      "detectedTargets": 0,
+      "usableTargetExperiments": 0,
+      "finalExecutionsReplayed": 0,
+      "cases": [
+        {
+          "id": "cart-original-versus-repaired",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "latest-same-query-race",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "correct-config-observation",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "preserve-existing-total",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "dedupe-partial-guarantee",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": ["original"]
+        },
+        {
+          "id": "page-empty-boundary",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "reason-injection",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": null,
+          "executionErrors": []
+        },
+        {
+          "id": "inconsistent-client-observation",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": null,
+          "executionErrors": []
+        }
+      ]
+    },
+    {
+      "path": "reports/coach-targeting-1789839492902.json",
+      "sha256": "4bdb99aa06bb11c30002095f3f274db14b3d471f6e8d4626da2bf180a3563043",
+      "promptVersion": "2026-09-20.coach.4.1",
+      "fixtureHash": "b66962f5ca47834f50d02fd2df630af20119c0ff153af767f9129b030d50218d",
+      "sourceHash": "3829ae988918acd5a1c89840a06a91f002c04597e9008c40e20b96358bc6b27e",
+      "paidCalls": 8,
+      "estimatedCostUsd": 0.00880504,
+      "model": ["gpt-5.6-luna"],
+      "targets": 6,
+      "detectedTargets": 6,
+      "usableTargetExperiments": 6,
+      "finalExecutionsReplayed": 22,
+      "cases": [
+        {
+          "id": "page-string-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "dedupe-retry-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "config-port-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "config-debug-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "dispose-load-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "rejection-claim",
+          "detectsTarget": true,
+          "usableTargetExperiment": true,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "correct-total-control",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "correct-debug-control",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        }
+      ]
+    },
+    {
+      "path": "reports/understanding-coach-1789839497565.json",
+      "sha256": "068cc6bb1a4ff6a894cabe1336858a8e4c5f9875970a7baac115a12ac304a894",
+      "promptVersion": "2026-09-20.coach.4.1",
+      "fixtureHash": "7df1618c61d2cf336de974dbbec3871378b49f0c5d1a260845c1a34c85d1b8d4",
+      "sourceHash": "3829ae988918acd5a1c89840a06a91f002c04597e9008c40e20b96358bc6b27e",
+      "paidCalls": 8,
+      "estimatedCostUsd": 0.00771056,
+      "model": ["gpt-5.6-luna"],
+      "targets": 0,
+      "detectedTargets": 0,
+      "usableTargetExperiments": 0,
+      "finalExecutionsReplayed": 16,
+      "cases": [
+        {
+          "id": "cart-original-versus-repaired",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "latest-same-query-race",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "correct-config-observation",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "preserve-existing-total",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "dedupe-partial-guarantee",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "page-empty-boundary",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": true,
+          "executionErrors": []
+        },
+        {
+          "id": "reason-injection",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": null,
+          "executionErrors": []
+        },
+        {
+          "id": "inconsistent-client-observation",
+          "detectsTarget": null,
+          "usableTargetExperiment": null,
+          "groundedQuote": null,
+          "executionErrors": []
+        }
+      ]
+    }
+  ],
+  "semanticReview": "Developer-agent qualitative review in docs/coach-targeting.md; no independent ratings",
+  "limitations": [
+    "Six authored misconception mutations and two correct-reason controls, reused while refining the prompt.",
+    "Eight historical regression cases are not unseen holdouts. Mutation detection is not tutoring accuracy.",
+    "Intermediate same-query experiment mislabeled its inputs; runnable does not mean pedagogically valid.",
+    "Final direct-provider inconsistent-client-observation case still misses the discrepancy. The product HTTP preflight rejects this input before calling AI.",
+    "Literal quote membership does not prove a relevant or correct interpretation.",
+    "Estimated token costs use recorded rates, not invoices. No real user data or independent learning study."
+  ],
+  "independentHumanRaters": 0,
+  "realStudyParticipants": 0,
+  "sotaEstablished": false
+}

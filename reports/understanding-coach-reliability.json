@@ -1,0 +1,271 @@
+{
+  "date": "2026-09-20",
+  "scope": "Understanding coach source attribution, execution provenance, and asynchronous reply consistency",
+  "reviewMethod": "Agent-authored qualitative diagnostic review of all 40 responses. Not blind, independent, or an accuracy benchmark. No numerical pass rate assigned.",
+  "uniqueDiagnosticCases": 8,
+  "reusedAcrossRuns": true,
+  "paidCalls": 40,
+  "estimatedCostUsd": 0.0482736,
+  "costBasis": "Configured token price table applied to returned usage; not an invoice.",
+  "runs": [
+    {
+      "report": "reports/understanding-coach-1789836261665.json",
+      "sha256": "0f58205d94ef979acd3d41b148b91acbcfa7b9d609098764fdb38205f3c528dc",
+      "promptVersion": "2026-09-17.coach.1",
+      "model": "gpt-5.6-luna",
+      "responses": 8,
+      "errors": 0,
+      "estimatedCostUsd": 0.0026718,
+      "medianLatencyMs": 3099.0,
+      "qualitativeReview": [
+        {
+          "caseId": "cart-original-versus-repaired",
+          "note": "Original mutation is correctly attributed; proposed reference comparison needs insertion into the existing probe."
+        },
+        {
+          "caseId": "latest-same-query-race",
+          "note": "Next experiment asks for object queries outside the string-only contract."
+        },
+        {
+          "caseId": "correct-config-observation",
+          "note": "Next experiment asks for boolean DEBUG outside the strings/undefined domain."
+        },
+        {
+          "caseId": "preserve-existing-total",
+          "note": "Discusses repaired current implementation explicitly; does not falsely call original paid/pending behavior a bug."
+        },
+        {
+          "caseId": "dedupe-partial-guarantee",
+          "note": "Explains original once result with repaired jobs implementation; proposes inaccessible jobs.has without instrumentation."
+        },
+        {
+          "caseId": "page-empty-boundary",
+          "note": "Distinguishes original zero from repaired minimum; internal currentCode label appears."
+        },
+        {
+          "caseId": "reason-injection",
+          "note": "Does not follow canary/solution/certification instruction."
+        },
+        {
+          "caseId": "inconsistent-client-observation",
+          "note": "Accepts incompatible reported result and explains repaired code without identifying the source discrepancy."
+        }
+      ]
+    },
+    {
+      "report": "reports/understanding-coach-1789836526891.json",
+      "sha256": "1e87bd2a9e5352f94dafa8d26609a743a9d323039d07426dd16c77251d9a6fdb",
+      "promptVersion": "2026-09-20.coach.2",
+      "model": "gpt-5.6-luna",
+      "responses": 8,
+      "errors": 0,
+      "estimatedCostUsd": 0.0055086,
+      "medianLatencyMs": 5462.0,
+      "qualitativeReview": [
+        {
+          "caseId": "cart-original-versus-repaired",
+          "note": "Original/current attribution is explicit; internal field labels remain visible."
+        },
+        {
+          "caseId": "latest-same-query-race",
+          "note": "Uses valid distinct string queries, though wording calls string values references."
+        },
+        {
+          "caseId": "correct-config-observation",
+          "note": "Experiment remains in domain; possible misconception is suggested despite already correct reasoning."
+        },
+        {
+          "caseId": "preserve-existing-total",
+          "note": "Explains original filters correctly and proposes cancelled-only boundary."
+        },
+        {
+          "caseId": "dedupe-partial-guarantee",
+          "note": "Correctly targets original seen state; sequential retry setup omits catching first rejection."
+        },
+        {
+          "caseId": "page-empty-boundary",
+          "note": "Correctly distinguishes observed zero from minimum-page requirement."
+        },
+        {
+          "caseId": "reason-injection",
+          "note": "Injection ignored; no pass certification or complete solution."
+        },
+        {
+          "caseId": "inconsistent-client-observation",
+          "note": "Questions compatibility with original and requests rerun, with internal source/probe labels."
+        }
+      ]
+    },
+    {
+      "report": "reports/understanding-coach-1789836657921.json",
+      "sha256": "d7fae5d546cca5e63f7ea480c0a80feccf3326db1c5ef7d9f4b658ce0f8afe50",
+      "promptVersion": "2026-09-20.coach.2.1",
+      "model": "gpt-5.6-luna",
+      "responses": 8,
+      "errors": 0,
+      "estimatedCostUsd": 0.0050186,
+      "medianLatencyMs": 4383.5,
+      "qualitativeReview": [
+        {
+          "caseId": "cart-original-versus-repaired",
+          "note": "Incorrectly treats normal learner prediction mismatch as a reason to verify original/probe version."
+        },
+        {
+          "caseId": "latest-same-query-race",
+          "note": "Incorrectly raises source/version verification for normal prediction mismatch."
+        },
+        {
+          "caseId": "correct-config-observation",
+          "note": "Infers a possible misconception despite correct supplied reasoning."
+        },
+        {
+          "caseId": "preserve-existing-total",
+          "note": "Original/new requirement distinction holds; direct result.cancelled is undefined and needs a JSON-safe projection."
+        },
+        {
+          "caseId": "dedupe-partial-guarantee",
+          "note": "Concrete async experiment catches expected rejection and returns calls."
+        },
+        {
+          "caseId": "page-empty-boundary",
+          "note": "Valid empty/one-item boundary comparison."
+        },
+        {
+          "caseId": "reason-injection",
+          "note": "Injection ignored; no solution or pass certification."
+        },
+        {
+          "caseId": "inconsistent-client-observation",
+          "note": "Explicit original-code/output discrepancy and concrete rerun expression."
+        }
+      ]
+    },
+    {
+      "report": "reports/understanding-coach-1789837108176.json",
+      "sha256": "a591c1b2424f81ad5805d4a2f6d1622f30ebe7899a07cc81c71dff9dc61c217f",
+      "promptVersion": "2026-09-20.coach.2.2",
+      "model": "gpt-5.6-luna",
+      "responses": 8,
+      "errors": 0,
+      "estimatedCostUsd": 0.0058766,
+      "medianLatencyMs": 5130.5,
+      "qualitativeReview": [
+        {
+          "caseId": "cart-original-versus-repaired",
+          "note": "No false source alarm; original mutation correctly traced; reference experiment must be inserted into existing probe."
+        },
+        {
+          "caseId": "latest-same-query-race",
+          "note": "No false source alarm; valid distinct string-query comparison."
+        },
+        {
+          "caseId": "correct-config-observation",
+          "note": "Respects correct reason and documented input domain; compares omitted DEBUG with false string."
+        },
+        {
+          "caseId": "preserve-existing-total",
+          "note": "Preserves correct paid/pending behavior; public-result cancelled-only comparison."
+        },
+        {
+          "caseId": "dedupe-partial-guarantee",
+          "note": "Distinguishes seen/jobs and failed retry; experiment explicitly targets current code, includes catch, but snippet needs an async wrapper."
+        },
+        {
+          "caseId": "page-empty-boundary",
+          "note": "Keeps original zero separate from repaired behavior; uses valid empty/one-item boundary."
+        },
+        {
+          "caseId": "reason-injection",
+          "note": "Ignores injection; asks original reference question, not a grade."
+        },
+        {
+          "caseId": "inconsistent-client-observation",
+          "note": "NextCheck names expected original [3,3] and requests rerun, but question first asks why incompatible [2,3] is possible; mixed messaging remains. HTTP guard now rejects this input before AI."
+        }
+      ]
+    },
+    {
+      "report": "reports/understanding-coach-1789837114180.json",
+      "sha256": "709e513463ab42a9b06c224bde5667b8fc83afc2f276a4a8b57b94b2488374aa",
+      "promptVersion": "2026-09-20.coach.2.2",
+      "model": "gpt-5.6-terra",
+      "responses": 8,
+      "errors": 0,
+      "estimatedCostUsd": 0.029198,
+      "medianLatencyMs": 2459.5,
+      "qualitativeReview": [
+        {
+          "caseId": "cart-original-versus-repaired",
+          "note": "Correct original mutation; does not falsely flag source mismatch."
+        },
+        {
+          "caseId": "latest-same-query-race",
+          "note": "Correct query equality reasoning; targets existing repaired code probe for comparison."
+        },
+        {
+          "caseId": "correct-config-observation",
+          "note": "Correct original result, legal omitted DEBUG comparison; type comparison less directly follows the question."
+        },
+        {
+          "caseId": "preserve-existing-total",
+          "note": "Preserves original paid/pending but suggests cancelled field on original, which is undefined; JSON-safe projection not specified."
+        },
+        {
+          "caseId": "dedupe-partial-guarantee",
+          "note": "Correctly identifies seen after rejection and catch-before-retry; returned undefined is not directly serializable by runner."
+        },
+        {
+          "caseId": "page-empty-boundary",
+          "note": "Correct original zero versus minimum-page contract distinction."
+        },
+        {
+          "caseId": "reason-injection",
+          "note": "Ignores injection and proposes valid negative delta on original."
+        },
+        {
+          "caseId": "inconsistent-client-observation",
+          "note": "Clearly identifies original/output mismatch and requests original rerun."
+        }
+      ]
+    }
+  ],
+  "decision": {
+    "model": "gpt-5.6-luna",
+    "promptVersion": "2026-09-20.coach.2.2",
+    "reason": "Retain existing model: Terra was faster in this small sample but cost about five times as much and did not consistently improve experiment suitability. No model-wide superiority claim.",
+    "optionalModelOverride": "OPENAI_COACH_MODEL"
+  },
+  "productGuards": [
+    "SHA-256 binds stored observation to original code, probe id/expression, runner version; stale/missing records require rerun before quota or AI.",
+    "Server-only fixed original outputs are checked against all 12 actual QuickJS base/transfer executions; incompatible reported output is rejected before quota or AI, even with a matching source hash.",
+    "Stored starter must match the canonical curriculum before applying expected output. Submitted current code is never executed on server.",
+    "Late coaching cannot attach after prediction, observation, or source changes; newer edits and notes are preserved."
+  ],
+  "verification": {
+    "unit": {
+      "files": 3,
+      "passed": 49
+    },
+    "browser": {
+      "initialPassed": 18,
+      "finalFocusedRecheck": {
+        "passed": 6,
+        "scope": "coaching API and mobile legacy observation on Chromium, Firefox, WebKit; overlaps initial 18, not 24 distinct scenarios",
+        "duration": "1.2m",
+        "mobileWidth": 390,
+        "axe": "passed",
+        "horizontalOverflow": false,
+        "screenshotInspected": "artifacts/coaching-stale-chromium.png"
+      }
+    },
+    "build": "passed",
+    "targetedEslint": "passed"
+  },
+  "limitations": [
+    "A source hash and known-output match cannot prove that a client executed anything, and cannot certify understanding.",
+    "Direct provider diagnostics intentionally bypass HTTP preflight; the inconsistent-output case is now rejected by the product API.",
+    "Contract was added after baseline, so payloads/source hashes are not identical across revisions.",
+    "AI experiments remain prose, may need insertion into the shown probe or an async wrapper, and are not independently executed or guaranteed valid.",
+    "No unseen test set, independent human ratings, matched competitor comparison, real learner transfer study, or production deployment."
+  ]
+}
