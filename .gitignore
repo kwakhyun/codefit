@@ -41,3 +41,21 @@ next-env.d.ts
 
 /playwright-report/
 /test-results/
+
+# Private planning and personal assessments must not be published.
+/private-notes/
+/docs/championship/
+/evals/championship/
+/reports/championship/
+/scripts/evaluate-championship.ts
+/src/lib/championship-jury.test.ts
+/docs/design/brand-name-review.md
+/docs/engineering-case-review.md
+/docs/release-review-*.md
+/docs/sota-evaluation.md
+/reports/sota-readiness.json
+/reports/project-questions-gpt-5.6-*.json
+
+/docs/design/b2c-ui-refresh.md
+/docs/design/feature-banner.md
+/docs/design/logo-refresh.md
