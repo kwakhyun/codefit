@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Copy, ExternalLink } from "lucide-react";
 import { AppLink as Link, Anchor, Button, Progress } from "@/components/ui/primitives";
@@ -94,7 +95,7 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
             {step === 2 && completed && !retry ? "수업 완료" : stages[step]}
           </h2>
           {!ready ? (
-            <p role="status">학습 기록을 불러오는 중…</p>
+            <ScreenSkeleton variant="lesson" label="학습 기록을 불러오는 중…" />
           ) : (
             <>
               {step === 0 && (

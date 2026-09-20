@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/primitives";
 
 import type { LibraryController } from "@/hooks/use-library-controller";
@@ -35,9 +36,7 @@ export function ProblemTable({ library, initialView, bookmarking, bookmark }: Pr
           </Button>
         </div>
       ) : library.loading ? (
-        <div className="empty-state" role="status">
-          조건에 맞는 문제를 불러오는 중입니다.
-        </div>
+        <ScreenSkeleton variant="list" label="조건에 맞는 문제를 불러오는 중입니다." />
       ) : pageProblems.length === 0 ? (
         <div className="empty-state">
           <Search size={32} />

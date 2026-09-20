@@ -55,6 +55,7 @@ export const backupSchema = z.union([
               check: z.unknown(),
               review: z.unknown().optional(),
               dialogues: z.array(z.unknown()).max(5).optional(),
+              generatedPractice: z.unknown().optional(),
             })
             .strict(),
         )

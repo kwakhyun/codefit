@@ -1,3 +1,8 @@
+import {
+  validPracticeProgress,
+  type GeneratedPractice,
+  type practiceSaveSchema,
+} from "../project-check/generated-practice";
 import type { ProjectDialogue } from "../project-check/dialogue";
 import { allowanceFor } from "../ai-access";
 import type { Query } from "./store-queries";
@@ -220,13 +225,93 @@ export class ProjectCheckStore {
     );
     if (!rows.length) throw new StaleJob();
   }
+  async practiceCharges(owner: string, network: string) {
+    const rows = await this.query("SELECT key,expires FROM limits WHERE key IN (?,?)", [
+      `project:analysis:${owner}`,
+      `project:guest-network:analysis:${network}`,
+    ]);
+    return rows
+      .map((row) => ({ key: String(row.key), expires: Number(row.expires) }))
+      .filter((row) =>
+        owner.startsWith("user:") ? row.key === `project:analysis:${owner}` : true,
+      );
+  }
+  async refundPractice(lease: JobLease, charges: { key: string; expires: number }[]) {
+    // Only the failed lease may refund its own window. Global/short-term limits
+    // still count the attempted provider request to bound repeated failures.
+    for (const charge of charges)
+      await this.query(
+        "UPDATE limits SET count=CASE WHEN count>0 THEN count-1 ELSE 0 END WHERE key=? AND expires=? AND EXISTS(SELECT 1 FROM jobs WHERE id=? AND owner=? AND kind=? AND token=? AND state='failed')",
+        [charge.key, charge.expires, lease.id, lease.owner, lease.kind, lease.token],
+      );
+  }
+  async generatedPractice(owner: string, id: string): Promise<GeneratedPractice | null> {
+    const [row] = await this.query(
+      "SELECT result FROM jobs WHERE owner=? AND id=? AND kind=? AND state='done'",
+      [owner, `${id}:practice`, `project-practice:${id}`],
+    );
+    return row ? JSON.parse(String(row.result)) : null;
+  }
+  async completePractice(lease: JobLease, id: string, result: GeneratedPractice) {
+    if (lease.kind !== `project-practice:${id}` || lease.id !== `${id}:practice`)
+      throw new StaleJob();
+    const rows = await this.query(
+      "UPDATE jobs SET state='done',result=? WHERE id=? AND owner=? AND kind=? AND token=? AND state='pending' AND expires>? AND EXISTS(SELECT 1 FROM jobs p WHERE p.id=? AND p.owner=? AND p.kind='project-analysis' AND p.state='done') RETURNING id",
+      [
+        JSON.stringify(result),
+        lease.id,
+        lease.owner,
+        lease.kind,
+        lease.token,
+        Date.now(),
+        id,
+        lease.owner,
+      ],
+    );
+    if (!rows.length) throw new StaleJob();
+  }
+  async saveGeneratedPractice(
+    owner: string,
+    id: string,
+    input: z.infer<typeof practiceSaveSchema>,
+  ) {
+    const saved = await this.generatedPractice(owner, id);
+    if (!saved) throw new HttpError(404, "저장된 실습을 찾지 못했습니다.");
+    if (!validPracticeProgress(saved.exercises[input.mode], input.progress))
+      throw new HttpError(400, "앞 단계의 확인을 마친 뒤 이어서 진행해 주세요.");
+    if (JSON.stringify(saved.progress[input.mode]) === JSON.stringify(input.progress)) return saved;
+    if (saved.revision !== input.revision)
+      throw new HttpError(
+        409,
+        "다른 화면에서 실습 기록이 바뀌었습니다. 저장된 기록을 다시 불러와 주세요.",
+      );
+    const next = {
+      ...saved,
+      revision: saved.revision + 1,
+      progress: { ...saved.progress, [input.mode]: input.progress },
+    };
+    const rows = await this.query(
+      "UPDATE jobs SET result=? WHERE owner=? AND id=? AND kind=? AND state='done' AND result=? RETURNING id",
+      [
+        JSON.stringify(next),
+        owner,
+        `${id}:practice`,
+        `project-practice:${id}`,
+        JSON.stringify(saved),
+      ],
+    );
+    if (!rows.length)
+      throw new HttpError(409, "기록이 바뀌었습니다. 저장된 기록을 다시 불러와 주세요.");
+    return next;
+  }
   async remove(owner: string, id: string) {
     await this.query(
-      "DELETE FROM jobs WHERE owner=? AND ((id=? AND kind='project-analysis') OR kind=? OR kind IN (?,?,?,?,?))",
+      "DELETE FROM jobs WHERE owner=? AND ((id=? AND kind='project-analysis') OR kind=? OR kind=? OR kind IN (?,?,?,?,?))",
       [
         owner,
         id,
         `project-review:${id}`,
+        `project-practice:${id}`,
         ...Array.from({ length: 5 }, (_, i) => `project-dialogue:${id}:${i}`),
       ],
     );

@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { Status, Button } from "@/components/ui/primitives";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { LearningResume } from "@/components/learn/learning-resume";
@@ -125,7 +126,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
           <span className="muted">최근 검토 순</span>
         </div>
         {history.loading && !history.attempts.length ? (
-          <Status role="status">풀이 기록을 불러오는 중입니다.</Status>
+          <ScreenSkeleton variant="list" label="풀이 기록을 불러오는 중입니다." />
         ) : !history.error && data.stats.attempts === 0 ? (
           <div className="empty-state bordered">
             <History size={36} />

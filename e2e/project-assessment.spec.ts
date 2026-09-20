@@ -4,7 +4,7 @@ import { fixtureCheck } from "../src/lib/project-check/fixtures";
 import { publicCheck } from "../src/lib/server/project-check-store";
 import { validateGroundedAssessment } from "../src/lib/server/project-assessment";
 import { validateReferencedAssessment } from "../src/lib/server/project-assessment-references";
-import type { CheckOverview } from "../src/lib/project-check/types";
+import { checkListItem, type Check, type CheckOverview } from "../src/lib/project-check/types";
 test("grounded feedback exposes exact evidence with keyboard and mobile layout", async ({
   page,
 }, info) => {
@@ -29,6 +29,7 @@ test("grounded feedback exposes exact evidence with keyboard and mobile layout",
     },
     answers,
   );
+  const record: Check = { ...publicCheck(fixtureCheck), review: { answers, assessment } };
   const data: CheckOverview = {
     scope: "user:evidence",
     signedIn: true,
@@ -38,8 +39,9 @@ test("grounded feedback exposes exact evidence with keyboard and mobile layout",
       review: { limit: 4, remaining: 3, resetsAt: null },
     },
     nextCursor: null,
-    checks: [{ ...publicCheck(fixtureCheck), review: { answers, assessment } }],
+    checks: [checkListItem(record)],
   };
+  await page.route(`**/api/project-check/${record.id}`, (r) => r.fulfill({ json: record }));
   await page.route("**/api/project-check", (r) => r.fulfill({ json: data }));
   await page.route("**/api/project-check/training?*", (r) =>
     r.fulfill({ status: 503, json: { error: "실습은 잠시 후 다시 확인해 주세요." } }),
@@ -48,6 +50,7 @@ test("grounded feedback exposes exact evidence with keyboard and mobile layout",
   await expect(page.getByRole("heading", { name: "설계 설명 점수 10 / 100" })).toBeVisible();
   await page.getByText("질문별 AI 피드백 5개 보기", { exact: true }).focus();
   await page.keyboard.press("Enter");
+  await page.locator(".project-feedback-item > summary").first().click();
   const toggle = page.getByText("평가에 사용한 내 설명 보기", { exact: true }).first();
   await toggle.focus();
   await page.keyboard.press("Enter");
@@ -75,14 +78,14 @@ test("grounded feedback exposes exact evidence with keyboard and mobile layout",
     .first()
     .screenshot({ path: `artifacts/project-assessment-${info.project.name}.png` });
   // Persisted older assessments must remain readable without fabricated evidence.
-  delete data.checks[0].review!.assessment.rubricVersion;
-  for (const f of data.checks[0].review!.assessment.feedback) delete f.evidence;
+  delete record.review!.assessment.rubricVersion;
+  for (const f of record.review!.assessment.feedback) delete f.evidence;
   await page.reload();
   await page.getByText("질문별 AI 피드백 5개 보기", { exact: true }).click();
   await expect(page.getByText("평가에 사용한 내 설명 보기", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "설계 설명 점수 10 / 100" })).toBeVisible();
   await expect(page.getByText("먼저 바로잡을 설명", { exact: true })).toHaveCount(0);
-  data.checks[0].review = {
+  record.review = {
     answers,
     assessment: validateReferencedAssessment(
       {
@@ -114,6 +117,7 @@ test("grounded feedback exposes exact evidence with keyboard and mobile layout",
   await page.reload();
   await expect(page.getByRole("heading", { name: "설계 설명 점수 5 / 100" })).toBeVisible();
   await page.getByText("질문별 AI 피드백 5개 보기", { exact: true }).click();
+  await page.locator(".project-feedback-item > summary").first().click();
   const issue = page.locator(".project-assessment-issue");
   await expect(issue.getByText("먼저 바로잡을 설명", { exact: true })).toBeVisible();
   await expect(issue.locator("blockquote")).toHaveText(quote);

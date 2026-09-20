@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { Status, Button, Card, FieldLabel, Input, Textarea } from "@/components/ui/primitives";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { useEffect, useState, type FormEvent } from "react";
@@ -85,6 +86,7 @@ export function Profile({
           {initialUser.email} / 가입일 {new Date(initialUser.createdAt).toLocaleDateString("ko-KR")}
         </p>
       </VisualIntro>
+      {!data && !error && <ScreenSkeleton variant="profile" label="내 학습 현황을 불러오는 중…" />}
       {data && (
         <div className="profile-stats">
           <div>

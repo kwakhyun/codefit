@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { ToggleButton, Button, Card } from "@/components/ui/primitives";
 
 import { configureMonaco } from "@/lib/editor/monaco-setup";
@@ -179,7 +180,7 @@ export function CodeEditor({
           onChange={(next) => onChange(next ?? "")}
           loading={
             <div className="editor-loading">
-              <span className="blink">▋</span> 코드 편집기 준비 중…
+              <ScreenSkeleton variant="code" label="코드 편집기 준비 중…" />
             </div>
           }
           options={{

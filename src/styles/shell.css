@@ -10,7 +10,7 @@
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  padding: 29px 16px 0;
+  padding: 29px 16px max(24px, env(safe-area-inset-bottom));
   overflow: hidden;
 }
 

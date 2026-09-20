@@ -1,4 +1,4 @@
-import { Status } from "@/components/ui/primitives";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { ExperienceJourney } from "@/components/experience/experience-journey";
 import { Suspense } from "react";
@@ -22,7 +22,7 @@ export default function ProjectCheckPage() {
           답변하면 부족한 설명과 직접 확인할 일을 짚어드려요.
         </p>
       </VisualIntro>
-      <Suspense fallback={<Status role="status">점검 기록 불러오는 중…</Status>}>
+      <Suspense fallback={<ScreenSkeleton variant="form" label="점검 기록 불러오는 중…" />}>
         <ProjectCheckApp />
       </Suspense>
       <ExperienceJourney topic="project" />

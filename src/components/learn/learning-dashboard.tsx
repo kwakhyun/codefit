@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { Card, Status, Anchor, Button, ToggleButton, FieldLabel } from "@/components/ui/primitives";
 import { SectionArtwork } from "@/components/experience/section-artwork";
 import { learningStorageDescription } from "@/lib/learn/session";
@@ -49,9 +50,13 @@ export function LearningDashboard() {
             →
           </Link>
         ) : (
-          <Status role="status">
-            {error ? "아래 미션은 바로 시작할 수 있습니다." : "학습 기록 불러오는 중…"}
-          </Status>
+          <>
+            {error ? (
+              <Status>아래 미션은 바로 시작할 수 있습니다.</Status>
+            ) : (
+              <ScreenSkeleton variant="list" label="학습 기록 불러오는 중…" />
+            )}
+          </>
         )}
       </Card>
       <nav className="course-shortcuts" aria-label="입문 과정 바로가기">

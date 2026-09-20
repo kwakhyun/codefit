@@ -999,3 +999,20 @@
     display: none;
   }
 }
+
+/* Reading links used as navigation need a comfortable mobile hit area. */
+.ai-paths li {
+  font-size: 14px;
+}
+@media (max-width: 600px) {
+  .ai-paths li {
+    padding-block: 2px;
+  }
+  .ai-paths a,
+  .ai-breadcrumb a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-block: 6px;
+  }
+}

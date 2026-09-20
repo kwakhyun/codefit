@@ -37,7 +37,7 @@ body:has(.guide-launcher) {
   align-items: center;
   gap: 10px;
 }
-.guide-launch-button {
+.guide-launcher .guide-launch-button {
   display: grid;
   justify-items: center;
   gap: 2px;
@@ -50,7 +50,7 @@ body:has(.guide-launcher) {
   font-size: 12px;
   font-weight: 600;
 }
-.guide-launch-button:hover {
+.guide-launcher .guide-launch-button:hover {
   border-color: #fff;
   transform: translateY(-2px);
 }
@@ -69,7 +69,7 @@ body:has(.guide-launcher) {
   font-size: 13px;
   line-height: 1.6;
 }
-.guide-dismiss {
+.guide-launcher .guide-dismiss {
   position: absolute;
   right: -6px;
   top: -10px;
@@ -438,7 +438,7 @@ body:has(.guide-panel[open]) {
     bottom: max(12px, env(safe-area-inset-bottom));
     gap: 6px;
   }
-  .guide-launch-button {
+  .guide-launcher .guide-launch-button {
     padding: 3px 5px 6px;
     border-radius: 17px;
   }
@@ -465,19 +465,19 @@ body:has(.guide-panel[open]) {
   .guide-time label {
     flex-basis: 80px;
   }
-  .guide-dismiss {
+  .guide-launcher .guide-dismiss {
     width: 44px;
     height: 44px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .guide-launch-button:hover {
+  .guide-launcher .guide-launch-button:hover {
     transform: none;
   }
 }
 
 /* Let users clear space around page controls without losing access to the guide. */
-.guide-collapse {
+.guide-launcher .guide-collapse {
   position: absolute;
   top: -20px;
   right: -5px;
@@ -490,7 +490,7 @@ body:has(.guide-panel[open]) {
   color: #fff;
   background: #17191d;
 }
-.guide-launcher.is-compact .guide-launch-button {
+.guide-launcher.is-compact .guide-launcher .guide-launch-button {
   width: 48px;
   height: 48px;
   min-height: 48px;
@@ -500,4 +500,91 @@ body:has(.guide-panel[open]) {
 .guide-launcher.is-compact .fit-mascot {
   width: 32px;
   height: 32px;
+}
+
+/* Floating guide controls keep their own dimensions instead of inheriting form-button padding. */
+.guide-launcher .guide-launch-button {
+  width: 88px;
+  min-height: 96px;
+  padding: 8px 10px 10px;
+  gap: 4px;
+  background: #050505;
+  color: #fff;
+  border: 1px solid #5c6068;
+  border-radius: 22px;
+  font: 600 12px/1.5 var(--sans);
+}
+.guide-launcher .guide-launch-button .fit-mascot {
+  width: 56px;
+  height: 56px;
+}
+.guide-launcher .guide-launch-button:hover:not(:disabled) {
+  background: #101114;
+  border-color: #c4c9d2;
+}
+.guide-launcher .guide-collapse {
+  top: -12px;
+  right: -8px;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 50%;
+}
+.guide-launcher .guide-intro-hint {
+  max-width: min(230px, calc(100vw - 132px));
+  padding: 10px 34px 10px 12px;
+}
+.guide-intro-hint > .ui-button:first-child {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #171717;
+  font: 400 13px/1.7 var(--sans);
+}
+.guide-intro-hint > .ui-button:first-child:hover:not(:disabled) {
+  background: transparent;
+  color: #000;
+}
+.guide-launcher .guide-dismiss {
+  right: -6px;
+  top: -10px;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: 50%;
+}
+.guide-launcher .guide-dismiss:hover:not(:disabled) {
+  background: #e7e9ed;
+  color: #171717;
+}
+.guide-launcher.is-compact .guide-launch-button {
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  padding: 7px;
+  border-radius: 16px;
+}
+.guide-launcher.is-compact .guide-launch-button .fit-mascot {
+  width: 32px;
+  height: 32px;
+}
+@media (max-width: 600px) {
+  .guide-launcher {
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+  .guide-launcher .guide-collapse,
+  .guide-launcher .guide-dismiss {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+  .guide-launcher .guide-collapse {
+    top: -20px;
+    right: -4px;
+  }
 }

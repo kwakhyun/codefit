@@ -42,11 +42,13 @@ export function ProjectQuestions({
   enabled,
   onReviewed,
   onUsage,
+  reviewRemaining,
 }: {
   check: Check;
   scope: string;
   enabled: boolean;
   onUsage?: () => Promise<void>;
+  reviewRemaining?: number;
   onReviewed: (review: NonNullable<Check["review"]>) => Promise<void>;
 }) {
   const draftKey = `codefit-project:${scope}:${check.id}`;
@@ -392,6 +394,7 @@ export function ProjectQuestions({
           scope={scope}
           enabled={enabled}
           onUsage={onUsage}
+          remaining={reviewRemaining}
         />
       )}
       {storageError && (

@@ -26,7 +26,7 @@ export function MissionLoader({ mission }: { mission: Mission }) {
   if (!data)
     return (
       <main id="main-content" className="learn-page">
-        <Link href="/learn">← 서비스 원리 배우기로</Link>
+        <Link href="/learn?source=sample">← 서비스 원리 배우기로</Link>
         <h1>{mission.title}</h1>
         {error ? (
           <Status role="alert">
@@ -36,7 +36,7 @@ export function MissionLoader({ mission }: { mission: Mission }) {
             </Button>
           </Status>
         ) : (
-          <LoadingState>나의 학습 기록을 불러오는 중…</LoadingState>
+          <LoadingState variant="lesson">나의 학습 기록을 불러오는 중…</LoadingState>
         )}
       </main>
     );

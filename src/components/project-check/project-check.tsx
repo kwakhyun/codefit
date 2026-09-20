@@ -14,6 +14,7 @@ import {
   Textarea,
   Anchor,
 } from "@/components/ui/primitives";
+import { ProjectPracticeLinks } from "@/components/project-practice/practice-entry";
 import { ProjectRepository } from "./project-repository";
 import { ProjectCaptures } from "./project-captures";
 import { ProjectFollowUp } from "./project-follow-up";
@@ -35,10 +36,10 @@ import { useProjectHistory, type UpdateOverview } from "@/hooks/use-project-hist
 import { useProjectDraft } from "@/hooks/use-project-draft";
 import { VoiceInput } from "@/components/ui/voice-input";
 import { api, ApiError, dateLabel, errorMessage, setWorkspaceScope } from "@/lib/client-api";
-import type { Check, CheckOverview } from "@/lib/project-check/types";
+import type { Check, CheckListItem, CheckOverview } from "@/lib/project-check/types";
 import { ProjectQuestions } from "./project-questions";
 import { RequestStatus } from "./request-status";
-function projectName(check: Check) {
+function projectName(check: CheckListItem) {
   const url = new URL(check.page.url);
   if (url.hostname === "github.com") return url.pathname.split("/")[2] || url.hostname;
   return check.analysis.title;
@@ -91,7 +92,7 @@ export function ProjectCheckApp() {
   }, [refresh]);
   return (
     <>
-      {checking && <LoadingState>점검 기록 불러오는 중…</LoadingState>}
+      {checking && <LoadingState variant="form">점검 기록 불러오는 중…</LoadingState>}
       {error && (
         <Card as="div" className="project-panel" role="alert">
           <p>{error}</p>
@@ -155,7 +156,6 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
   const analysisResetLabel = data.usage.analysis.resetsAt
     ? `${dateLabel(data.usage.analysis.resetsAt)}에 새 분석 한도가 초기화됩니다.`
     : "초기화 시각을 확인하려면 기록 새로고침을 눌러 주세요.";
-  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -193,6 +193,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
       ...current,
       checks: [result, ...current.checks.filter((c) => c.id !== result.id)],
     }));
+    history.updateDetail(result);
     select(result.id);
   }
   async function refreshUsage() {
@@ -251,7 +252,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
       const result = await api<Check>("/api/project-check", {
         method: "POST",
         scope: data.scope,
-        body: { requestId: id, url, description, consent },
+        body: { requestId: id, url, description },
       });
       if (!alive.current) return;
       showCheck(result);
@@ -432,7 +433,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   </Button>
                 </>
               ) : (
-                <Status role="status">선택한 점검 기록 불러오는 중…</Status>
+                <LoadingState variant="form">선택한 점검 기록 불러오는 중…</LoadingState>
               )}
             </Card>
           ) : !check ? (
@@ -544,20 +545,10 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   </p>
                 </div>
               )}
-              <FieldLabel className="project-consent">
-                <Input
-                  type="checkbox"
-                  checked={consent}
-                  onChange={(e) => setConsent(e.target.checked)}
-                  required
-                  disabled={busy || recovering}
-                />
-                <span>
-                  내가 만들었거나 분석할 권한이 있는 프로젝트입니다. 공개 페이지의 본문과 화면
-                  이미지 또는 공개 저장소의 코드 발췌, 작성한 설명과 답변을 OpenAI에 전송해 분석하는
-                  데 동의합니다.
-                </span>
-              </FieldLabel>
+              <p className="project-help">
+                공개 화면 또는 코드 발췌와 입력한 내용을 OpenAI로 보내 분석합니다. 분석할 권한이
+                있는 프로젝트만 입력하고, 비밀키와 사용자 데이터는 제외해 주세요.
+              </p>
               <Button
                 className="primary-button"
                 type="submit"
@@ -633,7 +624,12 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   </>
                 )}
                 <ProjectCaptures check={check} scope={data.scope} />
-                {check.page.repository && <ProjectRepository repository={check.page.repository} />}
+                {check.page.repository && (
+                  <>
+                    <ProjectRepository repository={check.page.repository} />
+                    <ProjectPracticeLinks id={check.id} />
+                  </>
+                )}
                 <Button
                   className="text-button"
                   disabled={busy || recovering}
@@ -651,6 +647,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 scope={data.scope}
                 enabled={data.aiReady && data.usage.review.remaining > 0}
                 onUsage={refreshUsage}
+                reviewRemaining={data.usage.review.remaining}
                 onReviewed={async (review) => {
                   history.updateDetail({ ...check, review });
                   onChange((current) => ({

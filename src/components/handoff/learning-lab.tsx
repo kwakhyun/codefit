@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { useFadeTransition } from "@/components/ui/use-fade-transition";
 import {
   Button,
@@ -129,7 +130,7 @@ export function LearningLab({
           </Button>
         </Status>
       ) : !lab ? (
-        <Status role="status">실행 시나리오를 불러오는 중…</Status>
+        <ScreenSkeleton variant="editor" label="실행 시나리오를 불러오는 중…" />
       ) : null}
       {stage === 0 && lab && (
         <div className="lab-prediction-layout">

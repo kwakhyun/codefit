@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { ProjectQuickStart } from "@/components/project-practice/project-quick-start";
 import { useRef, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { ProjectExample } from "@/components/project-check/project-example";
@@ -45,7 +46,9 @@ export function TrainingHero({
     return (
       <div className="workspace-welcome" ref={home}>
         <span className="eyebrow">나의 CODE:FIT</span>
-        <h1>지금 필요한 연습부터 시작하세요</h1>
+        <h1>내 프로젝트로 배우고, 직접 확인하세요</h1>
+        <ProjectQuickStart key={scope} scope={scope} />
+        <h2>관심 있는 학습 공간도 골라보세요</h2>
         <LearningPreferencePicker
           onSelect={() =>
             requestAnimationFrame(() => home.current?.querySelector<HTMLElement>("h1")?.focus())
@@ -64,6 +67,7 @@ export function TrainingHero({
       {storageError && (
         <Status role="status">선택을 저장하지 못했어요. 현재 화면에는 적용됩니다.</Status>
       )}
+      <ProjectQuickStart key={scope} scope={scope} />
       {type === "service" && (
         <>
           <section className="service-home-hero" aria-label="서비스 점검 시작">
@@ -189,7 +193,7 @@ export function TrainingHero({
             <Code2 />
             <div>
               <h2>AI 코드, 실행 전에 읽어보기</h2>
-              <p>예상 → 실행 → 수정 → 설명. 코드 이해 훈련 12개를 만나보세요.</p>
+              <p>내 GitHub 코드로 연습하거나 준비된 샘플 12개를 체험해 보세요.</p>
             </div>
             <ArrowRight />
           </Link>

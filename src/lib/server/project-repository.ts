@@ -181,13 +181,25 @@ export async function readProjectRepository(
         cache: "no-store",
       },
     );
-    if (!response.ok)
-      throw new HttpError(
-        response.status === 403 || response.status === 429 ? 429 : 422,
-        response.status === 403 || response.status === 429
-          ? "GitHub 공개 API 요청 한도에 도달했습니다. 잠시 후 다시 시도해 주세요."
-          : "공개 저장소를 읽지 못했습니다. 주소와 공개 여부를 확인해 주세요.",
-      );
+    if (!response.ok) {
+      if (
+        response.status === 429 ||
+        (response.status === 403 &&
+          (response.headers.get("x-ratelimit-remaining") === "0" ||
+            response.headers.has("retry-after")))
+      ) {
+        const retry = githubRetryDelay(response.headers);
+        const wait = retry
+          ? `약 ${Math.ceil(retry / 60)}분 뒤 다시 시도해 주세요.`
+          : "GitHub가 재시도 시간을 제공하지 않았습니다. 잠시 후 다시 시도해 주세요.";
+        throw new HttpError(
+          429,
+          `GitHub의 공개 코드 조회 요청이 많아 잠시 기다려야 합니다. ${wait} AI 분석 횟수는 차감되지 않았습니다.`,
+          retry,
+        );
+      }
+      throw new HttpError(422, "공개 저장소를 읽지 못했습니다. 주소와 공개 여부를 확인해 주세요.");
+    }
     const reader = response.body?.getReader();
     if (!reader) throw new HttpError(422, "GitHub 응답을 읽지 못했습니다.");
     const chunks: Uint8Array[] = [];
@@ -342,4 +354,13 @@ export async function readProjectRepository(
     text: files.flatMap((f) => f.lines.map((l) => sourceLine(f.path, l.number, l.text))).join("\n"),
     collectionNote: `${target.pullRequest ? `PR #${target.pullRequest}의 추가·변경 줄 주변` : "기본 브랜치"}에서 커밋 ${commit.slice(0, 7)} 기준으로 읽었습니다. 목록 ${repository.totalFiles}개 중 ${files.length}개 파일의 제한된 발췌입니다. 코드 실행, 전체 호출 경로와 배포 상태는 확인하지 않았습니다. 비밀 설정·바이너리·큰 파일은 제외합니다.${repository.truncatedTree ? " 파일 목록도 일부만 수집했습니다." : ""}`,
   };
+}
+
+/** Retry-After takes precedence; GitHub reset is an epoch timestamp in seconds. */
+export function githubRetryDelay(headers: Headers, now = Date.now()): number | undefined {
+  const raw = headers.get("retry-after");
+  const retry = raw ? (/^\d+$/.test(raw) ? Number(raw) : (Date.parse(raw) - now) / 1000) : NaN;
+  const reset = Number(headers.get("x-ratelimit-reset")) * 1000;
+  const seconds = Number.isFinite(retry) ? retry : (reset - now) / 1000;
+  return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds) : undefined;
 }

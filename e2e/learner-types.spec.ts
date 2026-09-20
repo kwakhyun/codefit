@@ -13,8 +13,10 @@ test("three workspaces expose distinct home sections and navigation", async ({ p
   await expect(picker.getByRole("radio")).toHaveCount(3);
   for (const [index, item] of learnerTypes.entries()) {
     if (index) await change(page).click();
-    await picker.getByRole("radio", { name: item.name, exact: true }).check();
-    if (index) await page.getByRole("button", { name: "선택 완료", exact: true }).click();
+    await picker.getByRole("radio", { name: item.name, exact: true }).click();
+    await expect(
+      page.getByRole("dialog", { name: "작업 공간 변경", exact: true }),
+    ).not.toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(item.title);
     await expect(page.locator(".workspace-home")).toHaveAttribute("data-learner-type", item.id);
     await expect(page.locator("#problem-library")).toHaveCount(item.id === "code" ? 1 : 0);
@@ -79,7 +81,7 @@ test("choosing a workspace still works when storage is blocked", async ({ page }
     };
   });
   await page.goto("/");
-  await page.getByRole("radio", { name: "AI 워크숍", exact: true }).check();
+  await page.getByRole("radio", { name: "AI 워크숍", exact: true }).click();
   await expect(page.locator(".workspace-ai")).toBeVisible();
   await expect(page.locator(".workspace-home").getByRole("status")).toContainText(
     "선택을 저장하지 못했어요",
@@ -91,8 +93,8 @@ test("workspace changes preserve code drafts", async ({ page }) => {
   const draft = "// workspace migration draft\nexport function search() { return []; }";
   await setCode(page, draft);
   await change(page).click();
-  await page.getByRole("radio", { name: "서비스 점검실", exact: true }).check();
-  await page.getByRole("button", { name: "선택 완료", exact: true }).click();
+  await page.getByRole("radio", { name: "서비스 점검실", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "작업 공간 변경", exact: true })).not.toBeVisible();
   expect(await readCode(page)).toBe(draft);
   await page.reload();
   await editor(page);

@@ -7,7 +7,8 @@ export const createCheckSchema = z
     requestId: z.uuid(),
     url: z.string().trim().min(1).max(1500),
     description: z.string().trim().max(2000).default(""),
-    consent: z.literal(true, { error: "본인 프로젝트와 AI 분석 동의를 확인해 주세요." }),
+    // Accepted only for compatibility with older clients; no separate consent gate.
+    consent: z.boolean().optional(),
   })
   .strict();
 export const reviewCheckSchema = z
@@ -180,11 +181,25 @@ interface CheckUsage {
   remaining: number;
   resetsAt: string | null;
 }
+export type CheckListItem = Pick<Check, "id" | "createdAt"> & {
+  page: Pick<Check["page"], "url">;
+  analysis: Pick<Check["analysis"], "title">;
+  review?: { assessment: { score: number } };
+};
+export function checkListItem(check: Check): CheckListItem {
+  return {
+    id: check.id,
+    createdAt: check.createdAt,
+    page: { url: check.page.url },
+    analysis: { title: check.analysis.title },
+    ...(check.review ? { review: { assessment: { score: check.review.assessment.score } } } : {}),
+  };
+}
 export interface CheckOverview {
   scope: string;
   signedIn: boolean;
   aiReady: boolean;
   usage: { analysis: CheckUsage; review: CheckUsage };
-  checks: Check[];
+  checks: CheckListItem[];
   nextCursor: string | null;
 }

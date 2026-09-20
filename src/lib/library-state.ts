@@ -45,7 +45,7 @@ export function libraryUrl(filters: LibraryFilters, domain = "all", view = "libr
   return params.size ? `/?${params}` : "/";
 }
 export function safeReturnTo(value?: unknown) {
-  if (value === "/handoff") return value;
+  if (value === "/handoff" || value === "/handoff?source=sample") return value;
   if (typeof value !== "string" || (value !== "/" && !value.startsWith("/?"))) return "/";
   const params = new URLSearchParams(value.slice(2));
   return libraryUrl(

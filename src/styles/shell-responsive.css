@@ -268,3 +268,8 @@
     flex-shrink: 0;
   }
 }
+
+/* Preserve breathing room below settings at every sidebar breakpoint. */
+.sidebar {
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}

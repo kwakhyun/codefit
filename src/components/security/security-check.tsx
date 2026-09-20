@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { useFadeTransition } from "@/components/ui/use-fade-transition";
 import { useConfirmation } from "@/components/ui/use-confirmation";
 import {
@@ -62,7 +63,9 @@ export function SecurityCheck() {
   }, [retry]);
   return (
     <>
-      {checking && <Status role="status">현재 계정의 임시 기록을 확인하고 있습니다…</Status>}
+      {checking && (
+        <ScreenSkeleton variant="form" label="현재 계정의 임시 기록을 확인하고 있습니다…" />
+      )}
       {error && (
         <div role="alert">
           <p>{error}</p>

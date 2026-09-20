@@ -49,7 +49,7 @@ test("link to questions, draft restore, keyboard navigation, assessment and dele
     if (request.method() === "GET") return route.fulfill({ json: data });
     if (request.method() === "POST") {
       const body = request.postDataJSON();
-      expect(body.consent).toBe(true);
+      expect(body.consent).toBeUndefined();
       const check = { ...publicCheck(fixtureCheck), id: body.requestId };
       data = {
         ...data,
@@ -74,7 +74,6 @@ test("link to questions, draft restore, keyboard navigation, assessment and dele
   });
   await page.goto("/project-check");
   await page.getByLabel("서비스 링크", { exact: true }).fill("https://example.com/");
-  await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
   await expect(page.getByRole("heading", { name: "예약 서비스 설계 점검" })).toBeFocused();
   await page

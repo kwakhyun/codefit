@@ -18,10 +18,9 @@ const overview = (): CheckOverview => ({
 async function enterProject(page: Page) {
   await page.getByLabel("서비스 링크", { exact: true }).fill("https://example.com/");
   await page.getByLabel("서비스와 구현 방식 설명").fill("직접 만든 예약 서비스입니다.");
-  await page.getByRole("checkbox").check();
 }
 
-test("analysis drafts survive reload and retry the same request, with fresh consent and account isolation", async ({
+test("analysis drafts survive reload and retry the same request, without an extra consent gate and with account isolation", async ({
   page,
 }) => {
   let data = overview();
@@ -42,8 +41,7 @@ test("analysis drafts survive reload and retry the same request, with fresh cons
   await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue(
     "직접 만든 예약 서비스입니다.",
   );
-  await expect(page.getByRole("checkbox")).not.toBeChecked();
-  await page.getByRole("checkbox").check();
+  await expect(page.getByRole("checkbox")).toHaveCount(0);
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
   await expect.poll(() => ids.length).toBe(2);
   expect(ids[1]).toBe(ids[0]);

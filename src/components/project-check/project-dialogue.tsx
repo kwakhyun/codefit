@@ -11,6 +11,8 @@ import {
 import type { Check } from "@/lib/project-check/types";
 import type { ProjectDialogue } from "@/lib/project-check/dialogue";
 import { api, errorMessage } from "@/lib/client-api";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
+import { Modal } from "@/components/ui/modal";
 import { SourceEvidence } from "./project-repository";
 import { RequestStatus } from "./request-status";
 export function ProjectCodeDialogue({
@@ -21,6 +23,7 @@ export function ProjectCodeDialogue({
   enabled,
   onUsage,
   readOnly = false,
+  remaining,
 }: {
   check: Check;
   index: number;
@@ -28,9 +31,11 @@ export function ProjectCodeDialogue({
   scope: string;
   enabled: boolean;
   readOnly?: boolean;
+  remaining?: number;
   onUsage?: () => Promise<void>;
 }) {
   const [dialogue, setDialogue] = useState<ProjectDialogue | null>(null);
+  const [lastUseOpen, setLastUseOpen] = useState(false);
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -105,6 +110,27 @@ export function ProjectCodeDialogue({
   const finished = !!dialogue && (dialogue.turns.length >= 3 || !last?.nextQuestion);
   return (
     <Disclosure className="project-code-dialogue">
+      <Modal
+        open={lastUseOpen}
+        onClose={() => setLastUseOpen(false)}
+        title="남은 평가 1회를 어디에 사용할까요?"
+      >
+        <p>
+          코드 대화에 사용하면 전체 답변 평가는 이용 횟수가 다시 채워진 뒤에 받을 수 있습니다. 지금
+          작성한 답변은 유지됩니다.
+        </p>
+        <div className="ui-dialog-actions">
+          <Button onClick={() => setLastUseOpen(false)}>전체 평가를 위해 남겨두기</Button>
+          <Button
+            onClick={() => {
+              setLastUseOpen(false);
+              void send();
+            }}
+          >
+            코드 대화에 1회 사용
+          </Button>
+        </div>
+      </Modal>
       <DisclosureSummary>
         {readOnly ? "저장된 코드 대화 보기" : "이 답변을 코드와 함께 확인하기"}{" "}
         {!readOnly && <span>선택</span>}
@@ -115,6 +141,7 @@ export function ProjectCodeDialogue({
           1회를 사용합니다. 질문마다 최대 3번 대화할 수 있습니다.
         </p>
       )}
+      {loading && <ScreenSkeleton variant="response" label="이전 코드 대화를 불러오는 중…" />}
       {dialogue?.turns.map((turn, i) => (
         <section className="project-dialogue-turn" key={i}>
           <strong>내 설명 {i + 1}</strong>
@@ -158,7 +185,7 @@ export function ProjectCodeDialogue({
       ) : (
         <Button
           className="secondary-button"
-          onClick={() => void send()}
+          onClick={() => (remaining === 1 ? setLastUseOpen(true) : void send())}
           disabled={loading || busy || !enabled || !(dialogue ? reply : answer).trim()}
         >
           {busy ? "코드와 비교하는 중…" : dialogue ? "이어서 답하기" : "코드와 비교해 피드백 받기"}

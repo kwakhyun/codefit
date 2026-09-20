@@ -160,7 +160,7 @@ python3 scripts/check-generation-counterexamples.py
 
 ## 인수인계 훈련 로컬 검증
 
-로컬 앱의 `/handoff`에서 기본 6개와 변형 6개를 연습합니다. 새 데이터는 기존 문제 초기화 과정에 추가되므로 전체 내장 문제는 24개입니다. 이전의 내장 12개 기준 성능 기록은 당시의 데이터 규모이며 이번 변경의 성능 측정값이 아닙니다.
+로컬 앱의 `/handoff?source=sample`에서 기본 6개와 변형 6개를 연습합니다. `/handoff` 기본 화면은 내 프로젝트 연결을 안내합니다. 새 데이터는 기존 문제 초기화 과정에 추가되므로 전체 내장 문제는 24개입니다. 이전의 내장 12개 기준 성능 기록은 당시의 데이터 규모이며 이번 변경의 성능 측정값이 아닙니다.
 
 ```bash
 npm test
@@ -178,7 +178,7 @@ npm run eval:handoff -- --strengthened --live
 
 ## 입문 트랙 개발
 
-`/learn`에서 코스를 고르고 `/learn/[id]`에서 연습한다. `GET /api/learn`은 현재 소유자의 기록, `GET/PUT /api/learn/[id]`는 개별 기록의 조건부 읽기/쓰기를 제공한다. `POST /api/learn/[id]/coach`는 기존 리뷰 모델 및 사용량 한도를 공유한다. 미션과 기록 스키마는 `src/lib/learn/`, 모의 앱과 단계 화면은 `src/components/learn/`에 있다.
+`/learn?source=sample`에서 코스를 고르고 `/learn/[id]`에서 연습한다. `GET /api/learn`은 현재 소유자의 기록, `GET/PUT /api/learn/[id]`는 개별 기록의 조건부 읽기/쓰기를 제공한다. `POST /api/learn/[id]/coach`는 기존 리뷰 모델 및 사용량 한도를 공유한다. 미션과 기록 스키마는 `src/lib/learn/`, 모의 앱과 단계 화면은 `src/components/learn/`에 있다.
 
 `learning_progress` 테이블은 기존 공유 스키마 초기화 때 생성된다. 새 환경 변수나 외부 인프라는 필요하지 않다. 입문 기록은 사용자용 v3 JSON 백업의 내보내기/가져오기에 포함하며, 미션별 텍스트 내보내기도 제공한다. 운영용 전체 SQLite 스냅샷과 SQLite→PostgreSQL 이관에는 포함된다.
 
@@ -186,7 +186,7 @@ npm run eval:handoff -- --strengthened --live
 
 ## 내 프로젝트 점검
 
-`/project-check`와 `/api/project-check`는 게스트 체험과 로그인 계정의 분석/평가를 제공합니다. 이용 한도와 기록 보관 범위는 README를 참고하세요. 기존 서버 API 키와 DB를 재사용합니다. 자바스크립트 실행 후 화면 수집에는 Vercel Sandbox 스냅샷과 프로젝트 범위 인증이 추가로 필요합니다. [브라우저 수집 준비](project-browser.md#브라우저-이미지-준비)에 따라 `PROJECT_BROWSER_SNAPSHOT_ID`를 설정하세요. 설정이 없거나 수집에 실패하면 HTML 수집으로 전환하며, 렌더링된 화면을 읽었다고 표시하지 않습니다. 주소 수집 제한, 개인 한도, 실패 시 차감 정책과 모델 비용은 [설계 기록](project-check.md)에 있습니다. SQLite→PostgreSQL 이관에서는 완료된 프로젝트 질문과 평가만 복사하고 진행 중인 AI 작업은 제외합니다. 일반 DB 백업에도 기록이 포함됩니다.
+`/project-check`와 `/api/project-check`는 게스트 체험과 로그인 계정의 분석/평가를 제공합니다. 이용 한도와 기록 보관 범위는 [프로젝트 점검](project-check.md)과 [내 프로젝트로 연습](project-practice.md)을 참고하세요. 기존 서버 API 키와 DB를 재사용합니다. 자바스크립트 실행 후 화면 수집에는 Vercel Sandbox 스냅샷과 프로젝트 범위 인증이 추가로 필요합니다. [브라우저 수집 준비](project-browser.md#브라우저-이미지-준비)에 따라 `PROJECT_BROWSER_SNAPSHOT_ID`를 설정하세요. 설정이 없거나 수집에 실패하면 HTML 수집으로 전환하며, 렌더링된 화면을 읽었다고 표시하지 않습니다. 주소 수집 제한, 개인 한도, 실패 시 차감 정책과 모델 비용은 [설계 기록](project-check.md)에 있습니다. SQLite→PostgreSQL 이관에서는 완료된 프로젝트 질문, 평가, 코드 대화와 생성 실습의 진행 기록을 복사하고 진행 중인 AI 작업은 제외합니다. 일반 DB 백업에도 기록이 포함됩니다.
 
 ## 미리보기와 검증 환경 구분
 
@@ -195,3 +195,5 @@ npm run eval:handoff -- --strengthened --live
 브라우저 테스트의 기본 포트는 **3012**이며 `scripts/lib/e2e-environment.ts`가 테스트 코드와 Playwright 설정의 주소를 공유한다. `CODEFIT_E2E_BASE_URL`로 다른 로컬 주소를 지정할 수 있지만 운영 호스트는 거부한다. 기존 3010 미리보기나 실제 연습 DB를 종료·초기화하지 않는다. 테스트 DB는 `artifacts/e2e.sqlite`, OAuth는 테스트 세션, AI 응답은 모의 데이터다.
 
 프로젝트 질문 비교 도구는 `npm run eval:project -- --model gpt-5.6-luna`로 호출 수만 확인한다. 실제 과금 실행에는 환경에 API 키를 로드하고 `--snapshot <공개 페이지 스냅샷> --live`를 명시한다. [동일 입력의 모델 비교](project-check.md)에 사용량과 한계를 기록했다.
+
+생성용 `OPENAI_PROJECT_MODEL`, `OPENAI_GENERATION_MODEL`은 Sol 이상을 사용합니다. 지원 모델은 `gpt-5.6-sol`, `gpt-6-astra`와 해당 날짜 버전이며 그 외 설정은 `gpt-5.6-sol`로 적용합니다. 답변 평가 및 코칭용 모델은 별도로 설정합니다.

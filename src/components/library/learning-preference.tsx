@@ -32,6 +32,9 @@ export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }
                 setType(item.id);
                 onSelect?.();
               }}
+              onClick={() => {
+                if (hasChosen && type === item.id) onSelect?.();
+              }}
               aria-label={item.name}
             />
             <span className="persona-art" aria-hidden="true">
@@ -80,6 +83,7 @@ export function PreferenceChangeButton() {
       <Button
         ref={button}
         className="persona-change"
+        aria-label={`${profile.name} 작업 공간 변경`}
         aria-haspopup="dialog"
         onClick={(event) => {
           event.currentTarget.focus();
@@ -93,14 +97,7 @@ export function PreferenceChangeButton() {
         </span>
       </Button>
       <Modal open={open} onClose={close} title="작업 공간 변경" className="persona-modal">
-        {open && (
-          <>
-            <LearningPreferencePicker />
-            <Button className="primary-button persona-done" onClick={close}>
-              선택 완료
-            </Button>
-          </>
-        )}
+        {open && <LearningPreferencePicker onSelect={close} />}
       </Modal>
     </>
   );

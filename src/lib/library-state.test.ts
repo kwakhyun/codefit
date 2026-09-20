@@ -123,3 +123,8 @@ it("keeps the explicit catalog view through filters and a problem round trip", (
     new URL(problemUrl("net-framing", url), "https://codefit.example").searchParams.get("from"),
   ).toBe(url);
 });
+
+it("keeps sample training return navigation local", () => {
+  expect(safeReturnTo("/handoff?source=sample")).toBe("/handoff?source=sample");
+  expect(safeReturnTo("/handoff?source=sample&next=https://evil.test")).toBe("/");
+});

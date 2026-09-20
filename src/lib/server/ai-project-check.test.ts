@@ -86,7 +86,7 @@ it("keeps analysis and assessment overrides independent and records failed asses
     model: "gpt-5.6-terra",
   });
   await analyzeProject(fixtureCheck.page, "", new AbortController().signal);
-  expect(parse.mock.calls[0][0].model).toBe("gpt-5.6-terra");
+  expect(parse.mock.calls[0][0].model).toBe("gpt-5.6-sol");
   parse.mockRejectedValueOnce(new Error("offline"));
   const record = vi.fn();
   await expect(

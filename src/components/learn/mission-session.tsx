@@ -117,7 +117,7 @@ export function MissionSession({
   return (
     <main id="main-content" className="learn-page mission-page">
       <header className="learn-header">
-        <Link href="/learn">
+        <Link href="/learn?source=sample">
           <ArrowLeft size={16} /> 서비스 원리 배우기
         </Link>
         <div className="learn-save">
@@ -141,7 +141,7 @@ export function MissionSession({
       {isArchivedMission(mission.id) && (
         <p className="learn-fineprint">
           새 학습 목록에서 제외된 이전 실습입니다. 기존 기록은 계속 확인할 수 있습니다.{" "}
-          <Link href="/learn">현재 실습 보기</Link>
+          <Link href="/learn?source=sample">현재 실습 보기</Link>
         </p>
       )}
       <div className="mission-title">

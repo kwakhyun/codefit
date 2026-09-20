@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { Status } from "@/components/ui/primitives";
 import { Progress } from "@/components/ui/primitives";
 import { useEffect, useState } from "react";
@@ -17,6 +18,7 @@ export function RequestStatus({ label }: { label: string }) {
     <aside className="project-request-status" aria-label="AI 요청 상태">
       <strong>{label}</strong>
       <Progress aria-label="AI 응답 대기 중" />
+      <ScreenSkeleton variant="response" label="답변 내용 준비 중" />
       <span aria-hidden="true">{seconds}초 경과</span>
       <Status role="status">
         {seconds < 30

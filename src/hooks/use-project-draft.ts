@@ -17,9 +17,9 @@ function load(key: string): Draft {
   return { version: 1, url: "", description: "", requestId: null };
 }
 
-/** Mount once per workspace scope; consent is deliberately not persisted. */
-export function useProjectDraft(scope: string) {
-  const key = `codefit-project-input:${scope}`;
+/** Mount once per workspace scope; keep each entry form draft independent. */
+export function useProjectDraft(scope: string, namespace = "project-input") {
+  const key = `codefit-${namespace}:${scope}`;
   const [draft, setDraft] = useState(() => load(key));
   const current = useRef(draft);
   const [storageError, setStorageError] = useState(false);

@@ -1,3 +1,8 @@
+import {
+  generatedPracticeSchema,
+  validProjectExercises,
+  validPracticeProgress,
+} from "../project-check/generated-practice";
 import { repositorySnapshotSchema, repositoryCitation } from "../project-check/repository";
 import { projectDialogueSchema } from "../project-check/dialogue";
 import { captureSchema } from "../project-check/types";
@@ -33,12 +38,14 @@ export const backupReads = [
   "SELECT * FROM learning_progress WHERE owner=? ORDER BY lesson_id LIMIT 501",
   "SELECT p.result,r.result AS review FROM jobs p LEFT JOIN jobs r ON r.id='project-review-' || p.id AND r.owner=p.owner AND r.kind='project-review:' || p.id AND r.state='done' WHERE p.owner=? AND p.kind='project-analysis' AND p.state='done' ORDER BY p.expires,p.id LIMIT 501",
   "SELECT kind,result FROM jobs WHERE owner=? AND kind LIKE 'project-dialogue:%' AND state='done' ORDER BY expires,id",
+  "SELECT kind,result FROM jobs WHERE owner=? AND kind LIKE 'project-practice:%' AND state='done' ORDER BY expires,id",
 ];
 export function backupParameters(index: number, owner: string) {
   return index === 0 ? [owner, owner, owner, owner] : [owner];
 }
 export function buildBackup(rows: Row[][]): Backup {
-  const [problems, progress, attempts, legacy, learning, projects, dialogues = []] = rows;
+  const [problems, progress, attempts, legacy, learning, projects, dialogues = [], practices = []] =
+    rows;
   const raw = {
     version: 3,
     exportedAt: new Date().toISOString(),
@@ -62,7 +69,11 @@ export function buildBackup(rows: Row[][]): Backup {
             const value = JSON.parse(String(row.result));
             latest.set(value.questionIndex, value);
           }
-        return latest.size ? { dialogues: [...latest.values()] } : {};
+        const practice = practices.find((p) => p.kind === `project-practice:${id}`);
+        return {
+          ...(latest.size ? { dialogues: [...latest.values()] } : {}),
+          ...(practice ? { generatedPractice: JSON.parse(String(practice.result)) } : {}),
+        };
       })(),
     })),
   };
@@ -280,7 +291,21 @@ export function prepareBackup(backup: Backup) {
           )
             throw new Error("Invalid dialogue code evidence");
     }
-    return { check, review, dialogues };
+    const generatedPractice = item.generatedPractice
+      ? generatedPracticeSchema.parse(item.generatedPractice)
+      : undefined;
+    if (
+      generatedPractice &&
+      (!check.page.repository ||
+        !validProjectExercises(generatedPractice.exercises, check.page.repository) ||
+        !validPracticeProgress(generatedPractice.exercises.code, generatedPractice.progress.code) ||
+        !validPracticeProgress(
+          generatedPractice.exercises.service,
+          generatedPractice.progress.service,
+        ))
+    )
+      throw new Error("Invalid project practice evidence or progress");
+    return { check, review, dialogues, generatedPractice };
   });
   if (
     new Set(learning.map((l) => l.id)).size !== learning.length ||
@@ -314,6 +339,13 @@ export function restoredProjectJobs(
       kind: `project-review:${id}`,
       result: JSON.stringify(project.review),
       fingerprint: requestFingerprint(...project.review.answers),
+    });
+  if (project.generatedPractice)
+    jobs.push({
+      id: `${id}:practice`,
+      kind: `project-practice:${id}`,
+      result: JSON.stringify(project.generatedPractice),
+      fingerprint: requestFingerprint(check.page.repository!.commit),
     });
   for (const d of project.dialogues ?? []) {
     // Keep each prefix so retried previous turns can still be resolved after import.

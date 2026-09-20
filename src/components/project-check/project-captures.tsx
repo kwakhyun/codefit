@@ -1,5 +1,6 @@
 "use client";
-import { Status, Disclosure, DisclosureSummary, Anchor } from "@/components/ui/primitives";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
+import { Disclosure, DisclosureSummary, Anchor } from "@/components/ui/primitives";
 import { useEffect, useState } from "react";
 import type { Check } from "@/lib/project-check/types";
 function Capture({
@@ -50,7 +51,7 @@ function Capture({
       style={{ width: "100%", height: "auto", borderRadius: 12 }}
     />
   ) : (
-    <Status role="status">화면 불러오는 중…</Status>
+    <ScreenSkeleton variant="image" label="분석 당시 화면을 불러오는 중…" />
   );
 }
 export function ProjectCaptures({ check, scope }: { check: Check; scope: string }) {

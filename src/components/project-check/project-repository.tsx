@@ -13,7 +13,7 @@ import {
   type RepositorySnapshot,
   type RepositoryFile,
 } from "@/lib/project-check/repository";
-function CodeExcerpt({ file, focus }: { file: RepositoryFile; focus?: number }) {
+export function CodeExcerpt({ file, focus }: { file: RepositoryFile; focus?: number }) {
   const lines = focus ? file.lines.filter((l) => Math.abs(l.number - focus) <= 4) : file.lines;
   return (
     <pre className="repository-code" tabIndex={0} aria-label={`${file.path} 코드 발췌`}>
@@ -35,14 +35,16 @@ function CodeExcerpt({ file, focus }: { file: RepositoryFile; focus?: number }) 
 export function SourceEvidence({
   repository,
   evidence,
+  defaultOpen = false,
 }: {
   repository: RepositorySnapshot;
   evidence: string;
+  defaultOpen?: boolean;
 }) {
   const citation = repositoryCitation(repository, evidence);
   if (!citation) return null;
   return (
-    <Disclosure className="repository-evidence">
+    <Disclosure className="repository-evidence" open={defaultOpen || undefined}>
       <DisclosureSummary>근거 코드와 앞뒤 문맥 보기</DisclosureSummary>
       <CodeExcerpt file={citation.file} focus={citation.line} />
       <Anchor href={citation.url} target="_blank" rel="noreferrer">

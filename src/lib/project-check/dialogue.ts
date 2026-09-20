@@ -15,7 +15,7 @@ export const dialogueReplySchema = z
     nextAction: z.string().min(1).max(350),
   })
   .strict();
-export type DialogueReply = z.infer<typeof dialogueReplySchema>;
+type DialogueReply = z.infer<typeof dialogueReplySchema>;
 export interface ProjectDialogue {
   id: string;
   questionIndex: number;

@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import {
   Button,
   Card,
@@ -55,7 +56,7 @@ const CodeEditor = dynamic(() => import("@/components/code-editor").then((m) => 
   ssr: false,
   loading: () => (
     <div className="editor-loading">
-      <span className="blink">▋</span> 코드 편집기 준비 중…
+      <ScreenSkeleton variant="code" label="코드 편집기 준비 중…" />
     </div>
   ),
 });
@@ -134,13 +135,7 @@ export function ProblemWorkspace({
     onChange: changeCode,
     initialStage: initialAttemptId ? 3 : 0,
   });
-  if (loading)
-    return (
-      <div className="content-loader" role="status">
-        <LoaderCircle className="spin" size={25} />
-        <p>문제와 저장된 풀이를 불러오는 중</p>
-      </div>
-    );
+  if (loading) return <ScreenSkeleton variant="editor" label="문제와 저장된 풀이를 불러오는 중" />;
   if (loadError || !detail)
     return (
       <div className="empty-state">
@@ -185,7 +180,8 @@ export function ProblemWorkspace({
     <div className={`workspace ${focus ? "is-focused" : ""}`}>
       <div className="workspace-breadcrumb">
         <Link href={returnTo}>
-          <ArrowLeft size={15} /> {returnTo === "/handoff" ? "AI 코드 이해 훈련" : "문제 보관함"}
+          <ArrowLeft size={15} />{" "}
+          {returnTo.startsWith("/handoff") ? "AI 코드 이해 훈련" : "문제 보관함"}
         </Link>
         <ChevronRight size={13} />
         <span>{domainLabel(problem.domain)}</span>

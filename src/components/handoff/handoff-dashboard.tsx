@@ -1,4 +1,5 @@
 "use client";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { Card, Status, Button, Disclosure, DisclosureSummary } from "@/components/ui/primitives";
 import { SectionArtwork } from "@/components/experience/section-artwork";
 import { useEffect, useState } from "react";
@@ -71,7 +72,7 @@ export function HandoffDashboard() {
           </div>
           <Link
             className="primary-button"
-            href={problemUrl(recommended.next.problemId, "/handoff")}
+            href={problemUrl(recommended.next.problemId, "/handoff?source=sample")}
           >
             {recommended.next.priority === 3 ? "코드 이해 훈련 시작" : recommended.next.label} →
           </Link>
@@ -90,9 +91,10 @@ export function HandoffDashboard() {
             </Button>
           </Status>
         ) : !data ? (
-          <Status role="status">
-            내 훈련 기록을 불러오는 중입니다. 아래 과제는 바로 시작할 수 있습니다.
-          </Status>
+          <ScreenSkeleton
+            variant="list"
+            label="내 훈련 기록을 불러오는 중입니다. 아래 과제는 바로 시작할 수 있습니다."
+          />
         ) : (
           <>
             <div role="status">

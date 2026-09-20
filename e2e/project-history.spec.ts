@@ -177,7 +177,6 @@ test("an uncertain analysis retries its ID but an explicit new check uses a new 
   });
   await page.goto("/project-check");
   await page.getByLabel("서비스 링크", { exact: true }).fill("https://example.com/");
-  await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
   await expect(page.locator("main [role=alert]")).toContainText("응답이 끊겼습니다");
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();

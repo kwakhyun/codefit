@@ -79,7 +79,7 @@ export function* readMigrationData(source) {
     if (columns.every((column) => available.has(column))) {
       const records = source
         .prepare(
-          "SELECT * FROM jobs WHERE state='done' AND (kind='project-analysis' OR kind LIKE 'project-review:%' OR kind LIKE 'project-dialogue:%')",
+          "SELECT * FROM jobs WHERE state='done' AND (kind='project-analysis' OR kind LIKE 'project-review:%' OR kind LIKE 'project-dialogue:%' OR kind LIKE 'project-practice:%')",
         )
         .all();
       if (records.length)

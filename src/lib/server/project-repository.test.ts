@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 import {
   githubTarget,
+  githubRetryDelay,
   eligibleSource,
   extractSource,
   addedLines,
@@ -152,7 +153,11 @@ it("fails clearly on rate limits, private repositories and an empty source set",
     readProjectRepository(
       "https://github.com/owner/repo",
       AbortSignal.timeout(5000),
-      vi.fn().mockResolvedValue(new Response(null, { status: 403 })),
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response(null, { status: 403, headers: { "x-ratelimit-remaining": "0" } }),
+        ),
     ),
   ).rejects.toMatchObject({ status: 429 });
   await expect(
@@ -183,4 +188,14 @@ it("rejects PRs that move while changed files are being collected", async () => 
   await expect(
     readProjectRepository("https://github.com/owner/repo/pull/1", AbortSignal.timeout(5000), mock),
   ).rejects.toMatchObject({ status: 409 });
+});
+
+it("reads rate-limit retry delays without inventing an unknown reset time", () => {
+  const now = 1800000000000;
+  expect(githubRetryDelay(new Headers({ "retry-after": "90" }), now)).toBe(90);
+  expect(
+    githubRetryDelay(new Headers({ "x-ratelimit-reset": String(now / 1000 + 120) }), now),
+  ).toBe(120);
+  expect(githubRetryDelay(new Headers(), now)).toBeUndefined();
+  expect(githubRetryDelay(new Headers({ "retry-after": "invalid" }), now)).toBeUndefined();
 });

@@ -33,7 +33,7 @@ export function HandoffCard({
       <span className="handoff-skill">{track.skill}</span>
       <Link
         className="primary-button"
-        href={problemUrl(action.problemId, "/handoff")}
+        href={problemUrl(action.problemId, "/handoff?source=sample")}
         aria-label={`${action.label} : ${track.title}`}
       >
         {action.label}
@@ -50,7 +50,10 @@ export function HandoffCard({
               ? "서비스 내 힌트, 정답 또는 AI 질문 사용"
               : "서비스 내 힌트, 정답과 AI 질문 미사용"}
           </p>
-          <Link className="text-button" href={problemUrl(latest.problemId, "/handoff", latest.id)}>
+          <Link
+            className="text-button"
+            href={problemUrl(latest.problemId, "/handoff?source=sample", latest.id)}
+          >
             검토한 코드와 피드백 보기 →
           </Link>
           {learning.weaknesses.length ? (
@@ -84,11 +87,17 @@ export function HandoffCard({
       )}
       <div className="handoff-exercise-links">
         {action.problemId !== handoffId(track.key) && (
-          <Link className="text-button" href={problemUrl(handoffId(track.key), "/handoff")}>
+          <Link
+            className="text-button"
+            href={problemUrl(handoffId(track.key), "/handoff?source=sample")}
+          >
             기본 과제 열기 →
           </Link>
         )}
-        <Link className="text-button" href={problemUrl(handoffId(track.key, true), "/handoff")}>
+        <Link
+          className="text-button"
+          href={problemUrl(handoffId(track.key, true), "/handoff?source=sample")}
+        >
           {track.variantTitle} →
         </Link>
       </div>

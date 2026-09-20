@@ -100,7 +100,7 @@ export function MissionTransfer({
                 다음 미션 →
               </Link>
             )}
-            <Link className="secondary-button" href="/learn">
+            <Link className="secondary-button" href="/learn?source=sample">
               전체 학습 보기
             </Link>
           </div>

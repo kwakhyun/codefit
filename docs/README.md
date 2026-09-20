@@ -12,6 +12,7 @@
 | 서비스 분야와 사례의 구성 이력               | [서비스 분야별 실습](design/service-domain-curriculum.md)                                                                  |
 | AI 코드 이해와 코칭                          | [이해 훈련 코치](understanding-coach.md), [질문 대상 선택](coach-targeting.md)                                             |
 | 원본·수정 코드의 실행 비교                   | [학습 실험](learning-experiments.md), [실험 후속 질문](experiment-followup.md), [실행 환경의 무결성](sandbox-integrity.md) |
+| GitHub 기반 훈련 생성, 진행 저장과 샘플 분리 | [내 프로젝트로 연습](project-practice.md)                                                                                  |
 | 공개 링크 분석, 질문과 계정별 기록           | [프로젝트 점검](project-check.md)                                                                                          |
 | JS 실행 후 공개 본문과 스크린샷 수집         | [프로젝트 화면 수집](project-browser.md)                                                                                   |
 | 답변의 인용 근거와 평가 계약                 | [프로젝트 답변 평가](project-assessment.md)                                                                                |

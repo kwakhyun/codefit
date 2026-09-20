@@ -1,6 +1,6 @@
 import { projectMember } from "@/lib/server/project-member";
 import { z } from "zod";
-import { createCheckSchema, reviewCheckSchema } from "@/lib/project-check/types";
+import { checkListItem, createCheckSchema, reviewCheckSchema } from "@/lib/project-check/types";
 import { session } from "@/lib/server/session";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
 import { getStore } from "@/lib/server/database";
@@ -22,6 +22,7 @@ export async function GET(request: Request) {
       aiReady: Boolean(process.env.OPENAI_API_KEY),
       usage,
       ...page,
+      checks: page.checks.map(checkListItem),
     });
   } catch (error) {
     return failure(error);

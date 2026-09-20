@@ -1,3 +1,5 @@
+import { generateProjectExercises } from "./ai-project-check";
+import type { GeneratedPractice } from "../project-check/generated-practice";
 import { allowanceFor } from "../ai-access";
 import type { z } from "zod";
 import {
@@ -55,6 +57,40 @@ export class ProjectCheckService {
         429,
         "프로젝트 점검 이용 한도에 도달했습니다. 남은 횟수와 초기화 시간을 확인해 주세요.",
       );
+  }
+  async generatePractice(owner: string, network: string, checkId: string, signal: AbortSignal) {
+    const check = await this.store.queries.projectChecks.get(owner, checkId);
+    if (!check) throw new HttpError(404, "점검 기록을 찾지 못했습니다.");
+    if (!check.page.repository)
+      throw new HttpError(422, "공개 GitHub 저장소를 먼저 분석해 주세요.");
+    const claim = await this.store.startJob(
+      owner,
+      `${checkId}:practice`,
+      `project-practice:${checkId}`,
+      requestFingerprint(check.page.repository.commit),
+    );
+    if (claim.state === "done") return JSON.parse(claim.result) as GeneratedPractice;
+    if (claim.state === "pending")
+      throw new HttpError(409, "실습을 만들고 있습니다. 잠시 후 저장된 실습을 다시 불러와 주세요.");
+    let charges: { key: string; expires: number }[] = [];
+    try {
+      await this.consume(owner, network, "analysis");
+      charges = await this.store.queries.projectChecks.practiceCharges(owner, network);
+      const exercises = await generateProjectExercises(check, signal);
+      signal.throwIfAborted();
+      const result: GeneratedPractice = {
+        exercises,
+        progress: { code: [], service: [] },
+        revision: 0,
+        createdAt: new Date().toISOString(),
+      };
+      await this.store.queries.projectChecks.completePractice(claim.lease, checkId, result);
+      return result;
+    } catch (error) {
+      if (await this.store.failJob(claim.lease))
+        await this.store.queries.projectChecks.refundPractice(claim.lease, charges);
+      throw error;
+    }
   }
   async create(
     owner: string,

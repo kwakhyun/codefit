@@ -9,7 +9,6 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
   const selected = useSearchParams().get("check");
   const selectionKey = `codefit-project-selection:${data.scope}`;
   const initialized = useRef(false);
-  const listed = data.checks.find((c) => c.id === selected);
   const [detail, setDetail] = useState<{ id: string; check?: Check; error?: string }>();
   const [retry, setRetry] = useState(0);
   const [paging, setPaging] = useState(false);
@@ -46,20 +45,22 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
     return () => pageRequest.current?.abort();
   }, [data.scope, data.nextCursor, data.checks]);
   useEffect(() => {
-    if (!selected || listed) return;
+    if (!selected) return;
     const controller = new AbortController();
     api<Check>(`/api/project-check/${encodeURIComponent(selected)}`, {
       scope: data.scope,
       signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15_000)]),
     })
       .then((check) => {
-        if (!controller.signal.aborted) setDetail({ id: selected, check });
+        if (!controller.signal.aborted) {
+          setDetail({ id: selected, check });
+        }
       })
       .catch((e) => {
         if (!controller.signal.aborted) setDetail({ id: selected, error: errorMessage(e) });
       });
     return () => controller.abort();
-  }, [selected, listed, data.scope, retry, data.checks]);
+  }, [selected, data.scope, retry, data.checks]);
   function select(id: string | null, replace = false) {
     try {
       if (id) sessionStorage.setItem(selectionKey, id);
@@ -104,14 +105,16 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
   }
   return {
     selected,
-    check: listed ?? (detail?.id === selected ? detail.check : undefined),
-    detailError: !listed && detail?.id === selected ? detail.error : undefined,
+    check: detail?.id === selected ? detail.check : undefined,
+    detailError: detail?.id === selected ? detail.error : undefined,
     select,
     reloadDetail: () => {
       setDetail(undefined);
       setRetry((n) => n + 1);
     },
-    updateDetail: (check: Check) => setDetail({ id: check.id, check }),
+    updateDetail: (check: Check) => {
+      setDetail({ id: check.id, check });
+    },
     loadMore,
     paging,
     pageError,
