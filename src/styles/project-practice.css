@@ -327,3 +327,110 @@
     min-height: 50px;
   }
 }
+
+/* The service workspace starts within its existing hero, without a second card. */
+.service-home-connected {
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 56px);
+  padding-block: 32px 48px;
+}
+.service-home-connected .workspace-art {
+  align-self: start;
+  margin-top: 50px;
+}
+.project-quick-start.quick-start-embedded {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  gap: 20px;
+}
+.quick-start-embedded .quick-start-input {
+  align-items: stretch;
+  padding: 6px;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.quick-start-embedded .quick-start-input:focus-within {
+  border-color: var(--workspace-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--workspace-accent) 14%, transparent);
+}
+.service-home-connected .quick-start-embedded .quick-start-input .ui-input[type="url"] {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding-inline: 12px;
+}
+.quick-start-embedded .quick-start-input input:focus-visible {
+  outline: none;
+}
+.quick-start-embedded .quick-start-input button {
+  border-radius: 12px;
+  font-size: 14px;
+  white-space: nowrap;
+  padding-inline: 16px;
+}
+.quick-start-note {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.quick-start-note details {
+  border: 0;
+  padding: 0;
+  background: none;
+}
+.quick-start-note summary {
+  width: fit-content;
+  padding-block: 8px;
+  cursor: pointer;
+}
+.quick-start-note details p {
+  padding-block: 4px 8px;
+  max-width: 56ch;
+}
+.quick-start-embedded .quick-start-alternatives {
+  gap: 8px 24px;
+  font-size: 14px;
+}
+.quick-start-embedded .quick-start-alternatives a {
+  padding-block: 8px;
+}
+@media (max-width: 1100px) {
+  .service-home-connected {
+    grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+    gap: 24px;
+  }
+  .quick-start-embedded .quick-start-input {
+    flex-direction: column;
+  }
+  .quick-start-embedded .quick-start-input button {
+    justify-content: center;
+    min-height: 48px;
+  }
+}
+@media (max-width: 760px) {
+  .service-home-connected {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 12px;
+  }
+  .service-home-connected .workspace-art {
+    max-width: 240px;
+    margin-top: 0;
+  }
+  .quick-start-embedded .quick-start-input {
+    border-radius: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .quick-start-embedded .quick-start-input {
+    transition: none;
+  }
+}

@@ -1,3 +1,6 @@
+import { readPublicGitRepository, looksLikeRepository } from "./public-git-repository";
+import { generateProjectWorkshop } from "./ai-project-check";
+import type { ProjectWorkshop } from "../ai-learning/project-workshop";
 import { generateProjectExercises } from "./ai-project-check";
 import type { GeneratedPractice } from "../project-check/generated-practice";
 import { allowanceFor } from "../ai-access";
@@ -18,8 +21,14 @@ import { HttpError } from "./http";
 import { readProjectPages } from "./project-browser";
 import { githubTarget, readProjectRepository } from "./project-repository";
 const defaults = {
-  readPage: (url: string, signal: AbortSignal) =>
-    githubTarget(url) ? readProjectRepository(url, signal) : readProjectPages(url, signal),
+  readPage: (url: string, signal: AbortSignal, source?: "repository" | "website") =>
+    source === "website"
+      ? readProjectPages(url, signal)
+      : githubTarget(url)
+        ? readProjectRepository(url, signal)
+        : source === "repository" || looksLikeRepository(url)
+          ? readPublicGitRepository(url, signal)
+          : readProjectPages(url, signal),
   analyze: analyzeProject,
   assess: assessProject,
 };
@@ -61,8 +70,7 @@ export class ProjectCheckService {
   async generatePractice(owner: string, network: string, checkId: string, signal: AbortSignal) {
     const check = await this.store.queries.projectChecks.get(owner, checkId);
     if (!check) throw new HttpError(404, "점검 기록을 찾지 못했습니다.");
-    if (!check.page.repository)
-      throw new HttpError(422, "공개 GitHub 저장소를 먼저 분석해 주세요.");
+    if (!check.page.repository) throw new HttpError(422, "공개 소스 저장소를 먼저 분석해 주세요.");
     const claim = await this.store.startJob(
       owner,
       `${checkId}:practice`,
@@ -92,6 +100,39 @@ export class ProjectCheckService {
       throw error;
     }
   }
+  async generateWorkshop(owner: string, network: string, checkId: string, signal: AbortSignal) {
+    const check = await this.store.queries.projectChecks.get(owner, checkId);
+    if (!check) throw new HttpError(404, "점검 기록을 찾지 못했습니다.");
+    if (!check.page.repository) throw new HttpError(422, "공개 소스 저장소를 먼저 분석해 주세요.");
+    const claim = await this.store.startJob(
+      owner,
+      `${checkId}:workshop`,
+      `project-workshop:${checkId}`,
+      requestFingerprint(check.page.repository.commit),
+    );
+    if (claim.state === "done") return JSON.parse(claim.result) as ProjectWorkshop;
+    if (claim.state === "pending")
+      throw new HttpError(409, "프로젝트 AI 학습을 준비하고 있습니다. 잠시 후 다시 불러와 주세요.");
+    let charges: { key: string; expires: number }[] = [];
+    try {
+      await this.consume(owner, network, "analysis");
+      charges = await this.store.queries.projectChecks.practiceCharges(owner, network);
+      const plan = await generateProjectWorkshop(check, signal);
+      signal.throwIfAborted();
+      const result: ProjectWorkshop = {
+        plan,
+        responses: [],
+        revision: 0,
+        createdAt: new Date().toISOString(),
+      };
+      await this.store.queries.projectChecks.completeWorkshop(claim.lease, checkId, result);
+      return result;
+    } catch (error) {
+      if (await this.store.failJob(claim.lease))
+        await this.store.queries.projectChecks.refundPractice(claim.lease, charges);
+      throw error;
+    }
+  }
   async create(
     owner: string,
     network: string,
@@ -103,7 +144,9 @@ export class ProjectCheckService {
       owner,
       input.requestId,
       "project-analysis",
-      requestFingerprint(url, input.description),
+      input.source
+        ? requestFingerprint(url, input.description, input.source)
+        : requestFingerprint(url, input.description),
     );
     if (claim.state === "done") return publicCheck(JSON.parse(claim.result));
     if (claim.state === "pending")
@@ -123,7 +166,7 @@ export class ProjectCheckService {
           429,
           "주소 확인 요청 한도에 도달했습니다. 잠시 후 다시 시도해 주세요. 계속되면 하루 뒤에 다시 확인해 주세요.",
         );
-      const page = await this.ai.readPage(url, signal);
+      const page = await this.ai.readPage(url, signal, input.source);
       if (
         page.limited &&
         !["metadata", "rendered", "repository"].includes(page.source || "html") &&

@@ -116,9 +116,29 @@ describe("SQLite migration source", () => {
       "token",
       "fingerprint",
     );
+    insert.run(
+      "workshop",
+      "user:a",
+      "project-workshop:analysis",
+      "done",
+      '{"revision":3}',
+      1,
+      "token",
+      "fingerprint",
+    );
+    insert.run(
+      "workshop-pending",
+      "user:a",
+      "project-workshop:other",
+      "pending",
+      null,
+      999,
+      "token",
+      "fingerprint",
+    );
     insert.run("other", "user:a", "generate", "done", "{}", 1, "token", "fingerprint");
     const jobs = [...readMigrationData(source)].find((entry) => entry.table === "jobs");
-    expect(jobs.rows.map((row) => row[0])).toEqual(["analysis", "review", "practice"]);
+    expect(jobs.rows.map((row) => row[0])).toEqual(["analysis", "review", "practice", "workshop"]);
     expect(JSON.parse(jobs.rows.find((row) => row[0] === "practice")[4]).revision).toBe(2);
     expect(jobs.rows[0][7]).toBe("fingerprint");
   });

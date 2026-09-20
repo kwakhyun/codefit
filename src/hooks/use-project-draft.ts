@@ -4,6 +4,7 @@ import { z } from "zod";
 
 const schema = z.object({
   version: z.literal(1),
+  source: z.enum(["repository", "website"]).optional(),
   url: z.string().max(1500),
   description: z.string().max(2000),
   requestId: z.uuid().nullable(),

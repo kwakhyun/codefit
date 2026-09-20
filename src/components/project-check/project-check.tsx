@@ -9,6 +9,7 @@ import {
   Disclosure,
   DisclosureSummary,
   ToggleButton,
+  NativeSelect,
   FieldLabel,
   Input,
   Textarea,
@@ -252,7 +253,12 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
       const result = await api<Check>("/api/project-check", {
         method: "POST",
         scope: data.scope,
-        body: { requestId: id, url, description },
+        body: {
+          requestId: id,
+          url,
+          description,
+          ...(draft.source ? { source: draft.source } : {}),
+        },
       });
       if (!alive.current) return;
       showCheck(result);
@@ -469,7 +475,25 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   </div>
                 </Card>
               )}
-              <FieldLabel htmlFor="project-url">서비스 또는 GitHub 링크</FieldLabel>
+              <FieldLabel htmlFor="project-source">어떤 주소인가요?</FieldLabel>
+              <NativeSelect
+                id="project-source"
+                value={draft.source || "auto"}
+                disabled={busy}
+                onChange={(e) => {
+                  const source = e.target.value as "repository" | "website" | "auto";
+                  saveDraft((d) => ({
+                    ...d,
+                    source: source === "auto" ? undefined : source,
+                    requestId: null,
+                  }));
+                }}
+              >
+                <option value="auto">주소에서 자동으로 확인</option>
+                <option value="repository">공개 소스 저장소 — 자체 호스팅 포함</option>
+                <option value="website">서비스 웹사이트</option>
+              </NativeSelect>
+              <FieldLabel htmlFor="project-url">서비스 또는 공개 저장소 링크</FieldLabel>
               <Input
                 id="project-url"
                 type="url"
@@ -479,14 +503,14 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 onChange={(e) =>
                   saveDraft((value) => ({ ...value, url: e.target.value, requestId: null }))
                 }
-                placeholder="https://my-service.com 또는 https://github.com/사용자/저장소"
+                placeholder="https://my-service.com 또는 https://github.com/owner/repository"
                 disabled={busy || recovering}
                 aria-describedby="project-url-help"
               />
               <p id="project-url-help" className="project-help">
-                공개 서비스, GitHub 저장소 또는 PR 주소를 입력하세요. 저장소는 코드와 파일 관계를,
-                서비스는 공개 화면을 분석합니다. 비공개 저장소와 로그인 토큰이 포함된 주소는
-                지원하지 않습니다.
+                공개 서비스나 저장소 주소를 입력하세요. 자체 호스팅 저장소는 위에서 공개 소스
+                저장소를 선택하세요. 저장소는 코드와 파일 관계를, 서비스는 공개 화면을 분석합니다.
+                비공개 저장소와 로그인 토큰이 포함된 주소는 지원하지 않습니다.
               </p>
               <FieldLabel htmlFor="project-description">
                 서비스와 구현 방식 설명 <span>(선택)</span>

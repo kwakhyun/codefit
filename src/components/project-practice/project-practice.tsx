@@ -161,7 +161,7 @@ function PracticeWorkspace({
         const record = await api<Check>("/api/project-check", {
           method: "POST",
           scope: data.scope,
-          body: { url, description, requestId: requestId.current },
+          body: { url, description, requestId: requestId.current, source: "repository" },
         });
         select(record.id);
       }
@@ -173,7 +173,7 @@ function PracticeWorkspace({
       onUsage();
     }
   }
-  const repositories = checks.filter((c) => /^https:\/\/github\.com\//i.test(c.page.url));
+  const repositories = checks.filter((c) => c.page.source === "repository");
   return (
     <div className="project-practice-workspace">
       <nav className="practice-origin" aria-label="프로젝트 연습 종류">
@@ -236,19 +236,18 @@ function PracticeWorkspace({
               void run(false);
             }}
           >
-            <FieldLabel htmlFor="practice-repo">공개 GitHub 저장소 또는 PR 주소</FieldLabel>
+            <FieldLabel htmlFor="practice-repo">공개 소스 저장소 주소</FieldLabel>
             <Input
               id="practice-repo"
               type="url"
               required
-              placeholder="https://github.com/owner/project"
+              placeholder="https://github.com/owner/repository"
               value={url}
               disabled={!!busy}
               onChange={(e) => {
                 setUrl(e.target.value);
                 requestId.current = null;
               }}
-              pattern="https://github\.com/.+"
             />
             <FieldLabel htmlFor="practice-description">
               중점적으로 이해하고 싶은 기능 <span className="muted">선택</span>
@@ -300,8 +299,8 @@ function PracticeWorkspace({
         <Card>
           <h2>공개 저장소를 선택해 주세요</h2>
           <p>
-            서비스 주소만 분석한 기록에는 코드가 없습니다. GitHub 저장소를 연결하면 맞춤 연습을 만들
-            수 있습니다.
+            서비스 주소만 분석한 기록에는 코드가 없습니다. 공개 소스 저장소를 연결하면 맞춤 연습을
+            만들 수 있습니다.
           </p>
           <Button onClick={() => select("")}>저장소 연결하기</Button>
         </Card>

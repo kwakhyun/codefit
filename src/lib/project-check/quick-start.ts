@@ -27,7 +27,7 @@ export async function prepareProjectLearning(
     check = await request<Check>("/api/project-check", {
       method: "POST",
       scope,
-      body: { requestId: id, url, description: "" },
+      body: { requestId: id, url, description: "", source: "repository" },
     });
   }
   onAnalyzed(check);

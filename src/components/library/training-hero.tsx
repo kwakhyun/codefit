@@ -1,4 +1,5 @@
 "use client";
+import { ProjectAiEntry } from "@/components/ai-learning/project-ai-entry";
 import Image from "next/image";
 import { ProjectQuickStart } from "@/components/project-practice/project-quick-start";
 import { useRef, useState } from "react";
@@ -67,22 +68,21 @@ export function TrainingHero({
       {storageError && (
         <Status role="status">선택을 저장하지 못했어요. 현재 화면에는 적용됩니다.</Status>
       )}
-      <ProjectQuickStart key={scope} scope={scope} />
       {type === "service" && (
         <>
-          <section className="service-home-hero" aria-label="서비스 점검 시작">
+          <section
+            className="service-home-hero service-home-connected"
+            aria-label="서비스 점검 시작"
+          >
             <div className="workspace-hero-copy">
               <span className="eyebrow">{profile.name}</span>
               <h1 tabIndex={-1}>{profile.title}</h1>
               <p>
-                서비스 주소로 설계 질문을 받고,
+                저장소 링크 하나로 내 코드의 빈틈을 살펴보세요.
                 <br />
-                설명하지 못한 부분을 실제 확인 과제로 바꿔보세요.
+                프로젝트 점검부터 코드 이해와 서비스 동작 연습까지.
               </p>
-              <Link className="primary-button" href="/project-check">
-                내 서비스 점검하기 <ArrowRight size={18} />
-              </Link>
-              <small>로그인 없이 시작 · 공개 화면과 설명으로 분석</small>
+              <ProjectQuickStart key={scope} scope={scope} embedded />
             </div>
             <WorkspaceArt image={profile.image} />
           </section>
@@ -193,7 +193,7 @@ export function TrainingHero({
             <Code2 />
             <div>
               <h2>AI 코드, 실행 전에 읽어보기</h2>
-              <p>내 GitHub 코드로 연습하거나 준비된 샘플 12개를 체험해 보세요.</p>
+              <p>내 프로젝트 코드로 연습하거나 준비된 샘플 12개를 체험해 보세요.</p>
             </div>
             <ArrowRight />
           </Link>
@@ -230,11 +230,11 @@ function AiWorkshop({ image, title }: { image: string; title: string }) {
           <span className="eyebrow">AI 워크숍 / 15개 분야, 32개 수업</span>
           <h1 tabIndex={-1}>{title}</h1>
           <p>
-            도구 이름을 외우는 대신, 언제 어떻게 쓰는지 배워요.
-            <br />
-            설치 없이 개념부터 선택형 모의 실습까지.
+            내 프로젝트에는 어떤 AI가 어울릴까요? <br />
+            사용 중인 기술부터 새로운 적용 아이디어까지, 코드로 배워요.
           </p>
-          <Link className="primary-button" href="/learn/ai">
+          <ProjectAiEntry />
+          <Link className="ai-home-catalog-link" href="/learn/ai#ai-catalog">
             전체 수업 둘러보기 <ArrowRight size={18} />
           </Link>
         </div>

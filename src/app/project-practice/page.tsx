@@ -5,7 +5,7 @@ import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { ProjectPracticeApp } from "@/components/project-practice/project-practice";
 export const metadata: Metadata = {
   title: "내 프로젝트로 연습 | CODE:FIT",
-  description: "공개 GitHub 저장소의 실제 코드로 코드 이해 훈련과 서비스 동작 실습을 만드세요.",
+  description: "공개 소스 저장소의 실제 코드로 코드 이해 훈련과 서비스 동작 실습을 만드세요.",
 };
 export default function ProjectPracticePage() {
   return (

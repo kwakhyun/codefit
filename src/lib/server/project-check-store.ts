@@ -1,3 +1,4 @@
+import type { ProjectWorkshop, workshopSaveSchema } from "../ai-learning/project-workshop";
 import {
   validPracticeProgress,
   type GeneratedPractice,
@@ -304,14 +305,68 @@ export class ProjectCheckStore {
       throw new HttpError(409, "기록이 바뀌었습니다. 저장된 기록을 다시 불러와 주세요.");
     return next;
   }
+  async workshop(owner: string, id: string): Promise<ProjectWorkshop | null> {
+    const [row] = await this.query(
+      "SELECT result FROM jobs WHERE owner=? AND id=? AND kind=? AND state='done'",
+      [owner, `${id}:workshop`, `project-workshop:${id}`],
+    );
+    return row ? JSON.parse(String(row.result)) : null;
+  }
+  async completeWorkshop(lease: JobLease, id: string, result: ProjectWorkshop) {
+    if (lease.kind !== `project-workshop:${id}` || lease.id !== `${id}:workshop`)
+      throw new StaleJob();
+    const rows = await this.query(
+      "UPDATE jobs SET state='done',result=? WHERE id=? AND owner=? AND kind=? AND token=? AND state='pending' AND expires>? AND EXISTS(SELECT 1 FROM jobs p WHERE p.id=? AND p.owner=? AND p.kind='project-analysis' AND p.state='done') RETURNING id",
+      [
+        JSON.stringify(result),
+        lease.id,
+        lease.owner,
+        lease.kind,
+        lease.token,
+        Date.now(),
+        id,
+        lease.owner,
+      ],
+    );
+    if (!rows.length) throw new StaleJob();
+  }
+  async saveWorkshop(owner: string, id: string, input: z.infer<typeof workshopSaveSchema>) {
+    const saved = await this.workshop(owner, id);
+    if (!saved) throw new HttpError(404, "저장된 AI 학습을 찾지 못했습니다.");
+    const topic = saved.plan.topics[input.index];
+    if (!topic || input.response.choice >= topic.choices.length)
+      throw new HttpError(400, "학습 항목과 선택을 다시 확인해 주세요.");
+    if (JSON.stringify(saved.responses[input.index]) === JSON.stringify(input.response))
+      return saved;
+    if (saved.revision !== input.revision)
+      throw new HttpError(409, "다른 화면에서 기록이 바뀌었습니다. 다시 불러온 후 저장해 주세요.");
+    const responses = Array.from({ length: saved.plan.topics.length }, (_, i) =>
+      i === input.index ? input.response : (saved.responses[i] ?? null),
+    );
+    const next = { ...saved, responses, revision: saved.revision + 1 };
+    const rows = await this.query(
+      "UPDATE jobs SET result=? WHERE owner=? AND id=? AND kind=? AND state='done' AND result=? RETURNING id",
+      [
+        JSON.stringify(next),
+        owner,
+        `${id}:workshop`,
+        `project-workshop:${id}`,
+        JSON.stringify(saved),
+      ],
+    );
+    if (!rows.length)
+      throw new HttpError(409, "기록이 바뀌었습니다. 다시 불러온 후 저장해 주세요.");
+    return next;
+  }
   async remove(owner: string, id: string) {
     await this.query(
-      "DELETE FROM jobs WHERE owner=? AND ((id=? AND kind='project-analysis') OR kind=? OR kind=? OR kind IN (?,?,?,?,?))",
+      "DELETE FROM jobs WHERE owner=? AND ((id=? AND kind='project-analysis') OR kind=? OR kind=? OR kind=? OR kind IN (?,?,?,?,?))",
       [
         owner,
         id,
         `project-review:${id}`,
         `project-practice:${id}`,
+        `project-workshop:${id}`,
         ...Array.from({ length: 5 }, (_, i) => `project-dialogue:${id}:${i}`),
       ],
     );

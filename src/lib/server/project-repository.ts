@@ -33,33 +33,46 @@ const treeItem = z.object({
 const treeSchema = z.object({ tree: z.array(treeItem).max(50000), truncated: z.boolean() });
 const safePath = (value: string) =>
   !value.split("/").some((p) => !p || p === "." || p === "..") && !/[\x00-\x1f\\]/.test(value);
+export const repositorySourcePolicy = {
+  excludedSegments:
+    /(^|\/)(node_modules|vendor|dist|build|coverage|\.git|\.next|fixtures|__pycache__)(\/|$)/
+      .source,
+  excludedNames: /(^|\/)(\.env[^/]*|[^/]*(?:secret|credential|private.key)[^/]*|[^/]+\.min\.[jt]s)$/
+    .source,
+  extensions:
+    /\.(py|tsx?|jsx?|mjs|go|java|rs|md|toml|ya?ml|cs|c|cpp|h|swift|kt|rb|php|vue|svelte|sql)$/
+      .source,
+  priorities: [
+    { pattern: /^readme\.md$/.source, rank: 0 },
+    {
+      pattern: /(^|\/)(tests?|docs|examples|scripts|changes|infra|\.github)\/|(?:test|spec)\.[^.]+$/
+        .source,
+      rank: 8,
+    },
+    {
+      pattern:
+        /(auth|permission|policy|gate|signing|approval|storage|payment|route|main|cli|service)/
+          .source,
+      rank: 1,
+    },
+    {
+      pattern: /\.(py|[jt]sx?|mjs|go|java|rs|cs|c|cpp|h|swift|kt|rb|php|vue|svelte|sql)$/.source,
+      rank: 3,
+    },
+  ],
+};
 export function eligibleSource(value: string) {
   return (
     safePath(value) &&
-    !/(^|\/)(node_modules|vendor|dist|build|coverage|\.git|\.next|fixtures|__pycache__)(\/|$)/i.test(
-      value,
-    ) &&
-    !/(^|\/)(\.env[^/]*|[^/]*(?:secret|credential|private.key)[^/]*|[^/]+\.min\.[jt]s)$/i.test(
-      value,
-    ) &&
-    /\.(py|tsx?|jsx?|mjs|go|java|rs|md|toml|ya?ml)$/i.test(value)
+    !new RegExp(repositorySourcePolicy.excludedSegments, "i").test(value) &&
+    !new RegExp(repositorySourcePolicy.excludedNames, "i").test(value) &&
+    new RegExp(repositorySourcePolicy.extensions, "i").test(value)
   );
 }
-function priority(value: string) {
-  if (/^readme\.md$/i.test(value)) return 0;
-  if (
-    /(^|\/)(tests?|docs|examples|scripts|changes|infra|\.github)\//i.test(value) ||
-    /(?:test|spec)\.[^.]+$/.test(value)
-  )
-    return 8;
-  if (
-    /(auth|permission|policy|gate|signing|approval|storage|payment|route|main|cli|service)/i.test(
-      value,
-    )
-  )
-    return 1;
-  if (/\.(py|[jt]sx?|mjs|go|java|rs)$/.test(value)) return 3;
-  return 6;
+function sourcePriority(value: string) {
+  return (
+    repositorySourcePolicy.priorities.find((p) => new RegExp(p.pattern, "i").test(value))?.rank ?? 6
+  );
 }
 // These are review locations, not vulnerability findings. No target code is executed.
 const decisionLine =
@@ -266,7 +279,7 @@ export async function readProjectRepository(
       (!changed || (changed.get(f.path)?.size || 0) > 0),
   );
   const selected = eligible
-    .sort((a, b) => priority(a.path) - priority(b.path) || a.path.localeCompare(b.path))
+    .sort((a, b) => sourcePriority(a.path) - sourcePriority(b.path) || a.path.localeCompare(b.path))
     .slice(0, 16);
   const files: RepositoryFile[] = [];
   for (let i = 0; i < selected.length; i += 4) {

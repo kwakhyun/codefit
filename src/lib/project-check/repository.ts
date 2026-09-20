@@ -8,6 +8,7 @@ export interface RepositoryFile {
 }
 export interface RepositorySnapshot {
   name: string;
+  url?: string;
   commit: string;
   pullRequest?: number;
   totalFiles: number;
@@ -32,7 +33,7 @@ export function repositoryCitation(repo: RepositorySnapshot | undefined, evidenc
       return {
         file,
         line: line.number,
-        url: `https://github.com/${repo.name}/blob/${repo.commit}/${file.path.split("/").map(encodeURIComponent).join("/")}#L${line.number}`,
+        url: repositoryFileUrl(repo, file.path, line.number),
       };
   }
 }
@@ -46,8 +47,15 @@ const repositoryPath = z
   );
 export const repositorySnapshotSchema = z
   .object({
-    name: z.string().regex(/^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/),
-    commit: z.string().regex(/^[a-f0-9]{40}$/),
+    name: repositoryPath,
+    url: z
+      .url()
+      .refine((v) => {
+        const u = new URL(v);
+        return u.protocol === "https:" && !u.username && !u.password && !u.search && !u.hash;
+      })
+      .optional(),
+    commit: z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/),
     pullRequest: z.number().int().positive().optional(),
     totalFiles: z.number().int().nonnegative(),
     eligibleFiles: z.number().int().nonnegative(),
@@ -75,3 +83,17 @@ export const repositorySnapshotSchema = z
     links: z.array(z.object({ from: repositoryPath, to: repositoryPath }).strict()).max(256),
   })
   .strict();
+
+function repositoryFileUrl(repo: RepositorySnapshot, path: string, line: number) {
+  const base = repo.url
+    ? repo.url.replace(/\.git$/, "").replace(/\/$/, "")
+    : `https://github.com/${repo.name}`;
+  const host = new URL(base).hostname;
+  const file = path.split("/").map(encodeURIComponent).join("/");
+  if (host === "github.com") return `${base}/blob/${repo.commit}/${file}#L${line}`;
+  if (host === "gitlab.com" || host.startsWith("gitlab."))
+    return `${base}/-/blob/${repo.commit}/${file}#L${line}`;
+  if (host === "bitbucket.org") return `${base}/src/${repo.commit}/${file}#lines-${line}`;
+  if (host === "codeberg.org") return `${base}/src/commit/${repo.commit}/${file}#L${line}`;
+  return base;
+}

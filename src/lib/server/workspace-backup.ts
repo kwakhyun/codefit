@@ -1,4 +1,9 @@
 import {
+  workshopSchema,
+  validWorkshop,
+  validWorkshopResponses,
+} from "../ai-learning/project-workshop";
+import {
   generatedPracticeSchema,
   validProjectExercises,
   validPracticeProgress,
@@ -39,13 +44,23 @@ export const backupReads = [
   "SELECT p.result,r.result AS review FROM jobs p LEFT JOIN jobs r ON r.id='project-review-' || p.id AND r.owner=p.owner AND r.kind='project-review:' || p.id AND r.state='done' WHERE p.owner=? AND p.kind='project-analysis' AND p.state='done' ORDER BY p.expires,p.id LIMIT 501",
   "SELECT kind,result FROM jobs WHERE owner=? AND kind LIKE 'project-dialogue:%' AND state='done' ORDER BY expires,id",
   "SELECT kind,result FROM jobs WHERE owner=? AND kind LIKE 'project-practice:%' AND state='done' ORDER BY expires,id",
+  "SELECT kind,result FROM jobs WHERE owner=? AND kind LIKE 'project-workshop:%' AND state='done' ORDER BY expires,id",
 ];
 export function backupParameters(index: number, owner: string) {
   return index === 0 ? [owner, owner, owner, owner] : [owner];
 }
 export function buildBackup(rows: Row[][]): Backup {
-  const [problems, progress, attempts, legacy, learning, projects, dialogues = [], practices = []] =
-    rows;
+  const [
+    problems,
+    progress,
+    attempts,
+    legacy,
+    learning,
+    projects,
+    dialogues = [],
+    practices = [],
+    workshops = [],
+  ] = rows;
   const raw = {
     version: 3,
     exportedAt: new Date().toISOString(),
@@ -69,9 +84,11 @@ export function buildBackup(rows: Row[][]): Backup {
             const value = JSON.parse(String(row.result));
             latest.set(value.questionIndex, value);
           }
+        const workshop = workshops.find((w) => w.kind === `project-workshop:${id}`);
         const practice = practices.find((p) => p.kind === `project-practice:${id}`);
         return {
           ...(latest.size ? { dialogues: [...latest.values()] } : {}),
+          ...(workshop ? { aiWorkshop: JSON.parse(String(workshop.result)) } : {}),
           ...(practice ? { generatedPractice: JSON.parse(String(practice.result)) } : {}),
         };
       })(),
@@ -305,7 +322,15 @@ export function prepareBackup(backup: Backup) {
         ))
     )
       throw new Error("Invalid project practice evidence or progress");
-    return { check, review, dialogues, generatedPractice };
+    const aiWorkshop = item.aiWorkshop ? workshopSchema.parse(item.aiWorkshop) : undefined;
+    if (
+      aiWorkshop &&
+      (!check.page.repository ||
+        !validWorkshop(aiWorkshop.plan, check.page.repository) ||
+        !validWorkshopResponses(aiWorkshop))
+    )
+      throw new Error("Invalid AI workshop evidence or responses");
+    return { check, review, dialogues, generatedPractice, aiWorkshop };
   });
   if (
     new Set(learning.map((l) => l.id)).size !== learning.length ||
@@ -339,6 +364,13 @@ export function restoredProjectJobs(
       kind: `project-review:${id}`,
       result: JSON.stringify(project.review),
       fingerprint: requestFingerprint(...project.review.answers),
+    });
+  if (project.aiWorkshop)
+    jobs.push({
+      id: `${id}:workshop`,
+      kind: `project-workshop:${id}`,
+      result: JSON.stringify(project.aiWorkshop),
+      fingerprint: requestFingerprint(check.page.repository!.commit),
     });
   if (project.generatedPractice)
     jobs.push({

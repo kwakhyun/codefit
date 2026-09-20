@@ -5,7 +5,7 @@ import { publicUrl, readPublicPage } from "./project-page";
 import { projectBrowserScript } from "./project-browser-script";
 
 // The VM firewall applies to redirects and subresources too, including DNS rebinding.
-export const browserNetworkPolicy: NetworkPolicy = {
+export const browserNetworkPolicy = {
   allow: ["*"],
   subnets: {
     deny: [
@@ -25,7 +25,7 @@ export const browserNetworkPolicy: NetworkPolicy = {
       "240.0.0.0/4",
     ],
   },
-};
+} satisfies NetworkPolicy;
 const outputSchema = z
   .object({
     pages: z.array(captureSchema).max(3),

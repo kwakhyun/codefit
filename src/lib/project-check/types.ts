@@ -5,6 +5,7 @@ export const AREAS = ["사용 흐름", "데이터 저장", "접근 권한", "오
 export const createCheckSchema = z
   .object({
     requestId: z.uuid(),
+    source: z.enum(["repository", "website"]).optional(),
     url: z.string().trim().min(1).max(1500),
     description: z.string().trim().max(2000).default(""),
     // Accepted only for compatibility with older clients; no separate consent gate.
@@ -182,7 +183,7 @@ interface CheckUsage {
   resetsAt: string | null;
 }
 export type CheckListItem = Pick<Check, "id" | "createdAt"> & {
-  page: Pick<Check["page"], "url">;
+  page: Pick<Check["page"], "url" | "source">;
   analysis: Pick<Check["analysis"], "title">;
   review?: { assessment: { score: number } };
 };
@@ -190,7 +191,7 @@ export function checkListItem(check: Check): CheckListItem {
   return {
     id: check.id,
     createdAt: check.createdAt,
-    page: { url: check.page.url },
+    page: { url: check.page.url, ...(check.page.source ? { source: check.page.source } : {}) },
     analysis: { title: check.analysis.title },
     ...(check.review ? { review: { assessment: { score: check.review.assessment.score } } } : {}),
   };

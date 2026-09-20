@@ -21,7 +21,7 @@ it("one link creates analysis then both training tracks without a consent gate",
       {
         method: "POST",
         scope: input.scope,
-        body: { requestId: input.id, url: input.url, description: "" },
+        body: { requestId: input.id, url: input.url, description: "", source: "repository" },
       },
     ],
     ["/api/project-check/check/practice", { method: "POST", scope: input.scope, body: {} }],

@@ -1,3 +1,4 @@
+import { ProjectAiEntry } from "@/components/ai-learning/project-ai-entry";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/navigation/site-header";
 import { AiCatalog } from "@/components/ai-learning/ai-catalog";
@@ -18,21 +19,16 @@ export default function AiLearningPage() {
           {AI_TRACKS.length}개 분야 / {AI_LESSONS.length}개 수업 / 설치 없이 시작
         </span>
         <h1>
-          AI 도구를 이해하고,
-          <br />내 일에 연결해 보세요.
+          내 프로젝트에 맞는 AI,
+          <br />
+          쓰임새부터 배워보세요.
         </h1>
         <p>
-          낯선 용어는 쉽게 풀고, 쓰임새는 직접 확인합니다.
+          내 코드에서 사용 중인 AI를 이해하고, 새로운 활용 방법을 찾아봅니다.
           <br />
-          관심 있는 도구부터 시작해도 괜찮아요.
+          프로젝트 없이 관심 있는 도구부터 배워도 괜찮아요.
         </p>
-        <div className="ai-hero-flow" aria-label="학습 방법">
-          <span>01 개념 이해</span>
-          <span aria-hidden="true">→</span>
-          <span>02 선택하며 실습</span>
-          <span aria-hidden="true">→</span>
-          <span>03 확인 문제</span>
-        </div>
+        <ProjectAiEntry />
         <p>
           <Anchor href="#ai-catalog">배우고 싶은 도구 바로 찾기 ↓</Anchor>
         </p>

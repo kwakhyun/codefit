@@ -32,7 +32,7 @@ export function PracticeEntry({
         </div>
       ) : (
         <Card className="practice-entry-card">
-          <span className="eyebrow">내 GitHub 코드로 만드는 맞춤 연습</span>
+          <span className="eyebrow">내 프로젝트 코드로 만드는 맞춤 연습</span>
           <h2>
             {mode === "code"
               ? "내 프로젝트의 코드를 설명할 수 있나요?"
