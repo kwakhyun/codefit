@@ -11,12 +11,18 @@ describe("observation request drafts", () => {
       const request = requestFromObservation(mission, record);
       expect(request.where).toContain(mission.title);
       expect(request.steps.length).toBeGreaterThan(0);
-      expect(request.actual).toBe(simulate(mission, record.actions).message);
+      expect(request.actual).toContain(simulate(mission, record.actions).message);
       expect(request.expected).toBe("");
       expect(request.keep).toBe("");
       expect(requestReady({ ...record, request })).toBe(false);
       expect(learningSchema.safeParse({ ...record, request }).success).toBe(true);
     }
+  });
+  it("keeps the offline condition alongside a misleading success message", () => {
+    const m = MISSIONS.find((m) => m.id === "broken-memo")!;
+    const request = requestFromObservation(m, { ...emptyLearning(), actions: ["offline", "save"] });
+    expect(request.actual).toContain("오프라인");
+    expect(request.actual).toContain("저장 완료");
   });
   it("preserves edits and does not substitute the selected repair for observations", () => {
     const mission = MISSIONS.find((m) => m.id === "private-board")!;

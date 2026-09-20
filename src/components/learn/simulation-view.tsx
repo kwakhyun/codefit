@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { RotateCcw, Monitor } from "lucide-react";
 import { ACTION_LABELS, type Action, type Mission } from "@/lib/learn/catalog";
 import { simulate } from "@/lib/learn/simulation";
 import { ServiceSurface } from "./simulation/service-surface";
 import { AppSurface } from "./simulation/app-surface";
 import { SimulationInspector } from "./simulation/simulation-inspector";
+import { ExperimentGuide } from "./simulation/experiment-guide";
 const environmentActions: Action[] = [
   "refresh",
   "other-device",
@@ -27,6 +28,7 @@ export function SimulationView({
   onAction?: (action: Action) => void;
   preview?: boolean;
 }) {
+  const root = useRef<HTMLElement>(null);
   const [trial, setTrial] = useState<Action[]>([]);
   const current = preview ? trial : actions;
   const state = simulate(mission, current, fix);
@@ -40,7 +42,11 @@ export function SimulationView({
     else onAction?.(action);
   }
   return (
-    <section className="simulator" aria-label={preview ? "예제 서비스 첫 화면" : "실습 서비스"}>
+    <section
+      ref={root}
+      className="simulator"
+      aria-label={preview ? "예제 서비스 첫 화면" : "실습 서비스"}
+    >
       <div className="simulator-label">
         <span>
           <Monitor size={16} /> 실습 서비스 <small>가상 데이터</small>
@@ -51,6 +57,17 @@ export function SimulationView({
           </button>
         )}
       </div>
+      {!preview && (
+        <ExperimentGuide
+          key={fix}
+          mission={mission}
+          actions={current}
+          root={root}
+          result={`${mission.app === "request" || mission.app === "booking" ? `${state.online ? "온라인" : "오프라인"} 상태 · ` : mission.app === "access" ? `사용자 ${state.actor} · ` : ""}${state.message}`}
+          fixed={Boolean(fix)}
+          disabled={disabled}
+        />
+      )}
       {mission.service ? (
         <ServiceSurface mission={mission} state={state} act={act} disabled={disabled} />
       ) : (
@@ -61,7 +78,13 @@ export function SimulationView({
           <strong>상황 바꾸기</strong>
           <div>
             {tools.map((action) => (
-              <button type="button" key={action} disabled={disabled} onClick={() => act(action)}>
+              <button
+                type="button"
+                data-sim-action={action}
+                key={action}
+                disabled={disabled}
+                onClick={() => act(action)}
+              >
                 {ACTION_LABELS[action]}
               </button>
             ))}

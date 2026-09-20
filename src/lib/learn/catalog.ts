@@ -73,7 +73,7 @@ const accessFixes = [
   },
   { id: "login", title: "로그인 여부만 확인", detail: "로그인한 사용자라면 글을 보여 줍니다." },
 ];
-export const MISSIONS: Mission[] = [
+const ALL_MISSIONS: Mission[] = [
   {
     id: "where-data-lives",
     kind: "foundation",
@@ -322,9 +322,9 @@ export const MISSIONS: Mission[] = [
     code: "const requestId = ++latestId;\nconst result = await search(query);\nif (requestId === latestId) show(result);",
   },
 ];
-MISSIONS.push(
+ALL_MISSIONS.push(
   {
-    ...MISSIONS[1],
+    ...ALL_MISSIONS[1],
     id: "broken-memo",
     kind: "lab",
     title: "데이터 저장 오류 해결하기",
@@ -332,7 +332,7 @@ MISSIONS.push(
     minutes: 10,
   },
   {
-    ...MISSIONS[2],
+    ...ALL_MISSIONS[2],
     id: "private-board",
     kind: "lab",
     title: "비공개 글의 접근 권한 확인하기",
@@ -391,9 +391,24 @@ MISSIONS.push(
     code: "if (results.has(requestId)) return results.get(requestId);\n// 실제 서버에서는 동시 요청도 원자적으로 처리해야 합니다.\nreturn createAndRemember(requestId);",
   },
 );
-MISSIONS.push(...serviceMissions());
+ALL_MISSIONS.push(...serviceMissions());
+// Keep legacy definitions readable for existing records and workspace backups.
+const ARCHIVED_MISSIONS = new Set([
+  "lists-and-filters",
+  "shop-shipping",
+  "booking-cancel",
+  "booking-guests",
+  "work-budget",
+  "work-dependency",
+  "content-segment",
+  "support-close",
+]);
+export const MISSIONS = ALL_MISSIONS.filter((mission) => !ARCHIVED_MISSIONS.has(mission.id));
+export function isArchivedMission(id: string) {
+  return ARCHIVED_MISSIONS.has(id);
+}
 export function missionById(id: string) {
-  return MISSIONS.find((m) => m.id === id);
+  return ALL_MISSIONS.find((m) => m.id === id);
 }
 export const ACTION_LABELS: Record<Action, string> = {
   "case-standard": "첫 번째 사례 선택",

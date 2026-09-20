@@ -176,7 +176,12 @@ export function ServiceSurface({
       )}
       <div className="service-body">
         <div className="service-view-switch" aria-label="상세 화면 전환">
-          <button type="button" aria-pressed={tab === "detail"} onClick={() => setTab("detail")}>
+          <button
+            type="button"
+            data-sim-reveal
+            aria-pressed={tab === "detail"}
+            onClick={() => setTab("detail")}
+          >
             상세 정보
           </button>
           <button type="button" aria-pressed={tab === "history"} onClick={() => setTab("history")}>
@@ -219,6 +224,8 @@ export function ServiceSurface({
                 <button
                   type="button"
                   key={entry.label}
+                  data-sim-action={sampleActions[i]}
+                  data-guide-label={entry.label}
                   disabled={disabled}
                   aria-label={entry.label}
                   aria-pressed={s.selected === i}
@@ -291,6 +298,7 @@ export function ServiceSurface({
               <button
                 type="button"
                 className="service-submit"
+                data-sim-action="case-submit"
                 disabled={disabled}
                 onClick={() => act("case-submit")}
               >

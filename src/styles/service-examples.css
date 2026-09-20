@@ -1,20 +1,20 @@
-/* Fictional products use their own light palette, isolated from the learning shell. */
+/* Dark product surfaces retain domain accents and unfiltered photos. */
 .service-app {
-  --service-accent: #245645;
-  color: #25312e;
+  --service-accent: #99dbc0;
+  color: #e2e9f4;
   font-family: var(--sans);
 }
 .service-booking {
-  --service-accent: #234f6d;
+  --service-accent: #aebaff;
 }
 .service-work {
-  --service-accent: #4447a0;
+  --service-accent: #aebaff;
 }
 .service-content {
-  --service-accent: #73432c;
+  --service-accent: #edc4a3;
 }
 .service-support {
-  --service-accent: #354dac;
+  --service-accent: #aebaff;
 }
 .service-header {
   display: flex;
@@ -22,7 +22,7 @@
   align-items: center;
   gap: 12px;
   padding: 22px 24px;
-  border-bottom: 1px solid #e7e9e7;
+  border-bottom: 1px solid #3d4b61;
 }
 .service-header strong {
   font-size: 29px;
@@ -35,7 +35,7 @@
 .service-header small {
   display: block;
   font-size: 11px;
-  color: #586760;
+  color: #afbdd1;
   margin-top: 5px;
 }
 .service-account {
@@ -43,7 +43,7 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #53605b;
+  color: #afbdd1;
 }
 .service-account .sample-avatar {
   width: 28px;
@@ -56,10 +56,10 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 24px;
-  background: #f7f8f7;
+  background: #161e2b;
   font-size: 11px;
-  color: #5c6661;
-  border-bottom: 1px solid #e7e9e7;
+  color: #afbdd1;
+  border-bottom: 1px solid #3d4b61;
 }
 .service-reference {
   margin-left: auto;
@@ -67,7 +67,7 @@
 .service-product {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  background: #f5f2eb;
+  background: #161e2b;
 }
 .service-product img {
   width: 100%;
@@ -83,13 +83,13 @@
   font-size: 10px;
   letter-spacing: 1px;
   font-weight: 700;
-  color: #5d6861;
+  color: #afbdd1;
 }
 .service-app h3 {
   font-size: 23px;
   line-height: 1.4;
   margin: 9px 0;
-  color: #22312b;
+  color: #e2e9f4;
   letter-spacing: -0.6px;
 }
 .service-app p {
@@ -97,21 +97,21 @@
   line-height: 1.7;
 }
 .service-product p {
-  color: #5c665e;
+  color: #afbdd1;
   margin: 0 0 12px;
 }
 .service-product small {
   display: block;
   margin-top: 14px;
   font-size: 10px;
-  color: #566459;
+  color: #afbdd1;
 }
 .service-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: #eef1ec;
-  color: #435344;
+  background: #202c3d;
+  color: #e2e9f4;
   font-size: 10px;
   font-weight: 600;
   padding: 5px 8px;
@@ -132,8 +132,8 @@
   bottom: 16px;
   left: 24px;
   padding: 6px 10px;
-  background: #ffffffed;
-  color: #283b32;
+  background: #161e2b;
+  color: #e2e9f4;
   font-size: 12px;
   border-radius: 4px;
 }
@@ -145,7 +145,7 @@
 }
 .service-space-title p {
   margin: 0;
-  color: #607066;
+  color: #afbdd1;
 }
 .service-time-strip {
   display: flex;
@@ -155,16 +155,16 @@
 .service-time-strip span {
   flex: 1;
   text-align: center;
-  background: #edf3f7;
-  color: #31536a;
-  border: 1px solid #c8d7e1;
+  background: #161e2b;
+  color: #e2e9f4;
+  border: 1px solid #3d4b61;
   border-radius: 5px;
   padding: 8px 4px;
   font-size: 11px;
 }
 .service-time-strip .occupied {
-  background: repeating-linear-gradient(45deg, #f4f4f4, #f4f4f4 4px, #eee 4px, #eee 6px);
-  color: #67716c;
+  background: repeating-linear-gradient(45deg, #161e2b, #161e2b 4px, #202c3d 4px, #202c3d 6px);
+  color: #afbdd1;
   text-decoration: line-through;
 }
 .service-admin-intro {
@@ -173,14 +173,14 @@
   align-items: center;
   gap: 16px;
   padding: 26px 24px 18px;
-  background: #fafafd;
+  background: #161e2b;
 }
 .service-admin-intro > div:first-child {
   flex: 1;
 }
 .service-admin-intro p {
   margin: 0;
-  color: #646477;
+  color: #afbdd1;
 }
 .service-stats {
   display: grid;
@@ -188,12 +188,12 @@
   gap: 12px;
   width: 100%;
   padding: 15px 0;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #3d4b61;
   margin-top: 15px;
 }
 .service-stats small {
   display: block;
-  color: #687267;
+  color: #afbdd1;
   font-size: 10px;
   margin-bottom: 5px;
 }
@@ -202,7 +202,7 @@
   font-weight: 600;
 }
 .service-editorial {
-  background: #f8f4ee;
+  background: #161e2b;
   padding: 28px 24px;
 }
 .service-editorial h3 {
@@ -210,28 +210,28 @@
   font-size: 27px;
 }
 .service-editorial > p {
-  color: #6b6157;
+  color: #afbdd1;
 }
 .service-editorial > div {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  color: #73695d;
+  color: #afbdd1;
   font-size: 11px;
   margin: 15px 0;
 }
 .service-editorial blockquote {
   margin: 20px 0;
   padding: 12px 14px;
-  border-left: 2px solid #b79974;
-  color: #635b50;
+  border-left: 2px solid #3d4b61;
+  color: #afbdd1;
   font-size: 14px;
   line-height: 1.7;
 }
 .service-inbox {
   padding: 22px 24px;
-  background: #f7f9fd;
-  border-bottom: 1px solid #e3e8f1;
+  background: #161e2b;
+  border-bottom: 1px solid #3d4b61;
 }
 .service-inbox-heading {
   display: flex;
@@ -253,25 +253,25 @@
 .service-customer small {
   display: block;
   font-size: 10px;
-  color: #607087;
+  color: #afbdd1;
   margin-top: 4px;
 }
 .service-customer > span:last-child {
   margin-left: auto;
-  color: #607087;
+  color: #afbdd1;
   font-size: 11px;
 }
 .service-bubble {
-  background: white;
+  background: #161e2b;
   padding: 14px 16px;
-  border: 1px solid #dce4ef;
+  border: 1px solid #3d4b61;
   border-radius: 0 12px 12px 12px;
   margin: 14px 22px 16px 40px;
-  color: #334157;
+  color: #e2e9f4;
 }
 .service-internal-note {
-  background: #fff8e8;
-  color: #756030;
+  background: #161e2b;
+  color: #afbdd1;
   padding: 10px;
   font-size: 11px !important;
   display: flex;
@@ -284,7 +284,7 @@
 .service-view-switch {
   display: flex;
   gap: 24px;
-  border-bottom: 1px solid #e3e7e3;
+  border-bottom: 1px solid #3d4b61;
   margin-bottom: 22px;
 }
 .service-view-switch button {
@@ -293,7 +293,7 @@
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;
-  color: #5c6861;
+  color: #afbdd1;
   font-size: 12px;
   font-weight: 600;
 }
@@ -304,7 +304,7 @@
 .service-view-switch span {
   margin-left: 5px;
   font-size: 10px;
-  background: #eef0ed;
+  background: #202c3d;
   padding: 2px 5px;
   border-radius: 4px;
 }
@@ -318,11 +318,11 @@
 .service-section-heading h4 {
   font-size: 14px;
   margin: 0;
-  color: #29372e;
+  color: #e2e9f4;
 }
 .service-section-heading > span {
   font-size: 11px;
-  color: #637065;
+  color: #afbdd1;
 }
 .service-records {
   display: grid;
@@ -334,16 +334,16 @@
   text-align: left;
   gap: 10px;
   padding: 13px 12px;
-  border: 1px solid #dce2dc;
+  border: 1px solid #3d4b61;
   border-radius: 7px;
-  background: #fff;
-  color: #293b2f;
+  background: #161e2b;
+  color: #e2e9f4;
   width: 100%;
   min-height: 62px;
 }
 .service-records > button[aria-pressed="true"] {
   border-color: var(--service-accent);
-  background: #f3f7f4;
+  background: #161e2b;
   box-shadow: inset 0 0 0 1px var(--service-accent);
 }
 .service-records b {
@@ -355,19 +355,19 @@
 .service-records small {
   display: block;
   font-size: 10px;
-  color: #677167;
+  color: #afbdd1;
   margin-top: 3px;
 }
 .service-record-icon {
-  color: #526c5a;
-  background: #eff3ee;
+  color: #afbdd1;
+  background: #202c3d;
   padding: 8px;
   border-radius: 6px;
   display: flex;
   flex-shrink: 0;
 }
 .service-radio {
-  border: 1px solid #96a699;
+  border: 1px solid #3d4b61;
   width: 18px;
   height: 18px;
   border-radius: 50%;
@@ -385,7 +385,7 @@
 .service-detail {
   margin-top: 22px;
   padding-top: 20px;
-  border-top: 1px solid #e5e9e3;
+  border-top: 1px solid #3d4b61;
 }
 .service-detail dl {
   margin: 10px 0 18px;
@@ -398,28 +398,28 @@
   font-size: 12px;
 }
 .service-detail dt {
-  color: #5f6a61;
+  color: #afbdd1;
 }
 .service-detail dd {
   margin: 0;
   text-align: right;
   font-weight: 600;
-  color: #263b2d;
+  color: #e2e9f4;
 }
 .service-policy {
-  background: #f6f7f4;
+  background: #161e2b;
   padding: 12px 14px;
   border-radius: 6px;
 }
 .service-policy summary {
   font-size: 11px;
-  color: #4e6253;
+  color: #afbdd1;
   cursor: pointer;
 }
 .service-policy p {
   margin: 9px 0 0;
   font-size: 11px;
-  color: #5d6a60;
+  color: #afbdd1;
 }
 .service-submit {
   display: flex;
@@ -440,9 +440,9 @@
 .service-result {
   margin-top: 16px;
   padding: 13px;
-  background: #edf5ef;
-  color: #295a36;
-  border: 1px solid #c6dbc9;
+  background: #161e2b;
+  color: #e2e9f4;
+  border: 1px solid #3d4b61;
   border-radius: 6px;
 }
 .service-result b {
@@ -453,9 +453,9 @@
   margin: 6px 0 0;
 }
 .service-result.rejected {
-  background: #fff5ef;
-  color: #8e4324;
-  border-color: #ebcebf;
+  background: #161e2b;
+  color: #afbdd1;
+  border-color: #3d4b61;
 }
 .service-history {
   min-height: 300px;
@@ -470,7 +470,7 @@
   align-items: flex-start;
   gap: 10px;
   padding: 14px 0;
-  border-bottom: 1px solid #e7ebe6;
+  border-bottom: 1px solid #3d4b61;
 }
 .service-history li b {
   font-size: 12px;
@@ -481,12 +481,12 @@
 }
 .service-history li small {
   font-size: 10px;
-  color: #687569;
+  color: #afbdd1;
 }
 .service-history-icon {
   display: flex;
   padding: 6px;
-  background: #eef3ed;
+  background: #202c3d;
   border-radius: 50%;
 }
 .service-link {
@@ -505,12 +505,12 @@
   justify-content: space-between;
   gap: 10px;
   padding: 15px 24px;
-  border-top: 1px solid #e5e9e3;
-  color: #677466;
+  border-top: 1px solid #3d4b61;
+  color: #afbdd1;
   font-size: 10px;
 }
 .service-app button:focus-visible {
-  outline: 3px solid #2572bc;
+  outline: 3px solid #a7c4ff;
   outline-offset: 3px;
 }
 .service-app button:disabled {
@@ -531,7 +531,7 @@
 }
 .service-delivery {
   padding: 16px;
-  background: #f7f8f5;
+  background: #161e2b;
   margin-top: 16px;
   border-radius: 8px;
   font-size: 12px;
@@ -612,8 +612,8 @@
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
-  background: #f1f3ef;
-  color: #253329;
+  background: #161e2b;
+  color: #e2e9f4;
 }
 .service-card-art img {
   width: 100%;
@@ -624,8 +624,8 @@
   position: absolute;
   bottom: 14px;
   left: 16px;
-  background: #ffffffeb;
-  color: #253329;
+  background: #161e2b;
+  color: #e2e9f4;
   padding: 6px 10px;
   font-size: 18px;
   letter-spacing: -0.7px;
@@ -634,7 +634,7 @@
 .service-card-mini {
   padding: 20px 24px;
   width: 100%;
-  background: #f5f6fa;
+  background: #161e2b;
 }
 .service-card-mini b {
   font-size: 17px;
@@ -642,7 +642,7 @@
 }
 .service-card-mini small {
   font-size: 11px;
-  color: #536278;
+  color: #afbdd1;
   display: block;
   margin-top: 12px;
 }
@@ -730,7 +730,7 @@
   width: 100%;
 }
 .learn-card .service-card-art > strong {
-  color: #253329;
+  color: #e2e9f4;
   border: 0;
   padding: 6px 10px;
   font-size: 18px;
@@ -740,7 +740,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 10px 0;
-  border-bottom: 1px solid #d9dee8;
+  border-bottom: 1px solid #3d4b61;
   font-size: 10px;
 }
 .service-mini-row > span {
@@ -750,9 +750,31 @@
 }
 .service-mini-row em {
   font-style: normal;
-  color: #4e6083;
-  background: #e5eaf5;
+  color: #afbdd1;
+  background: #202c3d;
   white-space: nowrap;
   padding: 2px 5px;
   border-radius: 3px;
+}
+
+.service-submit,
+[aria-pressed="true"] > .service-radio {
+  color: #111c23;
+}
+.service-records > button[aria-pressed="true"] {
+  background: #24382f;
+}
+.service-result {
+  background: #183528;
+  color: #bce6c9;
+  border-color: #44785a;
+}
+.service-result.rejected {
+  background: #3b261f;
+  color: #f2c5ad;
+  border-color: #90624c;
+}
+.service-internal-note {
+  background: #332b1d;
+  color: #ecd8ad;
 }

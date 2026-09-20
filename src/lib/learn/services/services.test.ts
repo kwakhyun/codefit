@@ -6,13 +6,13 @@ import { applyAction, initialSimulation, simulate, verification, reproduced } fr
 import { evaluateService } from "./rules";
 
 describe("domain curriculum contract", () => {
-  it("provides four distinct new cases per domain, unique routes and independent expected results", () => {
+  it("curates active cases in every domain while preserving legacy definitions", () => {
     expect(SERVICE_CASES).toHaveLength(20);
-    expect(MISSIONS).toHaveLength(29);
+    expect(MISSIONS).toHaveLength(21);
     expect(new Set(MISSIONS.map((m) => m.id)).size).toBe(MISSIONS.length);
     for (const domain of SERVICE_DOMAINS) {
       expect(SERVICE_CASES.filter((c) => c.domain === domain.id)).toHaveLength(4);
-      expect(MISSIONS.filter((m) => domainFor(m) === domain.id).length).toBeGreaterThanOrEqual(4);
+      expect(MISSIONS.filter((m) => domainFor(m) === domain.id).length).toBeGreaterThanOrEqual(2);
     }
     for (const m of MISSIONS.filter((m) => m.service)) {
       expect(new Set(m.choices).size, m.id).toBe(3);

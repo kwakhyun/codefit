@@ -42,6 +42,7 @@ function AppAction({
     <button
       type="button"
       className={primary ? "sample-primary" : "sample-button"}
+      data-sim-action={action}
       aria-label={ACTION_LABELS[action]}
       onClick={() => act(action)}
     >
@@ -270,6 +271,7 @@ export function AppSurface({ mission, state: s, act, disabled }: Props) {
                   type="button"
                   aria-pressed={!s.filtered}
                   onClick={() => act("refresh")}
+                  data-sim-action="refresh"
                   aria-label="전체 다시 보기"
                 >
                   전체
@@ -278,6 +280,7 @@ export function AppSurface({ mission, state: s, act, disabled }: Props) {
                   type="button"
                   aria-pressed={s.filtered}
                   onClick={() => act("filter")}
+                  data-sim-action="filter"
                   aria-label={ACTION_LABELS.filter}
                 >
                   완료

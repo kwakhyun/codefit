@@ -29,7 +29,7 @@ test("domain and concept filters work together, restore all cards, and keep keyb
   }
   await page.getByRole("link", { name: /서비스 오류 해결 3개/ }).click();
   await expect(page.locator("#labs")).toBeVisible();
-  await expect(page.locator(".learn-card:visible")).toHaveCount(29);
+  await expect(page.locator(".learn-card:visible")).toHaveCount(MISSIONS.length);
 });
 
 test("five service layouts support keyboard actions, history, 320px screens, and accessible names", async ({
@@ -56,7 +56,7 @@ test("five service layouts support keyboard actions, history, 320px screens, and
         const intro = page.getByRole("button", { name: "첫 방문 안내 숨기기" });
         if (await intro.isVisible()) await intro.click();
         await service.screenshot({
-          path: `docs/images/service-${domain.id}-${width}.png`,
+          path: `artifacts/service-${domain.id}-${width}.png`,
           style: ".learn-steps, .guide-launcher { visibility: hidden !important; }",
         });
       }

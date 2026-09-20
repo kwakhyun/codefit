@@ -16,7 +16,7 @@ export function requestFromObservation(
   const draft = {
     where: `예제 서비스: ${mission.title}`,
     steps: record.actions.map((action) => actionLabel(mission, action)).join(" → "),
-    actual: observed.message,
+    actual: `${mission.app === "request" || mission.app === "booking" ? `연결 상태: ${observed.online ? "온라인" : "오프라인"}. ` : mission.app === "access" ? `현재 사용자: ${observed.actor}. ` : ""}${observed.message}`,
   };
   const request = { ...record.request };
   for (const key of ["where", "steps", "actual"] as const) {

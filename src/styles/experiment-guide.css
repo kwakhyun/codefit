@@ -1,0 +1,157 @@
+.experiment-guide-bar {
+  padding: 14px 18px;
+  display: flex;
+  align-items: start;
+  gap: 12px;
+  background: #19283b;
+  color: #e0ebfa;
+  border-bottom: 1px solid #455f83;
+}
+.experiment-guide-bar > div {
+  flex: 1;
+  min-width: 0;
+}
+.experiment-guide-bar strong {
+  font-size: 13px;
+}
+.experiment-guide-bar p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #b6c9e3;
+}
+.experiment-guide-bar button {
+  flex-shrink: 0;
+  color: #deebff;
+  background: transparent;
+  border: 1px solid #7890b2;
+  border-radius: 6px;
+  padding: 8px;
+  min-height: 40px;
+  font-size: 12px;
+}
+.experiment-spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+.experiment-spotlight-ring {
+  position: fixed;
+  border: 3px solid #b8d2ff;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 4px #3b72bf99,
+    0 0 0 400vmax #0005;
+}
+.experiment-spotlight-ring::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border: 2px solid #8db9ff;
+  border-radius: 14px;
+  animation: experiment-pulse 1.8s ease-in-out infinite;
+}
+.experiment-spotlight-card {
+  position: fixed;
+  right: 16px;
+  width: min(370px, calc(100vw - 32px));
+  padding: 16px;
+  background: #152237;
+  color: #edf4ff;
+  border: 1px solid #81a6dc;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px #0008;
+  pointer-events: auto;
+  font: 13px/1.65 var(--sans);
+  max-height: min(360px, 42dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.experiment-spotlight-card.at-bottom {
+  bottom: 16px;
+}
+.experiment-spotlight-card.at-top {
+  top: 16px;
+}
+.experiment-spotlight-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #b9d3f8;
+  font-size: 12px;
+}
+.experiment-spotlight-heading button {
+  color: #dceaff;
+  background: none;
+  border: 0;
+  min-height: 32px;
+  padding: 4px 8px;
+}
+.experiment-spotlight-card strong {
+  display: block;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.experiment-spotlight-card p {
+  margin: 8px 0;
+}
+.experiment-spotlight-card b {
+  color: #aecdff;
+  margin-right: 5px;
+}
+.experiment-last-result {
+  border-top: 1px solid #425776;
+  padding-top: 8px;
+  color: #c6d5e9;
+}
+.experiment-locate {
+  color: #e3eeff;
+  background: #283f60;
+  border: 1px solid #7d9fcf;
+  padding: 8px 12px;
+  min-height: 40px;
+  border-radius: 6px;
+}
+.experiment-guide-bar button:focus-visible,
+.experiment-spotlight button:focus-visible {
+  outline: 3px solid #c4daff;
+  outline-offset: 3px;
+}
+@keyframes experiment-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.03, 1.12);
+    opacity: 0.2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .experiment-spotlight-ring::after {
+    animation: none;
+  }
+}
+@media (max-width: 600px) {
+  .experiment-guide-bar {
+    flex-wrap: wrap;
+  }
+  .experiment-guide-bar > div {
+    flex-basis: 100%;
+  }
+  .experiment-spotlight-card {
+    right: 8px;
+    width: calc(100vw - 16px);
+    padding: 12px;
+  }
+  .experiment-spotlight-card.at-bottom {
+    bottom: 8px;
+  }
+  .experiment-spotlight-card.at-top {
+    top: 8px;
+  }
+}

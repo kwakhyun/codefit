@@ -1,3 +1,4 @@
+import { projectExperiment } from "@/lib/learn/project-experiment";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { VoiceInput } from "@/components/ui/voice-input";
@@ -46,6 +47,16 @@ export function MissionTransfer({
               ? mission.transfer.explanation
               : "앞에서 확인한 원리를 다른 상황에도 적용해 보세요. 힌트를 다시 볼 수 있습니다."}
           </p>
+        )}
+        {projectExperiment(mission) && (
+          <section className="learn-concept" aria-label="내 서비스에 적용하기">
+            <h3>내 서비스에서 이어서 확인하기</h3>
+            <p>{projectExperiment(mission)}</p>
+            <p className="learn-fineprint">
+              이 실습은 실패 조건을 단순화한 가상 서비스입니다. 통과했다고 내 서비스의 구현이 검증된
+              것은 아닙니다. 위 실험은 본인 서비스의 테스트 환경과 가상 데이터로 진행하세요.
+            </p>
+          </section>
         )}
         <label htmlFor="learn-reflection">
           내 제품에서는 무엇을 확인할 건가요?

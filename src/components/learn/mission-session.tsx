@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, Download, Lightbulb } from "lucide-react";
 import { useBeginnerMission } from "@/hooks/use-beginner-mission";
-import { MISSIONS, type Mission, type Action } from "@/lib/learn/catalog";
+import { MISSIONS, isArchivedMission, type Mission, type Action } from "@/lib/learn/catalog";
 import {
   canComplete,
   checksPassed,
@@ -137,6 +137,12 @@ export function MissionSession({
         {learningStorageDescription(session.signedIn)} 예제 안의 저장 버튼은 실습 속 데이터만
         바꿉니다.
       </p>
+      {isArchivedMission(mission.id) && (
+        <p className="learn-fineprint">
+          새 학습 목록에서 제외된 이전 실습입니다. 기존 기록은 계속 확인할 수 있습니다.{" "}
+          <Link href="/learn">현재 실습 보기</Link>
+        </p>
+      )}
       <div className="mission-title">
         <span className="eyebrow">
           {mission.kind === "lab" ? "서비스 오류 해결 실습" : "서비스 원리 배우기"} /{" "}

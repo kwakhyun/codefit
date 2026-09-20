@@ -6,7 +6,7 @@ export const SERVICE_DOMAINS = [
     label: "쇼핑·주문",
     brand: "ordinary",
     tagline: "매일의 물건, 오래 쓰는 취향",
-    description: "쿠폰, 배송비, 재고와 결제 조건",
+    description: "쿠폰 적용 조건, 재고 확보와 포인트 검증",
     image: "/images/services/lifestyle.webp",
   },
   {
@@ -14,7 +14,7 @@ export const SERVICE_DOMAINS = [
     label: "예약·시설",
     brand: "roomly",
     tagline: "우리에게 필요한 공간",
-    description: "예약 시간, 정원과 취소 정책",
+    description: "예약 시간 겹침, 정원과 중복 요청",
     image: "/images/services/studio.webp",
   },
   {
@@ -22,7 +22,7 @@ export const SERVICE_DOMAINS = [
     label: "업무·협업",
     brand: "align",
     tagline: "일의 흐름을 한곳에서",
-    description: "문서 권한, 결재와 프로젝트 관리",
+    description: "문서 접근 권한과 최신 버전 확인",
     image: "/images/services/studio.webp",
   },
   {
