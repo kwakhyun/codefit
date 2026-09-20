@@ -19,18 +19,24 @@ function isDismissed() {
   }
 }
 
-export function GuideWidget() {
+export function GuideWidget({ inline = false }: { inline?: boolean }) {
+  const pathname = usePathname();
+  if (!inline && pathname === "/") return null;
+  return <GuideLauncher inline={inline} />;
+}
+
+function GuideLauncher({ inline }: { inline: boolean }) {
   const pathname = usePathname();
   const practicing =
     pathname.startsWith("/problems/") ||
     pathname.startsWith("/learn/") ||
     pathname === "/project-check";
-  const showInvitation = ["/", "/learn", "/handoff"].includes(pathname);
+  const showInvitation = !inline && ["/learn", "/handoff"].includes(pathname);
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [compact, setCompact] = useState(false);
-  const compactMode = compact || practicing;
+  const compactMode = inline || compact || practicing;
   const storedDismissal = useSyncExternalStore(subscribe, isDismissed, () => true);
   const launcher = useRef<HTMLButtonElement>(null);
   function dismissIntro() {
@@ -48,7 +54,7 @@ export function GuideWidget() {
   return (
     <>
       <aside
-        className={`guide-launcher ${compactMode ? "is-compact" : ""}`}
+        className={inline ? "guide-inline" : `guide-launcher ${compactMode ? "is-compact" : ""}`}
         aria-label="시작 가이드"
       >
         {showInvitation && !dismissed && !storedDismissal && !open && !compactMode && (
@@ -87,7 +93,7 @@ export function GuideWidget() {
           }}
         >
           <FitMascot size={compactMode ? 32 : 64} />
-          {!compactMode && <span>시작 가이드</span>}
+          {(inline || !compactMode) && <span>시작 가이드</span>}
         </button>
         {!compactMode && !open && (
           <button

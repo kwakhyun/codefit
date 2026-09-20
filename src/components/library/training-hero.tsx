@@ -1,4 +1,5 @@
 "use client";
+import { GuideWidget } from "@/components/guide/guide-widget";
 import { LearningPreferencePicker } from "./learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { useState } from "react";
@@ -33,7 +34,10 @@ export function TrainingHero({
           <span className="eyebrow">AI 시대에도, 이해는 내 실력으로</span>
           <h1>오늘은 무엇을 연습할까요?</h1>
         </div>
-        <p>처음 배우는 원리부터 직접 고치는 코드까지.</p>
+        <div className="home-heading-tools">
+          <p>처음 배우는 원리부터 직접 고치는 코드까지.</p>
+          <GuideWidget inline />
+        </div>
       </div>
       <LearningPreferencePicker />
       <LearningResume
