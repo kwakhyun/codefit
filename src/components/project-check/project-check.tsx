@@ -22,7 +22,7 @@ import { ProjectLearning } from "@/components/project-learning/project-learning"
 import { GuestLogin } from "@/components/account/guest-login";
 import { useEffect, useRef, useState } from "react";
 import { AppLink as Link } from "@/components/ui/primitives";
-import { ArrowRight, ExternalLink, Globe2, RefreshCw } from "lucide-react";
+import { ArrowRight, ExternalLink, RefreshCw } from "lucide-react";
 import { useProjectHistory, type UpdateOverview } from "@/hooks/use-project-history";
 import { useProjectDraft } from "@/hooks/use-project-draft";
 import { VoiceInput } from "@/components/ui/voice-input";
@@ -95,6 +95,13 @@ export function ProjectCheckApp() {
       )}
       {data && (
         <div hidden={checking || !!error}>
+          <MemberWorkspace
+            key={data.scope}
+            data={data}
+            onChange={(update) =>
+              setData((current) => (current?.scope === data.scope ? update(current) : current))
+            }
+          />
           {!data.signedIn && (
             <Card as="aside" className="guest-trial-notice">
               <strong>로그인 없이 실제 프로젝트를 점검해 보세요</strong>
@@ -105,13 +112,6 @@ export function ProjectCheckApp() {
               <GuestLogin returnTo="/project-check" compact />
             </Card>
           )}
-          <MemberWorkspace
-            key={data.scope}
-            data={data}
-            onChange={(update) =>
-              setData((current) => (current?.scope === data.scope ? update(current) : current))
-            }
-          />
           {!data.signedIn && (
             <Disclosure className="project-example-disclosure">
               <DisclosureSummary>입력 전에 질문과 피드백 예시 살펴보기</DisclosureSummary>
@@ -336,8 +336,15 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
           현재 새 AI 분석을 시작할 수 없습니다. 저장된 질문과 평가 기록은 계속 볼 수 있습니다.
         </Status>
       )}
-      <div ref={fade} className="project-layout">
-        <aside className="project-history" aria-label="내 프로젝트 점검 기록">
+      <div
+        ref={fade}
+        className={`project-layout ${data.checks.length === 0 && !selected && !data.nextCursor ? "project-layout-first" : ""}`}
+      >
+        <aside
+          className="project-history"
+          aria-label="내 프로젝트 점검 기록"
+          hidden={data.checks.length === 0 && !selected && !data.nextCursor}
+        >
           <Button
             className="secondary-button"
             disabled={busy || recovering}
@@ -404,11 +411,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
             </Card>
           ) : !check ? (
             <form className="project-panel project-form" onSubmit={create}>
-              <Globe2 size={28} />
               <h2>어떤 서비스를 만드셨나요?</h2>
-              <p>
-                공개 페이지에서 확인한 기능을 바탕으로, 설계를 얼마나 이해하고 있는지 질문합니다.
-              </p>
               {analysisExhausted && (
                 <Card as="section" className="project-quota-notice" aria-label="새 분석 한도 안내">
                   <h3>지금은 새 프로젝트를 분석할 수 없습니다</h3>

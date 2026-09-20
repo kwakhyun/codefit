@@ -4,7 +4,7 @@ import { Check, ArrowRight } from "lucide-react";
 import { Button, Card, Disclosure, DisclosureSummary } from "@/components/ui/primitives";
 import { actionLabel, type Action, type Mission } from "@/lib/learn/catalog";
 import type { LearningRecord, LearningRecordUpdate } from "@/lib/learn/progress";
-import { simulate, reproduced } from "@/lib/learn/simulation";
+import { simulate } from "@/lib/learn/simulation";
 import { missionContext } from "@/lib/learn/context";
 import { describeResult } from "@/lib/learn/services/rules";
 import { SimulationView } from "./simulation-view";
@@ -43,13 +43,6 @@ export function MissionObservation({
   const summary = useRef<HTMLHeadingElement>(null);
   const previousEvidence = useRef(evidence);
   const observed = simulate(mission, record.actions);
-  const requiredEnd = evidence
-    ? record.actions.findIndex((_, index) =>
-        reproduced(mission, record.actions.slice(0, index + 1)),
-      )
-    : -1;
-  const requiredResult =
-    requiredEnd >= 0 ? simulate(mission, record.actions.slice(0, requiredEnd + 1)) : observed;
   useEffect(() => {
     const justFinished = evidence && !previousEvidence.current;
     previousEvidence.current = evidence;
@@ -101,29 +94,37 @@ export function MissionObservation({
                 이번 실험에서 배운 원리
               </h3>
               <div className="checkpoint-evidence">
-                <strong>실제 동작</strong>
+                <strong>방금 조작한 결과</strong>
                 {mission.service && (
                   <p className="checkpoint-input">
-                    입력: {mission.service.samples[requiredResult.service.selected].label}
+                    입력: {mission.service.samples[observed.service.selected].label}
                   </p>
                 )}
                 <p>
                   {(mission.app === "request" || mission.app === "booking") &&
-                    `${requiredResult.online ? "온라인" : "오프라인"} 상태에서 `}
-                  {mission.app === "access" && `현재 사용자 ${requiredResult.actor}: `}
-                  {requiredResult.message}
-                  {mission.app === "booking" && ` · 예약 ${requiredResult.bookings.length}건`}
+                    `${observed.online ? "온라인" : "오프라인"} 상태에서 `}
+                  {mission.app === "access" && `현재 사용자 ${observed.actor}: `}
+                  {mission.service && !observed.service.result
+                    ? `입력을 바꿨습니다. 왼쪽에서 ‘${mission.service.operation}’ 버튼을 눌러 결과를 확인하세요.`
+                    : observed.message}
+                  {mission.app === "booking" && ` · 예약 ${observed.bookings.length}건`}
                 </p>
               </div>
               <div className="checkpoint-expected">
-                <strong>지켜야 할 동작</strong>
+                <strong>이 경우에 나와야 할 결과</strong>
                 <p>
                   {mission.service
                     ? describeResult(
                         mission.service,
-                        mission.service.samples[requiredResult.service.selected].expected,
+                        mission.service.samples[observed.service.selected].expected,
                       )
-                    : missionContext(mission).expected}
+                    : mission.app === "price"
+                      ? observed.quantity < 1
+                        ? "수량에 −1을 넣었습니다. 주문 수량은 1개 이상이어야 하므로 금액을 계산하지 않고 ‘수량은 1개 이상 입력하세요’라고 안내해야 합니다."
+                        : "노트 3개의 원래 가격은 30,000원입니다. 3개부터 10% 할인하므로 3,000원을 빼고 27,000원을 표시해야 합니다."
+                      : mission.app === "access" && observed.actor === "지민"
+                        ? "지민은 이 글의 작성자이므로 비공개 글을 읽을 수 있어야 합니다."
+                        : missionContext(mission).expected}
                 </p>
               </div>
               <Button className="primary-button" onClick={onContinue}>

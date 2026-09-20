@@ -157,7 +157,7 @@ export function LearningDashboard() {
           </Status>
         </div>
       </section>
-      {(["foundation", "lab"] as const).map((kind) => (
+      {(["lab", "foundation"] as const).map((kind) => (
         <section
           id={kind === "lab" ? "labs" : "basics"}
           className="learn-course"
@@ -173,12 +173,14 @@ export function LearningDashboard() {
         >
           <div className="learn-section-title">
             <span className="eyebrow">
-              {kind === "foundation" ? "01 / 직접 해보며 배우기" : "02 / 배운 것을 써보기"}
+              {kind === "foundation" ? "02 / 필요한 개념 보충하기" : "01 / 실패 상황 확인하기"}
             </span>
-            <h2>{kind === "foundation" ? "서비스 원리 배우기" : "서비스 오류 해결 실습"}</h2>
+            <h2>
+              {kind === "foundation" ? "기초 개념과 조건 확인" : "권한, 저장 실패와 중복 요청"}
+            </h2>
             <p>
               {kind === "foundation"
-                ? "데이터 저장부터 주문, 예약, 고객 상담까지 직접 확인하며 배웁니다."
+                ? "설명이 필요한 개념만 골라 연습하세요. 모든 실습을 끝낼 필요는 없습니다."
                 : "예제 서비스의 오류를 찾아 AI에게 보낼 수정 요청을 작성하고, 수정 결과를 확인합니다."}
             </p>
           </div>

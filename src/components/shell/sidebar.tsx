@@ -113,7 +113,9 @@ export function Sidebar({
               <span className="nav-caption">{index === 0 ? profile.group : profile.secondary}</span>
             )}
             <Link className="nav-item" href={item.href} key={item.href}>
-              {item.href === "/learn" ? (
+              {item.href === "/learn/ai" ? (
+                <Workflow size={17} aria-hidden="true" />
+              ) : item.href === "/learn" ? (
                 <BookOpen size={17} />
               ) : item.href === "/handoff" ? (
                 <Terminal size={17} />
@@ -126,10 +128,6 @@ export function Sidebar({
             </Link>
           </div>
         ))}
-        <Link className="nav-item" href="/learn/ai">
-          <Workflow size={17} aria-hidden="true" />
-          <span>AI 실무 배우기</span>
-        </Link>
         <Link className="nav-item" href="/?view=browse">
           <LayoutGrid size={17} />
           <span>전체 문제 탐색</span>

@@ -19,11 +19,12 @@ it("migrates all four existing choices without changing their intention", () => 
     expect(preferenceForType(item.id)).toEqual(legacy);
   }
 });
-it("gives every type a distinct menu order while retaining every destination", () => {
-  const first = ["/learn", "/handoff", "/project-check", "/security-check"];
-  learnerTypes.forEach((item, index) => {
+it("prioritizes project checks for every type while retaining every destination", () => {
+  learnerTypes.forEach((item) => {
     const result = preferredDestinations(preferenceForType(item.id));
-    expect(result[0].href).toBe(first[index]);
-    expect(new Set(result.map((item) => item.href)).size).toBe(4);
+    expect(result[0].href).toBe("/project-check");
+    const paths = result.map((destination) => destination.href);
+    expect(paths.indexOf("/learn/ai")).toBeLessThan(paths.indexOf("/learn"));
+    expect(new Set(result.map((item) => item.href)).size).toBe(5);
   });
 });

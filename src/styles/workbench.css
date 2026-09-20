@@ -1,14 +1,14 @@
 /* Work surfaces: quiet introductions, consistent rhythm, and room for the task itself.
    Domain problem lists and the code editor retain their existing layout. */
 .visual-intro.visual-intro {
-  grid-template-columns: minmax(0, 1fr) 168px;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 30%);
   gap: 32px;
   margin: 24px 0;
-  padding: 8px 0 24px;
+  padding: 28px;
   border: 0;
   border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  background: none;
+  border-radius: var(--radius-panel);
+  background: var(--surface);
 }
 .visual-intro .visual-intro-copy h1 {
   font-size: clamp(25px, 2.5vw, 34px);
@@ -190,19 +190,20 @@
 }
 @media (max-width: 700px) {
   .visual-intro.visual-intro {
-    grid-template-columns: minmax(0, 1fr) 80px;
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
-    padding: 8px 0 20px;
+    padding: 24px;
     margin: 16px 0 20px;
   }
   .visual-intro > .section-artwork {
     grid-row: auto;
-    width: 80px;
+    width: min(100%, 240px);
+    justify-self: center;
     align-self: start;
     margin-top: 12px;
   }
   .visual-intro > .section-artwork img {
-    aspect-ratio: 1;
+    aspect-ratio: 3 / 2;
     object-fit: contain;
   }
   .visual-intro .visual-intro-copy h1 {

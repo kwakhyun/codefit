@@ -3,7 +3,7 @@ export type LearningPreference = {
   experience: "beginner" | "developer";
   purpose: "learn" | "project";
 };
-export const defaultPreference: LearningPreference = { experience: "beginner", purpose: "learn" };
+export const defaultPreference: LearningPreference = { experience: "beginner", purpose: "project" };
 export function parsePreference(raw: string | null): LearningPreference {
   try {
     const value = JSON.parse(raw || "null");
@@ -18,6 +18,11 @@ export function parsePreference(raw: string | null): LearningPreference {
   return defaultPreference;
 }
 const destinations = {
+  ai: {
+    href: "/learn/ai",
+    label: "AI 실무 배우기",
+    description: "AI 도구의 개념을 익히고 모의 실습으로 활용 방법을 확인하세요.",
+  },
   learn: {
     href: "/learn",
     label: "서비스 원리 배우기",
@@ -43,12 +48,8 @@ const destinations = {
 };
 export function preferredDestinations(preference: LearningPreference) {
   const order: (keyof typeof destinations)[] =
-    preference.purpose === "project"
-      ? preference.experience === "developer"
-        ? ["security", "project", "handoff", "learn"]
-        : ["project", "learn", "security", "handoff"]
-      : preference.experience === "developer"
-        ? ["handoff", "project", "security", "learn"]
-        : ["learn", "handoff", "project", "security"];
+    preference.experience === "developer"
+      ? ["project", "security", "handoff", "ai", "learn"]
+      : ["project", "handoff", "security", "ai", "learn"];
   return order.map((key) => destinations[key]);
 }

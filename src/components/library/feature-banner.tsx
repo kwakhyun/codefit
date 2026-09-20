@@ -52,7 +52,7 @@ const slideCatalog = [
     tag: "내 프로젝트 점검",
     title: "내가 만든 서비스로\n설계 질문을 받아보세요",
     description:
-      "서비스의 공개 화면을 바탕으로 질문받고, 빠진 설명과 직접 확인할 방법을 찾아보세요. 로그인 없이 분석과 답변 평가를 2회씩 체험할 수 있습니다.",
+      "공개 화면에서 설계 질문을 만들고, 내 답변에 빠진 설명을 짚어드려요. 로그인 없이 분석과 답변 평가를 2회씩 체험할 수 있어요.",
     href: "/project-check",
     cta: "내 프로젝트 점검",
     image: "/images/experience/project.webp",
@@ -68,6 +68,16 @@ const slideCatalog = [
     image: "/images/experience/security.webp",
     accent: "mint",
   },
+  {
+    tag: "AI 실무 배우기",
+    title: "AI 도구를 이해하고\n내 일에 연결해 보세요",
+    description:
+      "LangChain, LangGraph, 로컬 AI부터 업무 자동화까지. 개념을 익히고 선택형 모의 실습으로 활용 방법을 확인하세요.",
+    href: "/learn/ai",
+    cta: "AI 실무 배우기",
+    image: "/images/features/practice-builder.webp",
+    accent: "violet",
+  },
 ];
 function subscribeMotion(fn: () => void) {
   const q = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -75,10 +85,10 @@ function subscribeMotion(fn: () => void) {
   return () => q.removeEventListener("change", fn);
 }
 const order: Record<LearnerType, number[]> = {
-  starter: [0, 1, 2, 3, 4, 5],
-  coder: [2, 4, 3, 0, 1, 5],
-  maker: [4, 0, 1, 5, 2, 3],
-  builder: [5, 4, 2, 1, 0, 3],
+  starter: [4, 6, 5, 2, 1, 0, 3],
+  coder: [4, 6, 2, 5, 3, 1, 0],
+  maker: [4, 6, 5, 2, 1, 0, 3],
+  builder: [4, 6, 5, 2, 1, 0, 3],
 };
 export function FeatureBanner({ onGenerate }: { onGenerate: () => void }) {
   const { type } = useLearningPreference();

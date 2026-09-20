@@ -18,14 +18,16 @@ export default function LearnPage() {
       <SiteHeader />
       <VisualIntro topic="principles" className="learn-intro">
         <span className="eyebrow">5개 서비스 분야, {MISSIONS.length}개 실습</span>
-        <h1>예제 서비스로 배우는 개발 기초</h1>
+        <h1>내 서비스 점검을 돕는 보조 실습</h1>
         <p>
-          코딩 경험이 없어도 시작할 수 있습니다.
-          <br />
-          예제 서비스를 직접 조작하며 데이터 저장, 서버 통신, 접근 권한을 배우고 오류 해결을
-          연습하세요.
+          권한, 저장 실패, 중복 요청이 왜 문제가 되는지 예제로 확인하세요.
+          <br />내 서비스의 실제 구현을 검사하는 기능은 아닙니다. 필요한 사례를 골라 이해한 뒤 내
+          서비스에서 직접 확인하세요.
         </p>
       </VisualIntro>
+      <Link className="primary-button" href="/project-check">
+        내 서비스로 점검 시작하기 →
+      </Link>
       <ExperienceJourney topic="principles" />
       <AiLearningEntry />
       <LearningDashboard />

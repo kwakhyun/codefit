@@ -21,7 +21,11 @@ interface TrainingHeroProps {
 }
 const paths = {
   starter: [
-    ["/learn/where-data-lives", "저장과 새로고침", "입력한 데이터가 어디에 남는지 직접 비교해요."],
+    [
+      "/learn/broken-memo",
+      "연결이 끊겼는데 저장 완료라면",
+      "저장 실패를 알아보고 다시 시도하는 흐름을 확인해요.",
+    ],
     [
       "/learn/private-board",
       "누가 읽을 수 있나요?",
@@ -89,24 +93,10 @@ export function TrainingHero({
         </h1>
         <p>{profile.description}</p>
       </div>
-      {!hasChosen && (
-        <Card as="section" className="first-action" aria-label="처음 방문한 분의 시작점">
-          <div>
-            <span className="eyebrow">여기서 시작하세요</span>
-            <h2>만든 서비스가 있다면 링크부터 넣어보세요</h2>
-            <p>AI가 실제 공개 화면을 읽고, 내가 놓친 설계와 확인할 일을 질문합니다.</p>
-            <small>로그인 없이 분석 2회 체험 · 답변까지 약 10분</small>
-          </div>
-          <div>
-            <Link className="primary-button" href="/project-check">
-              내 서비스 무료로 점검하기 →
-            </Link>
-            <p>
-              <Link href="/learn/where-data-lives">아직 서비스가 없다면? 5분 실습부터 →</Link>
-            </p>
-          </div>
-        </Card>
-      )}
+      <ProjectResume key={scope} scope={scope} />
+      <section aria-label={!hasChosen ? "처음 방문한 분의 시작점" : "추천 시작점"}>
+        <FeatureBanner onGenerate={onGenerate} />
+      </section>
       {!hasChosen && (
         <LearningPreferencePicker
           onSelect={() => requestAnimationFrame(() => heading.current?.focus())}
@@ -117,10 +107,8 @@ export function TrainingHero({
           브라우저에 저장할 수 없어 현재 화면에서만 적용됩니다. 재방문할 때 다시 선택해 주세요.
         </Status>
       )}
-      <FeatureBanner onGenerate={onGenerate} />
       <AiLearningEntry />
-      <div className="persona-home-primary" aria-label={`${profile.name} 우선 콘텐츠`}>
-        {type === "starter" && <LearningResume key={scope} scope={scope} recommendFirst />}
+      <div className="persona-home-primary">
         {type === "coder" &&
           (codeResume || (
             <Card
@@ -153,16 +141,15 @@ export function TrainingHero({
             </Link>
           </Card>
         )}
-        {(type === "maker" || type === "builder") && <ProjectResume key={scope} scope={scope} />}
       </div>
       <section className="persona-next-steps" aria-label={`${profile.name} 추천 경로`}>
         <h2>
           {type === "starter"
-            ? "직접 눌러 배우는 두 가지 원리"
+            ? "점검 중 막힌 부분을 예제로 확인하기"
             : type === "coder"
               ? "코드로 이어가는 연습"
               : type === "maker"
-                ? "예제로 익히고 내 서비스에 적용하기"
+                ? "점검에서 발견한 빈틈을 이해하는 보조 실습"
                 : "설계와 실제 동작을 함께 확인하기"}
         </h2>
         <div>
@@ -181,7 +168,7 @@ export function TrainingHero({
           <h2>다른 학습도 이어갈 수 있어요</h2>
           <Link href="/?view=history">모든 학습 기록 →</Link>
         </div>
-        {type !== "starter" && <LearningResume key={scope} scope={scope} />}
+        <LearningResume key={scope} scope={scope} />
         {type !== "coder" && codeResume}
         <p>타입을 바꿔도 이전 학습 기록과 작성 중인 코드는 그대로 남습니다.</p>
       </section>

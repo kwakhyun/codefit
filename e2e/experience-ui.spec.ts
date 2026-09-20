@@ -10,17 +10,17 @@ test("always-visible banner follows each learner type and keeps all features rea
   const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
   await expect(banner).toBeVisible();
   for (const [index, type, title] of [
-    [0, "원리 입문", "서비스 원리 배우기"],
-    [1, "코드 훈련", "AI 코드 이해 훈련"],
+    [0, "원리 입문", "내 프로젝트 점검"],
+    [1, "코드 훈련", "내 프로젝트 점검"],
     [2, "내 서비스 이해", "내 프로젝트 점검"],
-    [3, "배포 전 점검", "서비스 보안 점검"],
+    [3, "배포 전 점검", "내 프로젝트 점검"],
   ] as const) {
     if (index > 0) await page.locator(".persona-change").click();
     await page.getByRole("radio", { name: type, exact: true }).click();
     if (index > 0) await page.getByRole("button", { name: "선택 완료" }).click();
-    await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 6");
+    await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 7");
     await expect(banner.getByRole("group").locator(".eyebrow")).toHaveText(title);
-    await expect(banner.locator(".feature-topic-rail button")).toHaveCount(6);
+    await expect(banner.locator(".feature-topic-rail button")).toHaveCount(7);
     await expect(page.locator(".training-welcome .persona-picker")).toHaveCount(0);
     await page.reload();
     await expect(banner.getByRole("group").locator(".eyebrow")).toHaveText(title);

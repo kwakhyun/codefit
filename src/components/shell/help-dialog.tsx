@@ -18,8 +18,8 @@ export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
             <div>
               <strong>지금 나에게 맞는 출발점을 고르세요.</strong>
               <p>
-                처음이라면 서비스 원리 배우기에서 시작하세요. 코드를 읽을 수 있다면 AI 코드 이해
-                훈련이나 문제 보관함을 이용하세요.
+                만든 서비스가 있다면 내 프로젝트 점검에 주소를 넣으세요. 질문에 답하고 실제로 확인할
+                일을 정리할 수 있습니다. 원리가 궁금할 때는 보조 실습을 이용하세요.
               </p>
             </div>
           </li>

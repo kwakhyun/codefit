@@ -1,6 +1,5 @@
 "use client";
 import { Card } from "@/components/ui/primitives";
-import { SectionArtwork } from "@/components/experience/section-artwork";
 import { useEffect, useState } from "react";
 import { AppLink as Link } from "@/components/ui/primitives";
 import { api } from "@/lib/client-api";
@@ -20,41 +19,30 @@ export function ProjectResume({ scope }: { scope: string }) {
     return () => controller.abort();
   }, [scope]);
   const check = overview?.scope === scope ? overview.checks[0] : undefined;
+  if (!check && !failed) return null;
   return (
-    <Card
-      as="section"
-      className="persona-project-resume illustrated-panel"
-      aria-label="내 프로젝트 점검 이어하기"
-    >
-      <SectionArtwork topic="project" />
-      <span className="eyebrow">{check ? "최근 프로젝트 기록" : "내 프로젝트로 시작하기"}</span>
-      <h2>{check?.analysis.title || "내가 만든 서비스로 질문받아 보세요"}</h2>
-      <p>
-        {check
-          ? check.review
-            ? "받은 피드백을 바탕으로 실제 확인 결과와 보완 답변을 남겨보세요."
-            : "저장된 설계 질문에 답하며 프로젝트 점검을 이어가세요."
-          : "질문, 부족한 답변과 구체적인 피드백 예시를 먼저 살펴볼 수 있습니다."}
-      </p>
+    <Card as="section" className="project-resume-strip" aria-label="내 프로젝트 점검 이어하기">
+      <div>
+        <span className="eyebrow">{check ? "이어서 확인하기" : "점검 기록 확인"}</span>
+        <h2>{check?.analysis.title || "이전 기록을 불러오지 못했어요"}</h2>
+        <p>
+          {check
+            ? check.review
+              ? "피드백을 읽고 확인 결과와 보완 답변을 남겨보세요."
+              : "저장된 질문과 작성하던 답변부터 이어가세요."
+            : "프로젝트 점검에서 다시 불러올 수 있습니다."}
+        </p>
+      </div>
       <Link
-        className="primary-button"
+        className="secondary-button"
         href={
           check
             ? `/project-check?check=${check.id}${check.review ? "#project-follow-up" : ""}`
             : "/project-check"
         }
       >
-        {check ? "최근 프로젝트 이어서 점검" : "내 프로젝트 무료로 점검하기"} →
+        {check ? "최근 프로젝트 이어서 점검" : "기록 다시 확인"} →
       </Link>
-      <small>
-        {failed
-          ? "기록을 불러오지 못했습니다. 프로젝트 점검에서 다시 확인할 수 있습니다."
-          : check
-            ? "저장된 질문과 답변 이어보기 · 기록 조회는 새 분석 횟수를 사용하지 않습니다."
-            : scope.startsWith("user:")
-              ? "24시간에 프로젝트 분석 5회 · 답변 평가 12회"
-              : "로그인 없이 실제 분석 2회 · 로그인하면 5회"}
-      </small>
     </Card>
   );
 }

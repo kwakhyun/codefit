@@ -1,18 +1,18 @@
 /* Shared design tokens. Feature colors remain explicit to avoid accidental coupling. */
 :root {
   color-scheme: dark;
-  --bg: #000000;
-  --sidebar: #090b0f;
-  --line: #2e333b;
-  --surface: #101318;
-  --surface-raised: #191e26;
-  --surface-hover: #1e2530;
-  --radius-control: 9px;
-  --radius-panel: 16px;
-  --radius-small: 6px;
-  --text: #e6e6e6;
-  --muted: #b0b0b0;
-  --accent: #ffffff;
+  --bg: #0e1219;
+  --sidebar: #121722;
+  --line: #343e4e;
+  --surface: #171d28;
+  --surface-raised: #202938;
+  --surface-hover: #283448;
+  --radius-control: 12px;
+  --radius-panel: 22px;
+  --radius-small: 8px;
+  --text: #f0f3f8;
+  --muted: #b3bdcc;
+  --accent: #99c5ff;
   --warning: #f2c879;
   --danger: #ff9a9a;
   --action: #93c5fd;
@@ -21,13 +21,15 @@
   --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   --sans: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
   /* Readable roles stay consistent across breakpoints; honor the browser text size. */
-  --text-caption: 0.75rem;
-  --text-small: 0.8125rem;
-  --text-ui: 0.875rem;
-  --text-body: 0.9375rem;
+  --text-caption: 0.8125rem;
+  --text-small: 0.875rem;
+  --text-ui: 0.9375rem;
+  --text-body: 1rem;
   --text-reading: 1rem;
   --text-input: var(--text-body);
-  --control-size: 36px;
+  --control-size: 44px;
+  --motion-fast: 160ms;
+  --motion-enter: 220ms;
   --black: #000000;
   --white: #ffffff;
   --action-soft: #bfdbfe;

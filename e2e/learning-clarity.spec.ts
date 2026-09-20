@@ -23,8 +23,13 @@ for (const id of ["booking-capacity", "shop-coupon"]) {
     await expect(app.locator(".service-result")).toContainText("이용 조건과 다른 결과");
     await expect(app.locator(".service-result")).toHaveClass(/rejected/);
     const summary = page.getByRole("region", { name: "실험 결과 요약" });
-    await expect(summary).toContainText("실제 동작");
-    await expect(summary).toContainText("지켜야 할 동작");
+    await expect(summary).toContainText("방금 조작한 결과");
+    await expect(summary).toContainText("이 경우에 나와야 할 결과");
+    await app.locator('[data-sim-action="case-standard"]').click();
+    await expect(summary).toContainText("입력을 바꿨습니다");
+    await expect(summary).toContainText(mission.service!.samples[0].label);
+    await app.locator('[data-sim-action="case-submit"]').click();
+    await expect(summary).not.toContainText("입력을 바꿨습니다");
     await page.screenshot({ path: `artifacts/clarity-${id}-${info.project.name}.png` });
     await summary.getByRole("button", { name: "3. 수정과 검사로 이동" }).click();
     await page.getByRole("radio", { name: /처리 규칙 수정/ }).check();
@@ -74,4 +79,24 @@ test("code training leads from observed output to a current test and explanation
   await next.click();
   await expect(page.getByRole("heading", { name: "4. 설명하기", exact: true })).toBeFocused();
   await expect(page.locator("#handoff-understanding")).toBeVisible();
+});
+
+test("price summary follows the current quantity and explains the calculation", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/learn/price-and-rules");
+  await page.getByRole("radio").first().check();
+  await page.getByRole("button", { name: "예상 남기고 직접 확인" }).click();
+  const app = page.getByRole("region", { name: "실습 서비스", exact: true });
+  await app.locator('[data-sim-action="quantity"]').click();
+  await app.locator('[data-sim-action="invalid-quantity"]').click();
+  const summary = page.getByRole("region", { name: "실험 결과 요약" });
+  await expect(summary).toContainText("수량에 −1을 넣었습니다");
+  await expect(summary).toContainText("계산 결과: -10,000원");
+  await expect(summary.locator(".checkpoint-expected")).not.toContainText("27,000원");
+  await app.locator('[data-sim-action="quantity"]').click();
+  await expect(summary).toContainText("계산 결과: 30,000원");
+  await expect(summary).not.toContainText("계산 결과: -10,000원");
+  await expect(summary).toContainText("3,000원을 빼고 27,000원");
 });

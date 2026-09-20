@@ -11,7 +11,7 @@ test("first visit offers a direct guest start and responsive menu controls retai
   await expect(start).toBeVisible();
   await expect(page.getByRole("button", { name: "메뉴 열기", exact: true })).toBeHidden();
   await expect(page.locator(".sidebar-close")).toBeHidden();
-  await start.getByRole("link", { name: "내 서비스 무료로 점검하기 →" }).click();
+  await start.getByRole("link", { name: "내 프로젝트 점검", exact: true }).click();
   await expect(page.getByLabel("서비스 링크", { exact: true })).toBeVisible();
   await expect(page.locator(".guest-trial-notice")).toContainText("분석 2회");
   await page.goto("/");
@@ -124,14 +124,14 @@ test("neutral surfaces and useful labels stay consistent; type and route changes
     };
   });
   await page.goto("/");
-  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(12, 12, 14)");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(14, 18, 25)");
   await expect(page.getByText("저장소 연결됨", { exact: true })).toHaveCount(0);
   await expect(page.locator(".sidebar-version")).toHaveCount(0);
   const start = page.getByRole("region", { name: "처음 방문한 분의 시작점" });
-  await expect(start).toHaveCSS("background-color", "rgb(20, 20, 22)");
-  await expect(start.getByRole("link", { name: "내 서비스 무료로 점검하기 →" })).toHaveCSS(
+  await expect(start.locator(".feature-banner")).toBeVisible();
+  await expect(start.getByRole("link", { name: "내 프로젝트 점검", exact: true })).toHaveCSS(
     "background-color",
-    "rgb(228, 228, 232)",
+    "rgb(147, 197, 253)",
   );
   const before = await page.locator("html").getAttribute("data-main-fade");
   await page.getByRole("region", { name: "나에게 맞는 시작점" }).getByRole("radio").nth(2).click();

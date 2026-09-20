@@ -13,12 +13,13 @@ export default function ProjectCheckPage() {
   return (
     <main id="main-content" className="learn-page project-page">
       <SiteHeader />
-      <VisualIntro topic="project" className="learn-intro">
+      <VisualIntro topic="project" className="learn-intro project-task-intro">
         <span className="eyebrow">내 서비스로 연습하는 설계 설명</span>
-        <h1>만든 서비스, 어디까지 설명할 수 있나요?</h1>
+        <h1>내 서비스에서 놓친 부분을 찾아보세요</h1>
         <p>
-          서비스 링크를 넣으면 AI가 프로젝트에 맞는 질문을 준비합니다.
-          <br />내 말로 설계를 설명하고, 내 프로젝트에서 직접 확인하고 답변을 보완하세요.
+          공개 화면을 읽고 설계 질문 5개를 준비합니다.
+          <br />
+          답변하면 부족한 설명과 직접 확인할 일을 짚어드려요.
         </p>
       </VisualIntro>
       <Suspense fallback={<Status role="status">점검 기록 불러오는 중…</Status>}>
