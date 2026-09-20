@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
-import { fixtureCheck } from "../src/lib/project-check/fixtures";
+import { fixtureCheck, fixtureAssessment } from "../src/lib/project-check/fixtures";
 import { publicCheck } from "../src/lib/server/project-check-store";
 import type { CheckOverview } from "../src/lib/project-check/types";
 import { testAccount } from "../scripts/lib/test-account";
@@ -17,6 +17,65 @@ const overview = (): CheckOverview => ({
   checks: [],
   nextCursor: null,
 });
+
+for (const signedIn of [false, true]) {
+  test(`${signedIn ? "member" : "guest"} returns to the saved assessment without another AI request`, async ({
+    page,
+  }) => {
+    const check = {
+      ...publicCheck(fixtureCheck),
+      review: {
+        answers: Array(5).fill("서버에서 권한을 검사하는 흐름을 설명했습니다."),
+        assessment: fixtureAssessment,
+      },
+    };
+    const other = {
+      ...check,
+      id: randomUUID(),
+      analysis: { ...check.analysis, title: "다른 프로젝트 점검" },
+    };
+    const data = {
+      ...overview(),
+      signedIn,
+      scope: `${signedIn ? "user" : "guest"}:resume-test`,
+      checks: [check, other],
+    };
+    let mutations = 0;
+    await page.route("**/api/project-check", (route) => {
+      if (route.request().method() !== "GET") mutations++;
+      return route.fulfill({ json: data });
+    });
+    await page.goto(`/project-check?check=${check.id}`);
+    const result = page.getByRole("heading", { name: "설계 설명 점수 50 / 100" });
+    await expect(result).toBeVisible();
+    const note = page.locator("#project-follow-up textarea").first();
+    await note.fill("다른 화면으로 이동해도 남겨둘 실제 확인 결과");
+    await page
+      .getByRole("navigation", { name: "서비스 메뉴" })
+      .getByRole("link", { name: "서비스 원리 배우기", exact: true })
+      .click();
+    await page
+      .getByRole("navigation", { name: "서비스 메뉴" })
+      .getByRole("link", { name: "내 프로젝트 점검", exact: true })
+      .click();
+    await expect(page).toHaveURL(new RegExp(`check=${check.id}`));
+    await expect(result).toBeVisible();
+    await expect(note).toHaveValue("다른 화면으로 이동해도 남겨둘 실제 확인 결과");
+    await page.goto(`/project-check?check=${other.id}`);
+    await expect(
+      page.getByRole("heading", { name: other.analysis.title, exact: true }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "+ 새 프로젝트 점검", exact: true }).click();
+    await page.getByLabel("서비스 링크", { exact: true }).fill("https://next.example.com/");
+    await page.goto("/learn");
+    await page.goto("/project-check");
+    await expect(page.getByLabel("서비스 링크", { exact: true })).toHaveValue(
+      "https://next.example.com/",
+    );
+    await expect(page).not.toHaveURL(/check=/);
+    expect(mutations).toBe(0);
+  });
+}
 
 test("older records remain reachable by pagination, reload and browser history", async ({
   page,
@@ -59,10 +118,16 @@ test("older records remain reachable by pagination, reload and browser history",
       page.getByRole("heading", { name: older.analysis.title, exact: true }),
     ).toBeVisible();
     await page.getByLabel("내 설계 설명").fill("새로고침해도 이어 쓸 설계 설명");
+    await page.getByRole("button", { name: "다음 질문 →" }).click();
+    await page.getByLabel("내 설계 설명").fill("두 번째 질문의 미제출 설명");
+    await page.goto("/learn");
+    await page.goto("/project-check");
+    await expect(page).toHaveURL(new RegExp(`check=${older.id}`));
+    await expect(page.getByLabel("내 설계 설명")).toHaveValue("두 번째 질문의 미제출 설명");
     await page.getByRole("button", { name: "+ 새 프로젝트 점검", exact: true }).click();
     await expect(page.getByRole("heading", { name: "어떤 서비스를 만드셨나요?" })).toBeVisible();
     await page.goBack();
-    await expect(page.getByLabel("내 설계 설명")).toHaveValue("새로고침해도 이어 쓸 설계 설명");
+    await expect(page.getByLabel("내 설계 설명")).toHaveValue("두 번째 질문의 미제출 설명");
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
@@ -158,7 +223,7 @@ test("account discovery recovers after visiting home and switching the signed-in
     await expect(page).not.toHaveURL(/check=/);
     await login(a.cookie);
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-    await page.getByRole("button", { name: /예약 서비스 설계 점검/ }).click();
+    await expect(page).toHaveURL(new RegExp(`check=${id}`));
     await expect(page.getByLabel("내 설계 설명")).toHaveValue("첫 계정의 비공개 초안");
   } finally {
     a.store.db.close();

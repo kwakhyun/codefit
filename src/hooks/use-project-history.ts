@@ -3,15 +3,42 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api, errorMessage } from "@/lib/client-api";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
+import { z } from "zod";
 export type UpdateOverview = (update: (current: CheckOverview) => CheckOverview) => void;
 export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview) {
   const selected = useSearchParams().get("check");
+  const selectionKey = `codefit-project-selection:${data.scope}`;
+  const initialized = useRef(false);
   const listed = data.checks.find((c) => c.id === selected);
   const [detail, setDetail] = useState<{ id: string; check?: Check; error?: string }>();
   const [retry, setRetry] = useState(0);
   const [paging, setPaging] = useState(false);
   const [pageError, setPageError] = useState("");
   const pageRequest = useRef<AbortController | null>(null);
+  useEffect(() => {
+    // Restore once on entry. Later URL changes (including Back to a new draft)
+    // are explicit navigation and must never be replaced by an older selection.
+    if (!initialized.current) {
+      initialized.current = true;
+      if (!selected) {
+        try {
+          const saved = z.uuid().safeParse(sessionStorage.getItem(selectionKey));
+          if (saved.success) {
+            const url = new URL(window.location.href);
+            url.searchParams.set("check", saved.data);
+            window.history.replaceState(null, "", url);
+            return;
+          }
+        } catch {}
+      }
+    }
+    try {
+      if (selected) sessionStorage.setItem(selectionKey, selected);
+      else sessionStorage.removeItem(selectionKey);
+    } catch {
+      // The server record and its direct URL remain usable when tab storage is blocked.
+    }
+  }, [selected, selectionKey]);
   useEffect(() => {
     // A refreshed first page invalidates any in-flight older-page request.
     pageRequest.current?.abort();
@@ -34,6 +61,10 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
     return () => controller.abort();
   }, [selected, listed, data.scope, retry, data.checks]);
   function select(id: string | null, replace = false) {
+    try {
+      if (id) sessionStorage.setItem(selectionKey, id);
+      else sessionStorage.removeItem(selectionKey);
+    } catch {}
     const url = new URL(window.location.href);
     if (id) url.searchParams.set("check", id);
     else url.searchParams.delete("check");
