@@ -63,10 +63,10 @@ export class ProjectCheckService {
       )
         throw new HttpError(429, "주소 확인 요청이 많습니다. 1분 후 다시 시도해 주세요.");
       const page = await this.ai.readPage(url, signal);
-      if (page.limited && input.description.length < 120)
+      if (page.limited && page.source !== "metadata" && input.description.trim().length < 120)
         throw new HttpError(
           422,
-          "이 페이지는 공개 HTML에 서비스 내용이 거의 없습니다. 로그인 없이 읽을 수 있는 소개 페이지를 사용하거나, 주요 기능과 사용 기술을 120자 이상 설명해 주세요. AI 분석 횟수는 차감되지 않았습니다.",
+          "로그인 문제로 판단한 것은 아닙니다. 이 페이지는 자바스크립트 실행 후 내용을 보여주거나 공개 소개 정보가 부족해, 현재 수집 방식으로 서비스 내용을 충분히 읽지 못했습니다. 아래에 주요 기능과 구현 방식을 120자 이상 적고 다시 분석해 주세요. AI 분석 횟수는 차감되지 않았습니다.",
         );
       signal.throwIfAborted();
       await this.consume(owner, network, "analysis");

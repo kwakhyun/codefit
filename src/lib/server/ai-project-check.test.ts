@@ -95,3 +95,19 @@ it("keeps analysis and assessment overrides independent and records failed asses
     expect.objectContaining({ model: "gpt-5.6-luna", outcome: "error" }),
   );
 });
+
+it("identifies metadata as publisher claims and keeps its contents in the data message", async () => {
+  parse.mockResolvedValue({
+    output_parsed: structuredClone(fixtureAnalysis),
+    model: "gpt-5.6-sol",
+  });
+  await analyzeProject(
+    { ...fixtureCheck.page, limited: true, source: "metadata" },
+    "",
+    new AbortController().signal,
+  );
+  const sent = parse.mock.calls[0][0];
+  expect(sent.input[0].content).toContain("not a rendered screen");
+  expect(sent.input[0].content).toContain("never verified runtime behavior");
+  expect(JSON.parse(sent.input[1].content).page.source).toBe("metadata");
+});

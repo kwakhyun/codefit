@@ -302,3 +302,26 @@ test("waiting feedback, unavailable speech, mobile layout and storage failures r
     "직접 만든 예약 서비스입니다.",
   );
 });
+
+test("metadata-backed analysis keeps the rendering limit visible after opening saved results", async ({
+  page,
+}) => {
+  const check = publicCheck({
+    ...fixtureCheck,
+    page: { ...fixtureCheck.page, limited: true, source: "metadata" },
+  });
+  await page.route("**/api/project-check", (route) =>
+    route.fulfill({ json: { ...overview(), checks: [check] } }),
+  );
+  await page.route(`**/api/project-check/${check.id}`, (route) => route.fulfill({ json: check }));
+  await page.goto(`/project-check?check=${check.id}`);
+  await expect(page.locator(".project-summary .project-help")).toContainText(
+    "사이트에 등록된 공개 소개 정보를 참고했습니다",
+  );
+  await expect(page.locator(".project-summary .project-help")).toContainText(
+    "자바스크립트 실행 후 나타나는 화면은 확인하지 않았습니다",
+  );
+  await expect(page.locator(".project-summary .project-help")).not.toContainText(
+    "작성한 설명을 주로 참고했습니다",
+  );
+});

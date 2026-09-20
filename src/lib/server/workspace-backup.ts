@@ -104,6 +104,7 @@ const savedCheck = z
         title: z.string().max(1000),
         fetchedAt: z.iso.datetime(),
         limited: z.boolean(),
+        source: z.enum(["html", "metadata"]).optional(),
       })
       .strict(),
     analysis: analysisSchema,

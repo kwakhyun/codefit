@@ -128,3 +128,18 @@ it("project deletion cannot remove an unrelated AI job owned by the same account
   await store.queries.projectChecks.remove("user:a", id);
   expect(store.startJob("user:a", id, "generate", "input").state).toBe("pending");
 });
+
+it("accepts metadata-backed public apps with an empty owner description and preserves provenance in backups", async () => {
+  const service = new ProjectCheckService(store, ai);
+  ai.readPage.mockResolvedValue({ ...fixtureCheck.page, limited: true, source: "metadata" });
+  const result = await service.create("user:metadata", "network", input(), signal());
+  expect(result.page.source).toBe("metadata");
+  expect(result.page.limited).toBe(true);
+  expect(ai.analyze).toHaveBeenCalledTimes(1);
+  expect(ai.analyze.mock.calls[0][1]).toBe("");
+  const backup = store.exportBackup("user:metadata");
+  store.importBackup("user:restored", backup);
+  const [restored] = await store.queries.projectChecks.list("user:restored");
+  expect(restored.page.source).toBe("metadata");
+  expect(restored.page.limited).toBe(true);
+});

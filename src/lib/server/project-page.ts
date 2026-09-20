@@ -64,6 +64,51 @@ export function pageText(html: string) {
     .replace(/\s+/g, " ")
     .trim();
 }
+/** Read publisher-provided descriptions without executing scripts or fetching subresources. */
+function metadataDescription(html: string) {
+  const descriptions = new Map<string, string>();
+  const markup = html
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, " ");
+  for (const tag of markup.match(/<meta\b(?:[^"'<>]|"[^"]*"|'[^']*')*>/gi) || []) {
+    const attrs = new Map<string, string>();
+    for (const match of tag.matchAll(
+      /([^\s"'<>/=]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/g,
+    )) {
+      attrs.set(match[1].toLowerCase(), match[2] ?? match[3] ?? match[4]);
+    }
+    const key = (attrs.get("name") || attrs.get("property") || "").toLowerCase();
+    if (!["description", "og:description", "twitter:description"].includes(key)) continue;
+    const content = pageText(attrs.get("content") || "").slice(0, 2000);
+    if (content && !descriptions.has(key)) descriptions.set(key, content);
+  }
+  // Social tags commonly repeat the same description; do not inflate evidence by concatenating them.
+  return (
+    ["description", "og:description", "twitter:description"]
+      .map((key) => descriptions.get(key) || "")
+      .find((value) => value.length >= 40) || ""
+  );
+}
+
+export function pageSnapshot(html: string, url: string): PageSnapshot {
+  const body = pageText(html).slice(0, 12_000);
+  const description = metadataDescription(html);
+  const limited = body.length < 200;
+  return {
+    url,
+    title: pageText(
+      html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1] || new URL(url).hostname,
+    ).slice(0, 160),
+    text: (description
+      ? `페이지 작성자가 제공한 소개(메타 설명): ${description}\nHTML 텍스트: ${body}`
+      : body
+    ).slice(0, 12_000),
+    fetchedAt: new Date().toISOString(),
+    limited,
+    source: limited && description ? "metadata" : "html",
+  };
+}
+
 async function resolvePublic(hostname: string, signal: AbortSignal) {
   const resolver = new Resolver({ timeout: 2500, tries: 1 });
   const cancel = () => resolver.cancel();
@@ -150,16 +195,7 @@ export async function readPublicPage(
         url = publicUrl(new URL(response.location, url).href);
         continue;
       }
-      const text = pageText(response.html).slice(0, 12_000);
-      return {
-        url: url.href,
-        text,
-        title: pageText(
-          response.html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i)?.[1] || url.hostname,
-        ).slice(0, 160),
-        fetchedAt: new Date().toISOString(),
-        limited: text.length < 200,
-      };
+      return pageSnapshot(response.html, url.href);
     }
     throw new HttpError(422, "페이지 이동이 너무 많습니다. 최종 서비스 주소를 입력해 주세요.");
   } catch (error) {

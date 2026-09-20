@@ -36,7 +36,7 @@ async function call<T, R>(
     "project",
     phase === "assessment"
       ? "2026-09-20.project.assessment.evidence-v3.1"
-      : "2026-09-18.project.analysis.1",
+      : "2026-09-20.project.analysis.metadata.2",
     async (capture) => {
       const response = await new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
@@ -95,7 +95,7 @@ export async function analyzeProject(
   const result = await call(
     analysisSchema,
     "analysis",
-    `Generate exactly 5 project-specific questions, one for each area: ${AREAS.join(", ")}. Connect every question to a concrete visible feature or self-reported purpose. For page/description basis, evidence must be an EXACT nonempty substring of the supplied page.text or description respectively. For unknown basis use empty evidence and ask how the owner implemented a relevant concern without assuming technologies. Include 2-3 private scoring criteria per question; never require a specific vendor or architecture. Questions should elicit a flow, reason, failure scenario or way to verify. Summary must say what the public page shows and what remains unknown. If page.limited is true, explicitly say the analysis mainly relies on the owner's description. No model answers or hidden implementation claims.`,
+    `Generate exactly 5 project-specific questions, one for each area: ${AREAS.join(", ")}. Connect every question to a concrete visible feature or self-reported purpose. For page/description basis, evidence must be an EXACT nonempty substring of the supplied page.text or description respectively. For unknown basis use empty evidence and ask how the owner implemented a relevant concern without assuming technologies. Include 2-3 private scoring criteria per question; never require a specific vendor or architecture. Questions should elicit a flow, reason, failure scenario or way to verify. Summary must say what the public page shows and what remains unknown. If page.source is metadata, explicitly say the page author's public metadata description (and owner's description when supplied) is the basis, not a rendered screen. Treat metadata as publisher claims about intended features, never verified runtime behavior. Do not claim that metadata came from the user's input field. If page.limited is true and source is not metadata, explicitly say the analysis mainly relies on the owner's description. No model answers or hidden implementation claims.`,
     { page, description },
     4000,
     signal,

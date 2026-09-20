@@ -493,8 +493,12 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 </a>
                 <p>{check.analysis.summary}</p>
                 <p className="project-help">
-                  {dateLabel(check.page.fetchedAt)}에 공개 페이지 한 곳의 텍스트를 읽었습니다.{" "}
-                  {check.page.limited ? "화면 정보가 적어 작성한 설명을 주로 참고했습니다. " : ""}
+                  {dateLabel(check.page.fetchedAt)}에 공개 페이지 한 곳의 정보를 읽었습니다.{" "}
+                  {check.page.source === "metadata"
+                    ? "화면 본문을 충분히 읽지 못해 사이트에 등록된 공개 소개 정보를 참고했습니다. 자바스크립트 실행 후 나타나는 화면은 확인하지 않았습니다. "
+                    : check.page.limited
+                      ? "화면 정보가 적어 작성한 설명을 주로 참고했습니다. "
+                      : ""}
                   로그인 후 화면, 소스 코드와 실제 서버 구성은 확인하지 않았습니다.
                 </p>
                 <button className="text-button" disabled={busy || recovering} onClick={remove}>

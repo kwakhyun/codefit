@@ -81,6 +81,7 @@ export interface PageSnapshot {
   title: string;
   fetchedAt: string;
   limited: boolean;
+  source?: "html" | "metadata";
 }
 export interface StoredCheck {
   id: string;
