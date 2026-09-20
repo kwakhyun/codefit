@@ -19,8 +19,9 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
   const { records, save, ready, storageError } = useAiLearningProgress();
   const progress = records[id] || EMPTY_AI_PROGRESS;
   const { step, experiment, completed } = progress;
-  const [answer, setAnswer] = useState<number | null>(null);
-  const [checked, setChecked] = useState(false);
+  const answer = progress.answer ?? null;
+  const checked = progress.checked ?? false;
+  const [retry, setRetry] = useState(false);
   const [copyStatus, setCopyStatus] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
   const next = AI_LESSONS[AI_LESSONS.findIndex((item) => item.id === id) + 1];
@@ -42,7 +43,7 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
   return (
     <>
       <nav className="ai-breadcrumb" aria-label="현재 위치">
-        <Link href="/learn">학습 홈</Link>
+        <Link href="/">홈</Link>
         <span aria-hidden="true">/</span>
         <Link href="/learn/ai">AI 실무 배우기</Link>
         <span aria-hidden="true">/</span>
@@ -90,7 +91,7 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
         <article className="ai-lesson-body">
           <span className="eyebrow">{step + 1} / 3단계</span>
           <h2 ref={heading} tabIndex={-1}>
-            {stages[step]}
+            {step === 2 && completed && !retry ? "수업 완료" : stages[step]}
           </h2>
           {!ready ? (
             <p role="status">학습 기록을 불러오는 중…</p>
@@ -149,7 +150,8 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
               {step === 1 && (
                 <>
                   <p className="ai-simulation-note">
-                    교육용 모의 실습입니다. 선택에 따라 미리 준비한 결과를 보여 줍니다.
+                    방법을 하나 고르면 결과와 이유가 나타나요. 다른 방법도 눌러 비교해 보세요. 실제
+                    도구를 실행하지 않는 모의 실습입니다.
                   </p>
                   <div className="ai-situation">
                     <span>이런 상황이라면</span>
@@ -180,7 +182,7 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
                     )}
                   </div>
                   <div className="ai-step-actions">
-                    <Button onClick={() => move(0)}>이전 단계</Button>
+                    <Button onClick={() => move(0)}>개념 다시 보기</Button>
                     <Button
                       className="primary-button"
                       disabled={experiment === null}
@@ -198,57 +200,86 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
               )}
               {step === 2 && (
                 <>
-                  <p>새로운 상황에도 배운 원리를 적용해 보세요. 틀려도 다시 풀 수 있습니다.</p>
-                  <fieldset className="ai-choices">
-                    <legend>{content.quiz.question}</legend>
-                    {content.quiz.choices.map((choice, index) => (
-                      <label key={choice} data-selected={answer === index}>
-                        <input
-                          type="radio"
-                          name="quiz"
-                          checked={answer === index}
-                          onChange={() => {
-                            setAnswer(index);
-                            setChecked(false);
-                          }}
-                        />
-                        <span>{choice}</span>
-                      </label>
-                    ))}
-                  </fieldset>
-                  <Button
-                    className="primary-button"
-                    disabled={answer === null}
-                    onClick={() => {
-                      setChecked(true);
-                      if (answer === content.quiz.answer && experiment !== null)
-                        update({ completed: true });
-                    }}
-                  >
-                    답 확인하기
-                  </Button>
-                  <div aria-live="polite" aria-atomic="true">
-                    {checked && (
-                      <section
-                        className={`ai-feedback ${answer === content.quiz.answer ? "is-correct" : ""}`}
+                  {(!completed || retry) && (
+                    <>
+                      <p>새로운 상황에도 배운 원리를 적용해 보세요. 틀려도 다시 풀 수 있습니다.</p>
+                      <fieldset className="ai-choices">
+                        <legend>{content.quiz.question}</legend>
+                        {content.quiz.choices.map((choice, index) => (
+                          <label key={choice} data-selected={answer === index}>
+                            <input
+                              type="radio"
+                              name="quiz"
+                              checked={answer === index}
+                              onChange={() => {
+                                update({ answer: index, checked: false });
+                              }}
+                            />
+                            <span>{choice}</span>
+                          </label>
+                        ))}
+                      </fieldset>
+                      <Button
+                        className="primary-button"
+                        disabled={answer === null}
+                        onClick={() => {
+                          const correct = answer === content.quiz.answer && experiment !== null;
+                          update({ checked: true, ...(correct ? { completed: true } : {}) });
+                          if (correct) {
+                            setRetry(false);
+                            requestAnimationFrame(() => heading.current?.focus());
+                          }
+                        }}
                       >
-                        <h3>
-                          {answer === content.quiz.answer
-                            ? "맞았어요. 이 수업을 마쳤습니다!"
-                            : "다시 생각해 볼까요?"}
-                        </h3>
-                        <p>{content.quiz.explanation}</p>
-                        {answer !== content.quiz.answer && (
-                          <p>설명을 참고해 다른 답을 골라 보세요.</p>
+                        답 확인하기
+                      </Button>
+                      <div aria-live="polite" aria-atomic="true">
+                        {checked && (
+                          <section
+                            className={`ai-feedback ${answer === content.quiz.answer ? "is-correct" : ""}`}
+                          >
+                            <h3>
+                              {answer === content.quiz.answer
+                                ? "맞았어요. 이 수업을 마쳤습니다!"
+                                : "다시 생각해 볼까요?"}
+                            </h3>
+                            <p>{content.quiz.explanation}</p>
+                            {answer !== content.quiz.answer && (
+                              <p>설명을 참고해 다른 답을 골라 보세요.</p>
+                            )}
+                          </section>
                         )}
-                      </section>
-                    )}
-                  </div>
-                  {completed && (
+                      </div>
+                    </>
+                  )}
+                  {completed && !retry && (
                     <section className="ai-completion">
+                      <p className="ai-complete-label">
+                        {next
+                          ? "확인 문제까지 마쳤어요. 다음 수업으로 이어가세요."
+                          : "확인 문제까지 마쳤어요. 배운 내용을 내 프로젝트에 적용해 보세요."}
+                      </p>
                       <CheckCircle2 size={28} aria-hidden="true" />
                       <h3>기억할 한 가지</h3>
                       <p>{content.takeaway}</p>
+                      <details className="ai-review">
+                        <summary>내 선택과 해설 다시 보기</summary>
+                        {experiment !== null && (
+                          <p>
+                            <strong>실습에서 고른 방법</strong>
+                            <br />
+                            {content.exercise.choices[experiment].label}
+                            <br />
+                            {content.exercise.choices[experiment].explanation}
+                          </p>
+                        )}
+                        <p>
+                          <strong>확인 문제의 답</strong>
+                          <br />
+                          {content.quiz.choices[content.quiz.answer]}
+                        </p>
+                        <p>{content.quiz.explanation}</p>
+                      </details>
                       <div className="ai-step-actions">
                         {next ? (
                           <Link className="primary-button" href={`/learn/ai/${next.id}`}>
@@ -260,6 +291,15 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
                           </Link>
                         )}
                         <Link href="/learn/ai">다른 수업 고르기</Link>
+                        <Button
+                          onClick={() => {
+                            setRetry(true);
+                            update({ answer: null, checked: false });
+                            requestAnimationFrame(() => heading.current?.focus());
+                          }}
+                        >
+                          확인 문제 다시 풀기
+                        </Button>
                       </div>
                     </section>
                   )}

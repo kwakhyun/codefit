@@ -1,6 +1,13 @@
 import { AI_LESSONS, type AiLessonId } from "./catalog";
 
-export type AiProgress = { step: 0 | 1 | 2; experiment: number | null; completed: boolean };
+export type AiProgress = {
+  step: 0 | 1 | 2;
+  experiment: number | null;
+  completed: boolean;
+  answer?: number | null;
+  checked?: boolean;
+  updatedAt?: number;
+};
 export type AiProgressMap = Partial<Record<AiLessonId, AiProgress>>;
 export const EMPTY_AI_PROGRESS: AiProgress = { step: 0, experiment: null, completed: false };
 export const AI_PROGRESS_KEY = "codefit.ai-learning.v1";
@@ -21,6 +28,26 @@ export function parseAiProgress(raw: string | null): AiProgressMap {
         step: record.step === 2 && experiment === null ? 1 : record.step,
         experiment,
         completed: record.completed === true && experiment !== null,
+        ...(record.answer !== undefined
+          ? {
+              answer:
+                Number.isInteger(record.answer) && record.answer >= 0 && record.answer < 3
+                  ? record.answer
+                  : null,
+            }
+          : {}),
+        ...(typeof record.checked === "boolean"
+          ? {
+              checked:
+                record.checked &&
+                Number.isInteger(record.answer) &&
+                record.answer >= 0 &&
+                record.answer < 3,
+            }
+          : {}),
+        ...(Number.isFinite(record.updatedAt) && record.updatedAt > 0
+          ? { updatedAt: record.updatedAt }
+          : {}),
       };
     }
     return entries;

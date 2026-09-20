@@ -819,3 +819,183 @@
     transition: none;
   }
 }
+
+/* The lesson is a reading surface: keep explanations legible at every stage. */
+.ai-lesson-body,
+.ai-lesson-header > p {
+  font-size: 16px;
+  line-height: 1.85;
+}
+.ai-terms dd,
+.ai-guide p,
+.ai-learning-page .ai-choices label {
+  font-size: 16px;
+}
+.ai-breadcrumb,
+.ai-tool-tags span,
+.ai-card-meta,
+.ai-flow li,
+.ai-simulation-note,
+.ai-feedback small,
+.ai-help,
+.ai-lesson-sidebar p,
+.ai-lesson-sidebar > a,
+.ai-code-example p,
+.ai-sources p,
+.ai-sources li {
+  font-size: 14px;
+}
+.ai-lesson-body,
+.ai-lesson-card {
+  border-radius: var(--radius-panel);
+}
+.ai-learning-page .ai-choices label,
+.ai-feedback,
+.ai-situation,
+.ai-lesson-sidebar button {
+  border-radius: var(--radius-control);
+}
+.ai-lesson-sidebar button {
+  font-size: 15px;
+}
+.ai-code-example button,
+.ai-sources summary {
+  min-height: 44px;
+}
+.ai-code-example pre {
+  font-size: 14px;
+}
+.ai-completion {
+  padding: 24px;
+  margin: 0;
+  border: 1px solid #435b7d;
+  border-radius: var(--radius-panel);
+  background: #1a283d;
+}
+.ai-complete-label {
+  margin: 0 0 20px;
+  color: var(--action-soft);
+}
+.ai-completion > p {
+  font-size: 17px;
+  line-height: 1.85;
+}
+.ai-review {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.ai-review summary {
+  min-height: 44px;
+  cursor: pointer;
+  padding: 8px 0;
+}
+.ai-review p {
+  margin-top: 16px;
+}
+.ai-completion .ai-step-actions {
+  gap: 16px;
+}
+.ai-completion .primary-button {
+  white-space: normal;
+  text-align: left;
+}
+.ai-completion .primary-button svg {
+  flex-shrink: 0;
+}
+@media (max-width: 640px) {
+  .ai-lesson-sidebar button {
+    font-size: 13px;
+  }
+  .ai-lesson-body {
+    padding: 24px 18px;
+  }
+  .ai-completion {
+    padding: 20px 16px;
+  }
+  .ai-step-actions {
+    align-items: stretch;
+  }
+  .ai-step-actions > button,
+  .ai-step-actions > a {
+    min-height: 44px;
+  }
+}
+
+/* Separate reading blocks and give toggle labels balanced inline breathing room. */
+.ai-learning-hero > p {
+  margin-block: 16px 0;
+}
+.ai-lesson-header > p {
+  margin-block: 16px 20px;
+}
+.ai-lesson-sidebar > p {
+  margin-block: 16px;
+}
+.ai-lesson-sidebar > a {
+  display: inline-block;
+  padding-block: 8px;
+}
+.ai-lesson-body > p {
+  margin-block: 16px 24px;
+}
+.ai-feedback > p {
+  margin-block: 12px 16px;
+}
+.ai-feedback > small {
+  display: block;
+  margin-top: 16px;
+}
+.ai-situation > p {
+  margin-top: 12px;
+}
+.ai-catalog-note h2 + p {
+  margin-top: 12px;
+}
+.ai-category-filters {
+  gap: 10px;
+  padding: 8px;
+}
+.ai-category-filters button {
+  min-height: 44px;
+  padding: 12px 18px;
+  gap: 10px;
+  border-radius: var(--radius-control);
+  line-height: 1.6;
+  text-align: left;
+}
+.ai-lesson-sidebar button {
+  padding-inline: 16px;
+  gap: 12px;
+}
+.ai-choices legend {
+  padding: 0;
+  margin-bottom: 20px;
+}
+.ai-choices label:last-child {
+  margin-bottom: 0;
+}
+.ai-review summary {
+  padding-inline: 8px;
+}
+.ai-sources summary {
+  padding-inline: 8px;
+}
+@media (max-width: 640px) {
+  .ai-category-filters button {
+    padding-inline: 14px;
+  }
+  .ai-lesson-sidebar button {
+    padding-inline: 10px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ai-lesson-sidebar button {
+    height: 100%;
+  }
+  .ai-lesson-sidebar > a {
+    display: none;
+  }
+}

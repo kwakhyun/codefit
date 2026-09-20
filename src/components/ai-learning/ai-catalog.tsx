@@ -46,7 +46,9 @@ export function AiCatalog() {
   const [level, setLevel] = useState("all");
   const { records, ready, storageError } = useAiLearningProgress();
   const completed = AI_LESSONS.filter((lesson) => records[lesson.id]?.completed).length;
-  const resume = AI_LESSONS.find((lesson) => records[lesson.id] && !records[lesson.id]?.completed);
+  const resume = AI_LESSONS.filter(
+    (lesson) => records[lesson.id] && !records[lesson.id]?.completed,
+  ).sort((a, b) => (records[b.id]?.updatedAt || 0) - (records[a.id]?.updatedAt || 0))[0];
   const next =
     resume || AI_LESSONS.find((lesson) => !records[lesson.id]?.completed) || AI_LESSONS[0];
   const visible = filterAiLessons(query, track, level);

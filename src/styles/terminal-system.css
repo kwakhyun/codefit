@@ -1333,3 +1333,8 @@ html {
     padding: 20px;
   }
 }
+
+/* Text toggles share balanced gutters; icon-only controls keep their square target. */
+.ui-button.ui-toggle:not(.icon-button) {
+  padding-inline: 16px;
+}

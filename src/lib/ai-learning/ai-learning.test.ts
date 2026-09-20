@@ -58,3 +58,32 @@ describe("AI learning progress recovery", () => {
     });
   });
 });
+
+it("keeps quiz feedback across reloads and rejects corrupt saved answers", () => {
+  const records = parseAiProgress(
+    JSON.stringify({
+      version: 1,
+      lessons: {
+        langchain: {
+          step: 2,
+          experiment: 1,
+          completed: false,
+          answer: 0,
+          checked: true,
+          updatedAt: 100,
+        },
+        langgraph: {
+          step: 2,
+          experiment: 0,
+          completed: true,
+          answer: 99,
+          checked: true,
+          updatedAt: -1,
+        },
+      },
+    }),
+  );
+  expect(records.langchain).toMatchObject({ answer: 0, checked: true, updatedAt: 100 });
+  expect(records.langgraph).toMatchObject({ answer: null, checked: false, completed: true });
+  expect(records.langgraph?.updatedAt).toBeUndefined();
+});

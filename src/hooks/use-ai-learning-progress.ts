@@ -34,7 +34,10 @@ export function useAiLearningProgress() {
     // Read the latest value to retain progress written by another tab.
     const current = snapshot();
     const latest = parseAiProgress(current.slice(current.indexOf(":") + 1));
-    memory = JSON.stringify({ version: 1, lessons: { ...latest, [id]: progress } });
+    memory = JSON.stringify({
+      version: 1,
+      lessons: { ...latest, [id]: { ...progress, updatedAt: Date.now() } },
+    });
     try {
       window.localStorage.setItem(AI_PROGRESS_KEY, memory);
       unavailable = false;
