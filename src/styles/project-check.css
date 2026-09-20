@@ -127,6 +127,9 @@
   margin-top: 12px;
   line-height: 1.7;
 }
+.learn-page .project-form > label:not(.project-consent) {
+  margin: 8px 0 0;
+}
 .project-form label > span {
   color: #b6c3d4;
 }
@@ -238,6 +241,7 @@
   margin: 24px 0 18px;
 }
 .project-error {
+  margin-bottom: 24px;
   padding: 16px 20px;
   background: #341f21;
   color: #ffcdc9;
@@ -326,7 +330,7 @@
   font-size: 14px;
 }
 .project-next-step p {
-  margin-bottom: 0;
+  margin: 10px 0 0;
 }
 .project-launch {
   display: flex;
@@ -442,6 +446,9 @@
   margin: 24px 0;
 }
 .project-example-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   min-width: 0;
   padding: 20px;
   background: #171e28;
@@ -449,7 +456,10 @@
 }
 .project-example h3 {
   font-size: 16px;
-  margin: 0 0 12px;
+  margin: 0;
+}
+.project-example-grid p + h3 {
+  margin-top: 8px;
 }
 .project-example blockquote {
   margin: 0;

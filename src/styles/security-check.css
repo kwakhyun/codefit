@@ -61,6 +61,9 @@
   gap: 32px;
   margin: 24px 0 40px;
 }
+.learn-page .security-form > label:not(.security-consent) {
+  margin: 0;
+}
 .security-form {
   display: grid;
   gap: 16px;
@@ -135,4 +138,22 @@
   .preference-next .primary-button {
     white-space: normal;
   }
+}
+
+.security-exercises > h2 {
+  margin-bottom: 12px;
+}
+.security-results > p + p {
+  margin-top: 8px;
+}
+.security-exercises details > p,
+.security-finding > strong {
+  margin-top: 16px;
+}
+.security-finding > strong {
+  display: block;
+  margin-bottom: 8px;
+}
+.security-results > .section-heading {
+  margin-bottom: 16px;
 }
