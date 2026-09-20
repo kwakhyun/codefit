@@ -1,3 +1,4 @@
+import { boundRepositoryContext } from "./repository-context";
 import { Sandbox } from "@vercel/sandbox";
 import { z } from "zod";
 import { publicUrl } from "./project-page";
@@ -96,21 +97,7 @@ export async function readPublicGitRepository(
     if (!output || output.length > 2_000_000) throw new Error("size");
     const result = collectedSchema.parse(JSON.parse(output.toString()));
     const candidates = result.files.filter((f) => eligibleSource(f.path) && !f.text.includes("\0"));
-    let remaining = 90000;
-    const files = candidates
-      .map((f) => extractSource(f.path, f.text))
-      .map((f) => {
-        const count = f.lines.length;
-        f.lines = f.lines.filter((l) => {
-          const size = sourceLine(f.path, l.number, l.text).length + 1;
-          if (size > remaining) return false;
-          remaining -= size;
-          return true;
-        });
-        f.partial ||= f.lines.length !== count;
-        return f;
-      })
-      .filter((f) => f.lines.length);
+    const files = boundRepositoryContext(candidates.map((f) => extractSource(f.path, f.text)));
     if (!files.length)
       throw new HttpError(
         422,
@@ -167,7 +154,10 @@ const safePath=(value)=>!value.split('/').some(p=>!p||p==='.'||p==='..')&&!/[\x0
 const policy=${JSON.stringify(repositorySourcePolicy)};
 const eligibleSource=(value)=>safePath(value)&&!new RegExp(policy.excludedSegments,'i').test(value)&&!new RegExp(policy.excludedNames,'i').test(value)&&new RegExp(policy.extensions,'i').test(value);
 const priority=(value)=>policy.priorities.find(p=>new RegExp(p.pattern,'i').test(value))?.rank??6;
-const selected=entries.flatMap(e=>{const m=/^(100644|100755) blob ([a-f0-9]{40,64})\t(.+)$/s.exec(e);return m&&eligibleSource(m[3])?[{sha:m[2],path:m[3]}]:[];}).sort((a,b)=>priority(a.path)-priority(b.path)||a.path.localeCompare(b.path)).slice(0,16);
+const candidates=entries.flatMap(e=>{const m=/^(100644|100755) blob ([a-f0-9]{40,64})\t(.+)$/s.exec(e);return m&&eligibleSource(m[3])?[{sha:m[2],path:m[3]}]:[];});
+const selected=[],counts=new Map();
+const group=p=>/^(apps|packages|services)\/[^/]+/.exec(p)?.[0]??p.split('/').slice(0,2).join('/');
+while(candidates.length&&selected.length<16){candidates.sort((a,b)=>(priority(a.path)+Math.min(2,(counts.get(group(a.path))??0)*0.35))-(priority(b.path)+Math.min(2,(counts.get(group(b.path))??0)*0.35))||a.path.localeCompare(b.path));const next=candidates.shift();selected.push(next);counts.set(group(next.path),(counts.get(group(next.path))??0)+1);}
 const files=[];
 for(const file of selected){const size=Number(git(['-C','repo','cat-file','-s',file.sha]));if(size>100000)continue;const text=git(['-C','repo','cat-file','blob',file.sha]);if(!text.includes('\0'))files.push({path:file.path,text});}
 writeFileSync('/vercel/sandbox/result.json',JSON.stringify({commit,total:entries.length,files}));

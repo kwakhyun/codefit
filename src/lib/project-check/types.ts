@@ -29,7 +29,7 @@ export const analysisSchema = z
             area: z.enum(AREAS),
             question: z.string().min(10).max(450),
             basis: z.enum(["page", "description", "unknown"]),
-            evidence: z.string().max(200),
+            evidence: z.string().max(1100),
             criteria: z.array(z.string().min(1).max(150)).min(2).max(3),
           })
           .strict(),

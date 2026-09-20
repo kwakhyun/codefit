@@ -1,3 +1,4 @@
+import { boundRepositoryContext } from "./repository-context";
 import path from "node:path";
 import { z } from "zod";
 import type { PageSnapshot } from "../project-check/types";
@@ -35,7 +36,7 @@ const safePath = (value: string) =>
   !value.split("/").some((p) => !p || p === "." || p === "..") && !/[\x00-\x1f\\]/.test(value);
 export const repositorySourcePolicy = {
   excludedSegments:
-    /(^|\/)(node_modules|vendor|dist|build|coverage|\.git|\.next|fixtures|__pycache__)(\/|$)/
+    /(^|\/)(node_modules|vendor|dist|build|coverage|\.git|\.next|fixtures|__pycache__|\.agents|\.codex|artifacts|\.storybook)(\/|$)/
       .source,
   excludedNames: /(^|\/)(\.env[^/]*|[^/]*(?:secret|credential|private.key)[^/]*|[^/]+\.min\.[jt]s)$/
     .source,
@@ -45,15 +46,38 @@ export const repositorySourcePolicy = {
   priorities: [
     { pattern: /^readme\.md$/.source, rank: 0 },
     {
+      pattern: /(?:^|\/)(?:packages\/ui|components|pages)\/|(?:page|layout)\.tsx$/.source,
+      rank: 7,
+    },
+    {
+      pattern:
+        /(?:^|\/)(?:ai|server)\/[^/]*(?:service|client|orchestrator|executor|provider)\.[cm]?[jt]s$/
+          .source,
+      rank: 1,
+    },
+    {
+      pattern:
+        /\.(?:md|ya?ml|toml)$|(?:^|\/)(?:deploy|evidence|drizzle|migrations|presentation|presentations)\/|(?:config\.[cm]?[jt]s|next-env\.d\.ts)$/
+          .source,
+      rank: 15,
+    },
+    {
       pattern: /(^|\/)(tests?|docs|examples|scripts|changes|infra|\.github)\/|(?:test|spec)\.[^.]+$/
         .source,
       rank: 8,
     },
+    { pattern: /(?:^|\/)(?:app\/)?api\/|(?:^|\/)route\.[jt]s$/.source, rank: 4 },
     {
       pattern:
-        /(auth|permission|policy|gate|signing|approval|storage|payment|route|main|cli|service)/
+        /(?:^|\/)(?:ai|agents?|llm)\/|(?:assistant|orchestrat|executor|payment|model|openai|service)[-./]/
           .source,
       rank: 1,
+    },
+    {
+      pattern:
+        /(auth|permission|policy|gate|signing|approval|storage|persist|database|transaction|domain)/
+          .source,
+      rank: 2,
     },
     {
       pattern: /\.(py|[jt]sx?|mjs|go|java|rs|cs|c|cpp|h|swift|kt|rb|php|vue|svelte|sql)$/.source,
@@ -74,6 +98,57 @@ function sourcePriority(value: string) {
     repositorySourcePolicy.priorities.find((p) => new RegExp(p.pattern, "i").test(value))?.rank ?? 6
   );
 }
+export function selectRepositoryFiles<T extends { path: string }>(
+  candidates: T[],
+  limit = 16,
+): T[] {
+  const remaining = [...candidates];
+  const selected: T[] = [];
+  const counts = new Map<string, number>();
+  const group = (p: string) =>
+    /^(apps|packages|services)\/[^/]+/.exec(p)?.[0] ?? p.split("/").slice(0, 2).join("/");
+  while (remaining.length && selected.length < limit) {
+    remaining.sort(
+      (a, b) =>
+        sourcePriority(a.path) +
+          Math.min(2, (counts.get(group(a.path)) ?? 0) * 0.35) -
+          (sourcePriority(b.path) + Math.min(2, (counts.get(group(b.path)) ?? 0) * 0.35)) ||
+        a.path.localeCompare(b.path),
+    );
+    const next = remaining.shift()!;
+    selected.push(next);
+    counts.set(group(next.path), (counts.get(group(next.path)) ?? 0) + 1);
+  }
+  return selected;
+}
+
+function dependencyCandidates<T extends { path: string }>(
+  files: RepositoryFile[],
+  candidates: T[],
+) {
+  const wanted = new Set<string>();
+  for (const file of files)
+    for (const line of file.lines) {
+      const match = /(?:from\s*|import\s*\(|require\s*\()(["'])([^"']+)\1/.exec(line.text);
+      const spec = match?.[2];
+      if (!spec) continue;
+      if (spec.startsWith("."))
+        wanted.add(
+          path.posix
+            .normalize(path.posix.join(path.posix.dirname(file.path), spec))
+            .replace(/\.[cm]?[jt]sx?$/, ""),
+        );
+      if (spec.startsWith("@/")) {
+        const prefix = /^(.*?)(?:src|app)\//.exec(file.path)?.[1] ?? "";
+        wanted.add(`${prefix}src/${spec.slice(2)}`);
+        wanted.add(`${prefix}${spec.slice(2)}`);
+      }
+    }
+  return candidates.filter((f) =>
+    wanted.has(f.path.replace(/\.[cm]?[jt]sx?$/, "").replace(/\/index$/, "")),
+  );
+}
+
 // These are review locations, not vulnerability findings. No target code is executed.
 const decisionLine =
   /\b(if |raise |except |catch\b|throw |return |verify|authorize|permission|transaction|commit\(|write|sign\(|exec\(|eval\(|pickle\.|subprocess\.)/;
@@ -278,9 +353,7 @@ export async function readProjectRepository(
       (f.size || 0) <= 100_000 &&
       (!changed || (changed.get(f.path)?.size || 0) > 0),
   );
-  const selected = eligible
-    .sort((a, b) => sourcePriority(a.path) - sourcePriority(b.path) || a.path.localeCompare(b.path))
-    .slice(0, 16);
+  const selected = selectRepositoryFiles(eligible, target.pullRequest ? 16 : 12);
   const files: RepositoryFile[] = [];
   for (let i = 0; i < selected.length; i += 4) {
     const batch = await Promise.all(
@@ -329,19 +402,19 @@ export async function readProjectRepository(
       }),
     );
     files.push(...batch.filter((f): f is RepositoryFile => !!f && f.lines.length > 0));
+    if (!target.pullRequest && i === 8) {
+      const remaining = eligible.filter((f) => !selected.some((s) => s.path === f.path));
+      const linked = selectRepositoryFiles(dependencyCandidates(files, remaining), 4);
+      selected.push(
+        ...linked,
+        ...selectRepositoryFiles(
+          remaining.filter((f) => !linked.includes(f)),
+          4 - linked.length,
+        ),
+      );
+    }
   }
-  let contextRemaining = 90000;
-  for (const file of files) {
-    const originalCount = file.lines.length;
-    file.lines = file.lines.filter((line) => {
-      const cost = sourceLine(file.path, line.number, line.text).length + 1;
-      if (cost > contextRemaining) return false;
-      contextRemaining -= cost;
-      return true;
-    });
-    if (file.lines.length !== originalCount) file.partial = true;
-  }
-  for (let i = files.length - 1; i >= 0; i--) if (!files[i].lines.length) files.splice(i, 1);
+  files.splice(0, files.length, ...boundRepositoryContext(files));
   if (!files.length)
     throw new HttpError(
       422,

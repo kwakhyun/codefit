@@ -199,3 +199,39 @@ it("reads rate-limit retry delays without inventing an unknown reset time", () =
   expect(githubRetryDelay(new Headers(), now)).toBeUndefined();
   expect(githubRetryDelay(new Headers({ "retry-after": "invalid" }), now)).toBeUndefined();
 });
+
+it("reserves room for an imported implementation beyond the initial file selection", async () => {
+  const fallback = apiMock();
+  const paths = [
+    ...Array.from({ length: 20 }, (_, i) => `src/lib/a${String(i).padStart(2, "0")}.ts`),
+    "src/lib/z-implementation.ts",
+  ];
+  const request = vi.fn<typeof fetch>(async (url, options) => {
+    const value = String(url);
+    if (value.includes("/git/trees/"))
+      return Response.json({
+        truncated: false,
+        tree: paths.map((path) => ({
+          path,
+          type: "blob",
+          mode: "100644",
+          sha: blobSha,
+          size: 100,
+        })),
+      });
+    if (value.startsWith("https://raw.githubusercontent.com/"))
+      return new Response(
+        value.endsWith("/a00.ts")
+          ? 'import { save } from "@/lib/z-implementation";\nexport const run = () => save();'
+          : "export const save = () => 1;",
+      );
+    return fallback(url, options);
+  });
+  const page = await readProjectRepository(
+    "https://github.com/owner/repo",
+    AbortSignal.timeout(5000),
+    request,
+  );
+  expect(page.repository?.files).toHaveLength(16);
+  expect(page.repository?.files.some((f) => f.path === "src/lib/z-implementation.ts")).toBe(true);
+});
