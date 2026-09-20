@@ -88,3 +88,10 @@ export function describeResult(c: ServiceCase, result: { allowed: boolean; amoun
     return `${c.id === "booking-cancel" ? "취소 수수료" : "최종 금액"}: ${result.amount.toLocaleString("ko-KR")}원`;
   return `${c.operation} 완료`;
 }
+
+export function matchesServicePolicy(
+  actual: Pick<ServiceResult, "allowed" | "amount">,
+  expected: Pick<ServiceResult, "allowed" | "amount">,
+) {
+  return actual.allowed === expected.allowed && actual.amount === expected.amount;
+}

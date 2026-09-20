@@ -142,6 +142,10 @@ export function MissionRepair({
                 </Button>
               </div>
             ))}
+            <p className="learn-fineprint">
+              이 검사는 아래 사례의 처리 규칙만 확인합니다. 실제 서버의 저장, 동시 요청, 보안까지
+              검증한 것은 아닙니다. 같은 입력과 기대 결과를 내 서비스에서도 확인해 보세요.
+            </p>
           </section>
         </>
       )}

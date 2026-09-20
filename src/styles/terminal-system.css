@@ -814,3 +814,186 @@ html {
   display: inline-flex;
   margin-top: 16px;
 }
+/* Learning screens: the test input and contract take precedence over storefront decoration. */
+.mission-brief,
+.lab-purpose,
+.lab-target {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  line-height: 1.8;
+}
+.mission-brief :is(h3, h4, p),
+.lab-purpose p,
+.lab-target :is(h3, p) {
+  margin: 0;
+}
+.mission-rule {
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.mission-rule dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+.mission-rule dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.mission-rule dd {
+  margin: 0;
+  font-weight: 600;
+}
+.service-app .service-header {
+  padding: 20px 24px;
+}
+.service-app .service-header strong {
+  font-size: 20px;
+  line-height: 1.5;
+}
+.service-app .service-header small {
+  margin: 0 0 8px;
+}
+.service-app .service-result {
+  display: grid;
+  gap: 10px;
+}
+.service-app .service-result p {
+  margin: 0;
+}
+.service-app .service-result.rejected {
+  border-color: #c5aa78;
+  background: #211e18;
+  color: #f0d8ab;
+}
+.service-app .service-result.accepted {
+  border-color: var(--line);
+  background: var(--bg);
+  color: var(--text);
+}
+.checkpoint-expected {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-left: 2px solid var(--text);
+}
+.checkpoint-expected strong {
+  font-size: 12px;
+  color: var(--muted);
+}
+.checkpoint-expected p {
+  margin: 6px 0 0;
+  line-height: 1.7;
+}
+.observation-checkpoint .checkpoint-lesson {
+  margin-top: 20px;
+  font-size: 15px;
+}
+.learn-observations {
+  scroll-margin-top: 110px;
+}
+.lab-purpose,
+.lab-target {
+  margin-bottom: 24px;
+}
+.lab-target ul {
+  margin: 0;
+  padding-left: 22px;
+}
+.lab-target li + li {
+  margin-top: 12px;
+}
+.lab-input-context {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  line-height: 1.8;
+}
+.lab-input-context p {
+  margin-top: 8px;
+}
+.lab-next-action {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+}
+.lab-next-action p {
+  margin: 0;
+  line-height: 1.8;
+}
+.lab-next-action .primary-button {
+  justify-self: start;
+}
+.lab-optional-tools {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid var(--line);
+}
+.lab-optional-tools[open] > summary {
+  margin-bottom: 20px;
+}
+.lab-runtime-details {
+  margin: 20px 0;
+}
+.lab-runtime-details small {
+  display: block;
+  margin-top: 12px;
+  line-height: 1.8;
+}
+.lab-test-next {
+  margin: 20px 0 12px;
+  line-height: 1.8;
+}
+@media (max-width: 700px) {
+  .service-app .service-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .observation-checkpoint .checkpoint-evidence {
+    margin-top: 12px;
+    padding: 12px;
+  }
+  .observation-checkpoint .checkpoint-expected {
+    padding: 8px 12px;
+  }
+}
+
+.observation-checkpoint {
+  scroll-margin-top: 108px;
+}
+.lab-next-action + .secondary-button {
+  margin-top: 16px;
+}
+.lab-workbench:is(.lab-stage-0, .lab-stage-1) .editor-topbar {
+  display: none;
+}
+@media (min-width: 1001px) {
+  .learn-observations {
+    top: 108px;
+  }
+}
+
+.service-app .service-policy :is(summary, p),
+.service-app .service-detail dl > div,
+.service-app .service-result p {
+  font-size: 14px;
+  line-height: 1.8;
+}
+.service-app .service-records b {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.service-app .service-records small {
+  font-size: 12px;
+}
+.service-app .service-result b {
+  font-size: 14px;
+}

@@ -1,3 +1,4 @@
+import { openLabTools, waitForUiTransitions } from "./ui-helpers";
 import { E2E_BASE_URL } from "../scripts/lib/e2e-environment";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -27,6 +28,7 @@ async function saved(page: Page) {
   return readHandoffDraft((await response.json()).progress?.code ?? "");
 }
 async function accessible(page: Page) {
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
@@ -142,6 +144,7 @@ test("mobile prediction, offline preservation, late AI coaching does not overwri
     });
   });
   const request = page.waitForRequest((r) => r.url().endsWith("/coach"));
+  await openLabTools(page);
   await page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" }).click();
   const outgoing = (await request).postDataJSON();
   expect(readHandoffDraft(outgoing.code).implementation).toBe(base.starterCode);
@@ -271,6 +274,7 @@ test("coaching failure retries the same snapshot and preserves prediction and no
     });
   });
   for (let i = 0; i < 2; i++) {
+    await openLabTools(page);
     await page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" }).click();
     await expect(page.locator(".lab-error")).toContainText("질문을 받지 못했습니다");
   }
@@ -281,6 +285,7 @@ test("coaching failure retries the same snapshot and preserves prediction and no
   await expect(diagnosis).toHaveValue("원본과 반환값의 객체 참조를 추가로 비교하는 메모입니다.");
   await expect(diagnosis).toBeFocused();
   await stage(page, 1);
+  await openLabTools(page);
   await page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" }).click();
   await expect.poll(() => requests.length).toBe(3);
   expect(requests[2].requestId).not.toBe(requests[1].requestId);
@@ -423,6 +428,7 @@ test("late coaching cannot attach to replaced observation with the same predicti
     });
   });
   const requested = page.waitForRequest((r) => r.url().endsWith("/coach"));
+  await openLabTools(page);
   await page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" }).click();
   await requested;
   await replaceObservation(page, (t) => {

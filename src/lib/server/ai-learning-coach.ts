@@ -3,10 +3,11 @@ import { zodTextFormat } from "openai/helpers/zod";
 import { coachSchema, type LearningRecord } from "../learn/progress";
 import { simulate } from "../learn/simulation";
 import { actionLabel, type Mission } from "../learn/catalog";
+import { missionContext } from "../learn/context";
 import { aiModel } from "./ai-models";
 import { withAiTelemetry, type RunRecorder } from "./ai-telemetry";
 import { HttpError } from "./http";
-export const LEARNING_COACH_VERSION = "2026-09-20.builder.actionable.2";
+export const LEARNING_COACH_VERSION = "2026-09-21.builder.context.3";
 export async function coachBuilder(m: Mission, r: LearningRecord, record?: RunRecorder) {
   if (!process.env.OPENAI_API_KEY)
     throw new HttpError(
@@ -36,6 +37,8 @@ export async function coachBuilder(m: Mission, r: LearningRecord, record?: RunRe
             role: "user",
             content: JSON.stringify({
               mission: m.task,
+              learningContext: missionContext(m),
+              sampleInputs: m.service?.samples.map(({ label, fields }) => ({ label, fields })),
               concept: m.concept,
               prediction: m.choices[r.prediction],
               reason: r.reason,

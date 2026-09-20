@@ -39,7 +39,13 @@ test("five service layouts support keyboard actions, history, 320px screens, and
   for (const domain of SERVICE_DOMAINS) {
     const m = MISSIONS.find((m) => m.service?.domain === domain.id)!;
     await page.goto(`/learn/${m.id}`);
-    const service = page.getByRole("region", { name: "예제 서비스 첫 화면" });
+    await expect(page.getByRole("region", { name: "실습 상황과 기준" })).toContainText(
+      m.service!.policy,
+    );
+    await page.getByRole("radio").first().check();
+    await page.getByRole("button", { name: "예상 남기고 직접 확인" }).click();
+    await page.keyboard.press("Escape");
+    const service = page.getByRole("region", { name: "실습 서비스", exact: true });
     for (const width of [1440, 390, 320]) {
       await page.setViewportSize({ width, height: 1000 });
       await expect(service.locator(".sample-app")).toBeVisible();
@@ -80,7 +86,6 @@ test("five service layouts support keyboard actions, history, 320px screens, and
       .getByRole("button", { name: actionLabel(m, "case-standard"), exact: true })
       .click();
     await expect(service.locator(".service-result")).toHaveCount(0);
-    await service.getByRole("button", { name: "처음으로", exact: true }).click();
-    await expect(service.getByRole("button", { name: "처리 이력 0", exact: true })).toBeVisible();
+    await expect(service.getByRole("button", { name: "처리 이력 1", exact: true })).toBeVisible();
   }
 });

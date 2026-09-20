@@ -3,9 +3,28 @@ import { MISSIONS } from "../catalog";
 import { SERVICE_CASES } from "./cases";
 import { SERVICE_DOMAINS, domainFor } from "./domains";
 import { applyAction, initialSimulation, simulate, verification, reproduced } from "../simulation";
-import { evaluateService } from "./rules";
+import { evaluateService, matchesServicePolicy } from "./rules";
+import { missionContext } from "../context";
 
 describe("domain curriculum contract", () => {
+  it("separates successful processing from compliance, including archived cases", () => {
+    for (const c of SERVICE_CASES) {
+      const failing = evaluateService(c, 1, "");
+      expect(matchesServicePolicy(failing, c.samples[1].expected), c.id).toBe(false);
+      for (let index = 0; index < c.samples.length; index++) {
+        expect(
+          matchesServicePolicy(evaluateService(c, index, "rule"), c.samples[index].expected),
+          `${c.id}/${index}`,
+        ).toBe(true);
+      }
+    }
+    for (const mission of MISSIONS) {
+      const context = missionContext(mission);
+      expect(context.why, mission.id).toBeTruthy();
+      expect(context.rule, mission.id).toBeTruthy();
+      if (!mission.service) expect(context.expected, mission.id).toBeTruthy();
+    }
+  });
   it("curates active cases in every domain while preserving legacy definitions", () => {
     expect(SERVICE_CASES).toHaveLength(20);
     expect(MISSIONS).toHaveLength(21);

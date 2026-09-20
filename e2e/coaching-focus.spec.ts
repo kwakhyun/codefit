@@ -1,3 +1,4 @@
+import { openLabTools, waitForUiTransitions } from "./ui-helpers";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readHandoffDraft } from "../src/lib/handoff/draft";
@@ -42,6 +43,7 @@ test("coaching focus preserves exact learner text, escapes HTML and restores leg
   await page.getByRole("radio", { name: "원본 3, 반환값 3" }).check();
   await page.getByLabel("왜 그렇게 생각했나요?").fill(reason);
   await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await openLabTools(page);
   await page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" }).click();
   const focus = page.getByLabel("질문의 초점");
   await expect(focus.locator("blockquote")).toHaveText(reason);
@@ -57,6 +59,7 @@ test("coaching focus preserves exact learner text, escapes HTML and restores leg
   await page.getByRole("button", { name: "비교 결과 다시 보기" }).click();
   await expect(focus).toContainText(learnerQuote);
   await expect(focus).toContainText(goal);
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,

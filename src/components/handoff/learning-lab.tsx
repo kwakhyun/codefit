@@ -10,15 +10,25 @@ import {
   Textarea,
 } from "@/components/ui/primitives";
 import { ExecutionWait } from "./execution-wait";
-import { ScenarioVisual } from "@/components/ui/scenario-visual";
 import { VoiceInput } from "@/components/ui/voice-input";
-import { scenarioFor } from "@/lib/scenario-visuals";
 import { ArrowRight, Check, LoaderCircle, Play, Sparkles } from "lucide-react";
 import { sameOutput } from "@/lib/handoff/training";
 import type { LearningLabController } from "@/hooks/use-learning-lab";
 import { LearningCoachQuestion } from "./learning-coach-question";
 import { LearningExperiment } from "./learning-experiment";
 
+const situations: Record<string, string> = {
+  cart: "수량을 바꿀 때 이전 장바구니까지 함께 변하면, 변경 전후 비교나 취소 기능이 깨질 수 있습니다. 원본과 새 상태가 어떻게 달라지는지 직접 실행해 확인합니다.",
+  latest:
+    "빠르게 다시 검색하거나 화면을 닫을 때 이전 응답이 뒤늦게 도착할 수 있습니다. 응답 순서를 바꿔도 최신 화면을 지키는 코드를 만듭니다.",
+  page: "목록에 데이터가 없거나 잘못된 페이지 번호가 들어와도 화면이 열려야 합니다. 빈 목록과 마지막 페이지의 동작을 확인합니다.",
+  config:
+    "서버 설정은 문자열로 들어오지만 코드는 숫자와 참/거짓으로 사용합니다. 같은 글자라도 자료형에 따라 해석이 달라지는 부분을 확인합니다.",
+  dedupe:
+    "같은 작업이 동시에 들어오거나 실패 후 다시 요청될 수 있습니다. 중복 실행은 줄이면서 필요한 재시도는 허용하는지 확인합니다.",
+  total:
+    "이미 쓰는 주문 집계에 새 기능을 추가합니다. 기존 결과를 먼저 확인하고, 정상 동작을 유지하면서 계산을 확장하는 연습입니다.",
+};
 const steps = [
   { title: "예측하기", description: "실행 전에 내 생각 남기기" },
   { title: "비교하기", description: "예상과 실제 동작 비교" },
@@ -87,7 +97,30 @@ export function LearningLab({
           }
         </p>
       </div>
-      {scenarioFor(problemId) && <ScenarioVisual scene={scenarioFor(problemId)!} stage={stage} />}
+      {stage === 0 && (
+        <div className="lab-purpose">
+          <strong>내 서비스에서는 언제 필요할까요?</strong>
+          <p>{situations[problemId.replace(/^handoff-/, "").replace(/-transfer$/, "")]}</p>
+          <small>
+            문법 퀴즈가 아닙니다. 현재 동작을 확인하고, 요구사항에 맞게 바꾼 뒤 그 근거를 남깁니다.
+            정상인 부분은 유지해도 됩니다.
+          </small>
+        </div>
+      )}
+      {stage === 2 && lab && (
+        <section className="lab-target" aria-label="수정할 목표">
+          <h3>이 동작을 만족하도록 수정하세요</h3>
+          <ul>
+            {lab.contract.split("\n").map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          <p>
+            아래 편집기에서 코드를 수정한 다음 ‘내 코드 테스트’를 누르세요. 실패한 항목을 열면
+            입력과 기대 결과를 볼 수 있습니다.
+          </p>
+        </section>
+      )}
       {c.loadError ? (
         <Status className="inline-error" role="alert">
           {c.loadError}{" "}
@@ -108,17 +141,23 @@ export function LearningLab({
             <pre tabIndex={0} aria-label="예측할 원본 코드">
               <code>{starterCode}</code>
             </pre>
-            <Disclosure>
+            <div className="lab-input-context">
+              <strong>이번에 실행할 입력</strong>
+              <p>{lab.probe.note}</p>
+            </div>
+            <Disclosure open>
               <DisclosureSummary>실행할 입력과 관찰 코드</DisclosureSummary>
               <pre tabIndex={0}>
                 <code>{lab.probe.expression}</code>
               </pre>
             </Disclosure>
-            <p>{lab.probe.note}</p>
           </div>
           <div className="lab-prediction">
             <fieldset disabled={t.prediction.locked}>
               <legend>{lab.question}</legend>
+              <p className="learn-fineprint">
+                고친 뒤의 정답이 아니라, 왼쪽 원본 코드가 지금 반환할 값을 예상하세요.
+              </p>
               {lab.choices.map((option, index) => (
                 <FieldLabel
                   className={`lab-choice ${t.prediction.choice === option.id ? "selected" : ""}`}
@@ -233,7 +272,16 @@ export function LearningLab({
                   <span>
                     {c.observationStale ? "이전에 보관한 실행 결과" : "원본의 실제 실행 결과"}
                   </span>
-                  <pre>{observation.actual}</pre>
+                  {observation.status === "ok" && (
+                    <p>
+                      {
+                        lab.choices.find((option) =>
+                          sameOutput(observation.actual, JSON.parse(option.output)),
+                        )?.label
+                      }
+                    </p>
+                  )}
+                  <pre aria-label="원본 실행 반환값">{observation.actual}</pre>
                   <strong>
                     {c.observationStale
                       ? "현재 원본으로 다시 확인해 주세요"
@@ -258,6 +306,16 @@ export function LearningLab({
                     : "오답 점수는 없습니다. 예상이 어긋난 지점을 찾는 것이 이번 훈련입니다."}
                 </p>
               )}
+              <div className="lab-next-action">
+                <p>{lab.reflection}</p>
+                <Button className="primary-button" onClick={() => move(2)}>
+                  내 코드 수정하고 테스트하기 <ArrowRight size={16} />
+                </Button>
+                <small>
+                  다음 단계에 수정 목표와 편집기가 있습니다. 아래 AI 질문과 추가 실험은 선택
+                  사항입니다.
+                </small>
+              </div>
               <Button
                 className="secondary-button"
                 disabled={busy}
@@ -265,41 +323,44 @@ export function LearningLab({
               >
                 {activity === "observing" ? "원본 실행 중" : "원본 다시 실행"}
               </Button>
-              <div className="lab-coach">
-                <span className="eyebrow">생각해 볼 질문</span>
-                <p>{lab.reflection}</p>
-                {t.coach && t.coach.evidenceId !== "experiment" && (
-                  <LearningCoachQuestion controller={c} />
-                )}
-                <Button
-                  className="secondary-button"
-                  disabled={
-                    busy || !aiReady || blocked || observation.status !== "ok" || c.observationStale
-                  }
-                  onClick={() => void c.coach()}
-                >
-                  {activity === "coaching" ? (
-                    <LoaderCircle className="spin" size={16} />
-                  ) : (
-                    <Sparkles size={16} />
+              <Disclosure className="lab-optional-tools" open={Boolean(t.coach || t.experiment)}>
+                <DisclosureSummary>더 살펴보기: AI 질문과 직접 실험 (선택)</DisclosureSummary>
+                <div className="lab-coach">
+                  <span className="eyebrow">생각해 볼 질문</span>
+                  {t.coach && t.coach.evidenceId !== "experiment" && (
+                    <LearningCoachQuestion controller={c} />
                   )}
-                  {activity === "coaching"
-                    ? "AI 질문 준비 중"
-                    : t.coach
-                      ? "현재 코드로 AI 질문 다시 받기"
-                      : "내 예상에 맞는 AI 질문 받기"}
-                </Button>
-                <small>
-                  선택 사항 · 로그인 없이 2회, 로그인하면 24시간 30회 · AI 질문 사용은 도움 기록에
-                  포함됩니다.
-                  {!aiReady && " AI 연결 전에도 실행과 수정은 가능합니다."}
-                  {blocked && " 저장 충돌을 먼저 해결해 주세요."}
-                </small>
-              </div>
-              <LearningExperiment controller={c} blocked={blocked} aiReady={aiReady} />
-              <Button className="primary-button" onClick={() => move(2)}>
-                내 코드 수정하고 테스트하기 <ArrowRight size={16} />
-              </Button>
+                  <Button
+                    className="secondary-button"
+                    disabled={
+                      busy ||
+                      !aiReady ||
+                      blocked ||
+                      observation.status !== "ok" ||
+                      c.observationStale
+                    }
+                    onClick={() => void c.coach()}
+                  >
+                    {activity === "coaching" ? (
+                      <LoaderCircle className="spin" size={16} />
+                    ) : (
+                      <Sparkles size={16} />
+                    )}
+                    {activity === "coaching"
+                      ? "AI 질문 준비 중"
+                      : t.coach
+                        ? "현재 코드로 AI 질문 다시 받기"
+                        : "내 예상에 맞는 AI 질문 받기"}
+                  </Button>
+                  <small>
+                    선택 사항 · 로그인 없이 2회, 로그인하면 24시간 30회 · AI 질문 사용은 도움 기록에
+                    포함됩니다.
+                    {!aiReady && " AI 연결 전에도 실행과 수정은 가능합니다."}
+                    {blocked && " 저장 충돌을 먼저 해결해 주세요."}
+                  </small>
+                </div>
+                <LearningExperiment controller={c} blocked={blocked} aiReady={aiReady} />
+              </Disclosure>
             </>
           )}
         </div>
@@ -416,17 +477,30 @@ export function LabTests({ controller: c }: { controller: LearningLabController 
           </div>
         </>
       )}
-      <small>
-        JavaScript 함수 전용 · DOM, 네트워크, 타이머, import 미지원 · 테스트별 0.6초 / 16MB 제한.
-        테스트 통과는 모든 입력의 정답이나 이해도 인증을 뜻하지 않습니다.
-      </small>
-      <small>
-        결과는 문자열, 유한한 숫자, 불리언, null, 일반 객체와 빈 자리가 없는 배열로 비교합니다. NaN,
-        undefined와 getter 등은 다른 값으로 바꾸지 않고 오류로 안내합니다. 기본 내장 함수와
-        프로토타입은 변경할 수 없습니다.
-      </small>
+      <Disclosure className="lab-runtime-details">
+        <DisclosureSummary>실행 환경과 테스트 범위</DisclosureSummary>
+        <small>
+          JavaScript 함수 전용 · DOM, 네트워크, 타이머, import 미지원 · 테스트별 0.6초 / 16MB 제한.
+          테스트 통과는 모든 입력의 정답이나 이해도 인증을 뜻하지 않습니다.
+        </small>
+        <small>
+          결과는 문자열, 유한한 숫자, 불리언, null, 일반 객체와 빈 자리가 없는 배열로 비교합니다.
+          NaN, undefined와 getter 등은 다른 값으로 바꾸지 않고 오류로 안내합니다. 기본 내장 함수와
+          프로토타입은 변경할 수 없습니다.
+        </small>
+      </Disclosure>
+      <p className="lab-test-next" role="status">
+        {!t.run
+          ? "코드를 수정한 뒤 테스트를 한 번 실행하면 결과를 바탕으로 설명을 정리할 수 있습니다."
+          : stale
+            ? "현재 코드로 다시 테스트해 주세요."
+            : passed === t.run.results.length
+              ? "제공된 사례를 모두 통과했습니다. 이제 수정 이유와 아직 확인하지 못한 점을 정리하세요."
+              : "실패한 항목을 열어 기대 결과와 비교하세요. 해결하지 못한 부분도 마지막 설명에 남길 수 있습니다."}
+      </p>
       <Button
-        className="text-button"
+        className="primary-button"
+        disabled={!t.run || stale || c.activity !== "idle"}
         onClick={() => {
           c.setStage(3);
           requestAnimationFrame(() => document.getElementById("lab-stage-title")?.focus());

@@ -6,7 +6,6 @@ import {
   Disclosure,
   DisclosureSummary,
 } from "@/components/ui/primitives";
-import Image from "next/image";
 import { useState } from "react";
 import {
   ArrowUpRight,
@@ -14,14 +13,12 @@ import {
   Check,
   ChevronRight,
   FileText,
-  Inbox,
   LockKeyhole,
-  Mail,
-  Package,
   ShoppingBag,
 } from "lucide-react";
 import { actionLabel, type Action, type Mission } from "@/lib/learn/catalog";
 import { domainInfo } from "@/lib/learn/services/domains";
+import { describeResult, matchesServicePolicy } from "@/lib/learn/services/rules";
 import type { Simulation } from "@/lib/learn/simulation";
 const sampleActions: Action[] = ["case-standard", "case-edge", "case-other"];
 export function ServiceSurface({
@@ -40,147 +37,15 @@ export function ServiceSurface({
   const domain = domainInfo(mission);
   const s = state.service;
   const sample = c.samples[s.selected];
-  const consumer = c.domain === "commerce" || c.domain === "booking";
   return (
     <div className={`sample-app service-app service-${c.domain}`}>
       <header className="service-header">
         <div>
-          <strong>
-            {domain.brand}
-            <span>.</span>
-          </strong>
-          <small>{domain.tagline}</small>
+          <small>{domain.label} / 조작 실습</small>
+          <strong>{c.entity}</strong>
         </div>
-        <span className="service-account">
-          <span className="sample-avatar">지</span>
-          {consumer ? "지민님" : "지민 / 운영팀"}
-        </span>
+        <Badge className="service-badge">가상 사례</Badge>
       </header>
-      <div className="service-location">
-        <span>{consumer ? "마이페이지" : "운영 워크스페이스"}</span>
-        <ChevronRight size={12} />
-        <span>{c.entity}</span>
-        <span className="service-reference">{consumer ? "예약·주문" : "운영"} #1048</span>
-      </div>
-      {c.domain === "commerce" && (
-        <div className="service-product">
-          <Image
-            src={domain.image}
-            width={1200}
-            height={800}
-            sizes="(max-width: 600px) 160px, 260px"
-            alt="세라믹 머그와 조명, 리넨 노트가 놓인 테이블"
-          />
-          <div>
-            <span className="service-overline">ORDINARY COLLECTION</span>
-            <h3>취향을 담은 일상</h3>
-            <p>세라믹, 조명과 문구를 한곳에서 만나보세요.</p>
-            <Badge className="service-badge">
-              <Package size={13} /> 국내 배송
-            </Badge>
-            <small>ORD-20260920 · 주문 정보 확인</small>
-          </div>
-        </div>
-      )}
-      {c.domain === "booking" && (
-        <>
-          <div className="service-space">
-            <Image
-              src={domain.image}
-              width={1200}
-              height={800}
-              sizes="(max-width: 600px) 100vw, 700px"
-              alt="큰 창과 원목 테이블이 있는 밝은 대관 공간"
-            />
-            <span>성수 / Room A</span>
-          </div>
-          <div className="service-space-title">
-            <div>
-              <span className="service-overline">성수역 도보 5분 · 단독 대관</span>
-              <h3>{c.entity}</h3>
-              <p>9월 20일 이용 · 예약 내용을 확인해 주세요.</p>
-            </div>
-            <CalendarDays size={24} />
-          </div>
-          {c.id === "booking-overlap" && (
-            <div className="service-time-strip">
-              <span>13:00</span>
-              <span className="occupied">14:00</span>
-              <span className="occupied">15:00</span>
-              <span>16:00</span>
-              <span>17:00</span>
-            </div>
-          )}
-        </>
-      )}
-      {c.domain === "work" && (
-        <div className="service-admin-intro">
-          <div>
-            <span className="service-overline">제품팀 / 가을 출시 프로젝트</span>
-            <h3>{c.entity}</h3>
-            <p>업무 요청을 검토하고 처리해 주세요.</p>
-          </div>
-          <Badge className="service-badge">검토 대기</Badge>
-          <div className="service-stats">
-            <div>
-              <small>요청 부서</small>
-              <b>브랜드팀</b>
-            </div>
-            <div>
-              <small>담당자</small>
-              <b>지민</b>
-            </div>
-            <div>
-              <small>검토일</small>
-              <b>9월 20일</b>
-            </div>
-          </div>
-        </div>
-      )}
-      {c.domain === "content" && (
-        <div className="service-editorial">
-          <span className="service-overline">EDITION / ISSUE 042</span>
-          <h3>{c.entity}</h3>
-          <p>한 주의 발견을 모아, 더 나은 일상을 제안합니다.</p>
-          <div>
-            <span>에디터 서연</span>
-            <span>9월 20일 · 읽는 시간 5분</span>
-          </div>
-          <blockquote>오래 머물고 싶은 공간에는 어떤 이야기가 담겨 있을까요?</blockquote>
-          <Badge className="service-badge">
-            <Mail size={13} /> 콘텐츠와 독자 관리
-          </Badge>
-        </div>
-      )}
-      {c.domain === "support" && (
-        <div className="service-inbox">
-          <div className="service-inbox-heading">
-            <Inbox size={20} />
-            <h3>{c.entity}</h3>
-            <Badge className="service-badge">처리 대기</Badge>
-          </div>
-          <div className="service-customer">
-            <span className="sample-avatar">서</span>
-            <div>
-              <b>서연 고객님</b>
-              <small>웹사이트 문의 · 오늘 10:24</small>
-            </div>
-            <span>담당 지민</span>
-          </div>
-          <p className="service-bubble">
-            {c.id === "support-refund"
-              ? "일부 상품을 반품했어요. 남은 상품도 환불받을 수 있을까요?"
-              : c.id === "support-attachment"
-                ? "받은 상품의 상태를 사진으로 첨부하려고 해요."
-                : c.id === "support-export"
-                  ? "지난 상담 내용을 확인하고 싶어요."
-                  : "주문한 상품의 배송 일정을 알려 주세요."}
-          </p>
-          <p className="service-internal-note">
-            <LockKeyhole size={13} /> 내부 메모: 고객 요청과 처리 조건을 확인해 주세요.
-          </p>
-        </div>
-      )}
       <div className="service-body">
         <div className="service-view-switch" aria-label="상세 화면 전환">
           <ToggleButton
@@ -212,7 +77,12 @@ export function ServiceSurface({
                     <div>
                       <b>{c.samples[entry.sample].label}</b>
                       <p>{entry.result.detail}</p>
-                      <small>처리 순서 {i + 1}</small>
+                      <small>
+                        처리 순서 {i + 1} ·{" "}
+                        {matchesServicePolicy(entry.result, c.samples[entry.sample].expected)
+                          ? "이용 조건과 일치"
+                          : "이용 조건과 불일치"}
+                      </small>
                     </div>
                   </li>
                 ))}
@@ -227,7 +97,7 @@ export function ServiceSurface({
         ) : (
           <>
             <div className="service-section-heading">
-              <h4>{consumer ? "이용 정보 선택" : "검토할 요청"}</h4>
+              <h4>실험할 조건 선택</h4>
               <span>{c.samples.length}건</span>
             </div>
             <div className="service-records" role="group" aria-label="실습 데이터 선택">
@@ -254,8 +124,7 @@ export function ServiceSurface({
                   <span>
                     <b>{entry.label}</b>
                     <small>
-                      {consumer ? "이용 조건" : "요청"} {String(i + 1).padStart(2, "0")} ·{" "}
-                      {entry.fields[0][0]}
+                      {i === 0 ? "기본 사례" : i === 1 ? "이번에 확인할 사례" : "추가 확인 사례"}
                     </small>
                   </span>
                   <span className="service-radio">{s.selected === i && <Check size={12} />}</span>
@@ -274,27 +143,23 @@ export function ServiceSurface({
                     <dd>{value}</dd>
                   </div>
                 ))}
-                {c.domain === "commerce" && (
-                  <div>
-                    <dt>받는 분</dt>
-                    <dd>김지민 / 서울 성동구</dd>
-                  </div>
-                )}
-                {c.domain === "support" && (
-                  <div>
-                    <dt>고객 번호</dt>
-                    <dd>CUS-1048</dd>
-                  </div>
-                )}
               </dl>
               <Disclosure className="service-policy" open>
-                <DisclosureSummary>{consumer ? "이용 조건 안내" : "처리 기준"}</DisclosureSummary>
+                <DisclosureSummary>지켜야 할 이용 조건</DisclosureSummary>
                 <p>{c.policy}</p>
               </Disclosure>
               {s.result && (
-                <div className={`service-result ${s.result.allowed ? "accepted" : "rejected"}`}>
-                  <b>{s.result.allowed ? "처리 결과" : "요청 확인 필요"}</b>
-                  <p>{s.result.detail}</p>
+                <div
+                  className={`service-result ${matchesServicePolicy(s.result, sample.expected) ? "accepted" : "rejected"}`}
+                >
+                  <b>
+                    {matchesServicePolicy(s.result, sample.expected)
+                      ? "이 사례는 이용 조건과 일치합니다"
+                      : "이용 조건과 다른 결과입니다"}
+                  </b>
+                  <p>실제 동작: {s.result.detail}</p>
+                  <p>기대 동작: {describeResult(c, sample.expected)}</p>
+                  <small>화면의 ‘완료’ 안내가 이용 조건을 지켰다는 뜻은 아닙니다.</small>
                   {c.id === "support-close" && s.result.allowed && (
                     <span>문의 상태: 해결 완료</span>
                   )}
@@ -321,10 +186,10 @@ export function ServiceSurface({
         )}
       </div>
       <footer className="service-footer">
-        <span>{domain.brand} / 고객 경험을 연결합니다</span>
+        <span>각 사례는 초기 상태에서 독립적으로 실행합니다</span>
         <span>가상 서비스</span>
       </footer>
-      <div className="sample-feedback" role="status">
+      <div className="sr-only" role="status">
         {state.trace.length ? state.message : ""}
       </div>
     </div>

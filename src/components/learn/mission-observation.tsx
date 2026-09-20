@@ -5,6 +5,8 @@ import { Button, Card, Disclosure, DisclosureSummary } from "@/components/ui/pri
 import { actionLabel, type Action, type Mission } from "@/lib/learn/catalog";
 import type { LearningRecord, LearningRecordUpdate } from "@/lib/learn/progress";
 import { simulate, reproduced } from "@/lib/learn/simulation";
+import { missionContext } from "@/lib/learn/context";
+import { describeResult } from "@/lib/learn/services/rules";
 import { SimulationView } from "./simulation-view";
 
 const visibleActionNames: Partial<Record<Action, string>> = {
@@ -55,7 +57,9 @@ export function MissionObservation({
     // Let the final spotlight clean up before moving to the learning outcome.
     const frame = requestAnimationFrame(() => {
       summary.current?.focus({ preventScroll: true });
-      summary.current?.scrollIntoView({ block: "start", behavior: "instant" });
+      summary.current
+        ?.closest(".observation-checkpoint")
+        ?.scrollIntoView({ block: "start", behavior: "instant" });
     });
     return () => cancelAnimationFrame(frame);
   }, [evidence]);
@@ -96,23 +100,36 @@ export function MissionObservation({
               <h3 ref={summary} tabIndex={-1}>
                 이번 실험에서 배운 원리
               </h3>
-              <p className="checkpoint-lesson">{mission.lesson}</p>
               <div className="checkpoint-evidence">
-                <strong>직접 확인한 결과</strong>
+                <strong>실제 동작</strong>
+                {mission.service && (
+                  <p className="checkpoint-input">
+                    입력: {mission.service.samples[requiredResult.service.selected].label}
+                  </p>
+                )}
                 <p>
                   {(mission.app === "request" || mission.app === "booking") &&
                     `${requiredResult.online ? "온라인" : "오프라인"} 상태에서 `}
                   {mission.app === "access" && `현재 사용자 ${requiredResult.actor}: `}
-                  {requiredResult.trace.at(-1) || requiredResult.message}
+                  {requiredResult.message}
                   {mission.app === "booking" && ` · 예약 ${requiredResult.bookings.length}건`}
                 </p>
               </div>
-              <p className="checkpoint-next">
-                다음에는 수정 방법을 골라, 문제가 해결되는지와 원래 기능이 유지되는지 검사합니다.
-              </p>
+              <div className="checkpoint-expected">
+                <strong>지켜야 할 동작</strong>
+                <p>
+                  {mission.service
+                    ? describeResult(
+                        mission.service,
+                        mission.service.samples[requiredResult.service.selected].expected,
+                      )
+                    : missionContext(mission).expected}
+                </p>
+              </div>
               <Button className="primary-button" onClick={onContinue}>
                 3. 수정과 검사로 이동 <ArrowRight size={18} aria-hidden="true" />
               </Button>
+              <p className="checkpoint-lesson">{mission.lesson}</p>
             </Card>
           ) : (
             <div className="observation-prediction">

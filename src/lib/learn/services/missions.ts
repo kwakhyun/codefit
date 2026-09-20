@@ -12,8 +12,8 @@ export function serviceMissions(): Mission[] {
     minutes: 7,
     app: "service",
     service: c,
-    task: `${c.entity} 화면입니다. ‘${c.samples[1].label}’을 선택하고 ‘${c.operation}’을 눌러 결과를 확인하세요. ${c.policy}`,
-    prediction: `‘${c.samples[1].label}’ 조건에서는 어떤 결과가 나와야 할까요?`,
+    task: `${c.entity}에서 이용 조건과 실제 처리가 일치하는지 확인합니다. 조건을 읽고, 실행 결과를 비교한 뒤, 수정안을 검사합니다.`,
+    prediction: `안내한 이용 조건을 지킨다면, ‘${c.samples[1].label}’은 어떻게 처리해야 할까요?`,
     choices: [
       describeResult(c, c.samples[1].expected),
       evaluateService(c, 1, "").detail,

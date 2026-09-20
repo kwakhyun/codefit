@@ -1,55 +1,34 @@
+import { waitForUiTransitions } from "./ui-helpers";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { MISSIONS, actionLabel } from "../src/lib/learn/catalog";
+import { MISSIONS } from "../src/lib/learn/catalog";
 import { simulate } from "../src/lib/learn/simulation";
 
-test("all sample services are interactive; preview actions do not become observation evidence", async ({
+test("all missions explain their purpose before recording real experiment actions", async ({
   page,
-}, info) => {
+}) => {
   test.setTimeout(240_000);
   for (const mission of MISSIONS) {
     await page.goto(`/learn/${mission.id}`);
-    const app = page.getByRole("region", { name: "예제 서비스 첫 화면" });
-    await expect(app.locator(".sample-app")).toHaveCSS("background-color", "rgb(22, 30, 43)");
-    await expect(page.getByText("개념 그림 · 실행 결과는 실습에서 확인하세요.")).toHaveCount(0);
-    for (const action of mission.reproduce)
-      await app
-        .getByRole("button", {
-          name:
-            mission.app === "filter" && action === "refresh"
-              ? "전체 다시 보기"
-              : actionLabel(mission, action),
-          exact: true,
-        })
-        .click();
-    await expect(app.getByRole("status")).toHaveText(simulate(mission, mission.reproduce).message);
-    await app.getByRole("button", { name: "처음으로", exact: true }).click();
-    await expect(app.getByRole("status")).toHaveText("");
-    if (info.project.name === "chromium" && ["memo", "price", "booking"].includes(mission.app)) {
-      await page.setViewportSize({ width: 1440, height: 1100 });
-      await page.evaluate(() =>
-        window.scrollTo(
-          0,
-          document.querySelector(".learn-prediction")!.getBoundingClientRect().top + scrollY - 100,
-        ),
-      );
-      const intro = page.getByRole("button", { name: "첫 방문 안내 숨기기" });
-      if (await intro.isVisible()) await intro.click();
-      await page.screenshot({ path: `artifacts/sample-${mission.app}-desktop.png` });
-    }
+    await expect(page.getByRole("region", { name: "실습 상황과 기준" })).toContainText(
+      "지켜야 할 조건",
+    );
+    await expect(page.locator("[data-sim-action]")).toHaveCount(0);
     await page.getByRole("radio").first().check();
     await page.getByRole("button", { name: "예상 남기고 직접 확인" }).click();
-    await expect(page.getByRole("heading", { name: "2. 직접 확인" })).toBeFocused();
-    await expect(page.locator(".learn-observations ol li")).toHaveCount(0);
+    const app = page.getByRole("region", { name: "실습 서비스", exact: true });
+    for (const action of mission.reproduce)
+      await app.locator(`[data-sim-action="${action}"]`).click();
+    await expect(app.getByRole("status")).toHaveText(simulate(mission, mission.reproduce).message);
     await page.getByRole("button", { name: "학습 기록 저장", exact: true }).click();
     await expect
       .poll(async () => {
         const body = await (await page.request.get(`/api/learn/${mission.id}`)).json();
-        return body.progress ? JSON.parse(body.progress.code).locked : false;
+        return body.progress ? JSON.parse(body.progress.code).actions : [];
       })
-      .toBe(true);
+      .toEqual(mission.reproduce);
     await page.reload();
-    await expect(page.getByRole("heading", { name: "2. 직접 확인" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "실험 결과 요약" })).toBeVisible();
   }
 });
 
@@ -69,21 +48,23 @@ test("desktop answers sit on the right; all dark services remain readable and ac
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       await page.goto(`/learn/${mission.id}`);
-      await expect(page.locator(".sample-app")).toBeVisible();
+      await expect(page.getByRole("region", { name: "실습 상황과 기준" })).toBeVisible();
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
       ).toBe(true);
-      if (width === 390)
+      if (width === 390) {
+        await waitForUiTransitions(page);
         expect(
           (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
             .violations,
         ).toEqual([]);
+      }
     }
   }
   if (info.project.name === "chromium") {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/learn/price-and-rules");
-    await page.locator(".sample-app").scrollIntoViewIfNeeded();
+    await page.locator(".mission-brief").scrollIntoViewIfNeeded();
     const intro = page.getByRole("button", { name: "첫 방문 안내 숨기기" });
     if (await intro.isVisible()) await intro.click();
     await page.screenshot({ path: "artifacts/sample-shop-mobile.png" });

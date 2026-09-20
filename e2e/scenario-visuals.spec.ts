@@ -43,7 +43,7 @@ test("all curated problems expose four illustrated stages without missing assets
   page,
 }) => {
   test.setTimeout(180_000);
-  for (const problem of seedProblems) {
+  for (const problem of seedProblems.filter((p) => !p.handoff)) {
     expect(scenarioFor(problem.id), problem.id).toBeTruthy();
     await page.goto(`/problems/${problem.id}`);
     await expect(page.locator(".scenario-visual")).toHaveAttribute("data-stage", "0");
@@ -63,16 +63,14 @@ test("beginner previews and keyboard illustration controls remain understandable
   test.setTimeout(180_000);
   for (const mission of MISSIONS) {
     await page.goto(`/learn/${mission.id}`);
-    await expect(page.getByRole("region", { name: "예제 서비스 첫 화면" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "실습 상황과 기준" })).toBeVisible();
     await expect(page.getByText("그림으로 원리 살펴보기", { exact: true })).toHaveCount(0);
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.route("**/_next/image**", (route) => route.abort());
   await page.goto("/learn/where-data-lives");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("데이터는 어디에 저장될까요?");
-  await expect(page.getByRole("region", { name: "예제 서비스 첫 화면" })).toContainText(
-    "출시 준비 노트",
-  );
+  await expect(page.getByRole("region", { name: "실습 상황과 기준" })).toContainText("새로고침");
   await noOverflow(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())

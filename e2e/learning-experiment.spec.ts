@@ -1,3 +1,4 @@
+import { openLabTools, waitForUiTransitions } from "./ui-helpers";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { handoffProblems } from "../src/data/handoff-problems";
@@ -28,6 +29,7 @@ async function saved(page: Page) {
   );
 }
 async function experimentEditor(page: Page) {
+  await openLabTools(page);
   const details = page.locator(".lab-experiment-editor");
   if (!(await details.evaluate((e) => (e as HTMLDetailsElement).open)))
     await details.locator("summary").click();
@@ -83,6 +85,7 @@ test("manual experiment compares real versions, persists and marks changed condi
   await expect(result.locator(".lab-comparison > div").first()).toContainText("[1,2]");
   await expect(result.locator(".lab-comparison > div").last()).toContainText("[1,2]");
   await expect(result).not.toContainText("통과");
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
@@ -116,6 +119,7 @@ test("AI proposal is inspected and imported explicitly, execution and recovery d
     });
   });
   await begin(page);
+  await openLabTools(page);
   await page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" }).click();
   await expect(page.getByRole("button", { name: "AI 실험 코드 가져오기" })).toBeVisible();
   await expect(page.getByLabel("추가 실험 결과")).toHaveCount(0);
@@ -127,6 +131,7 @@ test("AI proposal is inspected and imported explicitly, execution and recovery d
   await page.getByRole("button", { name: "두 코드로 실험 실행", exact: true }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByLabel("추가 실험 결과")).toContainText("[3,3]");
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,

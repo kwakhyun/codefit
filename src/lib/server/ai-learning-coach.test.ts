@@ -58,6 +58,11 @@ it("grounds follow-up experiments in each mission's actual controls and distingu
       );
       expect(data.practice.observationsDescribe).toContain("수정 전");
       expect(data.observations).toHaveLength(mission.reproduce.length);
+      expect(data.learningContext.rule).toBeTruthy();
+      if (mission.service) {
+        expect(data.learningContext.rule).toBe(mission.service.policy);
+        expect(data.sampleInputs[1].fields).toEqual(mission.service.samples[1].fields);
+      }
     }
   }
 });

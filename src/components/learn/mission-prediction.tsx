@@ -1,5 +1,5 @@
 import { FieldLabel, Input, Textarea, Button } from "@/components/ui/primitives";
-import { SimulationView } from "./simulation-view";
+import { missionContext } from "@/lib/learn/context";
 import { VoiceInput } from "@/components/ui/voice-input";
 import type { Mission } from "@/lib/learn/catalog";
 import type { LearningRecord, LearningRecordUpdate } from "@/lib/learn/progress";
@@ -14,17 +14,39 @@ export function MissionPrediction({
   update: LearningRecordUpdate;
   onContinue: () => void;
 }) {
+  const context = missionContext(mission);
   return (
     <div className="learn-prediction">
-      <div className="prediction-example">
-        <SimulationView mission={mission} actions={[]} preview />
+      <section className="prediction-example mission-brief" aria-label="실습 상황과 기준">
+        <span className="eyebrow">왜 확인해야 할까요?</span>
+        <h3>{mission.summary}</h3>
+        <p>{context.why}</p>
+        <div className="mission-rule">
+          <h4>지켜야 할 조건</h4>
+          <p>{context.rule}</p>
+        </div>
+        {mission.service && (
+          <div className="mission-rule">
+            <h4>이번에 확인할 입력</h4>
+            <dl>
+              {mission.service.samples[1].fields.map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
         <p className="learn-fineprint">
-          자유롭게 눌러보세요. 여기서 사용한 내용은 다음 단계의 관찰 기록에 포함되지 않습니다.
+          실제 서비스에서 확인할 상황을 단순화한 교육용 예제입니다. 다음 단계에서 조건을 빠뜨린
+          구현을 실행하고, 수정 전후를 비교합니다. 특정 AI가 실제로 만든 오류를 재현한 자료는
+          아닙니다.
         </p>
-      </div>
+      </section>
       <div className="prediction-answer">
         <span className="eyebrow">내 예상</span>
-        <h3>어떻게 동작할까요?</h3>
+        <h3>먼저 확인 기준을 정해요</h3>
         <fieldset disabled={record.locked}>
           <legend>{mission.prediction}</legend>
           {mission.choices.map((choice, i) => (

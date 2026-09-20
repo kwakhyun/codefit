@@ -1,3 +1,4 @@
+import { openLabTools, waitForUiTransitions } from "./ui-helpers";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readHandoffDraft } from "../src/lib/handoff/draft";
@@ -32,6 +33,7 @@ async function begin(page: Page) {
   await page.getByRole("radio", { name: "원본 2, 반환값 3" }).check();
   await page.getByLabel("왜 그렇게 생각했나요?").fill(initialReason);
   await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await openLabTools(page);
   await page.locator(".lab-experiment-editor summary").click();
   await page.getByLabel("실험 코드", { exact: true }).fill(expression);
   await page.getByRole("button", { name: "두 코드로 실험 실행", exact: true }).click();
@@ -72,6 +74,7 @@ test("follow-up uses both reports and reflection, retries without replacing the 
   await expect(page.getByLabel("실험 후 알게 된 점")).toHaveValue(reflection);
   await expect(page.getByLabel("질문의 초점").locator("img")).toHaveCount(0);
   await expect(page.getByLabel("AI 맞춤 질문")).not.toContainText("이전 실행 기록");
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
@@ -81,6 +84,7 @@ test("follow-up uses both reports and reflection, retries without replacing the 
     await page
       .locator(".lab-experiment-reflection")
       .screenshot({ path: "artifacts/experiment-followup-mobile.png" });
+  await openLabTools(page);
   await page.locator(".lab-experiment-editor summary").click();
   await page.getByLabel("실험 코드", { exact: true }).fill("[9,9]");
   await expect(button).toBeDisabled();
