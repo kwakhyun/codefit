@@ -78,9 +78,9 @@ export function TrainingHero({
               <span className="eyebrow">{profile.name}</span>
               <h1 tabIndex={-1}>{profile.title}</h1>
               <p>
-                저장소 링크 하나로 내 코드의 빈틈을 살펴보세요.
+                공개 저장소 링크를 입력하면 코드에 맞는 질문과 연습을 준비해 드려요.
                 <br />
-                프로젝트 점검부터 코드 이해와 서비스 동작 연습까지.
+                설계 질문에 답하고, 코드를 읽으며 서비스 동작 원리를 익혀보세요.
               </p>
               <ProjectQuickStart key={scope} scope={scope} embedded />
             </div>
@@ -88,12 +88,20 @@ export function TrainingHero({
           </section>
           <ProjectResume key={scope} scope={scope} />
           <section className="service-check-path" aria-label="서비스 확인 순서">
-            <h2>질문에서 끝내지 않고, 확인까지</h2>
+            <h2>서비스 점검은 이렇게 진행해요</h2>
             <ol>
               {[
-                ["01", "설계 설명하기", "저장, 권한, 실패 처리에 관한 질문에 내 구현을 설명해요."],
-                ["02", "빈틈 찾기", "확인한 사실과 아직 검증하지 않은 부분을 구분해요."],
-                ["03", "다시 확인하기", "내 서비스에서 직접 검사하고 보완 답변을 남겨요."],
+                [
+                  "01",
+                  "설계 설명하기",
+                  "데이터 저장, 접근 권한, 오류 처리를 어떻게 구현했는지 답해요.",
+                ],
+                ["02", "확인할 부분 정리하기", "확인한 사실과 아직 검증하지 않은 부분을 구분해요."],
+                [
+                  "03",
+                  "직접 점검하기",
+                  "내 서비스에서 직접 확인한 결과를 기록하고 답변을 보완해요.",
+                ],
               ].map(([n, title, copy]) => (
                 <li key={n}>
                   <span>{n}</span>
@@ -107,8 +115,8 @@ export function TrainingHero({
             <Link href="/security-check" className="workspace-tool">
               <ShieldCheck />
               <div>
-                <h3>공개 보안 설정도 확인하세요</h3>
-                <p>공개 응답을 점검하고 직접 검증한 결과를 기록해요.</p>
+                <h3>서비스 보안 설정도 확인하세요</h3>
+                <p>외부에서 확인할 수 있는 보안 설정을 점검하고, 직접 검사한 결과도 기록해요.</p>
               </div>
               <ArrowRight />
             </Link>
@@ -130,7 +138,7 @@ export function TrainingHero({
           </Modal>
           <section className="workspace-secondary">
             <div className="section-heading">
-              <h2>필요한 원리만 보충하기</h2>
+              <h2>더 알아보고 싶은 서비스 원리</h2>
               <Link href="/learn">서비스 원리 배우기 →</Link>
             </div>
             <LearningResume scope={scope} />
@@ -150,9 +158,9 @@ export function TrainingHero({
               <span className="eyebrow">{profile.name}</span>
               <h1 tabIndex={-1}>{profile.title}</h1>
               <p>
-                분야를 고르고 바로 코딩하세요.
+                연습하고 싶은 분야의 문제를 골라 풀어보세요.
                 <br />
-                원하는 문제가 없다면 AI로 새 과제를 만들 수 있어요.
+                AI로 원하는 주제의 문제를 만들 수도 있어요.
               </p>
               <div className="workspace-inline-links">
                 <Link className="primary-button" href="#problem-library">
@@ -231,7 +239,7 @@ function AiWorkshop({ image, title }: { image: string; title: string }) {
           <h1 tabIndex={-1}>{title}</h1>
           <p>
             내 프로젝트에는 어떤 AI가 어울릴까요? <br />
-            사용 중인 기술부터 새로운 적용 아이디어까지, 코드로 배워요.
+            AI 도구의 원리를 익히고, 코드 예제로 활용 방법을 살펴보세요.
           </p>
           <ProjectAiEntry />
           <Link className="ai-home-catalog-link" href="/learn/ai#ai-catalog">
@@ -242,7 +250,7 @@ function AiWorkshop({ image, title }: { image: string; title: string }) {
       </section>
       <div className="ai-home-grid">
         <section className="ai-home-resume">
-          <span className="eyebrow">내 학습 여정</span>
+          <span className="eyebrow">내 학습 현황</span>
           <div className="ai-home-count">
             <strong>{ready ? completed : "—"}</strong>
             <span>/ 32개 수업 완료</span>
@@ -266,7 +274,7 @@ function AiWorkshop({ image, title }: { image: string; title: string }) {
           </small>
         </section>
         <section className="ai-home-routes">
-          <h2>해보고 싶은 일로 고르세요</h2>
+          <h2>해보고 싶은 작업을 골라보세요</h2>
           {[
             [
               "agent-workflow",
@@ -289,7 +297,7 @@ function AiWorkshop({ image, title }: { image: string; title: string }) {
         </section>
       </div>
       <section className="ai-home-topics">
-        <h2>다음에 확장할 주제</h2>
+        <h2>이런 주제도 배워보세요</h2>
         <div>
           {[
             ["langchain", "LangChain과 LangGraph", "모델과 도구를 연결하는 구조", Workflow],

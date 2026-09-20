@@ -179,24 +179,26 @@ export function Sidebar({
             <br />
             <strong>
               {type === "ai"
-                ? "하나씩 배워, 내 일에 적용하기"
+                ? "업무에 필요한 AI 활용법 배우기"
                 : type === "code"
                   ? "직접 풀고 실행하며 배우기"
-                  : "내 서비스의 근거를 확인하기"}
+                  : "내 서비스의 설계와 동작 확인하기"}
             </strong>
           </span>
         </div>
-        <Button
-          className="nav-item"
-          onClick={(event) => {
-            // Safari does not focus buttons on pointer activation; retain a dialog return target.
-            event.currentTarget.focus();
-            setSettingsOpen(true);
-          }}
-        >
-          <Settings2 size={17} />
-          <span>환경 설정</span>
-        </Button>
+        {type === "code" && (
+          <Button
+            className="nav-item"
+            onClick={(event) => {
+              // Safari does not focus buttons on pointer activation; retain a dialog return target.
+              event.currentTarget.focus();
+              setSettingsOpen(true);
+            }}
+          >
+            <Settings2 size={17} />
+            <span>환경 설정</span>
+          </Button>
+        )}
       </div>
     </aside>
   );

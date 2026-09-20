@@ -70,7 +70,7 @@ const slideCatalog = [
   },
   {
     tag: "AI 실무 배우기",
-    title: "AI 도구를 이해하고\n내 일에 연결해 보세요",
+    title: "AI 도구를 익히고\n업무에 활용해 보세요",
     description:
       "LangChain, LangGraph, 로컬 AI부터 업무 자동화까지. 개념을 익히고 선택형 모의 실습으로 활용 방법을 확인하세요.",
     href: "/learn/ai",

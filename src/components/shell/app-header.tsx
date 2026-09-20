@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/primitives";
 import { PreferenceChangeButton } from "@/components/library/learning-preference";
 import { AppLink as Link } from "@/components/ui/primitives";
 import { useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { Modal } from "@/components/ui/modal";
 
 import type { Workspace } from "@/lib/problem";
@@ -28,6 +29,7 @@ export function AppHeader({
   setHelpOpen,
   setGeneratorOpen,
 }: AppHeaderProps) {
+  const { type } = useLearningPreference();
   const [quickOpen, setQuickOpen] = useState(false);
   const quickTrigger = useRef<HTMLButtonElement>(null);
   function closeQuick() {
@@ -72,16 +74,18 @@ export function AppHeader({
           className="header-quick-dialog"
         >
           <div className="header-quick-actions">
-            <Button
-              disabled={!data}
-              onClick={() => {
-                setQuickOpen(false);
-                quickTrigger.current?.focus();
-                setGeneratorOpen(true);
-              }}
-            >
-              <Sparkles size={20} /> AI 문제 생성
-            </Button>
+            {type === "code" && (
+              <Button
+                disabled={!data}
+                onClick={() => {
+                  setQuickOpen(false);
+                  quickTrigger.current?.focus();
+                  setGeneratorOpen(true);
+                }}
+              >
+                <Sparkles size={20} /> AI 문제 생성
+              </Button>
+            )}
             <Button
               onClick={() => {
                 setQuickOpen(false);
@@ -125,18 +129,20 @@ export function AppHeader({
         >
           <CircleHelp size={18} />
         </Button>
-        <Button
-          className="secondary-button small desktop-header-action"
-          onClick={(event) => {
-            // Safari does not focus buttons on pointer activation; retain a dialog return target.
-            event.currentTarget.focus();
-            setGeneratorOpen(true);
-          }}
-          disabled={!data}
-        >
-          <Sparkles size={15} />
-          AI 문제 생성
-        </Button>
+        {type === "code" && (
+          <Button
+            className="secondary-button small desktop-header-action"
+            onClick={(event) => {
+              // Safari does not focus buttons on pointer activation; retain a dialog return target.
+              event.currentTarget.focus();
+              setGeneratorOpen(true);
+            }}
+            disabled={!data}
+          >
+            <Sparkles size={15} />
+            AI 문제 생성
+          </Button>
+        )}
       </div>
     </header>
   );

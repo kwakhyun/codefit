@@ -84,7 +84,9 @@ function EntryForm({ scope }: { scope: string }) {
           내 프로젝트로 배우기 <ArrowRight size={17} />
         </Button>
       </div>
-      <p className="muted">코드에서 확인한 AI와 새로 적용할 아이디어를 구분해 배워요.</p>
+      <p className="muted">
+        프로젝트에서 사용 중인 AI 기술을 배우고, 새로 활용할 방법도 살펴보세요.
+      </p>
     </form>
   );
 }
