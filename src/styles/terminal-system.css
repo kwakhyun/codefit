@@ -218,6 +218,23 @@ body {
     linear-gradient(to bottom, transparent, black 13%, black 87%, transparent);
   mask-composite: intersect;
 }
+/* Mask the artwork itself, not the empty letterbox around a contained image. */
+.section-artwork img,
+.visual-path-card > .section-artwork img,
+.visual-intro > .section-artwork img,
+.illustrated-panel > .section-artwork img {
+  aspect-ratio: 3 / 2;
+  height: auto;
+  object-fit: cover;
+}
+.visual-path-card > .section-artwork img {
+  width: min(100%, 240px);
+  max-height: none;
+  margin-inline: auto;
+}
+.feature-art img {
+  object-fit: cover;
+}
 .feature-banner,
 .feature-slide,
 .feature-banner.amber,
@@ -667,6 +684,7 @@ html {
   line-height: 1.8;
 }
 .observation-checkpoint .checkpoint-next {
+  margin-top: 20px;
   font-size: 14px;
   line-height: 1.8;
   color: var(--muted);
@@ -746,4 +764,53 @@ html {
 .repair-next-step .primary-button {
   min-height: 48px;
   white-space: normal;
+}
+
+/* Space between complete sections belongs to the parent, not the last text node. */
+.guest-login:not(.guest-login-compact) {
+  margin-block: 24px;
+}
+.persona-other-records > p {
+  margin-top: 20px;
+  line-height: 1.8;
+}
+.persona-security-start > p {
+  margin-block: 12px 20px;
+}
+.security-audit > p {
+  margin-block: 12px 24px;
+}
+.project-panel > hr {
+  margin-block: 28px;
+}
+.project-panel > h3 + p {
+  margin-top: 12px;
+}
+/* Shared reading rhythm for explanatory panels, including expanded disclosures. */
+:is(
+    .learn-limits,
+    .handoff-quality,
+    .handoff-measurement,
+    .auth-public-note,
+    .quality-page > section,
+    .privacy-copy,
+    .privacy-copy > section
+  )
+  > :is(h2, h3, summary, p, ul, ol)
+  + :is(p, ul, ol) {
+  margin-top: 16px;
+}
+:is(
+    .learn-limits,
+    .handoff-quality,
+    .handoff-measurement,
+    .auth-public-note,
+    .quality-page > section,
+    .privacy-copy,
+    .privacy-copy > section
+  )
+  > p
+  + a {
+  display: inline-flex;
+  margin-top: 16px;
 }
