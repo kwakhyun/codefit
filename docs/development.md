@@ -8,7 +8,7 @@ Node.js 22.x(22.13 이상)가 필요합니다. Docker 없이 SQLite로 실행할
 
 ```bash
 npm ci
-cp .env.example .env.local
+test -f .env.local || cp .env.example .env.local
 npm run dev
 ```
 
@@ -19,6 +19,8 @@ npm run dev
 | `OPENAI_API_KEY`              | 서버 전용 AI 키. 문제 생성, 풀이 검토, 학습 가이드와 프로젝트 점검에 사용                          |
 | `OPENAI_GENERATION_MODEL`     | 문제 생성 기본 `gpt-5.6-sol` (GPT-5.6 Sol)                                                         |
 | `OPENAI_REVIEW_MODEL`         | 풀이 검토와 맞춤 질문 기본 `gpt-5.6-luna`, `medium` 추론. 이전 `OPENAI_MODEL`은 검토에만 호환 적용 |
+| `OPENAI_COACH_MODEL`          | 선택적 코드 이해 코칭 전용 모델. 미설정 시 풀이 검토 모델 사용                                     |
+| `PROJECT_BROWSER_SNAPSHOT_ID` | 공개 프로젝트의 JS 실행과 화면 수집용 Vercel Sandbox 스냅샷 ID                                     |
 | `OPENAI_GUIDE_MODEL`          | 핏 시작 가이드 기본 `gpt-5.6-luna`                                                                 |
 | `OPENAI_PROJECT_MODEL`        | 내 프로젝트 분석과 질문 생성 기본 `gpt-5.6-sol`, `medium` 추론                                     |
 | `OPENAI_PROJECT_REVIEW_MODEL` | 내 프로젝트 답변 평가 기본 `gpt-5.6-luna`, `medium` 추론                                           |
@@ -34,7 +36,7 @@ npm run build
 npm start
 ```
 
-독립 실행 빌드 외부에 SQLite 파일을 두므로 재빌드 후에도 기록이 유지됩니다. 운영 사이트는 GitHub `main`에 푸시하면 Vercel이 자동 배포합니다. Production과 Preview는 별도의 PostgreSQL을 사용하며 각각 서버 키와 `RATE_LIMIT_SALT`를 설정합니다. 접근 암호는 사용하지 않습니다.
+독립 실행 빌드 외부에 SQLite 파일을 두므로 재빌드 후에도 기록이 유지됩니다. 운영 사이트는 GitHub `main`에 푸시하면 Vercel이 자동 배포합니다. Production과 Preview는 별도의 PostgreSQL을 사용하며 각각 서버 키와 `RATE_LIMIT_SALT`를 설정합니다. 배포 보호 설정은 환경별로 확인하세요. Preview 주소가 Vercel 로그인으로 연결될 수 있으므로 공개 체험 링크에는 접근 가능한 운영 주소를 사용합니다.
 
 ## 코드 이해 훈련의 실행 환경
 
@@ -51,6 +53,8 @@ QuickJS 0.32.0의 파일명을 바꿀 때에는 복사 스크립트와 Worker �
 실제 모델의 질문 품질과 학습 효과는 별도 실사용 평가가 필요합니다.
 
 ## 검증 재현
+
+변경한 기능에 해당하는 테스트부터 실행합니다. 예를 들어 공통 화면과 배너 변경은 빌드 후 `npx playwright test e2e/experience-ui.spec.ts`로 확인할 수 있습니다. 아래는 CI를 포함한 전체 검증 절차이며, 작은 변경마다 모두 실행해야 한다는 뜻은 아닙니다.
 
 ```bash
 npm run format:check
@@ -102,14 +106,14 @@ VERIFY_BASE_URL=http://127.0.0.1:3012 VERIFY_COOKIE_FILE=artifacts/oauth-live-co
 
 ## 백업과 구조
 
-사용자 기록 내보내기와 운영 DB 보관/이관은 서로 다른 기능입니다.
+사용자 기록 내보내기와 운영 DB 보관/이관은 서로 다른 기능입니다. 웹 JSON 백업은 최대 4,000,000바이트이며 보안 점검의 탭 임시 기록과 미제출 초안은 제외합니다. [백업 계약](workspace-backup.md)이 포함 범위와 복원 정책의 기준입니다.
 
-| 방법                   | 포함 범위                                                                             | 복원 방법                                     |
-| ---------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------- |
-| 서비스의 JSON 백업     | 공개 문제와 현재 소유자의 코딩 진도/제출                                              | 서비스에서 가져오기. 기존 작성 코드는 유지    |
-| 미션별 텍스트 내보내기 | 입문 예상, 관찰, 수정 요청과 검사 요약                                                | 읽기/보관용. 앱으로 가져오기는 미지원         |
-| SQLite 파일 백업       | 인증과 입문 기록을 포함한 DB 전체                                                     | 앱을 종료한 뒤 파일 복원                      |
-| SQLite→PostgreSQL 이관 | 계정/연결, 문제, 코딩 진도/제출, 입문 기록과 리비전, 생성 사용량, 과거 기록과 AI 계측 | 운영자용 명령. 대상의 기존 행은 덮어쓰지 않음 |
+| 방법                   | 포함 범위                                                                                   | 복원 방법                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| 서비스의 v3 JSON 백업  | 본인과 연결된 문제, 코딩 진도/제출, 입문 기록, 완료된 프로젝트 분석·평가·학습 기록과 이미지 | 서비스에서 가져오기. 기존 기록은 유지         |
+| 미션별 텍스트 내보내기 | 입문 예상, 관찰, 수정 요청과 검사 요약                                                      | 읽기/보관용. 앱으로 가져오기는 미지원         |
+| SQLite 파일 백업       | 인증과 입문 기록을 포함한 DB 전체                                                           | 앱을 종료한 뒤 파일 복원                      |
+| SQLite→PostgreSQL 이관 | 계정/연결, 문제, 코딩·입문 기록, 완료된 프로젝트·학습 기록, 생성 사용량과 AI 계측           | 운영자용 명령. 대상의 기존 행은 덮어쓰지 않음 |
 
 ```bash
 npm run backup -- /safe-backups/codefit.sqlite
@@ -174,13 +178,13 @@ npm run eval:handoff -- --strengthened --live
 
 `/learn`에서 코스를 고르고 `/learn/[id]`에서 연습한다. `GET /api/learn`은 현재 소유자의 기록, `GET/PUT /api/learn/[id]`는 개별 기록의 조건부 읽기/쓰기를 제공한다. `POST /api/learn/[id]/coach`는 기존 리뷰 모델 및 사용량 한도를 공유한다. 미션과 기록 스키마는 `src/lib/learn/`, 모의 앱과 단계 화면은 `src/components/learn/`에 있다.
 
-`learning_progress` 테이블은 기존 공유 스키마 초기화 때 생성된다. 새 환경 변수나 외부 인프라는 필요하지 않다. 입문 기록은 사용자용 코딩 JSON 백업의 내보내기/가져오기 대상이 아니며 미션별 텍스트 내보내기만 제공한다. 운영용 전체 SQLite 스냅샷과 SQLite→PostgreSQL 이관에는 포함된다.
+`learning_progress` 테이블은 기존 공유 스키마 초기화 때 생성된다. 새 환경 변수나 외부 인프라는 필요하지 않다. 입문 기록은 사용자용 v3 JSON 백업의 내보내기/가져오기에 포함하며, 미션별 텍스트 내보내기도 제공한다. 운영용 전체 SQLite 스냅샷과 SQLite→PostgreSQL 이관에는 포함된다.
 
-`npm test`로 모의 동작과 저장 계약을, `npx playwright test e2e/beginner.spec.ts`로 기본 9개와 확장 20개 미션, 배너의 브라우저 흐름을 검사한다. E2E는 기존처럼 운영 DB/AI 키를 비운 격리 서버를 사용한다. 기본 테스트 주소는 `http://127.0.0.1:3012`이며 3010 미리보기와 분리한다. `e2e/service-domains.spec.ts`와 `e2e/simulation-voice.spec.ts`는 확장한 29개 실습과 서비스 화면을 확인한다.
+`npm test`로 모의 동작과 저장 계약을, `npx playwright test e2e/beginner.spec.ts`로 현재 카탈로그의 미션과 배너의 브라우저 흐름을 검사한다. E2E는 기존처럼 운영 DB/AI 키를 비운 격리 서버를 사용한다. 기본 테스트 주소는 `http://127.0.0.1:3012`이며 3010 미리보기와 분리한다. `e2e/service-domains.spec.ts`와 `e2e/simulation-voice.spec.ts`는 현재 공개된 21개 실습과 서비스 화면을 확인한다.
 
 ## 내 프로젝트 점검
 
-`/project-check`와 `/api/project-check`는 가입자 전용 분석/평가를 제공합니다. 기존 서버 API 키와 DB를 재사용하며 추가 인프라는 필요하지 않습니다. 주소 수집 제한, 개인 한도, 실패 시 차감 정책과 모델 비용은 [설계 기록](project-check.md)에 있습니다. SQLite→PostgreSQL 이관에서는 완료된 프로젝트 질문과 평가만 복사하고 진행 중인 AI 작업은 제외합니다. 일반 DB 백업에도 기록이 포함됩니다.
+`/project-check`와 `/api/project-check`는 가입자 전용 분석/평가를 제공합니다. 기존 서버 API 키와 DB를 재사용합니다. 자바스크립트 실행 후 화면 수집에는 Vercel Sandbox 스냅샷과 프로젝트 범위 인증이 추가로 필요합니다. [브라우저 수집 준비](project-browser.md#브라우저-이미지-준비)에 따라 `PROJECT_BROWSER_SNAPSHOT_ID`를 설정하세요. 설정이 없거나 수집에 실패하면 HTML 수집으로 전환하며, 렌더링된 화면을 읽었다고 표시하지 않습니다. 주소 수집 제한, 개인 한도, 실패 시 차감 정책과 모델 비용은 [설계 기록](project-check.md)에 있습니다. SQLite→PostgreSQL 이관에서는 완료된 프로젝트 질문과 평가만 복사하고 진행 중인 AI 작업은 제외합니다. 일반 DB 백업에도 기록이 포함됩니다.
 
 ## 미리보기와 검증 환경 구분
 
