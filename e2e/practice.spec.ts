@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { editor, setCode, readCode } from "./editor-helpers";
 
 async function home(page: Page) {
-  await page.goto("/");
+  await page.goto("/?view=browse");
   await expect(
     page.getByRole("heading", { name: "검색 결과가 뒤바뀌는 버그 수정하기" }),
   ).toBeVisible();

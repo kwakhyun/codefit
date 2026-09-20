@@ -103,9 +103,11 @@ export function useLibraryController({
       ? "북마크"
       : initialView === "history"
         ? "학습 기록"
-        : initialDomain === "all"
-          ? "문제 보관함"
-          : domainLabel(initialDomain);
+        : initialView === "browse"
+          ? "전체 문제 탐색"
+          : initialDomain === "all"
+            ? "문제 보관함"
+            : domainLabel(initialDomain);
   function resetFilters() {
     setSearch("");
     setLevel("all");

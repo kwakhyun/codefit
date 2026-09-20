@@ -37,7 +37,7 @@ test("guests can practice, see login guidance, and cannot generate or read profi
   await expect(page).toHaveURL(/\/login\?returnTo=/);
   await page.getByRole("link", { name: "로그인 없이 연습하기" }).click();
   await expect(
-    page.getByRole("heading", { level: 1, name: /오늘은 무엇을 연습할까요/ }),
+    page.getByRole("heading", { level: 1, name: /작동 원리를 직접 확인해 보세요/ }),
   ).toBeVisible();
 });
 test("profile, account ownership, generation quota and logout work together", async ({

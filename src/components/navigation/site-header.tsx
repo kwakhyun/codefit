@@ -1,4 +1,5 @@
 "use client";
+import { PreferenceChangeButton } from "@/components/library/learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { preferredDestinations } from "@/lib/learning-preference";
 import Link from "next/link";
@@ -15,6 +16,7 @@ export function SiteHeader() {
         <BrandIcon />
         CODE:FIT_
       </Link>
+      <PreferenceChangeButton />
       <nav aria-label="서비스 메뉴" className="site-navigation">
         <Link href="/">홈</Link>
         {preferredDestinations(preference).map((item) => (

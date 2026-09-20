@@ -18,7 +18,9 @@ export default async function Home({
     ? (params.domain as DomainId)
     : "all";
   const view: LibraryView =
-    params.view === "bookmarks" || params.view === "history" ? params.view : "library";
+    params.view === "bookmarks" || params.view === "history" || params.view === "browse"
+      ? params.view
+      : "library";
   return (
     <PracticeApp
       key={`${domain}:${view}`}

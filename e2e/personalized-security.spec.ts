@@ -1,30 +1,4 @@
 import { expect, test } from "@playwright/test";
-test("experience and intent reorder menus, survive reload and keep every destination", async ({
-  page,
-}) => {
-  await page.goto("/");
-  const picker = page.getByRole("region", { name: "나에게 맞는 시작점" });
-  await expect(picker.getByRole("heading", { name: "서비스 원리 배우기" })).toBeVisible();
-  await picker.getByLabel("개발 경험").selectOption("developer");
-  await expect(picker.getByRole("heading", { name: "AI 코드 이해 훈련" })).toBeVisible();
-  await picker.getByLabel("지금 하고 싶은 일").selectOption("project");
-  await expect(picker.getByRole("heading", { name: "내 프로젝트 점검" })).toBeVisible();
-  await picker.getByLabel("개발 경험").selectOption("beginner");
-  await expect(picker.getByRole("heading", { name: "내 프로젝트 점검" })).toBeVisible();
-  await page.reload();
-  await expect(picker.getByLabel("지금 하고 싶은 일")).toHaveValue("project");
-  const menus = page
-    .getByRole("complementary", { name: "주 메뉴" })
-    .locator(
-      'a[href="/learn"],a[href="/handoff"],a[href="/project-check"],a[href="/security-check"]',
-    );
-  await expect(menus).toHaveCount(4);
-  await expect(menus.first()).toHaveAttribute("href", "/project-check");
-  await page.goto("/security-check");
-  await expect(
-    page.getByRole("navigation", { name: "서비스 메뉴" }).getByRole("link").nth(1),
-  ).toHaveAttribute("href", "/project-check");
-});
 test("security form shows scoped observations and handles failures without showing stale results", async ({
   page,
 }) => {

@@ -44,7 +44,7 @@ export function Sidebar({
   activeProblem,
   setSettingsOpen,
 }: SidebarProps) {
-  const { preference } = useLearningPreference();
+  const { preference, profile } = useLearningPreference();
   return (
     <aside
       className={`sidebar ${mobileMenu ? "open" : ""}`}
@@ -105,36 +105,30 @@ export function Sidebar({
           <Home size={17} />
           <span>홈</span>
         </Link>
-        {preferredDestinations(preference).map((item) => (
-          <Link className="nav-item" href={item.href} key={item.href}>
-            {item.href === "/learn" ? (
-              <BookOpen size={17} />
-            ) : item.href === "/handoff" ? (
-              <Terminal size={17} />
-            ) : item.href === "/security-check" ? (
-              <ShieldCheck size={17} />
-            ) : (
-              <ClipboardCheck size={17} />
+        {preferredDestinations(preference).map((item, index) => (
+          <div key={item.href}>
+            {(index === 0 || index === (preference.purpose === "project" ? 2 : 1)) && (
+              <span className="nav-caption">{index === 0 ? profile.group : profile.secondary}</span>
             )}
-            <span>{item.label}</span>
-          </Link>
+            <Link className="nav-item" href={item.href} key={item.href}>
+              {item.href === "/learn" ? (
+                <BookOpen size={17} />
+              ) : item.href === "/handoff" ? (
+                <Terminal size={17} />
+              ) : item.href === "/security-check" ? (
+                <ShieldCheck size={17} />
+              ) : (
+                <ClipboardCheck size={17} />
+              )}
+              <span>{item.label}</span>
+            </Link>
+          </div>
         ))}
-        <Link className="nav-item" href="/#learning-preference">
-          <Settings2 size={17} />
-          <span>내 시작점 변경</span>
-        </Link>
-        <a
-          className="nav-item"
-          href={
-            !initialProblemId && initialView === "library" && initialDomain === "all"
-              ? "#problem-library"
-              : "/#problem-library"
-          }
-        >
+        <Link className="nav-item" href="/?view=browse">
           <LayoutGrid size={17} />
-          <span>문제 보관함</span>
+          <span>전체 문제 탐색</span>
           <small>{data?.stats.total ?? "—"}</small>
-        </a>
+        </Link>
         <Link
           className={`nav-item ${!initialProblemId && initialView === "bookmarks" ? "active" : ""}`}
           href="/?view=bookmarks"
@@ -150,13 +144,10 @@ export function Sidebar({
           <History size={17} />
           <span>내 학습 기록</span>
         </Link>
-        <details
-          className="domain-disclosure"
-          open={initialDomain !== "all" || Boolean(activeProblem)}
-        >
-          <summary>
+        <section className="domain-list" aria-label="분야별 문제">
+          <h2 className="nav-caption">
             분야별 문제 <span>{DOMAINS.length}</span>
-          </summary>
+          </h2>
           {DOMAINS.map((d) => (
             <Link
               key={d.id}
@@ -167,7 +158,7 @@ export function Sidebar({
               <span>{d.label}</span>
             </Link>
           ))}
-        </details>
+        </section>
       </nav>
       <div className="sidebar-bottom">
         {data?.account.user && (

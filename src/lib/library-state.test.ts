@@ -114,3 +114,12 @@ describe("training insights", () => {
     expect(recommendProblem([], {})).toBeUndefined();
   });
 });
+
+it("keeps the explicit catalog view through filters and a problem round trip", () => {
+  const url = libraryUrl({ ...defaultFilters, search: "TCP" }, "all", "browse");
+  expect(url).toBe("/?view=browse&q=TCP");
+  expect(safeReturnTo(url)).toBe(url);
+  expect(
+    new URL(problemUrl("net-framing", url), "https://codefit.example").searchParams.get("from"),
+  ).toBe(url);
+});

@@ -1,3 +1,4 @@
+import { learnerTypes } from "./learner-types";
 export type LearningPreference = {
   experience: "beginner" | "developer";
   purpose: "learn" | "project";
@@ -6,6 +7,8 @@ export const defaultPreference: LearningPreference = { experience: "beginner", p
 export function parsePreference(raw: string | null): LearningPreference {
   try {
     const value = JSON.parse(raw || "null");
+    const migrated = value?.version === 2 && learnerTypes.find((item) => item.id === value.type);
+    if (migrated) return { experience: migrated.experience, purpose: migrated.purpose };
     if (
       ["beginner", "developer"].includes(value?.experience) &&
       ["learn", "project"].includes(value?.purpose)
@@ -41,12 +44,9 @@ const destinations = {
 export function preferredDestinations(preference: LearningPreference) {
   const order: (keyof typeof destinations)[] =
     preference.purpose === "project"
-      ? [
-          "project",
-          "security",
-          preference.experience === "developer" ? "handoff" : "learn",
-          preference.experience === "developer" ? "learn" : "handoff",
-        ]
+      ? preference.experience === "developer"
+        ? ["security", "project", "handoff", "learn"]
+        : ["project", "learn", "security", "handoff"]
       : preference.experience === "developer"
         ? ["handoff", "project", "security", "learn"]
         : ["learn", "handoff", "project", "security"];

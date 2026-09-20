@@ -17,13 +17,14 @@ test("first visit recommends one mission and previews project questions before l
   const recommended = page.getByRole("region", { name: "추천 첫 학습" });
   await expect(recommended.getByRole("link")).toHaveAttribute("href", "/learn/where-data-lives");
   await expect(page.getByRole("region", { name: "코드핏 핵심 기능" })).toHaveCount(0);
-  await expect(page.locator(".project-launch")).toContainText(
+  await page.getByRole("radio", { name: "내 서비스 이해", exact: true }).check();
+  await expect(page.locator(".persona-project-resume")).toContainText(
     "로그인 필요 · 24시간에 프로젝트 2개까지",
   );
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/feedback-home-desktop.png", fullPage: true });
   await accessible(page);
-  await page.locator(".project-launch").click();
+  await page.locator(".persona-project-resume").getByRole("link").click();
   const sample = page.getByRole("region", { name: "어떤 질문과 피드백을 받나요?" });
   await expect(sample).toContainText("실제 AI 분석 결과나 사용자 답변이 아닙니다");
   await expect(sample).toContainText("서버에서 요청자와 메모 소유자를 비교하는지");

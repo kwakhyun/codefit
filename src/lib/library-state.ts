@@ -37,7 +37,7 @@ export function readFilters(params: URLSearchParams): LibraryFilters {
 export function libraryUrl(filters: LibraryFilters, domain = "all", view = "library") {
   const params = new URLSearchParams();
   if (DOMAIN_IDS.includes(domain as (typeof DOMAIN_IDS)[number])) params.set("domain", domain);
-  if (["bookmarks", "history"].includes(view)) params.set("view", view);
+  if (["bookmarks", "history", "browse"].includes(view)) params.set("view", view);
   for (const [key, value] of Object.entries(filters)) {
     if (value !== defaultFilters[key as keyof LibraryFilters])
       params.set(key === "search" ? "q" : key, String(value));
@@ -60,4 +60,4 @@ export function problemUrl(id: string, returnTo: string, attempt?: string) {
   return `/problems/${encodeURIComponent(id)}?${params}`;
 }
 
-export type LibraryView = "library" | "bookmarks" | "history";
+export type LibraryView = "library" | "bookmarks" | "history" | "browse";

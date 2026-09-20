@@ -2,13 +2,12 @@
 import { LearningPreferencePicker } from "./learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { useState } from "react";
-import { ScenarioImage } from "@/components/ui/scenario-visual";
 import { problemUrl } from "@/lib/library-state";
 import type { ProblemSummary, ProgressSummary } from "@/lib/problem";
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { FeatureBanner } from "./feature-banner";
 import { LearningResume } from "@/components/learn/learning-resume";
+import { ProjectResume } from "./project-resume";
 import { GuestLogin } from "@/components/account/guest-login";
 interface TrainingHeroProps {
   recommended: ProblemSummary | undefined;
@@ -17,6 +16,44 @@ interface TrainingHeroProps {
   scope: string;
   onGenerate: () => void;
 }
+const paths = {
+  starter: [
+    ["/learn/where-data-lives", "저장과 새로고침", "입력한 데이터가 어디에 남는지 직접 비교해요."],
+    [
+      "/learn/private-board",
+      "누가 읽을 수 있나요?",
+      "다른 사용자의 비공개 글에 접근하는 상황을 실험해요.",
+    ],
+  ],
+  coder: [
+    [
+      "/problems/handoff-cart?from=%2Fhandoff",
+      "장바구니 코드 인수인계",
+      "예상 → 실행 → 수정 → 설명 순서로 훈련해요.",
+    ],
+    ["/?view=browse", "분야별 코드 문제", "구현, 오류 수정, 리팩터링 문제를 골라요."],
+  ],
+  maker: [
+    [
+      "/learn/private-board",
+      "내 서비스의 접근 권한 이해하기",
+      "예제에서 권한 문제를 재현하고 AI 수정 요청을 연습해요.",
+    ],
+    ["/learn/double-booking", "예약이 두 번 생긴다면", "같은 작업의 재시도와 새 요청을 구분해요."],
+  ],
+  builder: [
+    [
+      "/security-check",
+      "공개 설정과 수동 확인 기록",
+      "공개 응답을 확인하고 내 테스트 환경의 검증 결과를 남겨요.",
+    ],
+    [
+      "/project-check",
+      "설계 설명과 보완 답변",
+      "저장, 권한, 실패 처리의 근거를 질문으로 점검해요.",
+    ],
+  ],
+} as const;
 export function TrainingHero({
   recommended,
   libraryHref,
@@ -24,72 +61,87 @@ export function TrainingHero({
   scope,
   onGenerate,
 }: TrainingHeroProps) {
-  const { preference } = useLearningPreference();
+  const { type, profile } = useLearningPreference();
   const [showFeatures, setShowFeatures] = useState(false);
-  return (
-    <div className="training-welcome">
-      <div className="home-heading">
+  const codeResume =
+    resume && recommended ? (
+      <section className="resume-card" aria-label="코딩 문제 이어하기">
         <div>
-          <span className="eyebrow">AI 시대에도, 이해는 내 실력으로</span>
-          <h1>오늘은 무엇을 연습할까요?</h1>
+          <span className="eyebrow">작성 중인 코드</span>
+          <h2>{recommended.title}</h2>
+          <p>저장된 코드부터 이어서 풀어보세요.</p>
         </div>
-        <p>처음 배우는 원리부터 직접 고치는 코드까지.</p>
+        <Link className="primary-button" href={problemUrl(recommended.id, libraryHref)}>
+          이어서 훈련하기 →
+        </Link>
+      </section>
+    ) : null;
+  return (
+    <div className="training-welcome" data-learner-type={type}>
+      <div className="home-heading">
+        <span className="eyebrow">{profile.name} · 나에게 맞는 연습실</span>
+        <h1>{profile.title}</h1>
+        <p>{profile.description}</p>
       </div>
       <LearningPreferencePicker />
-      <LearningResume
-        key={scope}
-        scope={scope}
-        recommendFirst={
-          !resume && preference.experience === "beginner" && preference.purpose === "learn"
-        }
-      />
-      {resume && recommended && (
-        <section className="resume-card" aria-label="코딩 문제 이어하기">
-          <div>
-            <span className="eyebrow">작성 중인 코드</span>
-            <h2>{recommended.title}</h2>
-            <p>저장된 코드부터 이어서 풀어보세요.</p>
-          </div>
-          <Link className="primary-button" href={problemUrl(recommended.id, libraryHref)}>
-            이어서 훈련하기
-            <ArrowRight size={16} />
-          </Link>
-        </section>
-      )}
-      <nav className="training-paths" aria-label="다른 연습 둘러보기">
-        <Link href="/learn" className="training-path-foundation">
-          <ScenarioImage scene="data-storage" />
-          <span>코딩이 처음이라면 · 5분부터</span>
-          <strong>
-            서비스 원리 배우기 <ArrowRight size={17} />
-          </strong>
-          <p>데이터 저장과 서비스의 작동 원리를 직접 확인해요.</p>
-        </Link>
-        <Link href="/handoff" className="training-path-analysis">
-          <ScenarioImage scene="cart" />
-          <span>코드를 읽을 수 있다면 · 25분부터</span>
-          <strong>
-            AI 코드 분석하기 <ArrowRight size={17} />
-          </strong>
-          <p>실행 결과를 예상하고, 코드를 고치고 검증해요.</p>
-        </Link>
-        <a href="#problem-library" className="training-path-practice">
-          <ScenarioImage scene="packets" />
-          <span>직접 코딩하고 싶다면</span>
-          <strong>
-            문제 골라 풀기 <ArrowRight size={17} />
-          </strong>
-          <p>원하는 분야의 구현, 오류 수정, 리팩터링을 연습해요.</p>
-        </a>
-      </nav>
-      <Link href="/project-check" className="project-launch">
+      <div className="persona-home-primary" aria-label={`${profile.name} 우선 콘텐츠`}>
+        {type === "starter" && <LearningResume key={scope} scope={scope} recommendFirst />}
+        {type === "coder" &&
+          (codeResume || (
+            <section className="resume-card" aria-label="추천 코드 훈련">
+              <div>
+                <span className="eyebrow">첫 코드 이해 훈련</span>
+                <h2>장바구니 상태를 인수인계해 보세요</h2>
+                <p>실행 결과를 먼저 예상하고, 원본과 수정 코드를 비교합니다.</p>
+              </div>
+              <Link className="primary-button" href="/problems/handoff-cart?from=%2Fhandoff">
+                코드 훈련 시작 →
+              </Link>
+            </section>
+          ))}
+        {type === "builder" && (
+          <section className="persona-security-start">
+            <span className="eyebrow">공개 설정부터 확인하기</span>
+            <h2>배포 전 확인할 항목을 정리하세요</h2>
+            <p>
+              서비스 링크의 공개 보안 설정을 확인하고 권한과 중복 요청의 수동 확인 메모를 남깁니다.
+              취약점 전체를 자동 검증하는 기능은 아닙니다.
+            </p>
+            <Link className="primary-button" href="/security-check">
+              보안 설정과 확인 기록 열기 →
+            </Link>
+          </section>
+        )}
+        {(type === "maker" || type === "builder") && <ProjectResume key={scope} scope={scope} />}
+      </div>
+      <section className="persona-next-steps" aria-label={`${profile.name} 추천 경로`}>
+        <h2>
+          {type === "starter"
+            ? "직접 눌러 배우는 두 가지 원리"
+            : type === "coder"
+              ? "코드로 이어가는 연습"
+              : type === "maker"
+                ? "예제로 익히고 내 서비스에 적용하기"
+                : "설계와 실제 동작을 함께 확인하기"}
+        </h2>
         <div>
-          <strong>AI로 만든 내 서비스, 설계도 설명할 수 있나요?</strong>
-          <p>내 프로젝트 점검 · 로그인 필요 · 24시간에 프로젝트 2개까지</p>
-          <span>질문과 피드백 예시 먼저 보기 →</span>
+          {paths[type].map(([href, title, description]) => (
+            <Link key={href} href={href}>
+              <strong>{title} →</strong>
+              <p>{description}</p>
+            </Link>
+          ))}
         </div>
-        <ArrowRight size={22} />
-      </Link>
+      </section>
+      <section className="persona-other-records" aria-label="다른 학습 이어하기">
+        <div className="section-heading">
+          <h2>다른 학습도 이어갈 수 있어요</h2>
+          <Link href="/?view=history">모든 학습 기록 →</Link>
+        </div>
+        {type !== "starter" && <LearningResume key={scope} scope={scope} />}
+        {type !== "coder" && codeResume}
+        <p>타입을 바꿔도 이전 학습 기록과 작성 중인 코드는 그대로 남습니다.</p>
+      </section>
       <details
         className="home-feature-details"
         onToggle={(event) => setShowFeatures(event.currentTarget.open)}

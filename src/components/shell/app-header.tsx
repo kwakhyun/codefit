@@ -1,4 +1,5 @@
 "use client";
+import { PreferenceChangeButton } from "@/components/library/learning-preference";
 import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -43,6 +44,7 @@ export function AppHeader({
         <strong>{initialProblemId ? "문제 풀이" : title === "문제 보관함" ? "홈" : title}</strong>
       </div>
       <div className="topbar-actions">
+        <PreferenceChangeButton />
         <span className="connection">
           <span className={`status-dot ${!data ? "waiting" : ""}`} />
           {data ? "저장소 연결됨" : "연결 중"}

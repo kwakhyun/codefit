@@ -142,7 +142,9 @@ test("account discovery recovers after visiting home and switching the signed-in
     await a.store.queries.projectChecks.complete(claim.lease, { ...fixtureCheck, id });
     await login(a.cookie);
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "오늘은 무엇을 연습할까요?" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "작동 원리를 직접 확인해 보세요" }),
+    ).toBeVisible();
     await page.locator('a[href="/project-check"]').first().click();
     await page.getByRole("button", { name: /예약 서비스 설계 점검/ }).click();
     await page.getByLabel("내 설계 설명").fill("첫 계정의 비공개 초안");

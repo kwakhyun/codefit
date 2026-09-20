@@ -10,7 +10,7 @@ import { Bookmark, CheckCircle2, Clock3, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 interface ProblemTableProps {
   library: LibraryController;
-  initialView: "library" | "bookmarks";
+  initialView: "library" | "bookmarks" | "browse";
   bookmarking: string | null;
   bookmark: (p: ProblemSummary, bookmarked: boolean) => Promise<void>;
 }
