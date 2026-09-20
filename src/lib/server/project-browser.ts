@@ -54,16 +54,19 @@ export async function renderPublicProject(url: string, signal: AbortSignal): Pro
       signal: bounded,
     });
     if (ipv6.exitCode !== 0) throw new Error("Could not restrict browser networking");
-    await sandbox.writeFiles([
-      { path: "/vercel/sandbox/input.json", content: Buffer.from(JSON.stringify({ url })) },
-      {
-        path: "/vercel/sandbox/capture.mjs",
-        content: Buffer.from(
-          "import {createRequire} from 'node:module';const require=createRequire(import.meta.url);\n" +
-            projectBrowserScript,
-        ),
-      },
-    ]);
+    await sandbox.writeFiles(
+      [
+        { path: "/vercel/sandbox/input.json", content: Buffer.from(JSON.stringify({ url })) },
+        {
+          path: "/vercel/sandbox/capture.mjs",
+          content: Buffer.from(
+            "import {createRequire} from 'node:module';const require=createRequire(import.meta.url);\n" +
+              projectBrowserScript,
+          ),
+        },
+      ],
+      { signal: bounded },
+    );
     const command = await sandbox.runCommand({
       cmd: "node",
       args: ["/vercel/sandbox/capture.mjs"],
@@ -90,7 +93,7 @@ export async function renderPublicProject(url: string, signal: AbortSignal): Pro
       collectionNote: `공개 화면 ${result.pages.length}곳을 읽었습니다. 최대 3곳을 약 30초 이내로 수집합니다. 스크롤하고 공개 접기 항목을 펼쳐 읽었습니다. 로그인, 입력, 버튼 실행, 서버 내부는 검사하지 않았습니다.${result.failures.length ? ` ${result.failures.length}곳은 읽지 못했습니다.` : ""}`,
     };
   } finally {
-    await sandbox.stop().catch(() => {});
+    await sandbox.stop({ signal: AbortSignal.timeout(3000) }).catch(() => {});
   }
 }
 
