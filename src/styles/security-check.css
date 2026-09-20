@@ -167,3 +167,27 @@
 .security-exercises > p + p {
   margin-top: 12px;
 }
+
+/* Keep native selection and keyboard controls; give its indicator a stable inset. */
+.preference-fields select,
+#project-follow-up select {
+  appearance: none;
+  min-height: 48px;
+  padding: 10px 44px 10px 14px;
+  border-color: #425165;
+  border-radius: var(--radius-control);
+  line-height: 1.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 6 5 5 5-5' stroke='%23b8c5d1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px 16px;
+}
+
+@media (forced-colors: active) {
+  .preference-fields select,
+  #project-follow-up select {
+    appearance: auto;
+    padding-right: 14px;
+    background-image: none;
+  }
+}

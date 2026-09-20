@@ -501,32 +501,3 @@ body:has(.guide-panel[open]) {
   width: 32px;
   height: 32px;
 }
-
-/* Home guidance takes its own space so it cannot cover recommendations while scrolling. */
-.home-heading-tools {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px 20px;
-  width: 100%;
-}
-.guide-inline .guide-launch-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 6px 12px;
-  border-radius: 12px;
-  box-shadow: none;
-}
-.guide-inline .fit-mascot {
-  width: 32px;
-  height: 32px;
-}
-
-.library-inline-guide {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
-}

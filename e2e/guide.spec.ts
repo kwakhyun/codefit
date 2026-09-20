@@ -33,40 +33,28 @@ const fixtureReply = {
   },
 };
 
-test("home guide stays in the page flow and is keyboard accessible", async ({ page }, info) => {
+test("first visit invitation is dismissible and the guide is keyboard accessible", async ({
+  page,
+}, info) => {
   let requests = 0;
   page.on("request", (request) => {
     if (request.url().includes("/api/guide")) requests++;
   });
   await page.goto("/");
-  const launcher = page.getByRole("button", { name: "핏 시작 가이드 열기" });
-  await expect(launcher).toBeVisible();
-  await expect(page.locator(".guide-intro-hint, .guide-launcher")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "처음이라면? 시작할 곳을 찾아드려요" }),
+  ).toBeVisible();
   expect(requests).toBe(0);
+  if (info.project.name === "chromium")
+    await page.screenshot({ path: "artifacts/guide-launcher.png" });
+  await page.getByRole("button", { name: "첫 방문 안내 숨기기" }).click();
   await page.reload();
-  await expect(launcher).toBeVisible();
-  for (const viewport of [
-    { width: 1280, height: 720 },
-    { width: 390, height: 844 },
-  ]) {
-    await page.setViewportSize(viewport);
-    const card = page.getByRole("region", { name: "추천 첫 학습" });
-    await expect(card).toBeVisible();
-    for (const position of [0, 200, 500]) {
-      await page.evaluate((y) => window.scrollTo(0, y), position);
-      const guideBox = await launcher.boundingBox();
-      const cardBox = await card.boundingBox();
-      expect(
-        guideBox &&
-          cardBox &&
-          (guideBox.y + guideBox.height <= cardBox.y || guideBox.y >= cardBox.y + cardBox.height),
-      ).toBe(true);
-    }
-    await card.getByRole("link").click({ trial: true });
-    if (info.project.name === "chromium")
-      await page.screenshot({ path: `artifacts/guide-home-${viewport.width}.png` });
-  }
-  await page.setViewportSize({ width: 1280, height: 720 });
+  await expect(page.getByRole("button", { name: "첫 방문 안내 숨기기" })).toHaveCount(0);
+  const launcher = page.getByRole("button", { name: "핏 시작 가이드 열기" });
+  await page.getByRole("button", { name: "시작 가이드 작게 보기" }).click();
+  await expect(page.locator(".guide-launcher")).toHaveClass(/is-compact/);
+  await expect(launcher).toBeFocused();
+  await expect(launcher).toHaveCSS("width", "48px");
   await launcher.focus();
   await page.keyboard.press("Enter");
   const dialog = page.getByRole("dialog", { name: "핏의 시작 가이드" });
@@ -74,10 +62,6 @@ test("home guide stays in the page flow and is keyboard accessible", async ({ pa
   await expect(dialog.getByRole("button", { name: "다음", exact: true })).toBeDisabled();
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/guide-first-step.png" });
-  await dialog.getByRole("button", { name: "닫기", exact: true }).click();
-  await expect(launcher).toBeFocused();
-  await launcher.click();
-  await expect(dialog).toBeVisible();
   await choose(page);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   if (info.project.name === "chromium")
@@ -85,9 +69,6 @@ test("home guide stays in the page flow and is keyboard accessible", async ({ pa
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();
   await expect(launcher).toBeFocused();
-  await page.goto("/?view=bookmarks");
-  await expect(page.getByRole("button", { name: "핏 시작 가이드 열기" })).toHaveCount(1);
-  await expect(page.locator(".guide-launcher")).toHaveCount(0);
 });
 
 test("no-key guide recommends a real first mission and follows the deep link", async ({

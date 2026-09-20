@@ -1,6 +1,5 @@
 "use client";
 
-import { GuideWidget } from "@/components/guide/guide-widget";
 import { useEditorPreferences } from "@/hooks/use-editor-preferences";
 
 import { LearningHistory } from "@/components/library/learning-history";
@@ -142,11 +141,6 @@ export function PracticeApp({
           setGeneratorOpen={setGeneratorOpen}
         />
         <main id="main-content" className={initialProblemId ? "practice-main" : "library-main"}>
-          {!initialProblemId && (initialView !== "library" || initialDomain !== "all") && (
-            <div className="library-inline-guide">
-              <GuideWidget inline />
-            </div>
-          )}
           {loadError ? (
             <div className="empty-state">
               <AlertCircle size={32} />
