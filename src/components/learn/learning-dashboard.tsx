@@ -1,4 +1,5 @@
 "use client";
+import { SectionArtwork } from "@/components/experience/section-artwork";
 import { learningStorageDescription } from "@/lib/learn/session";
 import { Select } from "@/components/ui/select";
 import { GuestLogin } from "@/components/account/guest-login";
@@ -18,7 +19,8 @@ export function LearningDashboard() {
   const { missions, next, resume, complete } = learningOverview(data?.progress || []);
   return (
     <>
-      <section className="resume-card" aria-label="추천 입문 미션">
+      <section className="resume-card illustrated-resume" aria-label="추천 입문 미션">
+        <SectionArtwork topic="principles" />
         <div>
           <span className="eyebrow">
             {resume

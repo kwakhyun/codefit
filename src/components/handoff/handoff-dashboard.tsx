@@ -1,4 +1,5 @@
 "use client";
+import { SectionArtwork } from "@/components/experience/section-artwork";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError, errorMessage } from "@/lib/client-api";
@@ -52,7 +53,8 @@ export function HandoffDashboard() {
   return (
     <>
       {recommended && recommendedTrack && (
-        <section className="resume-card" aria-label="추천 코드 이해 훈련">
+        <section className="resume-card illustrated-resume" aria-label="추천 코드 이해 훈련">
+          <SectionArtwork topic="code" />
           <div>
             <span className="eyebrow">
               {recommended.next.priority === 3

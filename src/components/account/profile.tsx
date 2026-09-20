@@ -1,4 +1,5 @@
 "use client";
+import { VisualIntro } from "@/components/experience/visual-intro";
 import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check, LoaderCircle, LogOut, Save } from "lucide-react";
@@ -76,11 +77,13 @@ export function Profile({
   }
   return (
     <div className="profile-content">
-      <span className="eyebrow">MY TRAINING PROFILE</span>
-      <h1>내 프로필과 학습 현황</h1>
-      <p className="muted">
-        {initialUser.email} / 가입일 {new Date(initialUser.createdAt).toLocaleDateString("ko-KR")}
-      </p>
+      <VisualIntro topic="progress" className="compact-visual-intro">
+        <span className="eyebrow">MY TRAINING PROFILE</span>
+        <h1>내 프로필과 학습 현황</h1>
+        <p className="muted">
+          {initialUser.email} / 가입일 {new Date(initialUser.createdAt).toLocaleDateString("ko-KR")}
+        </p>
+      </VisualIntro>
       {data && (
         <div className="profile-stats">
           <div>

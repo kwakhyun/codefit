@@ -1,3 +1,5 @@
+import { VisualIntro } from "@/components/experience/visual-intro";
+import { ExperienceJourney } from "@/components/experience/experience-journey";
 import { MISSIONS } from "@/lib/learn/catalog";
 import { SiteHeader } from "@/components/navigation/site-header";
 import Link from "next/link";
@@ -13,7 +15,7 @@ export default function LearnPage() {
   return (
     <main id="main-content" className="learn-page">
       <SiteHeader />
-      <section className="learn-intro">
+      <VisualIntro topic="principles" className="learn-intro">
         <span className="eyebrow">5개 서비스 분야, {MISSIONS.length}개 실습</span>
         <h1>
           예제 서비스로 배우는
@@ -26,13 +28,8 @@ export default function LearnPage() {
           예제 서비스를 직접 조작하며 데이터 저장, 서버 통신, 접근 권한을 배우고 오류 해결을
           연습하세요.
         </p>
-        <ol className="learn-journey">
-          <li>결과 예상</li>
-          <li>직접 조작</li>
-          <li>수정과 확인</li>
-          <li>다른 상황에 적용</li>
-        </ol>
-      </section>
+      </VisualIntro>
+      <ExperienceJourney topic="principles" />
       <LearningDashboard />
       <aside className="learn-limits">
         <h2>실습 환경 안내</h2>

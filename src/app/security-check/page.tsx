@@ -1,3 +1,5 @@
+import { VisualIntro } from "@/components/experience/visual-intro";
+import { ExperienceJourney } from "@/components/experience/experience-journey";
 import { SiteHeader } from "@/components/navigation/site-header";
 import { SecurityCheck } from "@/components/security/security-check";
 export const metadata = {
@@ -9,7 +11,7 @@ export default function SecurityPage() {
   return (
     <main id="main-content" className="learn-page">
       <SiteHeader />
-      <section className="learn-intro">
+      <VisualIntro topic="security" className="learn-intro">
         <span className="eyebrow">배포 전에 확인하는 보안 기본 설정</span>
         <h1>
           AI로 만든 서비스,
@@ -25,7 +27,8 @@ export default function SecurityPage() {
           데이터베이스 취약점을 자동 검증하지 않습니다. AI 추측 대신 응답에서 확인한 규칙으로
           판정합니다.
         </p>
-      </section>
+      </VisualIntro>
+      <ExperienceJourney topic="security" />
       <SecurityCheck />
       <p className="muted">
         판정 기준:{" "}

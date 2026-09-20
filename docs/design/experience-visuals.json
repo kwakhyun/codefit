@@ -1,0 +1,36 @@
+{
+  "method": "Built-in image_gen; generated illustrations, not screenshots of product behavior.",
+  "processing": "Resized to 960 × 640 and encoded as WebP with sharp, quality 82. Original PNGs retained.",
+  "assets": [
+    {
+      "id": "principles",
+      "prompt": "Use case: stylized-concept. Generate one dedicated illustration asset for Codefit, a dark learning web app. Wide landscape 3:2 composition, centered subject with comfortable margins, no text or lettering, no logo, no human characters. Premium tactile isometric editorial illustration: matte charcoal and deep navy objects, restrained mint and ice-blue accents, subtle warm amber details, crisp geometry, soft studio shadows on a uniform near-black #10151c background. Legible at a 320px-wide card size; few large objects, not visual clutter. Scene: A small interactive learning workbench: a browser window, a server tower and a database cylinder connected by three clearly flowing mint data tokens. A pointer is pressing a round button. Show cause and effect, tangible simple shapes, not a diagram with labels.",
+      "asset": "public/images/experience/principles.webp",
+      "originalFilename": "exec-5576d57c-63f1-48f6-9c31-5c7a1c13a07c.png"
+    },
+    {
+      "id": "code",
+      "prompt": "Use case: stylized-concept. Generate one dedicated illustration asset for Codefit, a dark learning web app. Wide landscape 3:2 composition, centered subject with comfortable margins, no text or lettering, no logo, no human characters. Premium tactile isometric editorial illustration: matte charcoal and deep navy objects, restrained mint and ice-blue accents, subtle warm amber details, crisp geometry, soft studio shadows on a uniform near-black #10151c background. Legible at a 320px-wide card size; few large objects, not visual clutter. Scene: A developer workbench with two floating code editor panes side by side, simple abstract code lines, a central play button and a small tray of test tiles changing amber to mint. Emphasize prediction, execution and comparing results.",
+      "asset": "public/images/experience/code.webp",
+      "originalFilename": "exec-a7bdb818-9c70-4a52-8d91-1b0a60ce9ed9.png"
+    },
+    {
+      "id": "project",
+      "prompt": "Use case: stylized-concept. Generate one dedicated illustration asset for Codefit, a dark learning web app. Wide landscape 3:2 composition, centered subject with comfortable margins, no text or lettering, no logo, no human characters. Premium tactile isometric editorial illustration: matte charcoal and deep navy objects, restrained mint and ice-blue accents, subtle warm amber details, crisp geometry, soft studio shadows on a uniform near-black #10151c background. Legible at a 320px-wide card size; few large objects, not visual clutter. Scene: A miniature user-built web application with map pins, a collection board and its branching data connections being inspected by a large magnifying glass. Three question cards float beside it. Emphasize understanding the design of one's own project.",
+      "asset": "public/images/experience/project.webp",
+      "originalFilename": "exec-58875fe5-ca8f-456a-9ca4-880629c21314.png"
+    },
+    {
+      "id": "security",
+      "prompt": "Use case: stylized-concept. Generate one dedicated illustration asset for Codefit, a dark learning web app. Wide landscape 3:2 composition, centered subject with comfortable margins, no text or lettering, no logo, no human characters. Premium tactile isometric editorial illustration: matte charcoal and deep navy objects, restrained mint and ice-blue accents, subtle warm amber details, crisp geometry, soft studio shadows on a uniform near-black #10151c background. Legible at a 320px-wide card size; few large objects, not visual clutter. Scene: A miniature web service entrance with a transparent shield, an access gate and a small checklist of observed settings. A magnifying lens examines the gate. Calm practical inspection, no hacker, no warning drama, no claims of absolute safety.",
+      "asset": "public/images/experience/security.webp",
+      "originalFilename": "exec-5e5c782c-4212-46a6-be54-19e26ba179bf.png"
+    },
+    {
+      "id": "progress",
+      "prompt": "Use case: stylized-concept. Generate one dedicated illustration asset for Codefit, a dark learning web app. Wide landscape 3:2 composition, centered subject with comfortable margins, no text or lettering, no logo, no human characters. Premium tactile isometric editorial illustration: matte charcoal and deep navy objects, restrained mint and ice-blue accents, subtle warm amber details, crisp geometry, soft studio shadows on a uniform near-black #10151c background. Legible at a 320px-wide card size; few large objects, not visual clutter. Scene: An orderly desk of saved learning cards along a curved progression path: a bookmark card, a partially completed code card and a checked practice card, joined by small mint waypoints. Emphasize resuming personal work across sessions.",
+      "asset": "public/images/experience/progress.webp",
+      "originalFilename": "exec-98c9ee60-d2c9-4fa1-b8e8-063d80809910.png"
+    }
+  ]
+}

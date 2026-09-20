@@ -1,7 +1,8 @@
 "use client";
+import { SectionArtwork, type ArtworkTopic } from "@/components/experience/section-artwork";
 import { LearningPreferencePicker } from "./learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { problemUrl } from "@/lib/library-state";
 import type { ProblemSummary, ProgressSummary } from "@/lib/problem";
 import Link from "next/link";
@@ -63,10 +64,10 @@ export function TrainingHero({
 }: TrainingHeroProps) {
   const { type, profile, hasChosen, storageError } = useLearningPreference();
   const heading = useRef<HTMLHeadingElement>(null);
-  const [showFeatures, setShowFeatures] = useState(false);
   const codeResume =
     resume && recommended ? (
-      <section className="resume-card" aria-label="코딩 문제 이어하기">
+      <section className="resume-card illustrated-resume" aria-label="코딩 문제 이어하기">
+        <SectionArtwork topic="code" />
         <div>
           <span className="eyebrow">작성 중인 코드</span>
           <h2>{recommended.title}</h2>
@@ -96,11 +97,13 @@ export function TrainingHero({
           브라우저에 저장할 수 없어 현재 화면에서만 적용됩니다. 재방문할 때 다시 선택해 주세요.
         </p>
       )}
+      <FeatureBanner onGenerate={onGenerate} />
       <div className="persona-home-primary" aria-label={`${profile.name} 우선 콘텐츠`}>
         {type === "starter" && <LearningResume key={scope} scope={scope} recommendFirst />}
         {type === "coder" &&
           (codeResume || (
-            <section className="resume-card" aria-label="추천 코드 훈련">
+            <section className="resume-card illustrated-resume" aria-label="추천 코드 훈련">
+              <SectionArtwork topic="code" />
               <div>
                 <span className="eyebrow">첫 코드 이해 훈련</span>
                 <h2>장바구니 상태를 인수인계해 보세요</h2>
@@ -112,7 +115,8 @@ export function TrainingHero({
             </section>
           ))}
         {type === "builder" && (
-          <section className="persona-security-start">
+          <section className="persona-security-start illustrated-panel">
+            <SectionArtwork topic="security" />
             <span className="eyebrow">공개 설정부터 확인하기</span>
             <h2>배포 전 확인할 항목을 정리하세요</h2>
             <p>
@@ -138,7 +142,8 @@ export function TrainingHero({
         </h2>
         <div>
           {paths[type].map(([href, title, description]) => (
-            <Link key={href} href={href}>
+            <Link key={href} href={href} className="visual-path-card">
+              <SectionArtwork topic={pathArtwork(href)} />
               <strong>{title} →</strong>
               <p>{description}</p>
             </Link>
@@ -147,6 +152,7 @@ export function TrainingHero({
       </section>
       <section className="persona-other-records" aria-label="다른 학습 이어하기">
         <div className="section-heading">
+          <SectionArtwork topic="progress" className="section-heading-art" />
           <h2>다른 학습도 이어갈 수 있어요</h2>
           <Link href="/?view=history">모든 학습 기록 →</Link>
         </div>
@@ -154,14 +160,14 @@ export function TrainingHero({
         {type !== "coder" && codeResume}
         <p>타입을 바꿔도 이전 학습 기록과 작성 중인 코드는 그대로 남습니다.</p>
       </section>
-      <details
-        className="home-feature-details"
-        onToggle={(event) => setShowFeatures(event.currentTarget.open)}
-      >
-        <summary>전체 기능과 사용 방법 살펴보기</summary>
-        {showFeatures && <FeatureBanner onGenerate={onGenerate} />}
-      </details>
       {scope.startsWith("guest:") && <GuestLogin returnTo="/" />}
     </div>
   );
+}
+
+function pathArtwork(href: string): ArtworkTopic {
+  if (href.includes("security") || href.includes("private-board")) return "security";
+  if (href.includes("project")) return "project";
+  if (href.includes("handoff") || href.includes("browse")) return "code";
+  return "principles";
 }

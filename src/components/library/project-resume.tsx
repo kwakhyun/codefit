@@ -1,4 +1,5 @@
 "use client";
+import { SectionArtwork } from "@/components/experience/section-artwork";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/client-api";
@@ -20,7 +21,11 @@ export function ProjectResume({ scope }: { scope: string }) {
   }, [scope]);
   const check = overview?.scope === scope ? overview.checks[0] : undefined;
   return (
-    <section className="persona-project-resume" aria-label="내 프로젝트 점검 이어하기">
+    <section
+      className="persona-project-resume illustrated-panel"
+      aria-label="내 프로젝트 점검 이어하기"
+    >
+      <SectionArtwork topic="project" />
       <span className="eyebrow">{check ? "최근 프로젝트 기록" : "내 프로젝트로 시작하기"}</span>
       <h2>{check?.analysis.title || "내가 만든 서비스로 질문받아 보세요"}</h2>
       <p>

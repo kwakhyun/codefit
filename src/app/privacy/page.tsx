@@ -1,13 +1,22 @@
+import { VisualIntro } from "@/components/experience/visual-intro";
 import { AccountShell } from "@/components/account/account-shell";
 export const metadata = { title: "개인정보 안내 | CODE:FIT" };
 export default function PrivacyPage() {
   return (
     <AccountShell>
       <article className="profile-content privacy-copy">
-        <span className="eyebrow">PRIVACY</span>
-        <h1>연습 기록과 계정 정보</h1>
-        <p>적용일: 2026년 9월 20일</p>
-        <h2>로그인 없이 연습할 때</h2>
+        <VisualIntro topic="security" className="compact-visual-intro">
+          <span className="eyebrow">PRIVACY</span>
+          <h1>연습 기록과 계정 정보</h1>
+          <p>적용일: 2026년 9월 20일</p>
+        </VisualIntro>
+        <nav className="section-jump-links" aria-label="개인정보 안내 바로가기">
+          <a href="#privacy-guest">게스트 기록</a>
+          <a href="#privacy-ai">AI 전송</a>
+          <a href="#privacy-project">프로젝트 점검</a>
+          <a href="#privacy-security">보안 점검</a>
+        </nav>
+        <h2 id="privacy-guest">로그인 없이 연습할 때</h2>
         <p>
           무작위 브라우저 쿠키로 풀이 코드, 북마크, 힌트 열람과 학습 기록을 구분합니다. 쿠키는 최대
           1년 동안 유지됩니다. 쿠키를 지우면 기존 기록에 다시 접근하지 못할 수 있어 환경 설정의 백업
@@ -21,7 +30,7 @@ export default function PrivacyPage() {
           세션을 종료할 수 있습니다. 로그인 세션에는 접속 IP와 브라우저 정보도 저장됩니다. OAuth
           토큰은 암호화해 저장합니다.
         </p>
-        <h2>AI에 전달되는 내용</h2>
+        <h2 id="privacy-ai">AI에 전달되는 내용</h2>
         <p>
           문제 생성 시 선택한 분야, 언어, 난이도, 주제와 중복 방지용 문제 제목을 OpenAI에
           전달합니다. 풀이 검토 시 문제와 제출 코드를 전달하며, 인수인계 훈련에서는 작성한 이해,
@@ -50,7 +59,7 @@ export default function PrivacyPage() {
           계정에 저장하고, 남용 방지를 위해 접속망을 비밀키로 해시한 값을 일시적으로 사용합니다.
           Vercel에서 서비스를 제공하며 Neon PostgreSQL에 데이터를 저장합니다.
         </p>
-        <h2>내 프로젝트 이해도를 점검할 때</h2>
+        <h2 id="privacy-project">내 프로젝트 이해도를 점검할 때</h2>
         <p>
           본인 소유의 공개 서비스 주소, 자바스크립트 실행 후 읽은 공개 본문과 화면 이미지, 작성한
           설명과 답변을 OpenAI에 전달합니다. 공개 페이지는 앱 비밀정보가 없는 Vercel Sandbox의 새
@@ -63,7 +72,7 @@ export default function PrivacyPage() {
           전 브라우저 초안은 포함되지 않습니다. AI 호출을 시작한 요청은 실패해도 이용 한도에 포함될
           수 있습니다.
         </p>
-        <h2>추천 메뉴와 보안 설정 점검</h2>
+        <h2 id="privacy-security">추천 메뉴와 보안 설정 점검</h2>
         <p>
           선택한 맞춤 타입은 현재 브라우저에만 저장하며 AI에 보내지 않습니다. 로그인과 로그아웃에도
           유지되어 같은 브라우저를 사용하는 사람에게 동일하게 적용됩니다. 이전 개발 경험과 이용 목적

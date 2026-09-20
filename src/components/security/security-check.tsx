@@ -69,6 +69,7 @@ export function SecurityCheck() {
 function SecurityWorkspace({ scope }: { scope: string }) {
   const { draft, saveDraft, storageError, clear } = useSecurityDraft(scope);
   const { url, report, notes } = draft;
+  const [filter, setFilter] = useState<"all" | "observed" | "review" | "unknown">("all");
   const [authorized, setAuthorized] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -94,6 +95,7 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           const controller = new AbortController();
           request.current = controller;
           setBusy(true);
+          setFilter("all");
           setError("");
           saveDraft((value) => ({ ...value, report: null }));
           try {
@@ -171,21 +173,55 @@ function SecurityWorkspace({ scope }: { scope: string }) {
             설정이 있다는 사실만으로 안전하다고 판정하지 않습니다. 보완 검토는 취약점 확정이나 공격
             성공을 의미하지 않습니다.
           </p>
-          <div className="security-grid">
-            {report.findings.map((f) => (
-              <article key={f.id} className={`security-finding security-${f.status}`}>
-                <span className="eyebrow">{securityStatus[f.status]}</span>
-                <h3>{f.title}</h3>
-                <p>{f.evidence}</p>
-                <strong>다음 행동</strong>
-                <p>{f.action}</p>
-              </article>
+          <div className="result-filter" role="group" aria-label="점검 결과 필터">
+            {(["all", "review", "unknown", "observed"] as const).map((status) => (
+              <button
+                type="button"
+                key={status}
+                aria-pressed={filter === status}
+                onClick={() => setFilter(status)}
+              >
+                {status === "all" ? "전체" : securityStatus[status]}{" "}
+                <span>
+                  {status === "all"
+                    ? report.findings.length
+                    : report.findings.filter((f) => f.status === status).length}
+                </span>
+              </button>
             ))}
+          </div>
+          <p className="result-filter-status" role="status">
+            {filter === "all" ? "전체" : securityStatus[filter]} 항목{" "}
+            {report.findings.filter((f) => filter === "all" || f.status === filter).length}개 표시
+          </p>
+          <div className="security-grid">
+            {report.findings
+              .filter((f) => filter === "all" || f.status === filter)
+              .map((f) => (
+                <article key={f.id} className={`security-finding security-${f.status}`}>
+                  <span className="eyebrow">{securityStatus[f.status]}</span>
+                  <h3>{f.title}</h3>
+                  <p>{f.evidence}</p>
+                  <strong>다음 행동</strong>
+                  <p>{f.action}</p>
+                </article>
+              ))}
           </div>
         </section>
       )}
       <section className="security-exercises">
         <h2>내 테스트 환경에서 이어가는 모의해킹 준비</h2>
+        <div className="notes-progress">
+          <label htmlFor="security-notes-progress">
+            확인 메모 작성 {notes.filter((note) => note.trim()).length} / {securityExercises.length}
+          </label>
+          <progress
+            id="security-notes-progress"
+            max={securityExercises.length}
+            value={notes.filter((note) => note.trim()).length}
+          />
+          <small>메모 작성 현황이며, 검증 완료나 안전 판정이 아닙니다.</small>
+        </div>
         <p>
           공개 링크만으로 확인하지 못한 항목입니다. 운영 데이터 대신 테스트 계정과 테스트 자료로
           확인하세요.

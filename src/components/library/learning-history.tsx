@@ -1,4 +1,5 @@
 "use client";
+import { VisualIntro } from "@/components/experience/visual-intro";
 import { LearningResume } from "@/components/learn/learning-resume";
 
 import { useLearningHistory } from "@/hooks/use-learning-history";
@@ -27,11 +28,11 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
   const { solved, inProgress, saved, training, libraryHref } = library;
   return (
     <>
-      <div className="page-title">
+      <VisualIntro topic="progress" className="page-title compact-visual-intro">
         <span className="eyebrow">YOUR LEARNING LOG</span>
         <h1>내 학습 기록</h1>
         <p>제출한 코드와 검토 결과를 확인하고, 보완할 문제를 다시 풀어보세요.</p>
-      </div>
+      </VisualIntro>
       <LearningResume key={data.scope} scope={data.scope} showEmpty />
       <Link className="history-track-link" href="/handoff">
         <div>

@@ -16,7 +16,7 @@ test("first visit recommends one mission and previews project questions before l
   await page.goto("/");
   const recommended = page.getByRole("region", { name: "추천 첫 학습" });
   await expect(recommended.getByRole("link")).toHaveAttribute("href", "/learn/where-data-lives");
-  await expect(page.getByRole("region", { name: "코드핏 핵심 기능" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "코드핏 핵심 기능" })).toBeVisible();
   await page.getByRole("radio", { name: "내 서비스 이해", exact: true }).click();
   await expect(page.locator(".persona-project-resume")).toContainText(
     "로그인 필요 · 24시간에 프로젝트 2개까지",

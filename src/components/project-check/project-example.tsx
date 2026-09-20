@@ -1,3 +1,4 @@
+import { AccessPreview } from "@/components/experience/access-preview";
 import Link from "next/link";
 
 /** An editorial example of the flow, never presented as a live AI assessment. */
@@ -9,6 +10,7 @@ export function ProjectExample() {
       <p>
         비공개 메모 서비스로 보는 설명용 예시입니다. 실제 AI 분석 결과나 사용자 답변이 아닙니다.
       </p>
+      <AccessPreview />
       <div className="project-example-grid">
         <div>
           <h3>설계 질문</h3>

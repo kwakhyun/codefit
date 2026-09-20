@@ -1,3 +1,4 @@
+import { SectionArtwork } from "@/components/experience/section-artwork";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -25,6 +26,7 @@ export default async function LoginPage({
           <small>CODEFIT / SIGN IN</small>
         </div>
         <div className="auth-card-content">
+          <SectionArtwork topic="progress" className="auth-artwork" eager />
           <span className="eyebrow">YOUR NEXT REP</span>
           <h1>
             로그인하고

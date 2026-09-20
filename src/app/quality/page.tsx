@@ -1,3 +1,4 @@
+import { VisualIntro } from "@/components/experience/visual-intro";
 import { SiteHeader } from "@/components/navigation/site-header";
 import Link from "next/link";
 
@@ -8,17 +9,25 @@ export default function QualityPage() {
   return (
     <main id="main-content" className="quality-page">
       <SiteHeader />
-      <span className="eyebrow">HOW WE REVIEW YOUR CODE</span>
-      <h1>
-        AI의 피드백도,
-        <br />
-        확인하며 개선합니다.
-      </h1>
-      <p>
-        AI 풀이 검토는 코드를 읽는 정적 리뷰입니다. 코드 이해 훈련의 브라우저 실행 테스트는 별도로
-        표시하며, 어느 결과도 실제 제품 환경의 모든 동작을 보장하지 않습니다.
-      </p>
-      <section aria-label="고정 사례 평가 결과">
+      <VisualIntro topic="code">
+        <span className="eyebrow">HOW WE REVIEW YOUR CODE</span>
+        <h1>
+          AI의 피드백도,
+          <br />
+          확인하며 개선합니다.
+        </h1>
+        <p>
+          AI 풀이 검토는 코드를 읽는 정적 리뷰입니다. 코드 이해 훈련의 브라우저 실행 테스트는 별도로
+          표시하며, 어느 결과도 실제 제품 환경의 모든 동작을 보장하지 않습니다.
+        </p>
+      </VisualIntro>
+      <nav className="section-jump-links" aria-label="검토 안내 바로가기">
+        <a href="#quality-evidence">검증 결과</a>
+        <a href="#quality-handoff">코드 실행 범위</a>
+        <a href="#quality-project">프로젝트 점검</a>
+        <a href="#quality-feedback">피드백 활용</a>
+      </nav>
+      <section id="quality-evidence" aria-label="고정 사례 평가 결과">
         <h2>고정된 코드로 확인한 결과</h2>
         <p>
           React, Python, PostgreSQL, Unity의 문제에 정답, 다른 정상 구현, 미완성 코드, 통과를
@@ -58,7 +67,7 @@ export default function QualityPage() {
           아닙니다.
         </p>
       </section>
-      <section>
+      <section id="quality-handoff">
         <h2>인수인계 훈련의 검토 범위</h2>
         <p>
           인수인계 훈련은 코드뿐 아니라 구조 이해, 문제 판단, 검증 계획과 인수인계 메모를 함께
@@ -101,7 +110,7 @@ export default function QualityPage() {
         </p>
         <Link href="/learn">서비스 원리 배우기 →</Link>
       </section>
-      <section>
+      <section id="quality-project">
         <h2>내 프로젝트 점검에서 확인하는 것</h2>
         <p>
           자바스크립트 실행 후 최대 3개 공개 페이지의 본문과 스크린샷, 작성한 설명을 바탕으로
@@ -118,7 +127,7 @@ export default function QualityPage() {
         </p>
         <Link href="/project-check">내 프로젝트 점검하기 →</Link>
       </section>
-      <section>
+      <section id="quality-feedback">
         <h2>피드백은 이렇게 사용하세요</h2>
         <ol>
           <li>요구사항별 통과 여부와 이유를 확인하고, 납득하기 어려운 판단은 직접 검증하세요.</li>

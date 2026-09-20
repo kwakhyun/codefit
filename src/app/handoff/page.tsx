@@ -1,3 +1,5 @@
+import { VisualIntro } from "@/components/experience/visual-intro";
+import { ExperienceJourney } from "@/components/experience/experience-journey";
 import { SiteHeader } from "@/components/navigation/site-header";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -12,7 +14,7 @@ export default function HandoffPage() {
   return (
     <main id="main-content" className="handoff-page">
       <SiteHeader />
-      <section className="handoff-intro">
+      <VisualIntro topic="code" className="handoff-intro">
         <span className="eyebrow">읽고, 실행하고, 내 말로 설명하기</span>
         <h1>
           AI가 작성한 코드를
@@ -23,16 +25,12 @@ export default function HandoffPage() {
           코드를 읽고 실행 결과를 예상한 뒤 실제 결과와 비교해 보세요. 오류를 수정하고 테스트하며,
           코드가 어떻게 작동하는지 설명하는 연습을 합니다.
         </p>
-        <ol>
-          <li>예측하기</li>
-          <li>비교하기</li>
-          <li>수정하기</li>
-          <li>설명하고 응용하기</li>
-        </ol>
+
         <p className="muted">
           로그인 없이 시작 · JavaScript 실무 과제 6개와 변형 과제 6개 · 약 25~35분
         </p>
-      </section>
+      </VisualIntro>
+      <ExperienceJourney topic="code" />
       <HandoffDashboard />
       <aside className="handoff-quality">
         <h2>어디까지 검증하나요?</h2>

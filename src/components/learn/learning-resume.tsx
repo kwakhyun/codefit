@@ -1,4 +1,5 @@
 "use client";
+import { SectionArtwork } from "@/components/experience/section-artwork";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useLearningOverview } from "@/hooks/use-learning-overview";
@@ -34,7 +35,11 @@ export function LearningResume({
   if (!current && recommendFirst && overview.complete < overview.missions.length) {
     const next = overview.next.mission;
     return (
-      <section className="resume-card home-recommendation" aria-label="추천 첫 학습">
+      <section
+        className="resume-card home-recommendation illustrated-resume"
+        aria-label="추천 첫 학습"
+      >
+        <SectionArtwork topic="principles" />
         <div>
           <span className="eyebrow">
             {overview.complete ? "다음에 연습할 미션" : "처음이라면 이 미션부터"}
@@ -50,7 +55,8 @@ export function LearningResume({
   }
   if (!current && !showEmpty) return null;
   return (
-    <section className="resume-card" aria-label="입문 학습 이어하기">
+    <section className="resume-card illustrated-resume" aria-label="입문 학습 이어하기">
+      <SectionArtwork topic="principles" />
       <div>
         <span className="eyebrow">{current ? "이어서 연습할 미션" : "서비스 원리 학습 기록"}</span>
         <h2>
