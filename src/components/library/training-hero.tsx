@@ -1,4 +1,5 @@
 "use client";
+import { AiLearningEntry } from "@/components/ai-learning/ai-learning-entry";
 import { Card, Status } from "@/components/ui/primitives";
 import { SectionArtwork, type ArtworkTopic } from "@/components/experience/section-artwork";
 import { LearningPreferencePicker } from "./learning-preference";
@@ -117,6 +118,7 @@ export function TrainingHero({
         </Status>
       )}
       <FeatureBanner onGenerate={onGenerate} />
+      <AiLearningEntry />
       <div className="persona-home-primary" aria-label={`${profile.name} 우선 콘텐츠`}>
         {type === "starter" && <LearningResume key={scope} scope={scope} recommendFirst />}
         {type === "coder" &&

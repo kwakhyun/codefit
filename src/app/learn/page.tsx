@@ -6,6 +6,7 @@ import { AppLink as Link } from "@/components/ui/primitives";
 import type { Metadata } from "next";
 
 import { LearningDashboard } from "@/components/learn/learning-dashboard";
+import { AiLearningEntry } from "@/components/ai-learning/ai-learning-entry";
 export const metadata: Metadata = {
   title: "서비스 원리 배우기 | CODE:FIT",
   description:
@@ -26,6 +27,7 @@ export default function LearnPage() {
         </p>
       </VisualIntro>
       <ExperienceJourney topic="principles" />
+      <AiLearningEntry />
       <LearningDashboard />
       <aside className="learn-limits">
         <h2>실습 환경 안내</h2>

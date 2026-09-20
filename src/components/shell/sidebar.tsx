@@ -19,6 +19,7 @@ import {
   Settings2,
   Terminal,
   UserRound,
+  Workflow,
   X,
 } from "lucide-react";
 import { BrandIcon } from "../ui/brand-icon";
@@ -125,6 +126,10 @@ export function Sidebar({
             </Link>
           </div>
         ))}
+        <Link className="nav-item" href="/learn/ai">
+          <Workflow size={17} aria-hidden="true" />
+          <span>AI 실무 배우기</span>
+        </Link>
         <Link className="nav-item" href="/?view=browse">
           <LayoutGrid size={17} />
           <span>전체 문제 탐색</span>

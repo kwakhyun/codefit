@@ -35,6 +35,13 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
         <p>제출한 코드와 검토 결과를 확인하고, 보완할 문제를 다시 풀어보세요.</p>
       </VisualIntro>
       <LearningResume key={data.scope} scope={data.scope} showEmpty />
+      <Link className="history-track-link" href="/learn/ai">
+        <div>
+          <strong>AI 실무 학습 기록</strong>
+          <p>이 브라우저에서 배운 AI 수업을 확인하고 이어서 학습하세요.</p>
+        </div>
+        <ArrowRight size={18} aria-hidden="true" />
+      </Link>
       <Link className="history-track-link" href="/handoff">
         <div>
           <strong>AI 코드 이해 훈련 기록</strong>

@@ -23,11 +23,22 @@ export function SiteHeader() {
           <Link
             key={item.href}
             href={item.href}
-            aria-current={pathname.startsWith(item.href) ? "page" : undefined}
+            aria-current={
+              pathname.startsWith(item.href) &&
+              !(item.href === "/learn" && pathname.startsWith("/learn/ai"))
+                ? "page"
+                : undefined
+            }
           >
             {item.label}
           </Link>
         ))}
+        <Link
+          href="/learn/ai"
+          aria-current={pathname.startsWith("/learn/ai") ? "page" : undefined}
+        >
+          AI 실무 배우기
+        </Link>
         <Link href="/?view=history">내 기록</Link>
       </nav>
     </header>
