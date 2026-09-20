@@ -194,7 +194,7 @@ test("backup import keeps the active draft and old history links open the select
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(backup)),
   });
-  await expect(page.getByRole("dialog").getByText(/새 문제 0개, 풀이 기록 23개/)).toBeVisible();
+  await expect(page.getByRole("dialog").getByText(/새 문제 0개, 풀이 23개/)).toBeVisible();
   await page.keyboard.press("Escape");
   expect(await readCode(page)).toBe(code);
   await page.goto("/?view=history");

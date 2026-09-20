@@ -145,7 +145,9 @@ test("quota, failed assessment retry and account isolation preserve the right dr
   };
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.getByRole("heading", { name: "어떤 서비스를 만드셨나요?" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "내 프로젝트 질문 받기" })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "새 분석 한도를 모두 사용했습니다" }),
+  ).toBeDisabled();
   await expect(page.getByText("나만의 설계 메모")).toHaveCount(0);
 });
 

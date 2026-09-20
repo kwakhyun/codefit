@@ -78,7 +78,9 @@ test("member generator selects work inside a modal and guest CTA stays hidden", 
     await modal.getByRole("button", { name: "닫기", exact: true }).click();
     await page.goto("/learn");
     await expect(
-      page.getByText("같은 계정으로 로그인하면 다른 기기에서도 이어서 학습할 수 있습니다."),
+      page.getByText(
+        "학습 기록은 계정에 저장됩니다. 같은 계정으로 로그인하면 다른 기기에서도 이어서 볼 수 있습니다.",
+      ),
     ).toBeVisible();
     await expect(page.locator(".guest-login")).toHaveCount(0);
   } finally {

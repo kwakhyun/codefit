@@ -10,7 +10,7 @@ test("all sample services are interactive; preview actions do not become observa
   for (const mission of MISSIONS) {
     await page.goto(`/learn/${mission.id}`);
     const app = page.getByRole("region", { name: "예제 서비스 첫 화면" });
-    await expect(app.locator(".sample-app")).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(app.locator(".sample-app")).toHaveCSS("background-color", "rgb(22, 30, 43)");
     await expect(page.getByText("개념 그림 · 실행 결과는 실습에서 확인하세요.")).toHaveCount(0);
     for (const action of mission.reproduce)
       await app
@@ -35,7 +35,7 @@ test("all sample services are interactive; preview actions do not become observa
       );
       const intro = page.getByRole("button", { name: "첫 방문 안내 숨기기" });
       if (await intro.isVisible()) await intro.click();
-      await page.screenshot({ path: `docs/images/sample-${mission.app}-desktop.png` });
+      await page.screenshot({ path: `artifacts/sample-${mission.app}-desktop.png` });
     }
     await page.getByRole("radio").first().check();
     await page.getByRole("button", { name: "예상 남기고 직접 확인" }).click();
@@ -53,7 +53,7 @@ test("all sample services are interactive; preview actions do not become observa
   }
 });
 
-test("desktop answers sit on the right; all white services remain readable and accessible on mobile", async ({
+test("desktop answers sit on the right; all dark services remain readable and accessible on mobile", async ({
   page,
 }, info) => {
   test.setTimeout(240_000);
@@ -86,7 +86,7 @@ test("desktop answers sit on the right; all white services remain readable and a
     await page.locator(".sample-app").scrollIntoViewIfNeeded();
     const intro = page.getByRole("button", { name: "첫 방문 안내 숨기기" });
     if (await intro.isVisible()) await intro.click();
-    await page.screenshot({ path: "docs/images/sample-shop-mobile.png" });
+    await page.screenshot({ path: "artifacts/sample-shop-mobile.png" });
   }
 });
 

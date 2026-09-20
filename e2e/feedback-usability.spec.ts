@@ -17,7 +17,7 @@ test("first visit recommends one mission and previews project questions before l
   const recommended = page.getByRole("region", { name: "추천 첫 학습" });
   await expect(recommended.getByRole("link")).toHaveAttribute("href", "/learn/where-data-lives");
   await expect(page.getByRole("region", { name: "코드핏 핵심 기능" })).toHaveCount(0);
-  await page.getByRole("radio", { name: "내 서비스 이해", exact: true }).check();
+  await page.getByRole("radio", { name: "내 서비스 이해", exact: true }).click();
   await expect(page.locator(".persona-project-resume")).toContainText(
     "로그인 필요 · 24시간에 프로젝트 2개까지",
   );
@@ -65,7 +65,7 @@ test("observation draft preserves writing, is editable, and survives record save
     mission.reproduce.map((a) => actionLabel(mission, a)).join(" → "),
   );
   await expect(page.locator("#request-actual")).toHaveValue(
-    simulate(mission, mission.reproduce).message,
+    `현재 사용자: 민수. ${simulate(mission, mission.reproduce).message}`,
   );
   await expect(page.locator("#request-expected")).toHaveValue("");
   await expect(page.locator("#request-keep")).toHaveValue("");

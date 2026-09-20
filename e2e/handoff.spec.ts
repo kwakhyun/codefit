@@ -70,7 +70,7 @@ test("handoff discovery, no answer leak, mobile layout, keyboard navigation and 
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await page.getByRole("radio", { name: "코드 훈련", exact: true }).check();
+  await page.getByRole("radio", { name: "코드 훈련", exact: true }).click();
   await page
     .getByRole("complementary", { name: "주 메뉴" })
     .getByRole("link", { name: "AI 코드 이해 훈련", exact: true })

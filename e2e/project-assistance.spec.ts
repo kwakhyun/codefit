@@ -87,7 +87,9 @@ test("lost analysis responses can be recovered without another AI request even a
   await page.goto("/project-check");
   await enterProject(page);
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
-  await expect(page.getByRole("button", { name: "내 프로젝트 질문 받기" })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "새 분석 한도를 모두 사용했습니다" }),
+  ).toBeDisabled();
   await page.reload();
   await page.getByRole("button", { name: "저장된 분석 결과 확인" }).click();
   await expect(page.getByRole("heading", { name: "예약 서비스 설계 점검" })).toBeVisible();
