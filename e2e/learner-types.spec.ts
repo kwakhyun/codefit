@@ -182,11 +182,14 @@ test("type switching preserves editor code and the browser choice survives login
     await expect(change(page)).toContainText("배포 전 점검");
     const project = page.getByRole("region", { name: "내 프로젝트 점검 이어하기" });
     await expect(project).toContainText(fixtureCheck.analysis.title);
+    await expect(project).toContainText("기록 조회는 새 분석 횟수를 사용하지 않습니다.");
+    await expect(project).not.toContainText("로그인 필요");
     await expect(project.getByRole("link")).toHaveAttribute("href", `/project-check?check=${id}`);
     await context.clearCookies({ name });
     await page.reload();
     await expect(change(page)).toContainText("배포 전 점검");
     await expect(project).not.toContainText(fixtureCheck.analysis.title);
+    await expect(project).toContainText("실제 분석은 로그인 필요");
   } finally {
     account.store.db.close();
   }

@@ -43,7 +43,11 @@ export function ProjectResume({ scope }: { scope: string }) {
       <small>
         {failed
           ? "기록을 불러오지 못했습니다. 프로젝트 점검에서 다시 확인할 수 있습니다."
-          : "실제 분석은 로그인 필요 · 24시간에 프로젝트 2개까지"}
+          : check
+            ? "저장된 질문과 답변 이어보기 · 기록 조회는 새 분석 횟수를 사용하지 않습니다."
+            : scope.startsWith("user:")
+              ? "새 프로젝트 분석은 24시간에 2개까지 이용할 수 있습니다."
+              : "실제 분석은 로그인 필요 · 24시간에 프로젝트 2개까지"}
       </small>
     </section>
   );
