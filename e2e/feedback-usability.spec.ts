@@ -14,17 +14,14 @@ test("first visit recommends project checks and previews project questions befor
   page,
 }, info) => {
   await page.goto("/");
-  const recommended = page.getByRole("region", { name: "처음 방문한 분의 시작점" });
-  await expect(
-    recommended.getByRole("link", { name: "내 프로젝트 점검", exact: true }),
-  ).toHaveAttribute("href", "/project-check");
-  await expect(page.getByRole("region", { name: "코드핏 핵심 기능" })).toBeVisible();
-  await page.getByRole("radio", { name: "내 서비스 이해", exact: true }).click();
-  await expect(page.locator(".feature-slide.is-active")).toContainText("로그인 없이");
+  await expect(page.getByRole("region", { name: "나에게 맞는 시작점" })).toBeVisible();
+  await page.getByRole("radio", { name: "서비스 점검실", exact: true }).click();
+  const recommended = page.getByRole("region", { name: "서비스 점검 시작" });
+  await expect(recommended).toContainText("로그인 없이 시작");
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/feedback-home-desktop.png", fullPage: true });
   await accessible(page);
-  await page.locator(".feature-slide.is-active").getByRole("link").click();
+  await recommended.getByRole("link", { name: "내 서비스 점검하기" }).click();
   await page.getByText("입력 전에 질문과 피드백 예시 살펴보기", { exact: true }).click();
   const sample = page.getByRole("region", { name: "어떤 질문과 피드백을 받나요?" });
   await expect(sample).toContainText("실제 AI 분석 결과나 사용자 답변이 아닙니다");

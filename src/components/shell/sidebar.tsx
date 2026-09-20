@@ -46,7 +46,7 @@ export function Sidebar({
   activeProblem,
   setSettingsOpen,
 }: SidebarProps) {
-  const { preference, profile } = useLearningPreference();
+  const { preference, profile, type } = useLearningPreference();
   return (
     <aside
       className={`sidebar ${mobileMenu ? "open" : ""}`}
@@ -74,7 +74,7 @@ export function Sidebar({
         <BrandIcon />
         <span>
           CODE:FIT<span className="brand-cursor">_</span>
-          <small>AI 시대의 코딩 근력</small>
+          <small>배우고, 이해하고, 검증하기</small>
         </span>
       </Link>
       <Button
@@ -109,11 +109,13 @@ export function Sidebar({
         </Link>
         {preferredDestinations(preference).map((item, index) => (
           <div key={item.href}>
-            {(index === 0 || index === (preference.purpose === "project" ? 2 : 1)) && (
+            {(index === 0 || index === 2) && (
               <span className="nav-caption">{index === 0 ? profile.group : profile.secondary}</span>
             )}
             <Link className="nav-item" href={item.href} key={item.href}>
-              {item.href === "/learn/ai" ? (
+              {item.href === "/?view=browse" ? (
+                <LayoutGrid size={17} aria-hidden="true" />
+              ) : item.href === "/learn/ai" ? (
                 <Workflow size={17} aria-hidden="true" />
               ) : item.href === "/learn" ? (
                 <BookOpen size={17} />
@@ -126,13 +128,28 @@ export function Sidebar({
               )}
               <span>{item.label}</span>
             </Link>
+            {type === "code" && index === 0 && (
+              <section
+                className="domain-list code-priority-domains"
+                aria-label="분야별 코딩 연습 바로가기"
+              >
+                <h2 className="nav-caption">바로 풀기</h2>
+                <div>
+                  {DOMAINS.map((d) => (
+                    <Link
+                      key={d.id}
+                      href={`/?domain=${d.id}`}
+                      className={`nav-item domain-nav ${initialDomain === d.id || activeProblem?.domain === d.id ? "domain-active" : ""}`}
+                    >
+                      <DomainIcon domain={d.id} />
+                      <span>{d.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         ))}
-        <Link className="nav-item" href="/?view=browse">
-          <LayoutGrid size={17} />
-          <span>전체 문제 탐색</span>
-          <small>{data?.stats.total ?? "—"}</small>
-        </Link>
         <Link
           className={`nav-item ${!initialProblemId && initialView === "bookmarks" ? "active" : ""}`}
           href="/?view=bookmarks"
@@ -148,21 +165,6 @@ export function Sidebar({
           <History size={17} />
           <span>내 학습 기록</span>
         </Link>
-        <section className="domain-list" aria-label="분야별 문제">
-          <h2 className="nav-caption">
-            분야별 문제 <span>{DOMAINS.length}</span>
-          </h2>
-          {DOMAINS.map((d) => (
-            <Link
-              key={d.id}
-              href={`/?domain=${d.id}`}
-              className={`nav-item domain-nav ${(!initialProblemId && initialDomain === d.id) || activeProblem?.domain === d.id ? "domain-active" : ""}`}
-            >
-              <DomainIcon domain={d.id} />
-              <span>{d.label}</span>
-            </Link>
-          ))}
-        </section>
       </nav>
       <div className="sidebar-bottom">
         {data?.account.user && (
@@ -172,11 +174,16 @@ export function Sidebar({
           </Link>
         )}
         <div className="sidebar-note">
-          <Terminal size={17} />
           <span>
-            매일 한 문제,
+            {profile.name}
             <br />
-            <strong>코딩 근력을 지키는 시간.</strong>
+            <strong>
+              {type === "ai"
+                ? "하나씩 배워, 내 일에 적용하기"
+                : type === "code"
+                  ? "직접 풀고 실행하며 배우기"
+                  : "내 서비스의 근거를 확인하기"}
+            </strong>
           </span>
         </div>
         <Button

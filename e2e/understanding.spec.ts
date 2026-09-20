@@ -1,4 +1,6 @@
 import { openLabTools, waitForUiTransitions } from "./ui-helpers";
+import { resolve } from "node:path";
+import { testAccount } from "../scripts/lib/test-account";
 import { E2E_BASE_URL } from "../scripts/lib/e2e-environment";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -208,53 +210,62 @@ test("coaching API validates observations, isolates accounts and does not execut
   page,
   browser,
 }) => {
-  await page.goto("/problems/handoff-cart");
-  const lab = await page.request.get("/api/problems/handoff-cart/lab");
-  expect(lab.headers()["cache-control"]).toBe("no-store");
-  const data = await lab.json();
-  expect(data).not.toHaveProperty("solution");
-  expect((await page.request.get("/api/problems/be-pagination/lab")).status()).toBe(404);
-  const invalid = await page.request.post("/api/problems/handoff-cart/coach", {
-    data: { code: base.starterCode, requestId: crypto.randomUUID() },
-  });
-  expect(invalid.status()).toBe(400);
-  await predict(page);
-  await expect.poll(async () => (await saved(page)).training?.observation?.actual).toBe("[3,3]");
-  const other = await browser.newContext();
-  expect(
-    (await (await other.request.get(`${E2E_BASE_URL}/api/problems/handoff-cart`)).json()).progress,
-  ).toBeNull();
-  await other.close();
-  const workspace = await (await page.request.get("/api/workspace")).json();
-  const code = (await (await page.request.get("/api/problems/handoff-cart")).json()).progress.code;
-  const incompatible = readHandoffDraft(code);
-  const forged = await page.request.post("/api/problems/handoff-cart/coach", {
-    headers: { "X-Codefit-Workspace": workspace.scope },
-    data: {
-      code: writeHandoffDraft(incompatible.implementation, incompatible.notes, {
-        ...incompatible.training!,
-        observation: { id: "prediction", status: "ok", actual: "[2,3]" },
-      }),
-      requestId: crypto.randomUUID(),
-    },
-  });
-  expect(forged.status()).toBe(400);
-  expect((await forged.json()).error).toContain("다시 실행");
-  const changed = await page.request.post("/api/problems/handoff-cart/coach", {
-    headers: { "X-Codefit-Workspace": "user:someone-else" },
-    data: { code, requestId: crypto.randomUUID() },
-  });
-  expect(changed.status()).toBe(409);
-  const crossSite = await page.request.post("/api/problems/handoff-cart/coach", {
-    headers: { Origin: "https://example.com" },
-    data: { code, requestId: crypto.randomUUID() },
-  });
-  expect(crossSite.status()).toBe(403);
-  const noKey = await page.request.post("/api/problems/handoff-cart/coach", {
-    headers: { "X-Codefit-Workspace": workspace.scope },
-    data: { code, requestId: crypto.randomUUID() },
-  });
-  expect(noKey.status()).toBe(503);
+  const account = await testAccount(resolve("artifacts/e2e.sqlite"), E2E_BASE_URL);
+  const [name, ...value] = account.cookie.split("=");
+  await page.context().addCookies([{ name, value: value.join("="), url: E2E_BASE_URL }]);
+  try {
+    await page.goto("/problems/handoff-cart");
+    const lab = await page.request.get("/api/problems/handoff-cart/lab");
+    expect(lab.headers()["cache-control"]).toBe("no-store");
+    const data = await lab.json();
+    expect(data).not.toHaveProperty("solution");
+    expect((await page.request.get("/api/problems/be-pagination/lab")).status()).toBe(404);
+    const invalid = await page.request.post("/api/problems/handoff-cart/coach", {
+      data: { code: base.starterCode, requestId: crypto.randomUUID() },
+    });
+    expect(invalid.status()).toBe(400);
+    await predict(page);
+    await expect.poll(async () => (await saved(page)).training?.observation?.actual).toBe("[3,3]");
+    const other = await browser.newContext();
+    expect(
+      (await (await other.request.get(`${E2E_BASE_URL}/api/problems/handoff-cart`)).json())
+        .progress,
+    ).toBeNull();
+    await other.close();
+    const workspace = await (await page.request.get("/api/workspace")).json();
+    const code = (await (await page.request.get("/api/problems/handoff-cart")).json()).progress
+      .code;
+    const incompatible = readHandoffDraft(code);
+    const forged = await page.request.post("/api/problems/handoff-cart/coach", {
+      headers: { "X-Codefit-Workspace": workspace.scope },
+      data: {
+        code: writeHandoffDraft(incompatible.implementation, incompatible.notes, {
+          ...incompatible.training!,
+          observation: { id: "prediction", status: "ok", actual: "[2,3]" },
+        }),
+        requestId: crypto.randomUUID(),
+      },
+    });
+    expect(forged.status()).toBe(400);
+    expect((await forged.json()).error).toContain("다시 실행");
+    const changed = await page.request.post("/api/problems/handoff-cart/coach", {
+      headers: { "X-Codefit-Workspace": "user:someone-else" },
+      data: { code, requestId: crypto.randomUUID() },
+    });
+    expect(changed.status()).toBe(409);
+    const crossSite = await page.request.post("/api/problems/handoff-cart/coach", {
+      headers: { Origin: "https://example.com" },
+      data: { code, requestId: crypto.randomUUID() },
+    });
+    expect(crossSite.status()).toBe(403);
+    const noKey = await page.request.post("/api/problems/handoff-cart/coach", {
+      headers: { "X-Codefit-Workspace": workspace.scope },
+      data: { code, requestId: crypto.randomUUID() },
+    });
+    expect(noKey.status()).toBe(503);
+  } finally {
+    account.store.db.close();
+  }
 });
 
 test("coaching failure retries the same snapshot and preserves prediction and notes", async ({

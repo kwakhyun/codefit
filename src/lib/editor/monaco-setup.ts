@@ -67,7 +67,7 @@ export function configureMonaco(monaco: Parameters<BeforeMount>[0]) {
       foreground: "#D4D4D4",
       "editor.background": "#000000",
       "editor.foreground": "#D4D4D4",
-      "editorLineNumber.foreground": "#707070",
+      "editorLineNumber.foreground": "#9099A8",
       "editorLineNumber.activeForeground": "#FFFFFF",
       "editorCursor.foreground": "#FFFFFF",
       "editorCursor.background": "#000000",

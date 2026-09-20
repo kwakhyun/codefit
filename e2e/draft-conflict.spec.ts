@@ -206,10 +206,20 @@ test("initial data stays private and API rejects unversioned saves and reused AI
   } finally {
     await other.close();
   }
-  const requestId = crypto.randomUUID();
-  const review = (code: string) =>
-    page.request.post("/api/problems/be-pagination/review", { data: { requestId, code } });
-  expect((await review("print('first request')")).status()).toBe(503);
-  expect((await review("print('first request')")).status()).toBe(503);
-  expect((await review("print('different request')")).status()).toBe(409);
+  // Test retries under an isolated member allowance. Guest network quotas are
+  // shared across browser projects and are covered by usage-policy tests.
+  const account = await testAccount(resolve("artifacts/e2e.sqlite"), base);
+  try {
+    const requestId = crypto.randomUUID();
+    const review = (code: string) =>
+      page.request.post("/api/problems/be-pagination/review", {
+        headers: { cookie: account.cookie },
+        data: { requestId, code },
+      });
+    expect((await review("print('first request')")).status()).toBe(503);
+    expect((await review("print('first request')")).status()).toBe(503);
+    expect((await review("print('different request')")).status()).toBe(409);
+  } finally {
+    account.store.db.close();
+  }
 });

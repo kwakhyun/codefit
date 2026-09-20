@@ -1,23 +1,42 @@
 import { learnerTypes } from "./learner-types";
 export type LearningPreference = {
   experience: "beginner" | "developer";
-  purpose: "learn" | "project";
+  purpose: "learn" | "project" | "ai";
 };
 export const defaultPreference: LearningPreference = { experience: "beginner", purpose: "project" };
 export function parsePreference(raw: string | null): LearningPreference {
   try {
     const value = JSON.parse(raw || "null");
-    const migrated = value?.version === 2 && learnerTypes.find((item) => item.id === value.type);
-    if (migrated) return { experience: migrated.experience, purpose: migrated.purpose };
+    if (value?.version === 3) {
+      const type = learnerTypes.find((item) => item.id === value.type);
+      if (type) return { experience: type.experience, purpose: type.purpose };
+      return defaultPreference;
+    }
+    // Existing project-oriented modes merge into the service workspace.
+    if (value?.version === 2) {
+      if (value.type === "coder") return { experience: "developer", purpose: "learn" };
+      if (value.type === "starter") return { experience: "beginner", purpose: "ai" };
+      return defaultPreference;
+    }
     if (
       ["beginner", "developer"].includes(value?.experience) &&
       ["learn", "project"].includes(value?.purpose)
-    )
-      return { experience: value.experience, purpose: value.purpose };
+    ) {
+      if (value.purpose === "project") return defaultPreference;
+      return {
+        experience: value.experience,
+        purpose: value.experience === "beginner" ? "ai" : "learn",
+      };
+    }
   } catch {}
   return defaultPreference;
 }
 const destinations = {
+  browse: {
+    href: "/?view=browse",
+    label: "분야별 코딩 연습",
+    description: "분야와 난이도를 골라 직접 코드를 작성하세요.",
+  },
   ai: {
     href: "/learn/ai",
     label: "AI 실무 배우기",
@@ -48,8 +67,10 @@ const destinations = {
 };
 export function preferredDestinations(preference: LearningPreference) {
   const order: (keyof typeof destinations)[] =
-    preference.experience === "developer"
-      ? ["project", "security", "handoff", "ai", "learn"]
-      : ["project", "handoff", "security", "ai", "learn"];
+    preference.purpose === "ai"
+      ? ["ai", "handoff", "project", "security", "browse", "learn"]
+      : preference.purpose === "learn"
+        ? ["browse", "handoff", "ai", "project", "security", "learn"]
+        : ["project", "security", "ai", "handoff", "browse", "learn"];
   return order.map((key) => destinations[key]);
 }

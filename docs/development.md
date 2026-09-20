@@ -186,7 +186,7 @@ npm run eval:handoff -- --strengthened --live
 
 ## 내 프로젝트 점검
 
-`/project-check`와 `/api/project-check`는 가입자 전용 분석/평가를 제공합니다. 기존 서버 API 키와 DB를 재사용합니다. 자바스크립트 실행 후 화면 수집에는 Vercel Sandbox 스냅샷과 프로젝트 범위 인증이 추가로 필요합니다. [브라우저 수집 준비](project-browser.md#브라우저-이미지-준비)에 따라 `PROJECT_BROWSER_SNAPSHOT_ID`를 설정하세요. 설정이 없거나 수집에 실패하면 HTML 수집으로 전환하며, 렌더링된 화면을 읽었다고 표시하지 않습니다. 주소 수집 제한, 개인 한도, 실패 시 차감 정책과 모델 비용은 [설계 기록](project-check.md)에 있습니다. SQLite→PostgreSQL 이관에서는 완료된 프로젝트 질문과 평가만 복사하고 진행 중인 AI 작업은 제외합니다. 일반 DB 백업에도 기록이 포함됩니다.
+`/project-check`와 `/api/project-check`는 게스트 체험과 로그인 계정의 분석/평가를 제공합니다. 이용 한도와 기록 보관 범위는 README를 참고하세요. 기존 서버 API 키와 DB를 재사용합니다. 자바스크립트 실행 후 화면 수집에는 Vercel Sandbox 스냅샷과 프로젝트 범위 인증이 추가로 필요합니다. [브라우저 수집 준비](project-browser.md#브라우저-이미지-준비)에 따라 `PROJECT_BROWSER_SNAPSHOT_ID`를 설정하세요. 설정이 없거나 수집에 실패하면 HTML 수집으로 전환하며, 렌더링된 화면을 읽었다고 표시하지 않습니다. 주소 수집 제한, 개인 한도, 실패 시 차감 정책과 모델 비용은 [설계 기록](project-check.md)에 있습니다. SQLite→PostgreSQL 이관에서는 완료된 프로젝트 질문과 평가만 복사하고 진행 중인 AI 작업은 제외합니다. 일반 DB 백업에도 기록이 포함됩니다.
 
 ## 미리보기와 검증 환경 구분
 

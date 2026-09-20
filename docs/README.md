@@ -6,8 +6,8 @@
 
 | 주제                                         | 문서                                                                                                                       |
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| 타입 선택, 메뉴 우선순위와 브라우저 보관     | [사용자 타입에 따른 탐색](personalized-navigation.md)                                                                      |
-| 항상 표시되는 배너, 그림과 선택형 안내       | [화면별 이미지와 탐색 UI](design/experience-ui.md)                                                                         |
+| 세 작업 공간, 메뉴 순서와 선택 보관          | [사용자 타입에 따른 탐색](personalized-navigation.md)                                                                      |
+| 작업 공간별 홈, 전용 이미지와 선택형 안내    | [화면별 이미지와 탐색 UI](design/experience-ui.md)                                                                         |
 | 21개 입문 실습, 단계 조작과 학습 기록        | [서비스 원리 배우기](beginner-training.md)                                                                                 |
 | 서비스 분야와 사례의 구성 이력               | [서비스 분야별 실습](design/service-domain-curriculum.md)                                                                  |
 | AI 코드 이해와 코칭                          | [이해 훈련 코치](understanding-coach.md), [질문 대상 선택](coach-targeting.md)                                             |
@@ -18,6 +18,8 @@
 | 내 프로젝트 확인 과제, 보완 답변과 공통 실습 | [프로젝트 학습](project-learning.md)                                                                                       |
 | 공개 보안 설정과 탭 임시 확인 기록           | [보안 설정 점검](security-check.md)                                                                                        |
 | 첫 미션 선택과 선택적 AI 안내                | [핏 시작 가이드](design/fit-start-guide.md)                                                                                |
+
+[AI 실무 배우기](ai-learning.md)는 15개 분야, 32개 수업의 모의 실습과 브라우저 진도 보관을 설명합니다.
 
 ## 개발과 운영
 
@@ -31,7 +33,8 @@
 
 ## 그림과 이전 UI 변경 기록
 
-- [현재 공통 이미지의 프롬프트와 경로](design/experience-visuals.json)
+- [세 작업 공간 전용 이미지의 프롬프트와 경로](design/workspace-visuals.json)
+- [공통 이미지의 프롬프트와 경로](design/experience-visuals.json)
 - [실습 상황 그림](design/scenario-visuals.md), [로그인 제공자 아이콘](design/provider-icons.md)
 - [가독성 조정 이력](ui-readability.md), [서비스 용어](design/service-copy.md), [2026-09-18 UI 검토](design/release-ui-review.md)
 

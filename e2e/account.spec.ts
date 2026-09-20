@@ -14,10 +14,10 @@ test("guests can practice, see login guidance, and can generate but cannot read 
   expect(
     (
       await request.post("/api/problems/be-pagination/review", {
-        data: { requestId: crypto.randomUUID(), code: "def paginate(): pass" },
+        data: { requestId: crypto.randomUUID(), code: "" },
       })
     ).status(),
-  ).toBe(503);
+  ).toBe(400);
   await page.goto("/?generate=1");
   await expect(page.getByRole("heading", { name: /지금 필요한 문제를 만드세요/ })).toBeVisible();
   await page

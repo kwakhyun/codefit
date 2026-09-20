@@ -105,7 +105,6 @@ export const AI_TRACKS = [
     icon: "monitor",
   },
 ] as const;
-export type AiTrackId = (typeof AI_TRACKS)[number]["id"];
 const LESSONS = [
   {
     id: "prompt-context",

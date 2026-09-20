@@ -1,0 +1,66 @@
+/* Block-flow text surfaces. Grid/flex forms and compact navigation keep their gaps. */
+:is(
+    .handoff-progress,
+    .handoff-quality,
+    .handoff-measurement,
+    .handoff-readiness,
+    .lab-experiment,
+    .lab-experiment-results,
+    .lab-experiment-proposal,
+    .lab-experiment-reflection,
+    .lab-empty,
+    .lab-input-context,
+    .project-summary,
+    .project-evidence,
+    .training-result,
+    .training-explanation,
+    .security-results,
+    .security-finding,
+    .security-exercises,
+    .audit-method,
+    .cors-result,
+    .zap-finding,
+    .learn-check,
+    .learn-completed,
+    .learn-limits,
+    .learn-concept,
+    .help-content,
+    .settings-content,
+    .review-result,
+    .hint-card,
+    .solution-locked,
+    .tab-empty
+  )
+  > :is(p, h2, h3, h4)
+  + :is(p, div, details, ul, ol, pre, button, a, label) {
+  margin-block-start: 16px;
+}
+
+/* Status text must remain separated from the content it describes. */
+:is(.learn-page, .project-main, .handoff-progress) > .ui-status {
+  margin-block: 16px;
+}
+.ui-disclosure[open] > .ui-disclosure-summary + :is(p, div, ul, ol) {
+  margin-block-start: 16px;
+}
+.ui-disclosure > p + p {
+  margin-block-start: 12px;
+}
+
+/* Section titles need more room than compact labels and metadata. */
+:is(.ai-group-title, .section-heading, .learn-section-title) h2 + p {
+  margin-block-start: 12px;
+}
+
+/* Explanations following evidence boxes are separate reading blocks. */
+:is(.checkpoint-evidence, .checkpoint-expected, .lab-comparison, .training-feedback) + p {
+  margin-block-start: 16px;
+}
+:is(.persona-other-records, .persona-security-start) > p + :is(a, button, div) {
+  margin-block-start: 20px;
+}
+
+/* The prediction helper belongs above the answer group, not against its border. */
+.lab-prediction fieldset > .learn-fineprint {
+  margin-block: 12px 20px;
+}

@@ -29,7 +29,7 @@ function snapshot() {
   }
 }
 function save(type: LearnerType) {
-  fallback = JSON.stringify({ version: 2, type });
+  fallback = JSON.stringify({ version: 3, type });
   try {
     localStorage.setItem(key, fallback);
     memoryOnly = false;
@@ -46,7 +46,7 @@ export function useLearningPreference() {
   useEffect(() => {
     if (!raw || memoryOnly) return;
     try {
-      if (!localStorage.getItem(key)) save(learnerType(parsePreference(raw)).id);
+      if (JSON.parse(raw)?.version !== 3) save(learnerType(parsePreference(raw)).id);
     } catch {
       /* Selection still works without persistent browser storage. */
     }

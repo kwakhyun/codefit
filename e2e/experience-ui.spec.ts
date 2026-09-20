@@ -2,29 +2,17 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readFile } from "node:fs/promises";
 
-test("always-visible banner follows each learner type and keeps all features reachable", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+test("first visit offers three workspaces and a complete feature overview", async ({ page }) => {
   await page.goto("/");
+  await expect(
+    page.getByRole("region", { name: "나에게 맞는 시작점" }).getByRole("radio"),
+  ).toHaveCount(3);
   const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
   await expect(banner).toBeVisible();
-  for (const [index, type, title] of [
-    [0, "원리 입문", "내 프로젝트 점검"],
-    [1, "코드 훈련", "내 프로젝트 점검"],
-    [2, "내 서비스 이해", "내 프로젝트 점검"],
-    [3, "배포 전 점검", "내 프로젝트 점검"],
-  ] as const) {
-    if (index > 0) await page.locator(".persona-change").click();
-    await page.getByRole("radio", { name: type, exact: true }).click();
-    if (index > 0) await page.getByRole("button", { name: "선택 완료" }).click();
-    await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 7");
-    await expect(banner.getByRole("group").locator(".eyebrow")).toHaveText(title);
-    await expect(banner.locator(".feature-topic-rail button")).toHaveCount(7);
-    await expect(page.locator(".training-welcome .persona-picker")).toHaveCount(0);
-    await page.reload();
-    await expect(banner.getByRole("group").locator(".eyebrow")).toHaveText(title);
-  }
+  await expect(banner.locator(".feature-topic-rail button")).toHaveCount(7);
+  await page.getByRole("radio", { name: "AI 워크숍", exact: true }).check();
+  await expect(page.locator(".ai-home-grid")).toBeVisible();
+  await expect(banner).toHaveCount(0);
 });
 
 test("illustrated menus work on narrow screens and expose keyboard step previews", async ({

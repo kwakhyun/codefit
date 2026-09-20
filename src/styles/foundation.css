@@ -90,6 +90,18 @@ h3 {
   margin: 0;
 }
 
+/* Reading defaults survive the reset; component layouts can override them.
+   Keep these at element specificity so flex/grid cards retain their own rhythm. */
+:where(main, dialog, [role="dialog"]) :where(h1, h2, h3, h4) + p {
+  margin-block-start: 12px;
+}
+:where(main, dialog, [role="dialog"]) :where(p) + p {
+  margin-block-start: 12px;
+}
+:where(details[open]) > :where(summary) + :is(p, div, ul, ol) {
+  margin-block-start: 16px;
+}
+
 input,
 textarea,
 select {

@@ -85,10 +85,9 @@ function subscribeMotion(fn: () => void) {
   return () => q.removeEventListener("change", fn);
 }
 const order: Record<LearnerType, number[]> = {
-  starter: [4, 6, 5, 2, 1, 0, 3],
-  coder: [4, 6, 2, 5, 3, 1, 0],
-  maker: [4, 6, 5, 2, 1, 0, 3],
-  builder: [4, 6, 5, 2, 1, 0, 3],
+  service: [4, 5, 6, 2, 1, 0, 3],
+  ai: [6, 4, 2, 3, 5, 1, 0],
+  code: [2, 3, 6, 4, 5, 1, 0],
 };
 export function FeatureBanner({ onGenerate }: { onGenerate: () => void }) {
   const { type } = useLearningPreference();

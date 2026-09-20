@@ -6,19 +6,18 @@ import { Check, SlidersHorizontal } from "lucide-react";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { learnerTypes } from "@/lib/learner-types";
 import { Modal } from "@/components/ui/modal";
-import { ScenarioImage } from "@/components/ui/scenario-visual";
 
 export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }) {
   const { type, setType, storageError, hasChosen } = useLearningPreference();
   const group = useId();
   return (
     <section className="persona-picker" aria-label="나에게 맞는 시작점">
-      <h2>어떤 연습이 필요한가요?</h2>
+      <h2>오늘은 무엇을 해볼까요?</h2>
       <p className="persona-intro">
-        지금의 목적을 고르면 홈과 메뉴가 함께 바뀝니다. 언제든 다시 선택할 수 있어요.
+        서비스 점검, AI 활용, 코딩 연습. 고른 작업에 맞춰 홈과 메뉴가 달라집니다.
       </p>
       <fieldset className="persona-cards">
-        <legend className="sr-only">맞춤 타입 선택</legend>
+        <legend className="sr-only">작업 공간 선택</legend>
         {learnerTypes.map((item) => (
           <FieldLabel
             className={`persona-card ${hasChosen && type === item.id ? "is-selected" : ""}`}
@@ -36,18 +35,13 @@ export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }
               aria-label={item.name}
             />
             <span className="persona-art" aria-hidden="true">
-              {item.image === "container" ? (
-                <ScenarioImage scene="container" stage={3} />
-              ) : (
-                <Image
-                  src={`/images/features/${item.image}.webp`}
-                  width={960}
-                  height={640}
-                  alt=""
-                  unoptimized
-                  sizes="(max-width: 600px) 45vw, 240px"
-                />
-              )}
+              <Image
+                src={`/images/personas/${item.image}.webp`}
+                width={1200}
+                height={800}
+                alt=""
+                sizes="(max-width: 600px) 85vw, 320px"
+              />
             </span>
             <span className="persona-copy">
               <small>{item.audience}</small>
@@ -56,7 +50,7 @@ export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }
             </span>
             <span className="persona-selected">
               <Check size={14} aria-hidden="true" />
-              {hasChosen && type === item.id ? "선택됨" : "이 타입 선택"}
+              {hasChosen && type === item.id ? "선택됨" : "이 공간으로 시작"}
             </span>
           </FieldLabel>
         ))}
@@ -95,10 +89,10 @@ export function PreferenceChangeButton() {
         <SlidersHorizontal size={16} aria-hidden="true" />
         <span>
           <strong>{profile.name}</strong>
-          <span>맞춤 타입 변경</span>
+          <span>작업 공간 변경</span>
         </span>
       </Button>
-      <Modal open={open} onClose={close} title="맞춤 타입 변경" className="persona-modal">
+      <Modal open={open} onClose={close} title="작업 공간 변경" className="persona-modal">
         {open && (
           <>
             <LearningPreferencePicker />

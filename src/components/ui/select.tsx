@@ -76,7 +76,15 @@ export function Select({
     };
   }, [open]);
   useEffect(() => {
-    if (open) popup.current?.children[active]?.scrollIntoView({ block: "nearest" });
+    const list = popup.current;
+    const option = list?.children[active] as HTMLElement | undefined;
+    if (!open || !list || !option) return;
+    // Keep scrolling inside the popover; scrolling its document can close it.
+    const top = option.offsetTop;
+    const bottom = top + option.offsetHeight;
+    if (top < list.scrollTop) list.scrollTop = top;
+    else if (bottom > list.scrollTop + list.clientHeight)
+      list.scrollTop = bottom - list.clientHeight;
   }, [active, open]);
   function onKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
     if (event.key === "Tab") {

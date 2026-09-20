@@ -1,0 +1,19 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-09-21",
+  "output": "1200x800 WebP, quality 85; originals retained outside the repository",
+  "assets": [
+    {
+      "path": "public/images/personas/persona-service.webp",
+      "prompt": "Use case: stylized-concept. Website editorial illustration for a dark Korean software education product. A sophisticated cobalt-blue service blueprint desk: one large glass application window with simple blank UI blocks, a magnifying lens examining its structure, three connected database and permissions modules. Clean sculptural matte ceramic and translucent glass, refined product photography, generous negative space, no letters, no text, no logos, no people, no robot, no neon. Wide 3:2 composition, centered isolated objects with generous margin, uniform deep navy #111620 background that blends at edges. This is the service inspection workspace identity."
+    },
+    {
+      "path": "public/images/personas/persona-ai.webp",
+      "prompt": "Use case: stylized-concept. Website editorial illustration for a dark Korean AI learning product. A creative lavender AI workshop: three floating modular tiles (document, branching workflow, model cube) connected by elegant curved violet cables, with one open book below. Restrained sculptural matte ceramic and translucent glass, refined product photography, generous negative space, no letters, no text, no logos, no people, no robot, no neon. Wide 3:2 composition centered isolated objects with generous margin, uniform deep navy #111620 background that blends at edges. Clear distinct silhouette focused on learning and connecting tools."
+    },
+    {
+      "path": "public/images/personas/persona-code.webp",
+      "prompt": "Use case: stylized-concept. Website editorial illustration for a dark Korean coding practice product. An amber coding workbench: a sculptural terminal display with abstract short code bars and one amber cursor block, a row of three test tiles with two checkmarks and one play triangle, mechanical keyboard edge beneath. Restrained matte ceramic and translucent glass, refined product photography, generous negative space, no letters, no words, no logos, no people, no robot, no neon. Wide 3:2 composition centered isolated objects with generous margin, uniform deep navy #111620 background that blends at edges. Clear distinct silhouette focused on writing code and testing."
+    }
+  ]
+}

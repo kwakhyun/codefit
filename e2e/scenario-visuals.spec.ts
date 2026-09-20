@@ -1,3 +1,4 @@
+import { waitForUiTransitions } from "./ui-helpers";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { seedProblems } from "../src/data/problems";
@@ -18,7 +19,7 @@ async function noOverflow(page: Page) {
 }
 test("home and all mission cards have loaded representative artwork", async ({ page }, info) => {
   for (const [url, selector, count] of [
-    ["/", ".persona-art", 4],
+    ["/", ".persona-art", 3],
     ["/learn", ".learn-card .service-card-art", MISSIONS.length],
     ["/handoff", ".handoff-card .scenario-art", 6],
   ] as const) {
@@ -72,6 +73,7 @@ test("beginner previews and keyboard illustration controls remain understandable
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("데이터는 어디에 저장될까요?");
   await expect(page.getByRole("region", { name: "실습 상황과 기준" })).toContainText("새로고침");
   await noOverflow(page);
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
@@ -86,6 +88,7 @@ test("beginner previews and keyboard illustration controls remain understandable
   await expect(controls.getByRole("button", { name: "2. 확인할 점", exact: true })).toBeFocused();
   await expect(page.locator(".scenario-visual")).toHaveAttribute("data-stage", "1");
   await noOverflow(page);
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
