@@ -1,13 +1,17 @@
 "use client";
+import { ProjectExample } from "./project-example";
 import { ProjectLearning } from "@/components/project-learning/project-learning";
 import { GuestLogin } from "@/components/account/guest-login";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ExternalLink, Globe2, RefreshCw, ShieldCheck } from "lucide-react";
 import { useProjectHistory, type UpdateOverview } from "@/hooks/use-project-history";
-import { api, dateLabel, errorMessage, setWorkspaceScope } from "@/lib/client-api";
+import { useProjectDraft } from "@/hooks/use-project-draft";
+import { VoiceInput } from "@/components/ui/voice-input";
+import { api, ApiError, dateLabel, errorMessage, setWorkspaceScope } from "@/lib/client-api";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import { ProjectQuestions } from "./project-questions";
+import { RequestStatus } from "./request-status";
 export function ProjectCheckApp() {
   const [data, setData] = useState<CheckOverview>();
   const [error, setError] = useState("");
@@ -86,16 +90,19 @@ export function ProjectCheckApp() {
               }
             />
           ) : (
-            <section className="project-panel project-signin">
-              <ShieldCheck size={32} />
-              <h2>내 프로젝트로 질문을 받아보세요</h2>
-              <p>
-                가입하면 24시간에 2개의 프로젝트를 분석할 수 있습니다. 질문과 평가 기록은 본인만 볼
-                수 있습니다.
-              </p>
-              <GuestLogin returnTo="/project-check" />
-              <Link href="/learn">로그인 없이 서비스 원리 배우기 →</Link>
-            </section>
+            <>
+              <ProjectExample />
+              <section className="project-panel project-signin">
+                <ShieldCheck size={32} />
+                <h2>내 프로젝트로 질문을 받아보세요</h2>
+                <p>
+                  가입하면 24시간에 2개의 프로젝트를 분석할 수 있습니다. 질문과 평가 기록은 본인만
+                  볼 수 있습니다.
+                </p>
+                <GuestLogin returnTo="/project-check" />
+                <Link href="/learn">로그인 없이 서비스 원리 배우기 →</Link>
+              </section>
+            </>
           )}
         </div>
       )}
@@ -113,12 +120,13 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
       alive.current = false;
     };
   }, []);
-  const [url, setUrl] = useState("");
-  const [description, setDescription] = useState("");
+  const { draft, saveDraft, clearSavedDraft, storageError } = useProjectDraft(data.scope);
+  const { url, description, requestId } = draft;
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const request = useRef<{ payload: string; id: string } | null>(null);
+  const [notice, setNotice] = useState("");
+  const [recovering, setRecovering] = useState(false);
   const resultHeading = useRef<HTMLHeadingElement>(null);
   const historyPanel = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
@@ -129,8 +137,64 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
     if (checkId) resultHeading.current?.focus();
   }, [checkId]);
   async function reload() {
-    const result = await api<CheckOverview>("/api/project-check", { scope: data.scope });
+    const result = await api<CheckOverview>("/api/project-check", {
+      scope: data.scope,
+      signal: AbortSignal.timeout(15_000),
+    });
     if (alive.current) onChange(() => result);
+  }
+  function showCheck(result: Check) {
+    if (!alive.current) return;
+    saveDraft((value) => ({ ...value, requestId: null }));
+    clearSavedDraft();
+    onChange((current) => ({
+      ...current,
+      checks: [result, ...current.checks.filter((c) => c.id !== result.id)],
+    }));
+    select(result.id);
+  }
+  async function refreshUsage() {
+    // A delayed overview must not overwrite a result just received from POST/PATCH/detail.
+    await api<CheckOverview>("/api/project-check", {
+      scope: data.scope,
+      signal: AbortSignal.timeout(15_000),
+    })
+      .then((value) => {
+        if (alive.current)
+          onChange((current) => ({ ...current, usage: value.usage, aiReady: value.aiReady }));
+      })
+      .catch(() => {
+        if (alive.current)
+          setNotice(
+            "결과는 저장됐지만 남은 이용 횟수를 갱신하지 못했습니다. 기록 새로고침을 눌러 주세요.",
+          );
+      });
+  }
+  async function recover() {
+    if (!requestId || activeMutation.current) return;
+    activeMutation.current = true;
+    setRecovering(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await api<Check>(`/api/project-check/${requestId}`, {
+        scope: data.scope,
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (!alive.current) return;
+      showCheck(result);
+      await refreshUsage();
+    } catch (e) {
+      if (!alive.current) return;
+      if (e instanceof ApiError && e.status === 404)
+        setNotice(
+          "아직 저장된 결과를 찾지 못했습니다. 처리가 끝나지 않았을 수 있으니 잠시 후 다시 확인해 주세요.",
+        );
+      else setError(errorMessage(e));
+    } finally {
+      activeMutation.current = false;
+      if (alive.current) setRecovering(false);
+    }
   }
   async function create(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -138,33 +202,35 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
     activeMutation.current = true;
     setBusy(true);
     setError("");
-    const payload = JSON.stringify([url.trim(), description.trim()]);
-    if (request.current?.payload !== payload)
-      request.current = { payload, id: crypto.randomUUID() };
+    setNotice("");
+    const id = requestId || crypto.randomUUID();
+    saveDraft((value) => ({ ...value, requestId: id }));
     try {
       const result = await api<Check>("/api/project-check", {
         method: "POST",
         scope: data.scope,
-        body: { requestId: request.current!.id, url, description, consent },
+        body: { requestId: id, url, description, consent },
       });
       if (!alive.current) return;
-      request.current = null;
-      onChange((current) => ({
-        ...current,
-        checks: [result, ...current.checks.filter((c) => c.id !== result.id)],
-      }));
-      select(result.id);
-      await reload();
+      showCheck(result);
+      await refreshUsage();
     } catch (e) {
+      if (!alive.current) return;
       setError(errorMessage(e));
       await reload().catch(() => {});
     } finally {
       activeMutation.current = false;
-      setBusy(false);
+      if (alive.current) setBusy(false);
     }
   }
   async function remove() {
-    if (!check || !window.confirm("이 프로젝트의 질문과 평가 기록을 삭제할까요?")) return;
+    if (
+      activeMutation.current ||
+      !check ||
+      !window.confirm("이 프로젝트의 질문과 평가 기록을 삭제할까요?")
+    )
+      return;
+    activeMutation.current = true;
     setBusy(true);
     setError("");
     try {
@@ -216,7 +282,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
         )}
         <button
           className="text-button"
-          disabled={busy}
+          disabled={busy || recovering}
           onClick={() => reload().catch((e) => setError(errorMessage(e)))}
         >
           <RefreshCw size={15} /> 기록 새로고침
@@ -225,6 +291,11 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
       {error && (
         <p role="alert" className="project-error">
           {error}
+        </p>
+      )}
+      {notice && (
+        <p role="status" className="project-panel">
+          {notice}
         </p>
       )}
       {!data.aiReady && (
@@ -236,10 +307,11 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
         <aside className="project-history" aria-label="내 프로젝트 점검 기록">
           <button
             className="secondary-button"
-            disabled={busy}
+            disabled={busy || recovering}
             onClick={() => {
-              request.current = null;
+              saveDraft((value) => ({ ...value, requestId: null }));
               setError("");
+              setNotice("");
               select(null);
             }}
           >
@@ -258,7 +330,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   <button
                     key={c.id}
                     aria-pressed={selected === c.id}
-                    disabled={busy}
+                    disabled={busy || recovering}
                     onClick={() => select(c.id)}
                   >
                     <strong>{c.analysis.title}</strong>
@@ -273,7 +345,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
               {data.nextCursor && (
                 <button
                   className="secondary-button"
-                  disabled={busy || history.paging}
+                  disabled={busy || recovering || history.paging}
                   onClick={() => void history.loadMore()}
                 >
                   {history.paging ? "이전 기록 불러오는 중…" : "이전 기록 더 보기"}
@@ -311,9 +383,11 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 required
                 maxLength={1500}
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                onChange={(e) =>
+                  saveDraft((value) => ({ ...value, url: e.target.value, requestId: null }))
+                }
                 placeholder="https://my-service.com"
-                disabled={busy}
+                disabled={busy || recovering}
                 aria-describedby="project-url-help"
               />
               <p id="project-url-help" className="project-help">
@@ -328,21 +402,62 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 rows={4}
                 maxLength={2000}
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                disabled={busy}
+                onChange={(e) =>
+                  saveDraft((value) => ({ ...value, description: e.target.value, requestId: null }))
+                }
+                disabled={busy || recovering}
                 placeholder="어떤 문제를 해결하나요? 주요 기능, 사용한 도구, 직접 결정한 설계가 있다면 알려주세요."
+              />
+              <VoiceInput
+                targetId="project-description"
+                disabled={busy || recovering}
+                onTranscript={(text) =>
+                  saveDraft((value) => ({
+                    ...value,
+                    description: `${value.description}${value.description ? " " : ""}${text}`.slice(
+                      0,
+                      2000,
+                    ),
+                    requestId: null,
+                  }))
+                }
               />
               <p className="project-help">
                 화면에서 알 수 없는 구현을 설명하면 더 구체적인 질문을 받을 수 있습니다. 비밀키와
                 사용자 데이터는 입력하지 마세요.
               </p>
+              <p className="project-help">
+                {description.length} / 2000자 · 주소와 설명은 이 계정의 현재 탭에 보관됩니다.
+              </p>
+              {storageError && (
+                <p role="alert">
+                  브라우저에 초안을 보관하지 못했습니다. 화면을 닫기 전에 작성한 내용을 복사해
+                  주세요.
+                </p>
+              )}
+              {requestId && !busy && (
+                <div className="project-recovery">
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    disabled={recovering}
+                    onClick={() => void recover()}
+                  >
+                    {recovering ? "저장된 결과 확인 중…" : "저장된 분석 결과 확인"}
+                  </button>
+                  <p className="project-help">
+                    앞선 요청의 결과만 조회합니다. AI를 다시 호출하거나 이용 횟수를 차감하지
+                    않습니다.
+                  </p>
+                </div>
+              )}
               <label className="project-consent">
                 <input
                   type="checkbox"
                   checked={consent}
                   onChange={(e) => setConsent(e.target.checked)}
                   required
-                  disabled={busy}
+                  disabled={busy || recovering}
                 />
                 <span>
                   내가 만든 서비스이며, 공개 페이지 내용과 작성한 설명·답변을 OpenAI에 전송해
@@ -352,7 +467,9 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
               <button
                 className="primary-button"
                 type="submit"
-                disabled={busy || !data.aiReady || data.usage.analysis.remaining === 0}
+                disabled={
+                  busy || recovering || !data.aiReady || data.usage.analysis.remaining === 0
+                }
               >
                 {busy ? "페이지를 읽고 질문을 준비하고 있습니다…" : "내 프로젝트 질문 받기"}
                 <ArrowRight size={17} />
@@ -361,11 +478,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 새 분석 1회가 사용됩니다. AI 호출 후 응답을 받지 못한 경우에도 횟수가 차감될 수
                 있습니다. 한도는 기존 코딩 문제 생성과 별개입니다.
               </p>
-              {busy && (
-                <p role="status">
-                  보통 1분 안팎이 걸릴 수 있습니다. 화면을 닫았다면 최근 점검에서 결과를 확인하세요.
-                </p>
-              )}
+              {busy && <RequestStatus label="프로젝트 질문을 준비하고 있습니다" />}
             </form>
           ) : (
             <>
@@ -384,7 +497,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   {check.page.limited ? "화면 정보가 적어 작성한 설명을 주로 참고했습니다. " : ""}
                   로그인 후 화면, 소스 코드와 실제 서버 구성은 확인하지 않았습니다.
                 </p>
-                <button className="text-button" disabled={busy} onClick={remove}>
+                <button className="text-button" disabled={busy || recovering} onClick={remove}>
                   이 점검 기록 삭제
                 </button>
               </section>
@@ -399,7 +512,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                     ...current,
                     checks: current.checks.map((c) => (c.id === check.id ? { ...c, review } : c)),
                   }));
-                  await reload();
+                  await refreshUsage();
                 }}
               />
               {check.review && (

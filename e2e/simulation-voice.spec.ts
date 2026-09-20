@@ -41,7 +41,7 @@ test("all sample services are interactive; preview actions do not become observa
     await page.getByRole("button", { name: "예상 남기고 직접 확인" }).click();
     await expect(page.getByRole("heading", { name: "2. 직접 확인" })).toBeFocused();
     await expect(page.locator(".learn-observations ol li")).toHaveCount(0);
-    await page.getByRole("button", { name: "지금 저장", exact: true }).click();
+    await page.getByRole("button", { name: "학습 기록 저장", exact: true }).click();
     await expect
       .poll(async () => {
         const body = await (await page.request.get(`/api/learn/${mission.id}`)).json();

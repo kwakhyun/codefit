@@ -1,4 +1,5 @@
 "use client";
+import { ExecutionWait } from "./execution-wait";
 import { ScenarioVisual } from "@/components/ui/scenario-visual";
 import { VoiceInput } from "@/components/ui/voice-input";
 import { scenarioFor } from "@/lib/scenario-visuals";
@@ -326,6 +327,9 @@ export function LearningLab({
         <p className="inline-error lab-error" role="alert">
           {c.error}
         </p>
+      )}
+      {busy && activity !== "coaching" && (
+        <ExecutionWait key={activity} paired={activity === "experimenting"} />
       )}
       {busy && (
         <button className="text-button lab-cancel" onClick={c.cancel}>

@@ -51,7 +51,10 @@ export function MissionRepair({
       )}
       <div className="learn-fixes">
         <h3>수정안을 선택하고 결과를 확인하세요.</h3>
-        <p>다음은 검토 연습을 위해 준비한 수정안입니다. 적용한 뒤 동작을 확인하세요.</p>
+        <p>
+          아래 준비된 수정안 중 하나를 적용해 동작을 비교합니다. 위에 쓴 요청문이 코드를 자동으로
+          수정하지는 않습니다. 요청문의 보완점은 AI 코치에게 물어볼 수 있습니다.
+        </p>
         <fieldset>
           <legend>적용할 수정안</legend>
           {mission.fixes.map((f) => (

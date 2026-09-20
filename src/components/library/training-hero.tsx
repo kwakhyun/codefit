@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { ScenarioImage } from "@/components/ui/scenario-visual";
 import { problemUrl } from "@/lib/library-state";
 import type { ProblemSummary, ProgressSummary } from "@/lib/problem";
@@ -21,6 +22,7 @@ export function TrainingHero({
   scope,
   onGenerate,
 }: TrainingHeroProps) {
+  const [showFeatures, setShowFeatures] = useState(false);
   return (
     <div className="training-welcome">
       <div className="home-heading">
@@ -30,7 +32,7 @@ export function TrainingHero({
         </div>
         <p>처음 배우는 원리부터 직접 고치는 코드까지.</p>
       </div>
-      <LearningResume key={scope} scope={scope} />
+      <LearningResume key={scope} scope={scope} recommendFirst={!resume} />
       {resume && recommended && (
         <section className="resume-card" aria-label="코딩 문제 이어하기">
           <div>
@@ -44,7 +46,7 @@ export function TrainingHero({
           </Link>
         </section>
       )}
-      <div className="training-paths">
+      <nav className="training-paths" aria-label="다른 연습 둘러보기">
         <Link href="/learn" className="training-path-foundation">
           <ScenarioImage scene="data-storage" />
           <span>코딩이 처음이라면 · 5분부터</span>
@@ -69,15 +71,22 @@ export function TrainingHero({
           </strong>
           <p>원하는 분야의 구현, 오류 수정, 리팩터링을 연습해요.</p>
         </a>
-      </div>
+      </nav>
       <Link href="/project-check" className="project-launch">
         <div>
           <strong>AI로 만든 내 서비스, 설계도 설명할 수 있나요?</strong>
-          <p>서비스 링크로 질문을 받고, 내 프로젝트 이해도를 확인해 보세요.</p>
+          <p>내 프로젝트 점검 · 로그인 필요 · 24시간에 프로젝트 2개까지</p>
+          <span>질문과 피드백 예시 먼저 보기 →</span>
         </div>
         <ArrowRight size={22} />
       </Link>
-      <FeatureBanner onGenerate={onGenerate} />
+      <details
+        className="home-feature-details"
+        onToggle={(event) => setShowFeatures(event.currentTarget.open)}
+      >
+        <summary>전체 기능과 사용 방법 살펴보기</summary>
+        {showFeatures && <FeatureBanner onGenerate={onGenerate} />}
+      </details>
       {scope.startsWith("guest:") && <GuestLogin returnTo="/" />}
     </div>
   );

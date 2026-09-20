@@ -1,7 +1,19 @@
-import type { Mission } from "@/lib/learn/catalog";
+import { actionLabel, type Action, type Mission } from "@/lib/learn/catalog";
 import type { LearningRecord, LearningRecordUpdate } from "@/lib/learn/progress";
 import { simulate } from "@/lib/learn/simulation";
 import { SimulationView } from "./simulation-view";
+
+const visibleActionNames: Partial<Record<Action, string>> = {
+  save: "저장하기",
+  "switch-user": "다른 사용자로 전환",
+  "open-private": "문서 열기",
+  quantity: "3개 담기",
+  "invalid-quantity": "−1개 입력",
+  filter: "완료",
+  book: "예약하기",
+  "repeat-book": "같은 예약 재전송",
+  "new-booking": "15:00 시간 새로 예약",
+};
 
 export function MissionObservation({
   mission,
@@ -24,6 +36,20 @@ export function MissionObservation({
 }) {
   return (
     <>
+      <p className="learn-observation-guide">
+        <strong>{evidence ? "필수 관찰을 마쳤습니다." : "다음 단계에 필요한 조작:"}</strong>{" "}
+        {evidence
+          ? "나머지 조작은 이 단계에서 선택 사항입니다. 바로 수정 방법을 살펴봐도 됩니다."
+          : mission.reproduce
+              .map((action) => {
+                if (mission.app === "filter" && action === "refresh")
+                  return "전체 다시 보기 (전체)";
+                const label = actionLabel(mission, action);
+                const button = !mission.service && visibleActionNames[action];
+                return button ? `${label} (${button})` : label;
+              })
+              .join(" → ")}
+      </p>
       <div className="mission-columns">
         <SimulationView
           mission={mission}

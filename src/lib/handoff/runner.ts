@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { executionResultSchema, type ExecutionResult } from "./training";
 
+export const SANDBOX_TIMEOUT_MS = 12_000;
+
 export function runInSandbox(
   code: string,
   cases: { id: string; expression: string }[],
@@ -25,7 +27,7 @@ export function runInSandbox(
     const abort = () => end(new Error("실행을 취소했습니다. 작성한 내용은 유지됩니다."));
     const timer = setTimeout(
       () => end(new Error("실행 시간이 초과됐습니다. 반복문과 Promise 종료 조건을 확인해 주세요.")),
-      12000,
+      SANDBOX_TIMEOUT_MS,
     );
     signal.addEventListener("abort", abort, { once: true });
     worker.onerror = () => end(new Error("실행 환경을 불러오지 못했습니다. 다시 시도해 주세요."));

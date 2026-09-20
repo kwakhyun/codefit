@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { api, errorMessage } from "@/lib/client-api";
+import { VoiceInput } from "@/components/ui/voice-input";
 import { evidenceLabels, type Check } from "@/lib/project-check/types";
+import { RequestStatus } from "./request-status";
 function loadDraft(key: string) {
   try {
     const value = JSON.parse(sessionStorage.getItem(key) || "null");
@@ -10,9 +12,16 @@ function loadDraft(key: string) {
       value.answers.length === 5 &&
       value.answers.every((s: unknown) => typeof s === "string" && s.length <= 1500)
     )
-      return { answers: value.answers as string[], submitted: value.submitted === true };
+      return {
+        answers: value.answers as string[],
+        submitted: value.submitted === true,
+        step:
+          Number.isInteger(value.step) && value.step >= 0 && value.step < 5
+            ? (value.step as number)
+            : 0,
+      };
   } catch {}
-  return { answers: ["", "", "", "", ""], submitted: false };
+  return { answers: ["", "", "", "", ""], submitted: false, step: 0 };
 }
 export function ProjectQuestions({
   check,
@@ -27,12 +36,23 @@ export function ProjectQuestions({
 }) {
   const draftKey = `codefit-project:${scope}:${check.id}`;
   const [draft, setDraft] = useState(() => loadDraft(draftKey));
-  const [step, setStep] = useState(0);
+  const currentDraft = useRef(draft);
+  const { step } = draft;
   const [busy, setBusy] = useState(false);
+  const [recovering, setRecovering] = useState(false);
+  const [notice, setNotice] = useState("");
+  const active = useRef(false);
+  const alive = useRef(true);
   const [error, setError] = useState("");
   const [storageError, setStorageError] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const result = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
   useEffect(() => {
     if (check.review) {
       try {
@@ -40,7 +60,9 @@ export function ProjectQuestions({
       } catch {}
     }
   }, [check.review, draftKey]);
-  function saveDraft(next: typeof draft) {
+  function saveDraft(change: (value: typeof draft) => typeof draft) {
+    const next = change(currentDraft.current);
+    currentDraft.current = next;
     setDraft(next);
     try {
       sessionStorage.setItem(draftKey, JSON.stringify(next));
@@ -60,23 +82,51 @@ export function ProjectQuestions({
   const q = check.analysis.questions[step];
   const answers = check.review?.answers || draft.answers;
   function move(next: number) {
-    setStep(next);
+    saveDraft((value) => ({ ...value, step: next }));
+  }
+  async function recover() {
+    if (active.current) return;
+    active.current = true;
+    setRecovering(true);
+    setError("");
+    setNotice("");
+    try {
+      const saved = await api<Check>(`/api/project-check/${check.id}`, {
+        scope,
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (!alive.current) return;
+      if (saved.review) await onReviewed(saved.review);
+      else
+        setNotice(
+          "아직 저장된 평가 결과가 없습니다. 처리가 끝나지 않았을 수 있으니 잠시 후 다시 확인해 주세요.",
+        );
+    } catch (e) {
+      if (alive.current) setError(errorMessage(e));
+    } finally {
+      active.current = false;
+      if (alive.current) setRecovering(false);
+    }
   }
   async function submit() {
+    if (active.current) return;
+    active.current = true;
     setBusy(true);
     setError("");
-    saveDraft({ ...draft, submitted: true });
+    setNotice("");
+    saveDraft((value) => ({ ...value, submitted: true }));
     try {
       const review = await api<NonNullable<Check["review"]>>("/api/project-check", {
         method: "PATCH",
         scope,
         body: { id: check.id, answers: draft.answers },
       });
-      await onReviewed(review);
+      if (alive.current) await onReviewed(review);
     } catch (e) {
-      setError(errorMessage(e));
+      if (alive.current) setError(errorMessage(e));
     } finally {
-      setBusy(false);
+      active.current = false;
+      if (alive.current) setBusy(false);
     }
   }
   if (check.review)
@@ -213,10 +263,26 @@ export function ProjectQuestions({
         value={answers[step]}
         readOnly={draft.submitted}
         onChange={(e) =>
-          saveDraft({ ...draft, answers: answers.map((a, i) => (i === step ? e.target.value : a)) })
+          saveDraft((value) => ({
+            ...value,
+            answers: value.answers.map((a, i) => (i === step ? e.target.value : a)),
+          }))
         }
         placeholder="사용자가 행동하면 어떤 일이 순서대로 일어나나요? 그렇게 만든 이유와 확인 방법을 내 말로 적어보세요. 모르는 부분은 모른다고 적어도 괜찮습니다."
         aria-describedby="answer-help"
+      />
+      <VoiceInput
+        key={`${check.id}:${step}`}
+        targetId="project-answer"
+        disabled={draft.submitted || busy || recovering}
+        onTranscript={(text) =>
+          saveDraft((value) => ({
+            ...value,
+            answers: value.answers.map((answer, i) =>
+              i === step ? `${answer}${answer ? " " : ""}${text}`.slice(0, 1500) : answer,
+            ),
+          }))
+        }
       />
       <p id="answer-help" className="project-help">
         {answers[step].length} / 1500자 · 모르는 질문은 비워 두고 넘어갈 수 있습니다. 제출 전 답변은
@@ -228,16 +294,33 @@ export function ProjectQuestions({
         </p>
       )}
       {draft.submitted && (
-        <p className="project-help">
-          제출한 답변을 보존했습니다. 오류가 났다면 같은 답변으로 다시 요청하거나 기록을
-          새로고침하세요. 분석당 평가는 한 번만 저장됩니다.
-        </p>
+        <div className="project-recovery">
+          <p className="project-help">
+            제출한 답변을 보존했습니다. 응답을 받지 못했다면 먼저 저장된 결과를 확인하세요. 분석당
+            평가는 한 번만 저장됩니다.
+          </p>
+          {!busy && (
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={recovering}
+              onClick={() => void recover()}
+            >
+              {recovering ? "저장된 결과 확인 중…" : "저장된 평가 결과 확인"}
+            </button>
+          )}
+          <p className="project-help">
+            결과 확인은 AI를 다시 호출하거나 이용 횟수를 차감하지 않습니다.
+          </p>
+        </div>
       )}
+      {notice && <p role="status">{notice}</p>}
       {error && (
         <p role="alert" className="project-error">
           {error}
         </p>
       )}
+      {busy && <RequestStatus label="작성한 설명을 바탕으로 피드백을 준비하고 있습니다" />}
       <div className="project-question-actions">
         <button
           className="secondary-button"
@@ -253,7 +336,7 @@ export function ProjectQuestions({
         ) : (
           <button
             className="primary-button"
-            disabled={busy || !enabled || !answers.some((a) => a.trim())}
+            disabled={busy || recovering || !enabled || !answers.some((a) => a.trim())}
             onClick={submit}
           >
             {busy

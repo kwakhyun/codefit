@@ -743,3 +743,18 @@
     transition: none;
   }
 }
+
+.home-recommendation {
+  border-color: var(--action-soft);
+}
+.home-feature-details > summary {
+  cursor: pointer;
+  padding: 16px 0;
+  color: var(--action-soft);
+}
+.learn-observation-guide {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  line-height: 1.8;
+}

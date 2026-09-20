@@ -7,9 +7,11 @@ import { learningOverview, LEARNING_STAGES } from "@/lib/learn/overview";
 export function LearningResume({
   scope,
   showEmpty = false,
+  recommendFirst = false,
 }: {
   scope: string;
   showEmpty?: boolean;
+  recommendFirst?: boolean;
 }) {
   const { data, error, reload } = useLearningOverview(scope);
   const overview = data ? learningOverview(data.progress) : null;
@@ -29,6 +31,23 @@ export function LearningResume({
       </p>
     );
   const current = overview.resume;
+  if (!current && recommendFirst && overview.complete < overview.missions.length) {
+    const next = overview.next.mission;
+    return (
+      <section className="resume-card home-recommendation" aria-label="추천 첫 학습">
+        <div>
+          <span className="eyebrow">
+            {overview.complete ? "다음에 연습할 미션" : "처음이라면 이 미션부터"}
+          </span>
+          <h2>{next.title}</h2>
+          <p>약 {next.minutes}분 · 로그인 없이 예상하고, 직접 눌러 확인해 보세요.</p>
+        </div>
+        <Link className="primary-button" href={`/learn/${next.id}`}>
+          추천 미션 시작하기 <ArrowRight size={16} />
+        </Link>
+      </section>
+    );
+  }
   if (!current && !showEmpty) return null;
   return (
     <section className="resume-card" aria-label="입문 학습 이어하기">

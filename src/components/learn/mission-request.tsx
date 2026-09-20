@@ -1,4 +1,5 @@
 "use client";
+import { requestFromObservation } from "@/lib/learn/request-draft";
 import {
   requestFields,
   requestReady,
@@ -32,6 +33,22 @@ export function MissionRequest({
         {mission.kind === "lab"
           ? "실습을 마치려면 다섯 항목을 채워 주세요."
           : "기초 미션에서는 선택 사항입니다."}
+      </p>
+      <button
+        className="secondary-button"
+        disabled={
+          !record.actions.length ||
+          (["where", "steps", "actual"] as const).every((key) => record.request[key].trim())
+        }
+        onClick={() =>
+          update((r) => ({ ...r, completed: false, request: requestFromObservation(mission, r) }))
+        }
+      >
+        관찰 기록으로 빈칸 채우기
+      </button>
+      <p className="learn-fineprint">
+        관찰한 위치, 조작 순서, 마지막 결과를 가져옵니다. 이미 쓴 내용은 유지되며 초안은 고칠 수
+        있습니다. 기대 동작과 유지할 기능은 직접 정리해 주세요.
       </p>
       <span className="learn-chip">요청 항목 {filled} / 5</span>
       {requestFields.map((f) => (

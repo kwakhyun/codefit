@@ -15,14 +15,14 @@ import {
   type LearningRecord,
 } from "@/lib/learn/progress";
 import { reproduced } from "@/lib/learn/simulation";
-import type { LearningSession } from "@/lib/learn/session";
+import { learningStorageDescription, type LearningSession } from "@/lib/learn/session";
 import { MissionPrediction } from "./mission-prediction";
 import { MissionObservation } from "./mission-observation";
 import { MissionRepair } from "./mission-repair";
 import { MissionTransfer } from "./mission-transfer";
 import { LEARNING_STAGES as stages } from "@/lib/learn/overview";
 const labels = {
-  saved: "서버에 저장됨",
+  saved: "학습 기록 저장됨",
   saving: "저장 중…",
   local: "저장 대기",
   offline: "오프라인 · 브라우저 보관",
@@ -122,7 +122,7 @@ export function MissionSession({
         <div className="learn-save">
           <span role="status">{labels[controller.draft.saveState]}</span>
           <button className="text-button" onClick={() => void controller.draft.saveNow()}>
-            지금 저장
+            학습 기록 저장
           </button>
           <button
             className="icon-button"
@@ -133,6 +133,10 @@ export function MissionSession({
           </button>
         </div>
       </header>
+      <p className="learn-fineprint">
+        {learningStorageDescription(session.signedIn)} 예제 안의 저장 버튼은 실습 속 데이터만
+        바꿉니다.
+      </p>
       <div className="mission-title">
         <span className="eyebrow">
           {mission.kind === "lab" ? "서비스 오류 해결 실습" : "서비스 원리 배우기"} /{" "}
@@ -280,8 +284,8 @@ export function MissionSession({
         </details>
       </aside>
       <footer className="learn-fineprint">
-        {session.signedIn ? "계정에 저장" : "게스트 연습실에 저장"} · 실제 네트워크나 계정에 영향을
-        주지 않는 모의 실습입니다. <Link href="/quality">AI 검토 안내</Link>
+        예제 서비스는 실제 네트워크나 계정에 영향을 주지 않는 모의 실습입니다.{" "}
+        <Link href="/quality">AI 검토 안내</Link>
       </footer>
     </main>
   );

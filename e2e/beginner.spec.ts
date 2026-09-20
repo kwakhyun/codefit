@@ -242,6 +242,7 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
   await page.clock.install();
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
+  await page.getByText("전체 기능과 사용 방법 살펴보기", { exact: true }).click();
   const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
   await expect(page.locator(".workspace-avatar")).toHaveCount(0);
   await expect(page.getByLabel("현재 이용 상태")).toContainText("로그인 없이 이용 중");
@@ -315,6 +316,7 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
     await page.screenshot({ path: "artifacts/beginner-banner.png", fullPage: true });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();
+  await page.getByText("전체 기능과 사용 방법 살펴보기", { exact: true }).click();
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 4");
   await page.clock.fastForward(30000);
   await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 4");
@@ -331,12 +333,14 @@ test("banner entrypoints open lessons, labs, code understanding and generation",
     [3, "AI 코드 이해 훈련", /\/handoff$/],
   ] as const) {
     await page.goto("/");
+    await page.getByText("전체 기능과 사용 방법 살펴보기", { exact: true }).click();
     await banner.getByRole("button", { name: `${index}번 기능: ${title}`, exact: true }).click();
     await banner.getByRole("link", { name: title, exact: true }).click();
     await expect(page).toHaveURL(url);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   }
   await page.goto("/");
+  await page.getByText("전체 기능과 사용 방법 살펴보기", { exact: true }).click();
   await banner.getByRole("button", { name: "4번 기능: AI 문제 만들기", exact: true }).click();
   const create = banner.getByRole("button", { name: "AI 문제 만들기", exact: true });
   await create.click();

@@ -245,6 +245,25 @@
   border-radius: 10px;
   line-height: 1.8;
 }
+.project-request-status,
+.project-recovery {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  margin: 12px 0;
+  background: #19222e;
+  border: 1px solid #3a4e68;
+  border-radius: 10px;
+}
+.project-request-status > span {
+  color: #b9cce5;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.project-request-status p,
+.project-recovery .project-help {
+  margin: 0;
+}
 .project-results h2 strong {
   color: #a8cdfa;
   font-size: 40px;
@@ -411,4 +430,43 @@
   padding-left: 12px;
   border-left: 2px solid #bca06d;
   white-space: pre-wrap;
+}
+
+.project-example {
+  margin-bottom: 24px;
+}
+.project-example-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 24px 0;
+}
+.project-example-grid > div {
+  min-width: 0;
+  padding: 20px;
+  background: #171e28;
+  border-radius: 12px;
+}
+.project-example h3 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+.project-example blockquote {
+  margin: 0;
+  padding-left: 16px;
+  border-left: 3px solid var(--action-soft);
+  line-height: 1.8;
+}
+.project-example a {
+  color: var(--action-soft);
+  text-decoration: underline;
+}
+.project-example summary {
+  cursor: pointer;
+  padding: 12px 0;
+}
+@media (max-width: 700px) {
+  .project-example-grid {
+    grid-template-columns: 1fr;
+  }
 }

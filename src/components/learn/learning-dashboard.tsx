@@ -1,4 +1,5 @@
 "use client";
+import { learningStorageDescription } from "@/lib/learn/session";
 import { Select } from "@/components/ui/select";
 import { GuestLogin } from "@/components/account/guest-login";
 import { useState } from "react";
@@ -78,11 +79,7 @@ export function LearningDashboard() {
               ? "학습 기록 확인 필요"
               : "학습 기록을 불러오는 중…"}
         </strong>
-        <span>
-          {data?.signedIn
-            ? "같은 계정으로 로그인하면 다른 기기에서도 이어서 학습할 수 있습니다."
-            : "로그인 없이 이용할 수 있습니다. 학습 기록은 현재 브라우저에서 이어서 볼 수 있습니다."}
-        </span>
+        <span>{learningStorageDescription(Boolean(data?.signedIn))}</span>
       </div>
       {data && !data.signedIn && <GuestLogin returnTo="/learn" />}
       {error && (
