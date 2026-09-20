@@ -300,3 +300,52 @@ it("allows a guest to complete a real project flow within two independent quotas
   expect(await store.queries.projectChecks.list("visitor:other")).toEqual([]);
   expect((await store.queries.projectChecks.usage("user:member")).analysis.remaining).toBe(5);
 });
+
+it("accepts a bounded repository snapshot without a user description and keeps its code provenance", async () => {
+  const repository = {
+    name: "owner/repo",
+    commit: "a".repeat(40),
+    totalFiles: 1,
+    eligibleFiles: 1,
+    truncatedTree: false,
+    omittedFiles: 0,
+    files: [
+      {
+        path: "main.py",
+        totalLines: 1,
+        partial: false,
+        lines: [{ number: 1, text: "return True" }],
+      },
+    ],
+    links: [],
+  };
+  ai.readPage.mockResolvedValue({
+    ...fixtureCheck.page,
+    source: "repository",
+    limited: true,
+    repository,
+  });
+  const result = await new ProjectCheckService(store, ai).create(
+    "user:repo",
+    "network",
+    input(),
+    signal(),
+  );
+  expect(result.page.repository).toEqual(repository);
+  expect(
+    (await store.queries.projectChecks.detail("user:repo", result.id))?.page.repository,
+  ).toEqual(repository);
+  const checked = structuredClone(fixtureAnalysis);
+  checked.questions[0] = {
+    ...checked.questions[0],
+    basis: "page",
+    evidence: "main.py:L1 invented()",
+  };
+  expect(() =>
+    validateAnalysis(
+      checked,
+      { ...fixtureCheck.page, repository, text: "main.py:L1 return True" },
+      "",
+    ),
+  ).toThrow();
+});

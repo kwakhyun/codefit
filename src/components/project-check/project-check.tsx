@@ -14,6 +14,7 @@ import {
   Textarea,
   Anchor,
 } from "@/components/ui/primitives";
+import { ProjectRepository } from "./project-repository";
 import { ProjectCaptures } from "./project-captures";
 import { ProjectFollowUp } from "./project-follow-up";
 
@@ -22,7 +23,14 @@ import { ProjectLearning } from "@/components/project-learning/project-learning"
 import { GuestLogin } from "@/components/account/guest-login";
 import { useEffect, useRef, useState } from "react";
 import { AppLink as Link } from "@/components/ui/primitives";
-import { ArrowRight, ExternalLink, RefreshCw } from "lucide-react";
+import {
+  ArrowRight,
+  ExternalLink,
+  RefreshCw,
+  FolderOpen,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 import { useProjectHistory, type UpdateOverview } from "@/hooks/use-project-history";
 import { useProjectDraft } from "@/hooks/use-project-draft";
 import { VoiceInput } from "@/components/ui/voice-input";
@@ -30,6 +38,11 @@ import { api, ApiError, dateLabel, errorMessage, setWorkspaceScope } from "@/lib
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import { ProjectQuestions } from "./project-questions";
 import { RequestStatus } from "./request-status";
+function projectName(check: Check) {
+  const url = new URL(check.page.url);
+  if (url.hostname === "github.com") return url.pathname.split("/")[2] || url.hostname;
+  return check.analysis.title;
+}
 export function ProjectCheckApp() {
   const [data, setData] = useState<CheckOverview>();
   const [error, setError] = useState("");
@@ -359,8 +372,10 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
           </Button>
           <Disclosure ref={historyPanel} className="project-history-list" open={!selected}>
             <DisclosureSummary>
-              {selected ? "다른 점검 기록 보기" : "점검 기록"}{" "}
-              <small>({data.checks.length}개 불러옴)</small>
+              <FolderOpen size={18} aria-hidden="true" />
+              <strong>점검 기록</strong>
+              <span className="project-history-count">{data.checks.length}</span>
+              <ChevronDown size={16} className="project-history-chevron" aria-hidden="true" />
             </DisclosureSummary>
             <div className="project-history-items">
               {data.checks.length === 0 ? (
@@ -371,14 +386,25 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                     key={c.id}
                     aria-pressed={selected === c.id}
                     disabled={busy || recovering}
-                    onClick={() => select(c.id)}
+                    onClick={() => {
+                      if (historyPanel.current) historyPanel.current.open = false;
+                      if (selected === c.id) resultHeading.current?.focus();
+                      select(c.id);
+                    }}
                   >
-                    <strong>{c.analysis.title}</strong>
-                    <span>{new URL(c.page.url).hostname}</span>
-                    <small>
-                      {c.review ? `평가 완료 ${c.review.assessment.score}점` : "질문에 답변하기"} ·{" "}
-                      {dateLabel(c.createdAt)}
-                    </small>
+                    <span className="project-history-identity">
+                      <strong>{projectName(c)}</strong>
+                      <span>
+                        {new URL(c.page.url).hostname === "github.com"
+                          ? new URL(c.page.url).pathname.split("/")[1]
+                          : new URL(c.page.url).hostname}
+                      </span>
+                    </span>
+                    <span className="project-history-state" data-complete={Boolean(c.review)}>
+                      {c.review ? "평가 완료" : "답변 작성"}
+                    </span>
+                    <time dateTime={c.createdAt}>{dateLabel(c.createdAt)}</time>
+                    <ChevronRight size={16} aria-hidden="true" />
                   </ToggleButton>
                 ))
               )}
@@ -411,7 +437,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
             </Card>
           ) : !check ? (
             <form className="project-panel project-form" onSubmit={create}>
-              <h2>어떤 서비스를 만드셨나요?</h2>
+              <h2>어떤 프로젝트를 살펴볼까요?</h2>
               {analysisExhausted && (
                 <Card as="section" className="project-quota-notice" aria-label="새 분석 한도 안내">
                   <h3>지금은 새 프로젝트를 분석할 수 없습니다</h3>
@@ -442,7 +468,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   </div>
                 </Card>
               )}
-              <FieldLabel htmlFor="project-url">서비스 링크</FieldLabel>
+              <FieldLabel htmlFor="project-url">서비스 또는 GitHub 링크</FieldLabel>
               <Input
                 id="project-url"
                 type="url"
@@ -452,13 +478,14 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 onChange={(e) =>
                   saveDraft((value) => ({ ...value, url: e.target.value, requestId: null }))
                 }
-                placeholder="https://my-service.com"
+                placeholder="https://my-service.com 또는 https://github.com/사용자/저장소"
                 disabled={busy || recovering}
                 aria-describedby="project-url-help"
               />
               <p id="project-url-help" className="project-help">
-                로그인 없이 열리는 HTTPS 주소를 입력하세요. 주소에 로그인 토큰이나 개인 정보가 들어
-                있으면 안 됩니다.
+                공개 서비스, GitHub 저장소 또는 PR 주소를 입력하세요. 저장소는 코드와 파일 관계를,
+                서비스는 공개 화면을 분석합니다. 비공개 저장소와 로그인 토큰이 포함된 주소는
+                지원하지 않습니다.
               </p>
               <FieldLabel htmlFor="project-description">
                 서비스와 구현 방식 설명 <span>(선택)</span>
@@ -526,8 +553,9 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   disabled={busy || recovering}
                 />
                 <span>
-                  내가 만든 서비스이며, 공개 페이지의 본문과 화면 이미지, 작성한 설명과 답변을
-                  OpenAI에 전송해 분석하는 데 동의합니다.
+                  내가 만들었거나 분석할 권한이 있는 프로젝트입니다. 공개 페이지의 본문과 화면
+                  이미지 또는 공개 저장소의 코드 발췌, 작성한 설명과 답변을 OpenAI에 전송해 분석하는
+                  데 동의합니다.
                 </span>
               </FieldLabel>
               <Button
@@ -537,7 +565,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 aria-describedby={analysisExhausted ? "project-analysis-limit" : undefined}
               >
                 {busy
-                  ? "페이지를 읽고 질문을 준비하고 있습니다…"
+                  ? "프로젝트 자료를 읽고 질문을 준비하고 있습니다…"
                   : analysisExhausted
                     ? "새 분석 한도를 모두 사용했습니다"
                     : "내 프로젝트 질문 받기"}
@@ -560,24 +588,52 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
               <Card as="section" className="project-panel project-summary">
                 <span className="eyebrow">내 프로젝트 이해도 점검</span>
                 <h2 ref={resultHeading} tabIndex={-1}>
-                  {check.analysis.title}
+                  {projectName(check)}
                 </h2>
                 <Anchor href={check.page.url} target="_blank" rel="noreferrer">
                   {new URL(check.page.url).hostname}
                   <ExternalLink size={14} />
                 </Anchor>
-                <p>{check.analysis.summary}</p>
-                <p className="project-help">
-                  {dateLabel(check.page.fetchedAt)} 수집.{" "}
-                  {check.page.collectionNote || "공개 HTML 한 곳의 정보를 참고했습니다."}{" "}
-                  {check.page.source === "metadata"
-                    ? "화면 본문을 충분히 읽지 못해 사이트에 등록된 공개 소개 정보를 참고했습니다. 자바스크립트 실행 후 나타나는 화면은 확인하지 않았습니다. "
-                    : check.page.limited
-                      ? "공개 본문이 짧아 확인한 정보의 범위가 제한적입니다. "
-                      : ""}
-                  로그인 후 화면, 소스 코드와 실제 서버 구성은 확인하지 않았습니다.
-                </p>
+                {check.page.repository ? (
+                  <>
+                    <p>
+                      코드에서 찾은 설계 질문 5개입니다. 내 생각을 적고, 코드와 다른 부분이나 더
+                      확인할 일을 찾아보세요.
+                    </p>
+                    <Disclosure className="repository-evidence">
+                      <DisclosureSummary>어떤 자료로 질문을 만들었나요?</DisclosureSummary>
+                      <p>{check.analysis.summary}</p>
+                      <p className="project-help">
+                        {dateLabel(check.page.fetchedAt)} 기준. 커밋{" "}
+                        {check.page.repository.commit.slice(0, 7)}에서{" "}
+                        {check.page.repository.files.length}개 파일을 일부 읽었습니다. 코드를
+                        실행하거나 배포 상태를 확인한 결과는 아닙니다.
+                      </p>
+                    </Disclosure>
+                  </>
+                ) : (
+                  <>
+                    <p>서비스에서 찾은 설계 질문에 답하고, 직접 확인할 일을 정리해 보세요.</p>
+                    <Disclosure className="repository-evidence">
+                      <DisclosureSummary>어떤 자료로 질문을 만들었나요?</DisclosureSummary>
+                      <p>{check.analysis.summary}</p>
+                      <p className="project-help">
+                        {dateLabel(check.page.fetchedAt)} 수집.{" "}
+                        {check.page.collectionNote || "공개 HTML 한 곳의 정보를 참고했습니다."}{" "}
+                        {check.page.source === "metadata"
+                          ? "화면 본문을 충분히 읽지 못해 사이트에 등록된 공개 소개 정보를 참고했습니다. 자바스크립트 실행 후 나타나는 화면은 확인하지 않았습니다. "
+                          : check.page.limited && !check.page.repository
+                            ? "공개 화면에서 읽은 정보가 적습니다. "
+                            : ""}
+                        {check.page.repository
+                          ? "코드에 적힌 동작과 실제 실행 결과는 다를 수 있습니다."
+                          : "로그인 후 화면, 소스 코드와 실제 서버 구성은 확인하지 않았습니다."}
+                      </p>
+                    </Disclosure>
+                  </>
+                )}
                 <ProjectCaptures check={check} scope={data.scope} />
+                {check.page.repository && <ProjectRepository repository={check.page.repository} />}
                 <Button
                   className="text-button"
                   disabled={busy || recovering}
@@ -594,6 +650,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 check={check}
                 scope={data.scope}
                 enabled={data.aiReady && data.usage.review.remaining > 0}
+                onUsage={refreshUsage}
                 onReviewed={async (review) => {
                   history.updateDetail({ ...check, review });
                   onChange((current) => ({

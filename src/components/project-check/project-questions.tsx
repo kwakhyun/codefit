@@ -1,4 +1,6 @@
 "use client";
+import { ProjectCodeDialogue } from "./project-dialogue";
+import { SourceEvidence } from "./project-repository";
 import { useFadeTransition } from "@/components/ui/use-fade-transition";
 import {
   Card,
@@ -39,10 +41,12 @@ export function ProjectQuestions({
   scope,
   enabled,
   onReviewed,
+  onUsage,
 }: {
   check: Check;
   scope: string;
   enabled: boolean;
+  onUsage?: () => Promise<void>;
   onReviewed: (review: NonNullable<Check["review"]>) => Promise<void>;
 }) {
   const draftKey = `codefit-project:${scope}:${check.id}`;
@@ -172,11 +176,11 @@ export function ProjectQuestions({
         <Disclosure className="project-feedback-list">
           <DisclosureSummary>질문별 AI 피드백 5개 보기</DisclosureSummary>
           {check.review.assessment.feedback.map((f) => (
-            <article key={f.questionIndex} className="project-feedback">
-              <header>
-                <h3>{check.analysis.questions[f.questionIndex].area}</h3>
+            <Disclosure key={f.questionIndex} className="project-feedback project-feedback-item">
+              <DisclosureSummary>
+                <strong>{check.analysis.questions[f.questionIndex].area}</strong>
                 <span>{f.level} / 4단계</span>
-              </header>
+              </DisclosureSummary>
               <div className="project-score-track" aria-hidden="true">
                 <span style={{ width: `${f.level * 25}%` }} />
               </div>
@@ -266,11 +270,21 @@ export function ProjectQuestions({
                 </Disclosure>
               )}
               <p>{f.feedback}</p>
+              {check.page.repository && (
+                <ProjectCodeDialogue
+                  check={check}
+                  index={f.questionIndex}
+                  answer={answers[f.questionIndex]}
+                  scope={scope}
+                  enabled={false}
+                  readOnly
+                />
+              )}
               <div className="project-next-step">
                 <strong>프로젝트에서 확인할 것</strong>
                 <p>{f.nextStep}</p>
               </div>
-            </article>
+            </Disclosure>
           ))}
         </Disclosure>
         <Disclosure className="project-help">
@@ -320,16 +334,21 @@ export function ProjectQuestions({
       <div className="project-evidence">
         <strong>
           {q.basis === "page"
-            ? check.page.source === "rendered"
-              ? "로그인 없이 렌더링한 화면 본문"
-              : check.page.source === "metadata"
-                ? "사이트가 등록한 공개 소개 정보"
-                : "HTML에서 추출한 문구 (화면 표시 여부 미확인)"
+            ? check.page.source === "repository"
+              ? "수집한 코드에서 확인한 근거"
+              : check.page.source === "rendered"
+                ? "로그인 없이 렌더링한 화면 본문"
+                : check.page.source === "metadata"
+                  ? "사이트가 등록한 공개 소개 정보"
+                  : "HTML에서 추출한 문구 (화면 표시 여부 미확인)"
             : q.basis === "description"
               ? "작성한 설명에서 참고한 내용"
               : "직접 설명이 필요한 내용"}
         </strong>
         <p>{q.evidence}</p>
+        {check.page.repository && (
+          <SourceEvidence repository={check.page.repository} evidence={q.evidence} />
+        )}
       </div>
       <FieldLabel htmlFor="project-answer">내 설계 설명</FieldLabel>
       <Textarea
@@ -364,6 +383,17 @@ export function ProjectQuestions({
         {answers[step].length} / 1500자 · 모르는 질문은 비워 두고 넘어갈 수 있습니다. 제출 전 답변은
         현재 탭에 보관됩니다.
       </p>
+      {check.page.repository && (
+        <ProjectCodeDialogue
+          key={`dialogue:${check.id}:${step}`}
+          check={check}
+          index={step}
+          answer={answers[step]}
+          scope={scope}
+          enabled={enabled}
+          onUsage={onUsage}
+        />
+      )}
       {storageError && (
         <Status role="alert">
           브라우저 보관 공간을 사용할 수 없습니다. 화면을 닫기 전에 답변을 복사해 주세요.

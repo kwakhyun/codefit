@@ -1,3 +1,4 @@
+import type { ProjectDialogue } from "../project-check/dialogue";
 import { allowanceFor } from "../ai-access";
 import type { Query } from "./store-queries";
 import type { JobLease } from "./store-contract";
@@ -184,10 +185,50 @@ export class ProjectCheckStore {
     );
     if (!rows.length) throw new StaleJob();
   }
+  async dialogue(
+    owner: string,
+    checkId: string,
+    questionIndex: number,
+    id?: string,
+  ): Promise<ProjectDialogue | null> {
+    const rows = await this.query(
+      "SELECT result FROM jobs WHERE owner=? AND kind=? AND state='done'" +
+        (id ? " AND id=?" : "") +
+        " ORDER BY expires DESC,id DESC LIMIT 1",
+      [owner, `project-dialogue:${checkId}:${questionIndex}`, ...(id ? [id] : [])],
+    );
+    return rows[0] ? JSON.parse(String(rows[0].result)) : null;
+  }
+  async completeDialogue(lease: JobLease, checkId: string, result: ProjectDialogue) {
+    if (
+      lease.kind !== `project-dialogue:${checkId}:${result.questionIndex}` ||
+      lease.id !== result.id
+    )
+      throw new StaleJob();
+    const rows = await this.query(
+      "UPDATE jobs SET state='done',result=? WHERE id=? AND owner=? AND kind=? AND token=? AND state='pending' AND expires>? AND EXISTS(SELECT 1 FROM jobs p WHERE p.id=? AND p.owner=? AND p.kind='project-analysis' AND p.state='done') RETURNING id",
+      [
+        JSON.stringify(result),
+        lease.id,
+        lease.owner,
+        lease.kind,
+        lease.token,
+        Date.now(),
+        checkId,
+        lease.owner,
+      ],
+    );
+    if (!rows.length) throw new StaleJob();
+  }
   async remove(owner: string, id: string) {
     await this.query(
-      "DELETE FROM jobs WHERE owner=? AND ((id=? AND kind='project-analysis') OR kind=?)",
-      [owner, id, `project-review:${id}`],
+      "DELETE FROM jobs WHERE owner=? AND ((id=? AND kind='project-analysis') OR kind=? OR kind IN (?,?,?,?,?))",
+      [
+        owner,
+        id,
+        `project-review:${id}`,
+        ...Array.from({ length: 5 }, (_, i) => `project-dialogue:${id}:${i}`),
+      ],
     );
   }
 }

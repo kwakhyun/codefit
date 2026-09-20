@@ -1,3 +1,4 @@
+import { repositoryCitation } from "./repository";
 import type { Check, ProjectPractice } from "./types";
 export function projectReportText(check: Check, practice?: ProjectPractice) {
   const review = check.review;
@@ -16,6 +17,9 @@ export function projectReportText(check: Check, practice?: ProjectPractice) {
         `\n## ${i + 1}. ${q.area}`,
         q.question,
         `질문 근거 (${q.basis}): ${q.evidence}`,
+        ...(repositoryCitation(check.page.repository, q.evidence)
+          ? [`원본 코드: ${repositoryCitation(check.page.repository, q.evidence)!.url}`]
+          : []),
         `내 답변: ${review?.answers[i] || "미작성"}`,
         ...(f ? [`피드백: ${f.feedback}`, `다음 행동: ${f.nextStep}`] : []),
         ...(plan

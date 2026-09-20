@@ -1,3 +1,5 @@
+import { repositorySnapshotSchema, repositoryCitation } from "../project-check/repository";
+import { projectDialogueSchema } from "../project-check/dialogue";
 import { captureSchema } from "../project-check/types";
 import { practiceSchema } from "../project-check/types";
 import { createHash } from "node:crypto";
@@ -30,12 +32,13 @@ export const backupReads = [
   "SELECT content FROM legacy WHERE owner=?",
   "SELECT * FROM learning_progress WHERE owner=? ORDER BY lesson_id LIMIT 501",
   "SELECT p.result,r.result AS review FROM jobs p LEFT JOIN jobs r ON r.id='project-review-' || p.id AND r.owner=p.owner AND r.kind='project-review:' || p.id AND r.state='done' WHERE p.owner=? AND p.kind='project-analysis' AND p.state='done' ORDER BY p.expires,p.id LIMIT 501",
+  "SELECT kind,result FROM jobs WHERE owner=? AND kind LIKE 'project-dialogue:%' AND state='done' ORDER BY expires,id",
 ];
 export function backupParameters(index: number, owner: string) {
   return index === 0 ? [owner, owner, owner, owner] : [owner];
 }
 export function buildBackup(rows: Row[][]): Backup {
-  const [problems, progress, attempts, legacy, learning, projects] = rows;
+  const [problems, progress, attempts, legacy, learning, projects, dialogues = []] = rows;
   const raw = {
     version: 3,
     exportedAt: new Date().toISOString(),
@@ -51,6 +54,16 @@ export function buildBackup(rows: Row[][]): Backup {
     projects: projects.map((r) => ({
       check: JSON.parse(String(r.result)),
       ...(r.review ? { review: JSON.parse(String(r.review)) } : {}),
+      ...(() => {
+        const id = JSON.parse(String(r.result)).id;
+        const latest = new Map<number, unknown>();
+        for (const row of dialogues)
+          if (String(row.kind).startsWith(`project-dialogue:${id}:`)) {
+            const value = JSON.parse(String(row.result));
+            latest.set(value.questionIndex, value);
+          }
+        return latest.size ? { dialogues: [...latest.values()] } : {};
+      })(),
     })),
   };
   const parsed = backupSchema.safeParse(raw);
@@ -108,7 +121,8 @@ const savedCheck = z
         title: z.string().max(1000),
         fetchedAt: z.iso.datetime(),
         limited: z.boolean(),
-        source: z.enum(["html", "metadata", "rendered"]).optional(),
+        source: z.enum(["html", "metadata", "rendered", "repository"]).optional(),
+        repository: repositorySnapshotSchema.optional(),
         collectionNote: z.string().max(1000).optional(),
         captures: z.array(captureSchema).max(3).optional(),
       })
@@ -251,7 +265,22 @@ export function prepareBackup(backup: Backup) {
         t.curriculum = curriculum;
       }
     }
-    return { check, review };
+    const dialogues = item.dialogues?.map((d) => projectDialogueSchema.parse(d));
+    if (dialogues) {
+      if (
+        !check.page.repository ||
+        new Set(dialogues.map((d) => d.questionIndex)).size !== dialogues.length
+      )
+        throw new Error("Invalid code dialogue");
+      for (const d of dialogues)
+        for (const t of d.turns)
+          if (
+            t.reply.codeEvidence &&
+            !repositoryCitation(check.page.repository, t.reply.codeEvidence)
+          )
+            throw new Error("Invalid dialogue code evidence");
+    }
+    return { check, review, dialogues };
   });
   if (
     new Set(learning.map((l) => l.id)).size !== learning.length ||
@@ -286,5 +315,20 @@ export function restoredProjectJobs(
       result: JSON.stringify(project.review),
       fingerprint: requestFingerprint(...project.review.answers),
     });
+  for (const d of project.dialogues ?? []) {
+    // Keep each prefix so retried previous turns can still be resolved after import.
+    for (let i = 0; i < d.turns.length; i++) {
+      const dialogueId = `${id}:dialogue:${d.questionIndex}:${i}`;
+      jobs.push({
+        id: dialogueId,
+        kind: `project-dialogue:${id}:${d.questionIndex}`,
+        result: JSON.stringify({ ...d, id: dialogueId, turns: d.turns.slice(0, i + 1) }),
+        fingerprint: requestFingerprint(
+          d.turns[i].answer,
+          i ? `${id}:dialogue:${d.questionIndex}:${i - 1}` : "",
+        ),
+      });
+    }
+  }
   return jobs.map((job) => ({ ...job, expires: Date.parse(check.createdAt) }));
 }

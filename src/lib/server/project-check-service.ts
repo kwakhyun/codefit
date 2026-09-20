@@ -7,13 +7,20 @@ import {
   type StoredCheck,
 } from "../project-check/types";
 import type { ProblemStore } from "./store-contract";
-import { analyzeProject, assessProject } from "./ai-project-check";
+import { dialogueInputSchema, type ProjectDialogue } from "../project-check/dialogue";
+import { discussProjectCode, analyzeProject, assessProject } from "./ai-project-check";
 import { publicUrl } from "./project-page";
 import { requestFingerprint } from "./write-conflicts";
 import { publicCheck, publicReview } from "./project-check-store";
 import { HttpError } from "./http";
 import { readProjectPages } from "./project-browser";
-const defaults = { readPage: readProjectPages, analyze: analyzeProject, assess: assessProject };
+import { githubTarget, readProjectRepository } from "./project-repository";
+const defaults = {
+  readPage: (url: string, signal: AbortSignal) =>
+    githubTarget(url) ? readProjectRepository(url, signal) : readProjectPages(url, signal),
+  analyze: analyzeProject,
+  assess: assessProject,
+};
 export class ProjectCheckService {
   constructor(
     private store: ProblemStore,
@@ -83,7 +90,7 @@ export class ProjectCheckService {
       const page = await this.ai.readPage(url, signal);
       if (
         page.limited &&
-        !["metadata", "rendered"].includes(page.source || "html") &&
+        !["metadata", "rendered", "repository"].includes(page.source || "html") &&
         input.description.trim().length < 120
       )
         throw new HttpError(
@@ -144,6 +151,65 @@ export class ProjectCheckService {
       };
       await this.store.queries.projectChecks.complete(claim.lease, result, id);
       return publicCheck(result);
+    } catch (error) {
+      await this.store.failJob(claim.lease);
+      throw error;
+    }
+  }
+  async discuss(
+    owner: string,
+    network: string,
+    checkId: string,
+    input: z.infer<typeof dialogueInputSchema>,
+    signal: AbortSignal,
+  ) {
+    const check = await this.store.queries.projectChecks.get(owner, checkId);
+    if (!check?.page.repository)
+      throw new HttpError(404, "이 계정의 코드 점검 기록을 찾지 못했습니다.");
+    const previous = input.previousId
+      ? await this.store.queries.projectChecks.dialogue(
+          owner,
+          checkId,
+          input.questionIndex,
+          input.previousId,
+        )
+      : null;
+    if (input.previousId && !previous) throw new HttpError(409, "이전 대화를 다시 불러와 주세요.");
+    if (previous && (previous.turns.length >= 3 || !previous.turns.at(-1)?.reply.nextQuestion))
+      throw new HttpError(
+        409,
+        "이 질문의 대화를 마쳤습니다. 확인한 내용을 설계 답변에 반영해 주세요.",
+      );
+    const id = `${checkId}:dialogue:${input.questionIndex}:${previous?.turns.length ?? 0}`;
+    const claim = await this.store.startJob(
+      owner,
+      id,
+      `project-dialogue:${checkId}:${input.questionIndex}`,
+      requestFingerprint(input.answer, input.previousId ?? ""),
+    );
+    if (claim.state === "done") return JSON.parse(claim.result) as ProjectDialogue;
+    if (claim.state === "pending")
+      throw new HttpError(
+        409,
+        "코드와 설명을 비교하고 있습니다. 잠시 후 대화를 새로고침해 주세요.",
+      );
+    try {
+      await this.consume(owner, network, "review");
+      const reply = await discussProjectCode(
+        check,
+        input.questionIndex,
+        input.answer,
+        previous,
+        signal,
+        (run) => this.store.queries.recordAiRun(owner, run),
+      );
+      const result: ProjectDialogue = {
+        id,
+        questionIndex: input.questionIndex,
+        turns: [...(previous?.turns ?? []), { answer: input.answer, reply }],
+      };
+      await this.store.queries.projectChecks.completeDialogue(claim.lease, checkId, result);
+      return result;
     } catch (error) {
       await this.store.failJob(claim.lease);
       throw error;

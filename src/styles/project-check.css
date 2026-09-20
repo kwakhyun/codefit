@@ -518,3 +518,383 @@
   gap: 16px;
   margin-top: 20px;
 }
+
+.repository-map {
+  margin-block: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  min-width: 0;
+}
+.repository-map > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.repository-overview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 24px;
+  overflow-wrap: anywhere;
+}
+.repository-overview > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.repository-explorer {
+  display: grid;
+  grid-template-columns: minmax(180px, 30%) minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+.repository-files {
+  max-height: 500px;
+  overflow: auto;
+}
+.repository-file-picker {
+  display: none;
+}
+.repository-files section + section {
+  margin-top: 24px;
+}
+.repository-files h3 {
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+.repository-files button {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  text-align: left;
+  margin-block: 4px;
+  padding: 10px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.repository-files button svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.repository-files button[aria-pressed="true"] {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}
+.repository-files small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+.repository-detail {
+  min-width: 0;
+}
+.repository-detail > strong {
+  overflow-wrap: anywhere;
+}
+.repository-relations {
+  display: grid;
+  gap: 8px;
+  margin-block: 16px;
+}
+.repository-relations button {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.repository-code {
+  max-height: 380px;
+  overflow: auto;
+  background: #0b1018;
+  color: #d6e2f2;
+  border-radius: 12px;
+  padding: 16px;
+  margin-block: 16px;
+  font-size: 13px;
+  line-height: 1.8;
+  tab-size: 4;
+}
+.repository-code code > span {
+  display: block;
+  white-space: pre;
+}
+.repository-code .is-focus {
+  background: #213554;
+}
+.repository-line-number {
+  display: inline-block;
+  min-width: 4ch;
+  margin-right: 16px;
+  color: #9aaac0;
+  user-select: none;
+}
+.repository-gap {
+  color: #9aaac0;
+}
+.repository-evidence {
+  margin-top: 16px;
+}
+.repository-evidence a {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .repository-explorer {
+    grid-template-columns: 1fr;
+  }
+  .repository-files {
+    display: none;
+  }
+  .repository-file-picker {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  .repository-map {
+    padding: 16px;
+  }
+}
+.project-code-dialogue {
+  margin-block: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.project-code-dialogue > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.project-code-dialogue > summary > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.project-code-dialogue > p,
+.project-code-dialogue > button,
+.project-code-dialogue > label,
+.project-code-dialogue > textarea {
+  margin-top: 16px;
+}
+.project-dialogue-turn {
+  padding: 20px;
+  margin-block: 20px;
+  background: var(--surface-raised);
+  border-radius: 12px;
+}
+.project-dialogue-turn p {
+  margin-block: 12px 20px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* A single reading column keeps project context and questions aligned. */
+.project-page .project-layout {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 960px;
+  margin-inline: auto;
+}
+.project-page .project-history {
+  position: relative;
+  display: block;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.project-page .project-history > button {
+  position: absolute;
+  inset: 16px 20px auto auto;
+  min-height: 40px;
+  font-size: 13px;
+  padding: 8px 14px;
+}
+.project-page .project-history-list {
+  background: transparent;
+  box-shadow: none;
+}
+.project-page .project-history-list > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 210px 8px 0;
+  list-style: none;
+}
+.project-page .project-history-list > summary::-webkit-details-marker {
+  display: none;
+}
+.project-page .project-history-count {
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--surface-hover);
+  font-variant-numeric: tabular-nums;
+}
+.project-page .project-history-items {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  padding-top: 16px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.project-page .project-history-items > button:not(.secondary-button) {
+  grid-template-columns: minmax(0, 1fr) auto auto 16px;
+  gap: 12px 20px;
+  align-items: center;
+  padding: 16px 18px;
+  font-weight: 400;
+  border-color: transparent;
+  background: var(--bg);
+}
+.project-page .project-history-items > button[aria-pressed="true"] {
+  border-color: var(--action);
+  background: var(--surface-hover);
+}
+.project-page .project-history-identity {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+.project-page .project-history-identity strong {
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 600;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.project-page .project-history-state {
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: #263b59;
+  color: #bed9ff;
+  white-space: nowrap;
+}
+.project-page .project-history-state[data-complete="true"] {
+  background: #263b36;
+  color: #bbdfcf;
+}
+.project-page .project-history time {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.project-page .project-panel {
+  padding: clamp(22px, 4vw, 40px);
+}
+.project-page .project-panel > p {
+  margin-block: 16px;
+  line-height: 1.85;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.project-page .project-summary h2 {
+  font-size: clamp(22px, 3vw, 28px);
+}
+.project-page .project-questions h2 {
+  font-size: clamp(20px, 2.5vw, 25px);
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.project-page .project-feedback-item {
+  margin-block: 12px;
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.project-page .project-feedback-item > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0;
+}
+.project-page .project-feedback-item > summary > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.project-page .project-feedback-item p {
+  line-height: 1.85;
+}
+.project-page .verification-plan {
+  margin-block: 20px;
+}
+.project-page .verification-plan li + li {
+  margin-top: 24px;
+}
+@media (max-width: 600px) {
+  .project-page .project-history {
+    padding: 12px;
+  }
+  .project-page .project-history > button {
+    inset: 12px 12px auto auto;
+    font-size: 12px;
+    padding-inline: 10px;
+  }
+  .project-page .project-history-list > summary {
+    padding-right: 190px;
+    gap: 6px;
+    font-size: 14px;
+  }
+  .project-page .project-history-list > summary > svg {
+    display: none;
+  }
+  .project-page .project-history-items > button:not(.secondary-button) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 14px;
+  }
+  .project-page .project-history-items > button > svg {
+    display: none;
+  }
+  .project-page .project-history time {
+    grid-column: 1 / -1;
+  }
+  .project-page .project-feedback-item {
+    padding: 16px;
+  }
+}
+.project-history-list[open] .project-history-chevron {
+  transform: rotate(180deg);
+}
+.project-page .project-history-list > summary > .project-history-chevron {
+  display: block;
+  flex-shrink: 0;
+}
+.project-page .project-feedback-item > summary::after {
+  content: "+";
+  color: var(--muted);
+}
+.project-page .project-feedback-item[open] > summary::after {
+  content: "−";
+}
+.project-page .project-feedback-item > summary > strong {
+  margin-right: auto;
+}
+@media (max-width: 440px) {
+  .project-page .project-history {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .project-page .project-history > button {
+    position: static;
+    order: 1;
+  }
+  .project-page .project-history-list > summary {
+    padding-right: 0;
+  }
+  .project-page .project-history-list > summary > .project-history-chevron {
+    margin-left: auto;
+  }
+}

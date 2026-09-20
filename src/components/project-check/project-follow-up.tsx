@@ -170,8 +170,13 @@ export function ProjectFollowUp({
               <strong>이번 프로젝트의 확인 과제</strong>
               <p>{f.nextStep}</p>
               {f.verificationPlan && (
-                <div className="verification-plan">
-                  <h3>{f.verificationPlan.goal}</h3>
+                <Disclosure className="verification-plan">
+                  <DisclosureSummary>단계별 확인 방법 보기</DisclosureSummary>
+                  <p>
+                    <strong>확인할 목표</strong>
+                    <br />
+                    {f.verificationPlan.goal}
+                  </p>
                   <p>
                     <strong>준비</strong> {f.verificationPlan.preparation}
                   </p>
@@ -189,7 +194,7 @@ export function ProjectFollowUp({
                   <small>
                     AI가 제안한 계획입니다. 실제 구현에 맞춰 조정하고 테스트 자료로 확인하세요.
                   </small>
-                </div>
+                </Disclosure>
               )}
               <Button
                 className="secondary-button"

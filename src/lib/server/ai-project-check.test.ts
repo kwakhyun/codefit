@@ -6,7 +6,7 @@ vi.mock("openai", () => ({
     responses = { parse };
   },
 }));
-import { analyzeProject, assessProject } from "./ai-project-check";
+import { analyzeProject, assessProject, discussProjectCode } from "./ai-project-check";
 beforeEach(() => {
   parse.mockReset();
   vi.stubEnv("OPENAI_PROJECT_MODEL", "");
@@ -143,4 +143,81 @@ it("sends rendered screenshots as images, never as text or assessment evidence",
   });
   expect(content[0].text).not.toContain("YWJj");
   expect(parse.mock.calls[0][0].input[0].content).toContain("HIDDEN fallback");
+});
+
+it("sends static repository code separately from answer evidence when assessing", async () => {
+  parse.mockResolvedValue({ output_parsed: null });
+  await expect(
+    assessProject(
+      {
+        ...fixtureCheck,
+        page: {
+          ...fixtureCheck.page,
+          source: "repository",
+          repository: {
+            name: "owner/repo",
+            commit: "a".repeat(40),
+            files: [],
+            links: [],
+            totalFiles: 0,
+            eligibleFiles: 0,
+            omittedFiles: 0,
+            truncatedTree: false,
+          },
+        },
+      },
+      ["説明", "", "", "", ""],
+      new AbortController().signal,
+    ),
+  ).rejects.toThrow();
+  const data = JSON.parse(parse.mock.calls[0][0].input[1].content[0].text);
+  expect(data.repositoryEvidence.code).toBe(fixtureCheck.page.text);
+  expect(parse.mock.calls[0][0].input[0].content).toContain("static code");
+  expect(data.answerUnits[0].units[0].text).toBe("説明");
+});
+
+it("rejects invented dialogue citations and requires code for a claimed conflict", async () => {
+  const check = {
+    ...fixtureCheck,
+    page: {
+      ...fixtureCheck.page,
+      source: "repository" as const,
+      repository: {
+        name: "owner/repo",
+        commit: "a".repeat(40),
+        files: [
+          {
+            path: "main.py",
+            lines: [{ number: 1, text: "return True" }],
+            totalLines: 1,
+            partial: false,
+          },
+        ],
+        links: [],
+        totalFiles: 1,
+        eligibleFiles: 1,
+        omittedFiles: 0,
+        truncatedTree: false,
+      },
+    },
+  };
+  const reply = {
+    alignment: "conflict",
+    explanation: "코드와 다릅니다.",
+    codeEvidence: "main.py:L2 invented()",
+    nextQuestion: "왜 그럴까요?",
+    nextAction: "로컬에서 확인하세요.",
+  };
+  parse.mockResolvedValue({ output_parsed: reply });
+  await expect(
+    discussProjectCode(check, 0, "설명", null, AbortSignal.timeout(5000)),
+  ).rejects.toMatchObject({ status: 502 });
+  parse.mockResolvedValue({ output_parsed: { ...reply, codeEvidence: "" } });
+  await expect(
+    discussProjectCode(check, 0, "설명", null, AbortSignal.timeout(5000)),
+  ).rejects.toMatchObject({ status: 502 });
+  parse.mockResolvedValue({ output_parsed: { ...reply, codeEvidence: "main.py:L1 return True" } });
+  expect(
+    (await discussProjectCode(check, 0, "설명", null, AbortSignal.timeout(5000))).alignment,
+  ).toBe("conflict");
 });
