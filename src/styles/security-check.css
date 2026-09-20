@@ -157,3 +157,13 @@
 .security-results > .section-heading {
   margin-bottom: 16px;
 }
+.security-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+.security-exercises > p + p {
+  margin-top: 12px;
+}

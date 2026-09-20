@@ -32,7 +32,7 @@ test("project tasks persist, original answers survive revision, and screenshots 
     aiReady: true,
     nextCursor: null,
     usage: {
-      analysis: { limit: 2, remaining: 1, resetsAt: null },
+      analysis: { limit: 2, remaining: 0, resetsAt: "2026-09-21T11:00:00.000Z" },
       review: { limit: 4, remaining: 3, resetsAt: null },
     },
     checks: [original],

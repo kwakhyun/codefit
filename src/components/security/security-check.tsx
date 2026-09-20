@@ -2,24 +2,81 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api, errorMessage } from "@/lib/client-api";
+import { useSecurityDraft } from "@/hooks/use-security-draft";
 import {
   securityExercises,
-  securityReportText,
+  securityNotesText,
   securityStatus,
   type SecurityReport,
 } from "@/lib/security-check";
 export function SecurityCheck() {
-  const [url, setUrl] = useState("");
+  const [scope, setScope] = useState<string | null>(null);
+  const [checking, setChecking] = useState(true);
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    let revision = 0;
+    async function sync() {
+      const current = ++revision;
+      setChecking(true);
+      setError("");
+      try {
+        const value = await api<{ scope: string }>("/api/workspace", {
+          scope: null,
+          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
+        });
+        if (controller.signal.aborted || revision !== current) return;
+        setScope(value.scope);
+      } catch (e) {
+        if (controller.signal.aborted || revision !== current) return;
+        setError(errorMessage(e));
+      }
+      setChecking(false);
+    }
+    void sync();
+    const visible = () => {
+      if (!document.hidden) void sync();
+    };
+    window.addEventListener("focus", visible);
+    document.addEventListener("visibilitychange", visible);
+    return () => {
+      controller.abort();
+      window.removeEventListener("focus", visible);
+      document.removeEventListener("visibilitychange", visible);
+    };
+  }, [retry]);
+  return (
+    <>
+      {checking && <p role="status">현재 계정의 임시 기록을 확인하고 있습니다…</p>}
+      {error && (
+        <div role="alert">
+          <p>{error}</p>
+          <button className="secondary-button" onClick={() => setRetry((n) => n + 1)}>
+            기록 다시 불러오기
+          </button>
+        </div>
+      )}
+      {scope && (
+        <div hidden={checking || !!error}>
+          <SecurityWorkspace key={scope} scope={scope} />
+        </div>
+      )}
+    </>
+  );
+}
+
+function SecurityWorkspace({ scope }: { scope: string }) {
+  const { draft, saveDraft, storageError, clear } = useSecurityDraft(scope);
+  const { url, report, notes } = draft;
   const [authorized, setAuthorized] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [report, setReport] = useState<SecurityReport | null>(null);
   const request = useRef<AbortController | null>(null);
   useEffect(() => () => request.current?.abort(), []);
   function download() {
-    if (!report) return;
     const objectUrl = URL.createObjectURL(
-      new Blob([securityReportText(report)], { type: "text/plain;charset=utf-8" }),
+      new Blob([securityNotesText(notes, url, report)], { type: "text/plain;charset=utf-8" }),
     );
     const anchor = document.createElement("a");
     anchor.href = objectUrl;
@@ -38,16 +95,15 @@ export function SecurityCheck() {
           request.current = controller;
           setBusy(true);
           setError("");
-          setReport(null);
+          saveDraft((value) => ({ ...value, report: null }));
           try {
-            setReport(
-              await api<SecurityReport>("/api/security-check", {
-                method: "POST",
-                scope: null,
-                body: { url: url.trim(), authorized },
-                signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20000)]),
-              }),
-            );
+            const result = await api<SecurityReport>("/api/security-check", {
+              method: "POST",
+              scope,
+              body: { url: url.trim(), authorized },
+              signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20000)]),
+            });
+            if (!controller.signal.aborted) saveDraft((value) => ({ ...value, report: result }));
           } catch (e) {
             if (!controller.signal.aborted) setError(errorMessage(e));
           } finally {
@@ -63,8 +119,7 @@ export function SecurityCheck() {
           placeholder="https://my-service.com/"
           value={url}
           onChange={(e) => {
-            setUrl(e.target.value);
-            setReport(null);
+            saveDraft((value) => ({ ...value, url: e.target.value, report: null }));
           }}
           required
           maxLength={2000}
@@ -135,7 +190,35 @@ export function SecurityCheck() {
           공개 링크만으로 확인하지 못한 항목입니다. 운영 데이터 대신 테스트 계정과 테스트 자료로
           확인하세요.
         </p>
-        {securityExercises.map((item) => (
+        <p id="security-draft-help">
+          주소, 점검 결과와 메모는 현재 탭에 계정별로 임시 보관됩니다. 관련 실습에서 돌아오거나
+          새로고침해도 복원되며 다른 계정, 탭이나 기기와는 공유되지 않습니다. 영구 보관하려면 확인
+          기록을 파일로 저장하세요. 비밀키, 비밀번호와 실제 사용자 정보는 적지 마세요.
+        </p>
+        {storageError && (
+          <p role="alert" className="security-error">
+            브라우저에 임시 보관하지 못했습니다. 화면을 떠나기 전에 확인 기록을 파일로 저장하세요.
+          </p>
+        )}
+        <div className="security-record-actions">
+          <button className="secondary-button" onClick={download}>
+            확인 기록 파일로 저장
+          </button>
+          <button
+            className="text-button"
+            disabled={busy}
+            onClick={() => {
+              if (window.confirm("이 탭에 보관한 주소, 점검 결과와 메모를 모두 지울까요?")) {
+                clear();
+                setAuthorized(false);
+                setError("");
+              }
+            }}
+          >
+            임시 기록 지우기
+          </button>
+        </div>
+        {securityExercises.map((item, index) => (
           <details key={item.title}>
             <summary>{item.title}</summary>
             <p>{item.steps}</p>
@@ -144,13 +227,21 @@ export function SecurityCheck() {
               {item.expected}
             </p>
             <label>
-              내 확인 결과 (이 화면을 벗어나면 지워집니다)
+              내 확인 결과
               <textarea
                 placeholder="사용한 테스트 계정, 예상 결과, 실제 결과와 남은 문제를 기록하세요. 비밀번호나 실제 사용자 정보는 제외하세요."
                 maxLength={2000}
+                value={notes[index]}
+                aria-describedby="security-draft-help"
+                onChange={(event) =>
+                  saveDraft((value) => ({
+                    ...value,
+                    notes: value.notes.map((note, i) => (i === index ? event.target.value : note)),
+                  }))
+                }
               />
             </label>
-            <Link href={item.href}>관련 연습으로 확인하기 →</Link>
+            <Link href={item.href}>{item.linkLabel} →</Link>
           </details>
         ))}
       </section>

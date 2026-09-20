@@ -125,6 +125,10 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
   }, []);
   const { draft, saveDraft, clearSavedDraft, storageError } = useProjectDraft(data.scope);
   const { url, description, requestId } = draft;
+  const analysisExhausted = data.usage.analysis.remaining === 0;
+  const analysisResetLabel = data.usage.analysis.resetsAt
+    ? `${dateLabel(data.usage.analysis.resetsAt)}에 새 분석 한도가 초기화됩니다.`
+    : "초기화 시각을 확인하려면 기록 새로고침을 눌러 주세요.";
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -210,7 +214,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
   }
   async function create(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (activeMutation.current) return;
+    if (activeMutation.current || analysisExhausted) return;
     activeMutation.current = true;
     setBusy(true);
     setError("");
@@ -330,7 +334,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
               select(null);
             }}
           >
-            + 새 프로젝트 점검
+            {analysisExhausted ? "+ 다음 프로젝트 초안 작성" : "+ 새 프로젝트 점검"}
           </button>
           <details ref={historyPanel} className="project-history-list" open={!selected}>
             <summary>
@@ -391,6 +395,36 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
               <p>
                 공개 페이지에서 확인한 기능을 바탕으로, 설계를 얼마나 이해하고 있는지 질문합니다.
               </p>
+              {analysisExhausted && (
+                <section className="project-quota-notice" aria-label="새 분석 한도 안내">
+                  <h3>지금은 새 프로젝트를 분석할 수 없습니다</h3>
+                  <p>
+                    새 분석 {data.usage.analysis.limit}회를 모두 사용했습니다. {analysisResetLabel}
+                  </p>
+                  <p>
+                    주소와 설명은 미리 작성해 둘 수 있습니다. 이 계정의 현재 탭에 초안을 보관합니다.
+                  </p>
+                  <p>
+                    {data.usage.review.remaining > 0
+                      ? `답변 평가는 ${data.usage.review.remaining}회 남아 있습니다. 기존 질문에 답하거나 평가받은 답변을 보완할 수 있습니다.`
+                      : "기존 질문과 평가 결과는 계속 볼 수 있습니다."}
+                  </p>
+                  <div className="project-quota-actions">
+                    {data.checks[0] && (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => select(data.checks[0].id)}
+                      >
+                        {data.usage.review.remaining > 0
+                          ? "최근 점검에서 답변 이어가기"
+                          : "최근 점검 기록 보기"}
+                      </button>
+                    )}
+                    <Link href="/learn">로그인 없이 서비스 원리 연습하기 →</Link>
+                  </div>
+                </section>
+              )}
               <label htmlFor="project-url">서비스 링크</label>
               <input
                 id="project-url"
@@ -482,13 +516,22 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
               <button
                 className="primary-button"
                 type="submit"
-                disabled={
-                  busy || recovering || !data.aiReady || data.usage.analysis.remaining === 0
-                }
+                disabled={busy || recovering || !data.aiReady || analysisExhausted}
+                aria-describedby={analysisExhausted ? "project-analysis-limit" : undefined}
               >
-                {busy ? "페이지를 읽고 질문을 준비하고 있습니다…" : "내 프로젝트 질문 받기"}
+                {busy
+                  ? "페이지를 읽고 질문을 준비하고 있습니다…"
+                  : analysisExhausted
+                    ? "새 분석 한도를 모두 사용했습니다"
+                    : "내 프로젝트 질문 받기"}
                 <ArrowRight size={17} />
               </button>
+              {analysisExhausted && (
+                <p id="project-analysis-limit" className="project-help">
+                  {analysisResetLabel} 입력한 초안은 유지됩니다. 위의 기존 점검 기록이나 서비스 원리
+                  연습을 이용해 보세요.
+                </p>
+              )}
               <p className="project-help">
                 새 분석 1회가 사용됩니다. AI 호출 후 응답을 받지 못한 경우에도 횟수가 차감될 수
                 있습니다. 한도는 기존 코딩 문제 생성과 별개입니다.
