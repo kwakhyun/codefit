@@ -54,7 +54,9 @@ QuickJS 0.32.0의 파일명을 바꿀 때에는 복사 스크립트와 Worker �
 
 ## 검증 재현
 
-변경한 기능에 해당하는 테스트부터 실행합니다. 예를 들어 공통 화면과 배너 변경은 빌드 후 `npx playwright test e2e/experience-ui.spec.ts`로 확인할 수 있습니다. 아래는 CI를 포함한 전체 검증 절차이며, 작은 변경마다 모두 실행해야 한다는 뜻은 아닙니다.
+변경한 기능에 해당하는 테스트부터 실행합니다. 예를 들어 공통 화면과 배너 변경은 빌드 후 `npx playwright test e2e/experience-ui.spec.ts`로 확인할 수 있습니다. 아래는 수동 전체 검증 절차이며, 작은 변경마다 모두 실행해야 한다는 뜻은 아닙니다.
+
+GitHub Actions는 푸시와 PR에서 포맷, 린트, 타입, 미사용 코드와 단위 테스트를 검사합니다. 전체 빌드와 3개 브라우저 테스트는 Actions의 `Run workflow`에서 `full_browser_tests`를 선택했을 때만 실행합니다. 같은 브랜치에 새 실행이 시작되면 이전 실행은 취소합니다. Vercel 자동 배포는 이 CI와 독립적으로 빌드하며, CI 완료를 기다리는 배포 차단 설정은 현재 적용하지 않습니다.
 
 ```bash
 npm run format:check

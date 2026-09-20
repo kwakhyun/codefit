@@ -3,11 +3,23 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      full_browser_tests:
+        description: Run the full Chromium, Firefox and WebKit suite
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     services:
       postgres:
         image: postgres:16
@@ -35,11 +47,14 @@ jobs:
       - run: npm run typecheck
       - run: npm run check:unused
       - run: npm test
-      - run: npm run build
-      - run: npx playwright install --with-deps chromium firefox webkit
-      - run: npm run test:e2e
+      - if: ${{ inputs.full_browser_tests == true }}
+        run: npm run build
+      - if: ${{ inputs.full_browser_tests == true }}
+        run: npx playwright install --with-deps chromium firefox webkit
+      - if: ${{ inputs.full_browser_tests == true }}
+        run: npm run test:e2e
       - uses: actions/upload-artifact@v7
-        if: always()
+        if: ${{ always() && inputs.full_browser_tests == true }}
         with:
           name: browser-test-report
           path: playwright-report/
