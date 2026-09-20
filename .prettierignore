@@ -12,3 +12,6 @@ CLAUDE.md
 
 /playwright-report/
 /test-results/
+
+# Machine-generated measurement outputs retain their generator formatting.
+/reports/**/*.json

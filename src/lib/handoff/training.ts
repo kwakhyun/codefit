@@ -9,9 +9,9 @@ export const executionResultSchema = z
   })
   .strict();
 export type ExecutionResult = z.infer<typeof executionResultSchema>;
-export const experimentExpressionSchema = z.string().min(1).max(2000);
-export const coachExperimentSchema = z.object({ expression: experimentExpressionSchema }).strict();
-export const coachFocusSchema = z
+const experimentExpressionSchema = z.string().min(1).max(2000);
+const coachExperimentSchema = z.object({ expression: experimentExpressionSchema }).strict();
+const coachFocusSchema = z
   .object({
     learnerQuote: z.string().min(1).max(800).nullable(),
     goal: z.string().min(5).max(240),
@@ -33,7 +33,7 @@ export const generatedCoachReplySchema = coachReplySchema.extend({
   experiment: coachExperimentSchema,
   focus: coachFocusSchema,
 });
-export const experimentDraftSchema = z
+const experimentDraftSchema = z
   .object({
     expression: z.string().max(2000),
     prediction: z.string().max(800),

@@ -7,8 +7,8 @@ import { learnerTypes } from "@/lib/learner-types";
 import { Modal } from "@/components/ui/modal";
 import { ScenarioImage } from "@/components/ui/scenario-visual";
 
-export function LearningPreferencePicker() {
-  const { type, setType, storageError } = useLearningPreference();
+export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }) {
+  const { type, setType, storageError, hasChosen } = useLearningPreference();
   const group = useId();
   return (
     <section className="persona-picker" aria-label="나에게 맞는 시작점">
@@ -19,13 +19,19 @@ export function LearningPreferencePicker() {
       <fieldset className="persona-cards">
         <legend className="sr-only">맞춤 타입 선택</legend>
         {learnerTypes.map((item) => (
-          <label className={`persona-card ${type === item.id ? "is-selected" : ""}`} key={item.id}>
+          <label
+            className={`persona-card ${hasChosen && type === item.id ? "is-selected" : ""}`}
+            key={item.id}
+          >
             <input
               type="radio"
               name={group}
               value={item.id}
-              checked={type === item.id}
-              onChange={() => setType(item.id)}
+              checked={hasChosen && type === item.id}
+              onChange={() => {
+                setType(item.id);
+                onSelect?.();
+              }}
               aria-label={item.name}
             />
             <span className="persona-art" aria-hidden="true">
@@ -49,7 +55,7 @@ export function LearningPreferencePicker() {
             </span>
             <span className="persona-selected">
               <Check size={14} aria-hidden="true" />
-              {type === item.id ? "선택됨" : "이 타입 선택"}
+              {hasChosen && type === item.id ? "선택됨" : "이 타입 선택"}
             </span>
           </label>
         ))}

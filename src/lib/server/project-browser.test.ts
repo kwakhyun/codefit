@@ -18,23 +18,21 @@ it("runs without application secrets, disables IPv6, and always disposes the bro
     runCommand: vi.fn().mockResolvedValue({ exitCode: 0 }),
     writeFiles: vi.fn(),
     stop: vi.fn().mockResolvedValue(undefined),
-    readFileToBuffer: vi
-      .fn()
-      .mockResolvedValue(
-        Buffer.from(
-          JSON.stringify({
-            pages: [
-              {
-                url: "https://example.com/",
-                title: "screen",
-                text: "공개 화면 본문 ".repeat(30),
-                screenshot: "YWJj",
-              },
-            ],
-            failures: [],
-          }),
-        ),
+    readFileToBuffer: vi.fn().mockResolvedValue(
+      Buffer.from(
+        JSON.stringify({
+          pages: [
+            {
+              url: "https://example.com/",
+              title: "screen",
+              text: "공개 화면 본문 ".repeat(30),
+              screenshot: "YWJj",
+            },
+          ],
+          failures: [],
+        }),
       ),
+    ),
   };
   create.mockResolvedValue(sandbox);
   const result = await renderPublicProject("https://example.com/", new AbortController().signal);

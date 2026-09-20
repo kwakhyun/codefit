@@ -30,8 +30,13 @@ test("all illustrated types change home sections and menus while keeping every d
         .evaluateAll((imgs) => imgs.every((img) => (img as HTMLImageElement).naturalWidth > 0)),
     )
     .toBe(true);
-  for (const item of learnerTypes) {
-    await picker.getByRole("radio", { name: item.name, exact: true }).check();
+  await expect(picker.locator("input:checked")).toHaveCount(0);
+  for (const [index, item] of learnerTypes.entries()) {
+    if (index > 0) await change(page).click();
+    await picker.getByRole("radio", { name: item.name, exact: true }).click();
+    if (index > 0) await page.getByRole("button", { name: "선택 완료", exact: true }).click();
+    else await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+    await expect(page.locator(".training-welcome .persona-picker")).toHaveCount(0);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(item.title);
     await expect(page.locator(".persona-home-primary")).toHaveAttribute(
       "aria-label",
@@ -56,7 +61,7 @@ test("all illustrated types change home sections and menus while keeping every d
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
-      await picker.screenshot({
+      await page.locator(".training-welcome").screenshot({
         path: `artifacts/persona-${item.id}-${width}-${info.project.name}.png`,
       });
     }
@@ -73,14 +78,16 @@ test("all illustrated types change home sections and menus while keeping every d
     await expect(page).toHaveURL(/domain=frontend/);
     await expect(page.locator("#problem-library")).toBeVisible();
     await page.goto("/");
-    await expect(picker.getByRole("radio", { name: item.name, exact: true })).toBeChecked();
+    await expect(change(page)).toContainText(item.name);
+    await expect(picker).toHaveCount(0);
   }
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
   ).toEqual([]);
   await page.reload();
-  await expect(picker.getByRole("radio", { name: "배포 전 점검", exact: true })).toBeChecked();
+  await expect(change(page)).toContainText("배포 전 점검");
+  await expect(picker).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "메뉴 열기" }).click();
   const domains = page.getByRole("region", { name: "분야별 문제" });
@@ -146,9 +153,11 @@ test("image failures do not prevent choosing a type and storage failures are exp
   await page.route("**/images/**", (route) => route.abort());
   await page.goto("/");
   const picker = page.getByRole("region", { name: "나에게 맞는 시작점" });
-  await picker.getByRole("radio", { name: "코드 훈련", exact: true }).check();
+  await picker.getByRole("radio", { name: "코드 훈련", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(learnerTypes[1].title);
-  await expect(picker.getByRole("status")).toContainText("현재 화면에서만 적용");
+  await expect(page.locator(".training-welcome").getByRole("status")).toContainText(
+    "현재 화면에서만 적용",
+  );
 });
 
 test("type switching preserves editor code and the browser choice survives login and logout", async ({

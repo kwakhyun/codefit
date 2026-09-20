@@ -1,4 +1,13 @@
 {
   "$schema": "https://unpkg.com/knip/schema.json",
-  "ignore": ["src/lib/server/*-schema.d.mts"]
+  "ignore": ["src/lib/server/*-schema.d.mts"],
+  "entry": [
+    "scripts/create-project-browser-snapshot.mjs",
+    "scripts/evaluate-coach-targeting.ts",
+    "scripts/evaluate-experiment-followup.ts",
+    "scripts/evaluate-understanding-coach.ts",
+    "scripts/summarize-coach-targeting.ts",
+    "scripts/verify-project-recovery-live.ts",
+    "scripts/verify-sandbox-integrity.ts"
+  ]
 }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { problemSchema, reviewSchema } from "./problem";
 import { BACKUP_MAX_PROBLEMS } from "./backup-limits";
-export const legacyBackupSchema = z.object({
+const legacyBackupSchema = z.object({
   version: z.literal(2),
   problems: z.array(problemSchema).max(BACKUP_MAX_PROBLEMS),
   progress: z.record(

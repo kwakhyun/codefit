@@ -1,7 +1,7 @@
 "use client";
 import { LearningPreferencePicker } from "./learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { problemUrl } from "@/lib/library-state";
 import type { ProblemSummary, ProgressSummary } from "@/lib/problem";
 import Link from "next/link";
@@ -61,7 +61,8 @@ export function TrainingHero({
   scope,
   onGenerate,
 }: TrainingHeroProps) {
-  const { type, profile } = useLearningPreference();
+  const { type, profile, hasChosen, storageError } = useLearningPreference();
+  const heading = useRef<HTMLHeadingElement>(null);
   const [showFeatures, setShowFeatures] = useState(false);
   const codeResume =
     resume && recommended ? (
@@ -80,10 +81,21 @@ export function TrainingHero({
     <div className="training-welcome" data-learner-type={type}>
       <div className="home-heading">
         <span className="eyebrow">{profile.name} · 나에게 맞는 연습실</span>
-        <h1>{profile.title}</h1>
+        <h1 ref={heading} tabIndex={-1}>
+          {profile.title}
+        </h1>
         <p>{profile.description}</p>
       </div>
-      <LearningPreferencePicker />
+      {!hasChosen && (
+        <LearningPreferencePicker
+          onSelect={() => requestAnimationFrame(() => heading.current?.focus())}
+        />
+      )}
+      {hasChosen && storageError && (
+        <p role="status">
+          브라우저에 저장할 수 없어 현재 화면에서만 적용됩니다. 재방문할 때 다시 선택해 주세요.
+        </p>
+      )}
       <div className="persona-home-primary" aria-label={`${profile.name} 우선 콘텐츠`}>
         {type === "starter" && <LearningResume key={scope} scope={scope} recommendFirst />}
         {type === "coder" &&
