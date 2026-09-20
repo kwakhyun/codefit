@@ -75,6 +75,7 @@ export function projectLearningContract(getStore: () => ProblemStore) {
   it("project learning: locks first submissions, requires valid practice, grades server-side and hides early results", async () => {
     const store = getStore(),
       { owner, id } = await learningFixture(store);
+    const usageBefore = await store.queries.projectChecks.usage(owner);
     const input: TrainingInput = {
       id,
       moduleId: "storage",
@@ -128,7 +129,7 @@ export function projectLearningContract(getStore: () => ProblemStore) {
     expect((await store.queries.projectChecks.list(owner))[0].review).not.toHaveProperty(
       "training",
     );
-    expect((await store.queries.projectChecks.usage(owner)).analysis.remaining).toBe(2);
+    expect(await store.queries.projectChecks.usage(owner)).toEqual(usageBefore);
   });
   it("project learning: concurrent writes have one winner, conflicts preserve both modules and deletion removes training", async () => {
     const store = getStore(),

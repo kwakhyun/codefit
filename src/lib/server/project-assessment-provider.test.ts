@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { fixtureCheck } from "../project-check/fixtures";
+import { fixtureCheck, fixtureVerificationPlan } from "../project-check/fixtures";
 import { assessProject } from "./ai-project-check";
 const { parse } = vi.hoisted(() => ({ parse: vi.fn() }));
 vi.mock("openai", () => ({
@@ -21,6 +21,7 @@ const response = (flow: string | null) => ({
       questionIndex,
       feedback: "処理順序",
       nextStep: "次の確認",
+      verificationPlan: fixtureVerificationPlan,
       blockingIssue: null,
       evidence: {
         feature: null,
@@ -51,7 +52,7 @@ it("records citation rejection as a failure while retaining paid token usage", a
       outcome: "error",
       inputTokens: 100,
       outputTokens: 200,
-      promptVersion: "2026-09-20.project.assessment.evidence-v3.1",
+      promptVersion: "2026-09-21.project.assessment.plan-v1",
     }),
   );
 });
@@ -66,6 +67,7 @@ it("uses the strict new contract and records successful server-derived scores", 
   );
   expect(result.score).toBe(10);
   expect(result.rubricVersion).toBe("evidence-v3");
-  expect(parse.mock.calls[0][0]).toMatchObject({ store: false, max_output_tokens: 6500 });
+  expect(result.feedback[0].verificationPlan).toEqual(fixtureVerificationPlan);
+  expect(parse.mock.calls[0][0]).toMatchObject({ store: false, max_output_tokens: 10000 });
   expect(record).toHaveBeenCalledWith(expect.objectContaining({ outcome: "success" }));
 });
