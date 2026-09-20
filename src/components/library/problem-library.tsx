@@ -46,8 +46,9 @@ export function ProblemLibrary({
 }: ProblemLibraryProps) {
   useEffect(() => {
     // The workspace gate can mount the library after the browser's initial anchor lookup.
-    if (window.location.hash === "#problem-library")
-      document.getElementById("problem-library")?.scrollIntoView();
+    const anchor = window.location.hash.slice(1);
+    if (["problem-library", "learning-preference"].includes(anchor))
+      document.getElementById(anchor)?.scrollIntoView();
   }, []);
   const {
     recommended,

@@ -169,12 +169,13 @@
   .site-navigation {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px;
   }
   .site-navigation a {
     font-size: 12px;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
     justify-content: center;
     padding: 8px 4px;
   }

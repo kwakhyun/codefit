@@ -59,7 +59,7 @@ export function ExperimentGuide({
     }
     function measure() {
       const element = target();
-      if (!element || !element.getClientRects().length) {
+      if (!element || element.closest("details:not([open])") || !element.getClientRects().length) {
         clearDescription();
         setPosition(null);
         return;
@@ -99,6 +99,8 @@ export function ExperimentGuide({
     }
     const observer = new ResizeObserver(schedule);
     observer.observe(container);
+    const disclosure = container.closest("details");
+    disclosure?.addEventListener("toggle", schedule);
     const mutation = new MutationObserver(schedule);
     mutation.observe(container, { childList: true, subtree: true });
     window.addEventListener("scroll", schedule, true);
@@ -109,6 +111,7 @@ export function ExperimentGuide({
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      disclosure?.removeEventListener("toggle", schedule);
       mutation.disconnect();
       clearDescription();
       window.removeEventListener("scroll", schedule, true);

@@ -1,5 +1,6 @@
 import { Resolver } from "node:dns/promises";
 import { get } from "node:https";
+import type { IncomingHttpHeaders } from "node:http";
 import { BlockList, isIP } from "node:net";
 import { HttpError } from "./http";
 import type { PageSnapshot } from "../project-check/types";
@@ -123,17 +124,27 @@ async function resolvePublic(hostname: string, signal: AbortSignal) {
     signal.removeEventListener("abort", cancel);
   }
 }
-export async function readPublicPage(
+export type PublicDocument = {
+  url: string;
+  html: string;
+  headers: IncomingHttpHeaders;
+  fetchedAt: string;
+};
+export async function readPublicDocument(
   raw: string,
   parentSignal: AbortSignal,
-): Promise<PageSnapshot> {
+): Promise<PublicDocument> {
   const signal = AbortSignal.any([parentSignal, AbortSignal.timeout(12_000)]);
   let url = publicUrl(raw);
   try {
     for (let redirect = 0; redirect <= 2; redirect++) {
       const address = await resolvePublic(url.hostname, signal);
       // Pin the checked DNS address for this connection; TLS still verifies the original host.
-      const response = await new Promise<{ location?: string; html: string }>((resolve, reject) => {
+      const response = await new Promise<{
+        location?: string;
+        html: string;
+        headers?: IncomingHttpHeaders;
+      }>((resolve, reject) => {
         const request = get(
           url,
           {
@@ -184,7 +195,9 @@ export async function readPublicPage(
                 );
               } else chunks.push(chunk);
             });
-            res.on("end", () => resolve({ html: Buffer.concat(chunks).toString("utf8") }));
+            res.on("end", () =>
+              resolve({ html: Buffer.concat(chunks).toString("utf8"), headers: res.headers }),
+            );
             res.on("error", reject);
             res.on("aborted", () => reject(new HttpError(422, "페이지 읽기가 중단됐습니다.")));
           },
@@ -195,7 +208,12 @@ export async function readPublicPage(
         url = publicUrl(new URL(response.location, url).href);
         continue;
       }
-      return pageSnapshot(response.html, url.href);
+      return {
+        url: url.href,
+        html: response.html,
+        headers: response.headers || {},
+        fetchedAt: new Date().toISOString(),
+      };
     }
     throw new HttpError(422, "페이지 이동이 너무 많습니다. 최종 서비스 주소를 입력해 주세요.");
   } catch (error) {
@@ -205,4 +223,9 @@ export async function readPublicPage(
       "페이지에 접속하지 못했습니다. 외부에서 열리는 HTTPS 주소인지 확인해 주세요.",
     );
   }
+}
+
+export async function readPublicPage(raw: string, signal: AbortSignal): Promise<PageSnapshot> {
+  const document = await readPublicDocument(raw, signal);
+  return { ...pageSnapshot(document.html, document.url), fetchedAt: document.fetchedAt };
 }

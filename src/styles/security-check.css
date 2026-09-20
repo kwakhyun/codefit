@@ -1,0 +1,138 @@
+.learning-preference,
+.security-form,
+.security-finding,
+.security-exercises details {
+  border: 1px solid var(--line);
+  background: var(--surface, #11171c);
+  border-radius: 16px;
+  padding: 24px;
+}
+.learning-preference {
+  margin: 20px 0;
+}
+.preference-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.preference-fields label,
+.security-form > label:not(.security-consent),
+.security-exercises label {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+}
+.preference-fields select,
+.security-form > input,
+.security-exercises textarea {
+  width: 100%;
+  min-width: 0;
+  background: #0b1015;
+  color: #e6edf3;
+  border: 1px solid #425165;
+  border-radius: 8px;
+  padding: 12px;
+  font: inherit;
+}
+.preference-next {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.preference-next h2 {
+  margin: 8px 0;
+}
+.preference-next p,
+.security-workspace p {
+  line-height: 1.7;
+  color: #b8c5d1;
+}
+.preference-next .primary-button {
+  flex-shrink: 0;
+}
+.learning-preference > .muted {
+  font-size: 12px;
+  margin-top: 12px;
+}
+.security-workspace {
+  display: grid;
+  gap: 32px;
+  margin: 24px 0 40px;
+}
+.security-form {
+  display: grid;
+  gap: 16px;
+}
+.learn-page .security-form .security-consent {
+  display: flex;
+  align-items: flex-start;
+  margin: 0;
+  gap: 10px;
+}
+.security-consent input {
+  margin-top: 5px;
+}
+.security-form .primary-button {
+  justify-self: start;
+}
+.security-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+.security-finding h3 {
+  margin: 10px 0;
+}
+.security-review .eyebrow {
+  color: #ffd48a;
+}
+.security-observed .eyebrow {
+  color: #67e6b1;
+}
+.security-unknown .eyebrow {
+  color: #aabcf4;
+}
+.security-results .section-heading {
+  flex-wrap: wrap;
+}
+.security-results p {
+  overflow-wrap: anywhere;
+}
+.security-exercises details {
+  margin: 16px 0;
+}
+.security-exercises summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.security-exercises textarea {
+  min-height: 110px;
+  margin: 8px 0 16px;
+}
+.security-error {
+  color: #ff9f9f !important;
+}
+@media (max-width: 700px) {
+  .preference-fields,
+  .security-grid {
+    grid-template-columns: 1fr;
+  }
+  .preference-next {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .learning-preference,
+  .security-form,
+  .security-finding {
+    padding: 18px;
+  }
+  .security-form .primary-button {
+    width: 100%;
+  }
+  .preference-next .primary-button {
+    white-space: normal;
+  }
+}

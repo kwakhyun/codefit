@@ -1,4 +1,6 @@
 "use client";
+import { useLearningPreference } from "@/hooks/use-learning-preference";
+import { preferredDestinations } from "@/lib/learning-preference";
 import type { Dispatch, SetStateAction } from "react";
 
 import { DomainIcon } from "@/components/ui/problem-badges";
@@ -6,8 +8,9 @@ import { DOMAINS, type DomainId } from "@/lib/catalog";
 import type { LibraryView } from "@/lib/library-state";
 import type { ProblemSummary, Workspace } from "@/lib/problem";
 import {
-  BookOpen,
   ClipboardCheck,
+  BookOpen,
+  ShieldCheck,
   Bookmark,
   History,
   Home,
@@ -41,6 +44,7 @@ export function Sidebar({
   activeProblem,
   setSettingsOpen,
 }: SidebarProps) {
+  const { preference } = useLearningPreference();
   return (
     <aside
       className={`sidebar ${mobileMenu ? "open" : ""}`}
@@ -101,6 +105,24 @@ export function Sidebar({
           <Home size={17} />
           <span>홈</span>
         </Link>
+        {preferredDestinations(preference).map((item) => (
+          <Link className="nav-item" href={item.href} key={item.href}>
+            {item.href === "/learn" ? (
+              <BookOpen size={17} />
+            ) : item.href === "/handoff" ? (
+              <Terminal size={17} />
+            ) : item.href === "/security-check" ? (
+              <ShieldCheck size={17} />
+            ) : (
+              <ClipboardCheck size={17} />
+            )}
+            <span>{item.label}</span>
+          </Link>
+        ))}
+        <Link className="nav-item" href="/#learning-preference">
+          <Settings2 size={17} />
+          <span>내 시작점 변경</span>
+        </Link>
         <a
           className="nav-item"
           href={
@@ -127,18 +149,6 @@ export function Sidebar({
         >
           <History size={17} />
           <span>내 학습 기록</span>
-        </Link>
-        <Link className="nav-item" href="/learn">
-          <BookOpen size={17} />
-          <span>서비스 원리 배우기</span>
-        </Link>
-        <Link className="nav-item" href="/project-check">
-          <ClipboardCheck size={17} />
-          <span>내 프로젝트 점검</span>
-        </Link>
-        <Link className="nav-item" href="/handoff">
-          <Terminal size={17} />
-          <span>AI 코드 이해 훈련</span>
         </Link>
         <details
           className="domain-disclosure"

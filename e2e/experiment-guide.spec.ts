@@ -46,8 +46,14 @@ for (const mission of MISSIONS) {
       verification(mission, fix.id).every((check) => check.passed),
     )!;
     await page.getByRole("radio", { name: `${good.title} ${good.detail}`, exact: true }).check();
+    await expect(page.getByTestId("experiment-spotlight")).toHaveCount(0);
     await page.getByText("수정안이 적용된 서비스 사용해 보기", { exact: true }).click();
     await expect(app.locator(".experiment-guide-bar")).toContainText("수정 후 재실험");
+    await expect(page.getByTestId("experiment-spotlight")).toBeVisible();
+    await page.getByText("수정안이 적용된 서비스 사용해 보기", { exact: true }).click();
+    await expect(page.getByTestId("experiment-spotlight")).toHaveCount(0);
+    await page.getByText("수정안이 적용된 서비스 사용해 보기", { exact: true }).click();
+    await expect(page.getByTestId("experiment-spotlight")).toBeVisible();
     for (const step of steps.filter((s) => !s.optional))
       await app.locator(`[data-sim-action="${step.action}"]`).click();
     await page.keyboard.press("Escape");

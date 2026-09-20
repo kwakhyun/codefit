@@ -1,4 +1,6 @@
 "use client";
+import { LearningPreferencePicker } from "./learning-preference";
+import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { useState } from "react";
 import { ScenarioImage } from "@/components/ui/scenario-visual";
 import { problemUrl } from "@/lib/library-state";
@@ -22,6 +24,7 @@ export function TrainingHero({
   scope,
   onGenerate,
 }: TrainingHeroProps) {
+  const { preference } = useLearningPreference();
   const [showFeatures, setShowFeatures] = useState(false);
   return (
     <div className="training-welcome">
@@ -32,7 +35,14 @@ export function TrainingHero({
         </div>
         <p>처음 배우는 원리부터 직접 고치는 코드까지.</p>
       </div>
-      <LearningResume key={scope} scope={scope} recommendFirst={!resume} />
+      <LearningPreferencePicker />
+      <LearningResume
+        key={scope}
+        scope={scope}
+        recommendFirst={
+          !resume && preference.experience === "beginner" && preference.purpose === "learn"
+        }
+      />
       {resume && recommended && (
         <section className="resume-card" aria-label="코딩 문제 이어하기">
           <div>
