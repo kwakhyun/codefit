@@ -71,7 +71,8 @@ test("project learning: first answers, recovery, practice gate, transfer and acc
   try {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`/project-check?check=${id}`);
-    const panel = page.getByRole("region", { name: "맞춤 실습과 확인" });
+    await page.getByText("기초 개념을 예제로 연습하기 (선택)", { exact: true }).click();
+    const panel = page.getByRole("region", { name: "기초 개념 실습과 확인" });
     await expect(panel.getByRole("heading", { name: "요청과 결과 연결하기" })).toBeVisible();
     for (const width of [320, 390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
@@ -104,6 +105,7 @@ test("project learning: first answers, recovery, practice gate, transfer and acc
     await panel.getByRole("radio", { name: "확신해요" }).focus();
     await page.keyboard.press("Space");
     await page.reload();
+    await page.getByText("기초 개념을 예제로 연습하기 (선택)", { exact: true }).click();
     await panel.getByRole("button", { name: /데이터 저장/ }).click();
     await expect(panel.getByRole("radio", { name: "확신해요" })).toBeChecked();
     failNext = true;
@@ -121,6 +123,7 @@ test("project learning: first answers, recovery, practice gate, transfer and acc
     await panel.getByRole("button", { name: "첫 답변 저장하고 실습하기" }).click();
     await expect(panel.getByText("시작 전 답변이 저장됐습니다.")).toBeVisible();
     await page.reload();
+    await page.getByText("기초 개념을 예제로 연습하기 (선택)", { exact: true }).click();
     await expect(panel.getByRole("heading", { name: "저장 위치 확인하기" })).toBeVisible();
     await expect(panel.getByText("시작 전 답변이 저장됐습니다.")).toBeVisible();
     await expect(panel.getByRole("link", { name: /데이터는 어디에 저장될까요/ })).toHaveAttribute(
@@ -297,7 +300,7 @@ test("project learning API: authenticated persistence without AI, account isolat
     const back = page.getByRole("link", { name: "← 실습을 마치면 프로젝트 확인 문제로 돌아가기" });
     await expect(back).toBeVisible();
     await back.click();
-    await expect(page.getByRole("region", { name: "맞춤 실습과 확인" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "기초 개념 실습과 확인" })).toBeVisible();
     expect((await page.request.get("/api/project-check")).status()).toBe(200);
     await page.request.delete("/api/project-check", { headers, data: { id } });
     expect((await page.request.get(`${endpoint}?id=${id}`, { headers })).status()).toBe(404);

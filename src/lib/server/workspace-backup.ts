@@ -1,3 +1,5 @@
+import { captureSchema } from "../project-check/types";
+import { practiceSchema } from "../project-check/types";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { backupSchema, type Backup } from "../backup";
@@ -104,10 +106,17 @@ const savedCheck = z
         title: z.string().max(1000),
         fetchedAt: z.iso.datetime(),
         limited: z.boolean(),
-        source: z.enum(["html", "metadata"]).optional(),
+        source: z.enum(["html", "metadata", "rendered"]).optional(),
+        collectionNote: z.string().max(1000).optional(),
+        captures: z.array(captureSchema).max(3).optional(),
       })
       .strict(),
     analysis: analysisSchema,
+    previousReview: z
+      .object({ answers: z.array(z.string().max(1500)).length(5), assessment: savedAssessment })
+      .strict()
+      .optional(),
+    revisionNumber: z.number().int().min(1).max(3).optional(),
   })
   .strict();
 const submission = trainingInput
@@ -136,6 +145,7 @@ const savedReview = z
     answers: z.array(z.string().max(1500)).length(5),
     assessment: savedAssessment,
     training: savedTraining.optional(),
+    practice: practiceSchema.optional(),
   })
   .strict();
 
@@ -160,7 +170,12 @@ export function prepareBackup(backup: Backup) {
     if (new Set(check.analysis.questions.map((q) => q.area)).size !== AREAS.length)
       throw new Error("Invalid project areas");
     const review = item.review === undefined ? undefined : savedReview.parse(item.review);
-    if (review) {
+    for (const item of [
+      review,
+      check.previousReview ? { ...check.previousReview, training: undefined } : undefined,
+    ]) {
+      if (!item) continue;
+      const review = item;
       const { assessment, answers } = review;
       if (
         new Set(assessment.feedback.map((f) => f.questionIndex)).size !== 5 ||

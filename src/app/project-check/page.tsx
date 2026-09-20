@@ -19,13 +19,13 @@ export default function ProjectCheckPage() {
         </h1>
         <p>
           서비스 링크를 넣으면 AI가 프로젝트에 맞는 질문을 준비합니다.
-          <br />내 말로 설계를 설명하고, 모호했던 부분을 실습으로 확인하세요.
+          <br />내 말로 설계를 설명하고, 내 프로젝트에서 직접 확인하고 답변을 보완하세요.
         </p>
         <ol className="learn-journey">
           <li>서비스 링크 분석</li>
           <li>설계 질문 5개</li>
           <li>답변과 이해도 점검</li>
-          <li>맞춤 실습 후 다시 확인</li>
+          <li>직접 확인하고 답변 보완</li>
         </ol>
       </section>
       <Suspense fallback={<p role="status">점검 기록 불러오는 중…</p>}>

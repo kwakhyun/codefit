@@ -7,7 +7,7 @@ import { getStore } from "@/lib/server/database";
 import { networkIdentity } from "@/lib/server/usage-policy";
 import { ProjectCheckService } from "@/lib/server/project-check-service";
 export const runtime = "nodejs";
-export const maxDuration = 90;
+export const maxDuration = 120;
 export async function GET(request: Request) {
   try {
     const { owner, scope, user } = await session(request);

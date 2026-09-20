@@ -470,3 +470,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+#project-follow-up label {
+  display: block;
+  margin: 16px 0 8px;
+}
+#project-follow-up select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #405069;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #0a0d12;
+  color: #eef3fa;
+  font: inherit;
+}
+#project-follow-up hr {
+  margin: 28px 0;
+  border: 0;
+  border-top: 1px solid #303944;
+}

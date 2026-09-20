@@ -57,3 +57,43 @@ it("export accepts the exact byte limit but rejects the next byte", () => {
     .run(JSON.stringify("한글" + "a".repeat(BACKUP_MAX_BYTES - overhead + 1)), "owner");
   expect(() => store.exportBackup("owner")).toThrow(/4 MB/);
 });
+
+it("round-trips captured screens, project evidence and previous answers without changing their scores", async () => {
+  const { learningFixture } = await import("./project-learning-contract.test-helper");
+  const { restoredProjectId } = await import("./workspace-backup");
+  const { owner, id } = await learningFixture(store);
+  const file = store.exportBackup(owner);
+  if (file.version !== 3) throw Error();
+  const check = file.projects[0].check as import("../project-check/types").StoredCheck;
+  const review = file.projects[0].review as NonNullable<
+    import("../project-check/types").Check["review"]
+  >;
+  check.page.source = "rendered";
+  check.page.captures = [
+    { url: "https://example.com/", title: "화면", text: "직접 수집한 본문", screenshot: "YWJj" },
+  ];
+  check.previousReview = {
+    answers: [...review.answers],
+    assessment: structuredClone(review.assessment),
+  };
+  check.revisionNumber = 1;
+  review.practice = {
+    revision: 1,
+    tasks: Array.from({ length: 5 }, (_, questionIndex) => ({
+      questionIndex,
+      status: "observed" as const,
+      result: "조건을 바꾸고 차단 문구를 확인했습니다.",
+    })),
+  };
+  store.importBackup("target", file);
+  const detail = await store.queries.projectChecks.detail(
+    "target",
+    restoredProjectId("target", id),
+  );
+  expect(detail?.previousReview).toEqual(check.previousReview);
+  expect(detail?.review?.practice).toEqual(review.practice);
+  const stored = await store.queries.projectChecks.get("target", restoredProjectId("target", id));
+  expect(stored?.page.captures).toEqual(check.page.captures);
+  check.previousReview.assessment.score = 99;
+  expect(() => store.importBackup("bad-target", file)).toThrow("Invalid assessment score");
+});

@@ -1,4 +1,7 @@
 "use client";
+import { ProjectCaptures } from "./project-captures";
+import { ProjectFollowUp } from "./project-follow-up";
+
 import { ProjectExample } from "./project-example";
 import { ProjectLearning } from "@/components/project-learning/project-learning";
 import { GuestLogin } from "@/components/account/guest-login";
@@ -132,6 +135,15 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
   useEffect(() => {
     if (selected && historyPanel.current) historyPanel.current.open = false;
   }, [selected]);
+  const [trainingOpen, setTrainingOpen] = useState(false);
+  useEffect(() => {
+    const followHash = () => {
+      if (window.location.hash === "#training") setTrainingOpen(true);
+    };
+    followHash();
+    window.addEventListener("hashchange", followHash);
+    return () => window.removeEventListener("hashchange", followHash);
+  }, [selected]);
   const checkId = check?.id;
   useEffect(() => {
     if (checkId) resultHeading.current?.focus();
@@ -242,7 +254,10 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
       try {
         sessionStorage.removeItem(`codefit-project:${data.scope}:${check.id}`);
         for (const key of Object.keys(sessionStorage)) {
-          if (key.startsWith(`codefit-training:${data.scope}:${check.id}:`))
+          if (
+            key.startsWith(`codefit-training:${data.scope}:${check.id}:`) ||
+            key.startsWith(`codefit-follow-up:${data.scope}:${check.id}`)
+          )
             sessionStorage.removeItem(key);
         }
       } catch {}
@@ -460,8 +475,8 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   disabled={busy || recovering}
                 />
                 <span>
-                  내가 만든 서비스이며, 공개 페이지 내용과 작성한 설명·답변을 OpenAI에 전송해
-                  분석하는 데 동의합니다.
+                  내가 만든 서비스이며, 공개 페이지의 본문과 화면 이미지, 작성한 설명과 답변을
+                  OpenAI에 전송해 분석하는 데 동의합니다.
                 </span>
               </label>
               <button
@@ -493,14 +508,16 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 </a>
                 <p>{check.analysis.summary}</p>
                 <p className="project-help">
-                  {dateLabel(check.page.fetchedAt)}에 공개 페이지 한 곳의 정보를 읽었습니다.{" "}
+                  {dateLabel(check.page.fetchedAt)} 수집.{" "}
+                  {check.page.collectionNote || "공개 HTML 한 곳의 정보를 참고했습니다."}{" "}
                   {check.page.source === "metadata"
                     ? "화면 본문을 충분히 읽지 못해 사이트에 등록된 공개 소개 정보를 참고했습니다. 자바스크립트 실행 후 나타나는 화면은 확인하지 않았습니다. "
                     : check.page.limited
-                      ? "화면 정보가 적어 작성한 설명을 주로 참고했습니다. "
+                      ? "공개 본문이 짧아 확인한 정보의 범위가 제한적입니다. "
                       : ""}
                   로그인 후 화면, 소스 코드와 실제 서버 구성은 확인하지 않았습니다.
                 </p>
+                <ProjectCaptures check={check} scope={data.scope} />
                 <button className="text-button" disabled={busy || recovering} onClick={remove}>
                   이 점검 기록 삭제
                 </button>
@@ -520,7 +537,34 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 }}
               />
               {check.review && (
-                <ProjectLearning key={`training:${check.id}`} id={check.id} scope={data.scope} />
+                <>
+                  <ProjectFollowUp
+                    key={`follow-up:${check.id}`}
+                    check={check}
+                    scope={data.scope}
+                    onRevised={showCheck}
+                    onSaved={(practice) => {
+                      const updated = { ...check, review: { ...check.review!, practice } };
+                      history.updateDetail(updated);
+                      onChange((current) => ({
+                        ...current,
+                        checks: current.checks.map((c) => (c.id === check.id ? updated : c)),
+                      }));
+                    }}
+                  />
+                  <details
+                    className="project-panel"
+                    open={trainingOpen}
+                    onToggle={(event) => setTrainingOpen(event.currentTarget.open)}
+                  >
+                    <summary>기초 개념을 예제로 연습하기 (선택)</summary>
+                    <ProjectLearning
+                      key={`training:${check.id}`}
+                      id={check.id}
+                      scope={data.scope}
+                    />
+                  </details>
+                </>
               )}
             </>
           )}

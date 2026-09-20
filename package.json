@@ -34,6 +34,7 @@
   "dependencies": {
     "@jitl/quickjs-wasmfile-release-sync": "0.32.0",
     "@monaco-editor/react": "^4.7.0",
+    "@vercel/sandbox": "^3.3.0",
     "better-auth": "^1.7.4",
     "lucide-react": "^1.39.0",
     "monaco-editor": "^0.56.0",

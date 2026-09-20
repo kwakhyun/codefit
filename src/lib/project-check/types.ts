@@ -75,27 +75,83 @@ export type Assessment = Omit<z.infer<typeof assessmentSchema>, "feedback"> & {
     blockingIssue?: z.infer<typeof assessmentIssueSchema> | null;
   })[];
 };
+export const captureSchema = z
+  .object({
+    url: z
+      .url()
+      .max(1500)
+      .refine((value) => {
+        if (!URL.canParse(value)) return false;
+        const url = new URL(value);
+        return (
+          url.protocol === "https:" &&
+          !url.username &&
+          !url.password &&
+          !url.search &&
+          !url.hash &&
+          !url.port
+        );
+      }, "공개 HTTPS 화면 주소가 필요합니다."),
+    title: z.string().max(160),
+    text: z.string().max(10000),
+    screenshot: z
+      .string()
+      .max(270000)
+      .regex(/^[A-Za-z0-9+/]+=*$/)
+      .optional(),
+  })
+  .strict();
+
 export interface PageSnapshot {
   url: string;
   text: string;
   title: string;
   fetchedAt: string;
   limited: boolean;
-  source?: "html" | "metadata";
+  source?: "html" | "metadata" | "rendered";
+  collectionNote?: string;
+  captures?: { url: string; title: string; text: string; screenshot?: string }[];
 }
+export const practiceSchema = z
+  .object({
+    revision: z.number().int().nonnegative().safe(),
+    tasks: z
+      .array(
+        z
+          .object({
+            questionIndex: z.number().int().min(0).max(4),
+            status: z.enum(["planned", "observed", "blocked"]),
+            result: z.string().trim().max(2000),
+          })
+          .strict(),
+      )
+      .length(5),
+  })
+  .strict()
+  .refine(
+    (v) =>
+      new Set(v.tasks.map((t) => t.questionIndex)).size === 5 &&
+      v.tasks.every((t) => t.status !== "observed" || t.result.length > 0),
+    "확인 완료한 항목에는 결과가 필요합니다.",
+  );
+export type ProjectPractice = z.infer<typeof practiceSchema>;
 export interface StoredCheck {
   id: string;
   createdAt: string;
   description: string;
   page: PageSnapshot;
   analysis: Analysis;
+  previousReview?: { answers: string[]; assessment: Assessment };
+  revisionNumber?: number;
 }
 export interface Check extends Omit<StoredCheck, "analysis" | "page"> {
-  page: Omit<PageSnapshot, "text">;
+  page: Omit<PageSnapshot, "text" | "captures"> & {
+    captures?: { url: string; title: string; hasScreenshot: boolean }[];
+  };
   analysis: Omit<Analysis, "questions"> & {
     questions: Omit<Analysis["questions"][number], "criteria">[];
   };
-  review?: { answers: string[]; assessment: Assessment };
+  review?: { answers: string[]; assessment: Assessment; practice?: ProjectPractice };
 }
 interface CheckUsage {
   limit: number;

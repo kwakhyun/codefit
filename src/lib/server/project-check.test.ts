@@ -143,3 +143,128 @@ it("accepts metadata-backed public apps with an empty owner description and pres
   expect(restored.page.source).toBe("metadata");
   expect(restored.page.limited).toBe(true);
 });
+
+it("preserves original answers while creating replayable same-question revisions without analysis quota", async () => {
+  const service = new ProjectCheckService(store, ai);
+  const i = input();
+  await service.create("user:a", "network", i, signal());
+  const answers = Array(5).fill("최초 설명입니다.");
+  await service.review("user:a", "network", { id: i.requestId, answers }, signal());
+  const id = randomUUID();
+  const revised = await service.revise("user:a", i.requestId, id);
+  expect(await service.revise("user:a", i.requestId, id)).toEqual(revised);
+  expect(revised.previousReview?.answers).toEqual(answers);
+  expect(revised.analysis).toEqual(publicCheck(fixtureCheck).analysis);
+  expect(revised.revisionNumber).toBe(1);
+  expect(revised.review).toBeUndefined();
+  expect(ai.analyze).toHaveBeenCalledTimes(1);
+  expect((await store.queries.projectChecks.usage("user:a")).analysis.remaining).toBe(1);
+  await expect(service.revise("user:b", i.requestId, randomUUID())).rejects.toMatchObject({
+    status: 404,
+  });
+  await service.review(
+    "user:a",
+    "network",
+    { id, answers: Array(5).fill("보완한 설명입니다.") },
+    signal(),
+  );
+  expect((await store.queries.projectChecks.review("user:a", i.requestId))?.answers).toEqual(
+    answers,
+  );
+  expect(ai.assess).toHaveBeenCalledTimes(2);
+  expect((await store.queries.projectChecks.usage("user:a")).review.remaining).toBe(2);
+});
+it("saves owner-scoped project evidence with optimistic concurrency and preserves training", async () => {
+  const service = new ProjectCheckService(store, ai);
+  const i = input();
+  await service.create("user:a", "network", i, signal());
+  await service.review(
+    "user:a",
+    "network",
+    { id: i.requestId, answers: Array(5).fill("설명") },
+    signal(),
+  );
+  const old = store.db
+    .prepare("SELECT result FROM jobs WHERE id=?")
+    .get(`project-review-${i.requestId}`) as { result: string };
+  const training = { version: 1, revision: 0, modules: {} };
+  store.db
+    .prepare("UPDATE jobs SET result=? WHERE id=?")
+    .run(JSON.stringify({ ...JSON.parse(old.result), training }), `project-review-${i.requestId}`);
+  const practice = {
+    revision: 0,
+    tasks: Array.from({ length: 5 }, (_, questionIndex) => ({
+      questionIndex,
+      status: "planned" as const,
+      result: "이 프로젝트에서 직접 확인할 계획",
+    })),
+  };
+  await expect(
+    store.queries.projectChecks.savePractice("user:b", i.requestId, practice),
+  ).rejects.toMatchObject({ status: 404 });
+  const saved = await store.queries.projectChecks.savePractice("user:a", i.requestId, practice);
+  expect(saved.revision).toBe(1);
+  expect(await store.queries.projectChecks.savePractice("user:a", i.requestId, practice)).toEqual(
+    saved,
+  );
+  await expect(
+    store.queries.projectChecks.savePractice("user:a", i.requestId, {
+      ...practice,
+      tasks: practice.tasks.map((t) => ({ ...t, result: "다른 변경" })),
+    }),
+  ).rejects.toMatchObject({ status: 409 });
+  expect(
+    (await store.queries.projectChecks.detail("user:a", i.requestId))?.review?.practice,
+  ).toEqual(saved);
+  const row = store.db
+    .prepare("SELECT result FROM jobs WHERE id=?")
+    .get(`project-review-${i.requestId}`) as { result: string };
+  expect(JSON.parse(row.result).training).toEqual(training);
+});
+it("does not expose screenshot bytes or captured text in history responses", () => {
+  const result = publicCheck({
+    ...fixtureCheck,
+    page: {
+      ...fixtureCheck.page,
+      source: "rendered",
+      captures: [{ url: "https://example.com/", title: "화면", text: "본문", screenshot: "YWJj" }],
+    },
+  });
+  expect(result.page.captures).toEqual([
+    { url: "https://example.com/", title: "화면", hasScreenshot: true },
+  ]);
+  expect(JSON.stringify(result)).not.toContain("YWJj");
+});
+
+it("accepts a short but successfully rendered public screen without a forced description", async () => {
+  ai.readPage.mockResolvedValue({
+    ...fixtureCheck.page,
+    source: "rendered",
+    limited: true,
+    text: "짧은 서비스 홈 화면",
+    captures: [
+      {
+        url: "https://example.com/",
+        title: "화면",
+        text: "짧은 서비스 홈 화면",
+        screenshot: "YWJj",
+      },
+    ],
+  });
+  const service = new ProjectCheckService(store, ai);
+  await service.create("user:a", "network", input(), signal());
+  expect(ai.analyze).toHaveBeenCalledTimes(1);
+});
+it("cannot finish copying a revision after its source was deleted", async () => {
+  const service = new ProjectCheckService(store, ai);
+  const i = input();
+  await service.create("user:a", "network", i, signal());
+  const original = await store.queries.projectChecks.get("user:a", i.requestId);
+  const id = randomUUID();
+  const claim = store.startJob("user:a", id, "project-analysis", "revision");
+  if (claim.state !== "new") throw Error();
+  await store.queries.projectChecks.remove("user:a", i.requestId);
+  await expect(
+    store.queries.projectChecks.complete(claim.lease, { ...original!, id }, i.requestId),
+  ).rejects.toThrow();
+});

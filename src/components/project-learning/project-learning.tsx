@@ -48,14 +48,18 @@ export function ProjectLearning({ id, scope }: { id: string; scope: string }) {
     view?.modules.find((m) => m.phase !== "complete") ??
     view?.modules[0];
   return (
-    <section id="training" className="project-panel training-panel" aria-label="맞춤 실습과 확인">
+    <section
+      id="training"
+      className="project-panel training-panel"
+      aria-label="기초 개념 실습과 확인"
+    >
       <span className="eyebrow">
         <FlaskConical size={16} /> 설명에서 실습으로
       </span>
-      <h2>모호했던 부분, 직접 확인해 보세요</h2>
+      <h2>기초 개념을 예제로 연습해 보세요</h2>
       <p>
-        AI가 검토한 설명을 바탕으로 연습 순서를 제안합니다. 시작 전 질문에 답하고 실습한 뒤, 다른
-        상황에서도 판단할 수 있는지 확인해 보세요.
+        낮게 평가된 영역의 기초 개념을 연습하는 공통 예제입니다. 내 프로젝트의 기술이나 설계에 맞춰
+        생성한 과제는 아닙니다. 위의 프로젝트 확인 과제와 구분해서 활용하세요.
       </p>
       <p className="project-help">이 실습에는 AI 이용 횟수가 차감되지 않습니다.</p>
       {error && (
@@ -74,7 +78,7 @@ export function ProjectLearning({ id, scope }: { id: string; scope: string }) {
         <RefreshCw size={15} />
         {loading ? "기록 확인 중…" : "실습 기록 새로고침"}
       </button>
-      {!view && !error && <p role="status">맞춤 실습을 준비하고 있습니다…</p>}
+      {!view && !error && <p role="status">기초 개념 실습을 준비하고 있습니다…</p>}
       {view && current && (
         <>
           <nav className="training-topics" aria-label="연습 영역">

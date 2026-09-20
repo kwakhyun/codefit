@@ -6,15 +6,26 @@ import { z } from "zod";
 import { HttpError } from "./http";
 import { StaleJob } from "./write-conflicts";
 export function publicReview(raw: string): NonNullable<Check["review"]> {
-  const { answers, assessment } = JSON.parse(raw);
-  return { answers, assessment };
+  const { answers, assessment, practice } = JSON.parse(raw);
+  return { answers, assessment, ...(practice ? { practice } : {}) };
 }
 export function publicCheck(check: StoredCheck): Check {
-  const { text: _text, ...page } = check.page;
+  const { text: _text, captures, ...page } = check.page;
   void _text;
   return {
     ...check,
-    page,
+    page: {
+      ...page,
+      ...(captures
+        ? {
+            captures: captures.map((p) => ({
+              url: p.url,
+              title: p.title,
+              hasScreenshot: !!p.screenshot,
+            })),
+          }
+        : {}),
+    },
     analysis: {
       ...check.analysis,
       questions: check.analysis.questions.map(({ criteria: _criteria, ...q }) => {
@@ -90,6 +101,43 @@ export class ProjectCheckStore {
           : null,
     };
   }
+  async savePractice(
+    owner: string,
+    id: string,
+    practice: import("../project-check/types").ProjectPractice,
+  ) {
+    const [row] = await this.query(
+      "SELECT result FROM jobs WHERE id=? AND owner=? AND kind=? AND state='done'",
+      [`project-review-${id}`, owner, `project-review:${id}`],
+    );
+    if (!row) throw new HttpError(404, "평가 기록을 찾지 못했습니다.");
+    const raw = String(row.result);
+    const review = JSON.parse(raw);
+    if (
+      review.practice?.revision === practice.revision + 1 &&
+      JSON.stringify(review.practice.tasks) === JSON.stringify(practice.tasks)
+    )
+      return review.practice;
+    if ((review.practice?.revision ?? 0) !== practice.revision)
+      throw new HttpError(
+        409,
+        "다른 화면에서 기록이 바뀌었습니다. 새로고침 후 다시 저장해 주세요.",
+      );
+    const saved = { ...practice, revision: practice.revision + 1 };
+    const rows = await this.query(
+      "UPDATE jobs SET result=? WHERE id=? AND owner=? AND kind=? AND state='done' AND result=? RETURNING id",
+      [
+        JSON.stringify({ ...review, practice: saved }),
+        `project-review-${id}`,
+        owner,
+        `project-review:${id}`,
+        raw,
+      ],
+    );
+    if (!rows.length)
+      throw new HttpError(409, "기록이 바뀌었습니다. 새로고침 후 다시 저장해 주세요.");
+    return saved;
+  }
   async usage(owner: string) {
     const result = {} as Record<
       "analysis" | "review",
@@ -111,12 +159,13 @@ export class ProjectCheckStore {
   async complete(
     lease: JobLease,
     result: StoredCheck | { answers: string[]; assessment: Assessment },
+    revisionParent?: string,
   ) {
     if (lease.kind !== "project-analysis" && !lease.kind.startsWith("project-review:"))
       throw new StaleJob();
     const parent = lease.kind.startsWith("project-review:")
       ? lease.kind.slice("project-review:".length)
-      : null;
+      : (revisionParent ?? null);
     const rows = await this.query(
       `UPDATE jobs SET state='done',result=? WHERE id=? AND owner=? AND kind=? AND token=? AND state='pending' AND expires>? ${parent ? "AND EXISTS(SELECT 1 FROM jobs p WHERE p.id=? AND p.owner=? AND p.kind='project-analysis' AND p.state='done')" : ""} RETURNING id`,
       [

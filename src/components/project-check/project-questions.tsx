@@ -4,7 +4,7 @@ import { api, errorMessage } from "@/lib/client-api";
 import { VoiceInput } from "@/components/ui/voice-input";
 import { evidenceLabels, type Check } from "@/lib/project-check/types";
 import { RequestStatus } from "./request-status";
-function loadDraft(key: string) {
+function loadDraft(key: string, previous?: string[]) {
   try {
     const value = JSON.parse(sessionStorage.getItem(key) || "null");
     if (
@@ -21,7 +21,7 @@ function loadDraft(key: string) {
             : 0,
       };
   } catch {}
-  return { answers: ["", "", "", "", ""], submitted: false, step: 0 };
+  return { answers: previous || ["", "", "", "", ""], submitted: false, step: 0 };
 }
 export function ProjectQuestions({
   check,
@@ -35,7 +35,7 @@ export function ProjectQuestions({
   onReviewed: (review: NonNullable<Check["review"]>) => Promise<void>;
 }) {
   const draftKey = `codefit-project:${scope}:${check.id}`;
-  const [draft, setDraft] = useState(() => loadDraft(draftKey));
+  const [draft, setDraft] = useState(() => loadDraft(draftKey, check.previousReview?.answers));
   const currentDraft = useRef(draft);
   const { step } = draft;
   const [busy, setBusy] = useState(false);
@@ -138,12 +138,24 @@ export function ProjectQuestions({
           <small> / 100</small>
         </h2>
         <p>{check.review.assessment.summary}</p>
+        {check.previousReview && (
+          <div className="project-next-step">
+            <strong>
+              이전 답변 {check.previousReview.assessment.score}점 → 보완 답변{" "}
+              {check.review.assessment.score}점
+            </strong>
+            <p className="project-help">
+              같은 질문의 설명을 비교합니다. AI 판단은 달라질 수 있으며 점수 변화가 실제 기능 개선을
+              증명하지는 않습니다.
+            </p>
+          </div>
+        )}
         <p className="project-help">
           서비스 품질이나 보안을 인증하는 점수가 아닙니다. 답변에 드러난 흐름 설명, 선택 이유, 오류
           대응과 검증 계획을 평가했습니다.
         </p>
-        <a className="primary-button" href="#training">
-          맞춤 실습으로 확인하기 →
+        <a className="primary-button" href="#project-follow-up">
+          내 프로젝트에서 확인하고 보완하기 →
         </a>
         <details className="project-feedback-list">
           <summary>질문별 AI 피드백 5개 보기</summary>
@@ -161,6 +173,48 @@ export function ProjectQuestions({
                 <summary>내 답변 보기</summary>
                 <p className="project-answer">{answers[f.questionIndex] || "답변하지 않음"}</p>
               </details>
+              {check.previousReview && (
+                <details>
+                  <summary>이전 답변과 비교</summary>
+                  <p>
+                    이전{" "}
+                    {check.previousReview.assessment.feedback.find(
+                      (p) => p.questionIndex === f.questionIndex,
+                    )?.level ?? 0}{" "}
+                    / 4단계 → 현재 {f.level} / 4단계
+                  </p>
+                  <strong>이전 설명</strong>
+                  <p className="project-answer">
+                    {check.previousReview.answers[f.questionIndex] || "답변하지 않음"}
+                  </p>
+                  <strong>이전 피드백</strong>
+                  <p>
+                    {
+                      check.previousReview.assessment.feedback.find(
+                        (p) => p.questionIndex === f.questionIndex,
+                      )?.feedback
+                    }
+                  </p>
+                  {f.evidence &&
+                    check.previousReview.assessment.feedback.find(
+                      (p) => p.questionIndex === f.questionIndex,
+                    )?.evidence && (
+                      <p>
+                        새로 근거가 확인된 항목:{" "}
+                        {Object.entries(evidenceLabels)
+                          .filter(
+                            ([key]) =>
+                              f.evidence?.[key as keyof typeof evidenceLabels] &&
+                              !check.previousReview?.assessment.feedback.find(
+                                (p) => p.questionIndex === f.questionIndex,
+                              )?.evidence?.[key as keyof typeof evidenceLabels],
+                          )
+                          .map(([, label]) => label)
+                          .join(", ") || "없음"}
+                      </p>
+                    )}
+                </details>
+              )}
               {f.blockingIssue && (
                 <div className="project-assessment-issue">
                   <strong>먼저 바로잡을 설명</strong>
@@ -226,6 +280,12 @@ export function ProjectQuestions({
     );
   return (
     <section className="project-panel project-questions">
+      {check.previousReview && (
+        <p className="project-next-step">
+          보완 답변 {check.revisionNumber}차입니다. 이전 답변을 불러왔습니다. 확인한 내용과 아직
+          모르는 부분을 구분해 수정하세요. 질문과 이전 화면 자료는 그대로 사용합니다.
+        </p>
+      )}
       <div className="project-question-top">
         <strong>설계 질문 {step + 1} / 5</strong>
         <span>{answers.filter((a) => a.trim()).length}개 답변 작성</span>
@@ -248,7 +308,11 @@ export function ProjectQuestions({
       <div className="project-evidence">
         <strong>
           {q.basis === "page"
-            ? "공개 페이지에서 확인한 내용"
+            ? check.page.source === "rendered"
+              ? "로그인 없이 렌더링한 화면 본문"
+              : check.page.source === "metadata"
+                ? "사이트가 등록한 공개 소개 정보"
+                : "HTML에서 추출한 문구 (화면 표시 여부 미확인)"
             : q.basis === "description"
               ? "작성한 설명에서 참고한 내용"
               : "직접 설명이 필요한 내용"}
@@ -348,7 +412,8 @@ export function ProjectQuestions({
         )}
       </div>
       <p className="project-help">
-        AI 평가를 요청하면 이용 횟수 1회가 차감됩니다. 제출 이후에는 답변을 수정할 수 없습니다.{" "}
+        AI 평가를 요청하면 이용 횟수 1회가 차감됩니다. 제출한 답변은 보관되며, 평가 후 같은 질문에
+        보완 답변을 추가할 수 있습니다.{" "}
         {busy ? "검토 중에도 다른 질문과 작성한 답변을 살펴볼 수 있습니다." : ""}
       </p>
     </section>
