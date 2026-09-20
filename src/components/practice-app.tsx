@@ -1,4 +1,6 @@
 "use client";
+import { LoadingState } from "@/components/ui/loading-state";
+import { Anchor, Button } from "@/components/ui/primitives";
 
 import { useEditorPreferences } from "@/hooks/use-editor-preferences";
 
@@ -14,7 +16,7 @@ import { useWorkspaceActions } from "@/hooks/use-workspace-actions";
 
 import { type DomainId } from "@/lib/catalog";
 import { defaultFilters, libraryUrl, problemUrl, type LibraryFilters } from "@/lib/library-state";
-import { AlertCircle, Check, RotateCcw, Terminal, X } from "lucide-react";
+import { AlertCircle, Check, RotateCcw, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Generator } from "./library/problem-generator";
@@ -108,11 +110,11 @@ export function PracticeApp({
   const activeProblem = data?.activeProblem || undefined;
   return (
     <div className={`lab-shell ${focus && initialProblemId ? "focus-mode" : ""}`}>
-      <a className="skip-link" href="#main-content">
+      <Anchor className="skip-link" href="#main-content">
         본문으로 이동
-      </a>
+      </Anchor>
       {mobileMenu && (
-        <button
+        <Button
           className="sidebar-backdrop"
           aria-label="메뉴 닫기"
           onClick={() => setMobileMenu(false)}
@@ -144,21 +146,15 @@ export function PracticeApp({
           {loadError ? (
             <div className="empty-state">
               <AlertCircle size={32} />
-              <h1>저장소에 연결하지 못했습니다.</h1>
+              <h1>문제와 학습 기록을 불러오지 못했습니다.</h1>
               <p>{loadError}</p>
-              <button className="secondary-button" onClick={load}>
+              <Button className="secondary-button" onClick={load}>
                 <RotateCcw size={16} />
                 다시 연결
-              </button>
+              </Button>
             </div>
           ) : !data ? (
-            <div className="content-loader" role="status">
-              <span className="terminal-icon">
-                <Terminal size={26} />
-              </span>
-              <span className="mono">연습실을 준비하고 있어요</span>
-              <p>문제와 학습 기록을 불러오는 중입니다.</p>
-            </div>
+            <LoadingState>문제와 학습 기록을 불러오는 중입니다.</LoadingState>
           ) : initialProblemId ? (
             <ProblemWorkspace
               key={`${data.scope}:${initialProblemId}:${initialAttemptId || ""}`}
@@ -227,9 +223,9 @@ export function PracticeApp({
         >
           {toastError ? <AlertCircle size={16} /> : <Check size={16} />}
           <span>{toast}</span>
-          <button className="icon-button" aria-label="알림 닫기" onClick={() => setToast("")}>
+          <Button className="icon-button" aria-label="알림 닫기" onClick={() => setToast("")}>
             <X size={14} />
-          </button>
+          </Button>
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { fixtureAnalysis, fixtureCheck } from "../project-check/fixtures";
+import { fixtureAnalysis, fixtureCheck, fixtureVerificationPlan } from "../project-check/fixtures";
 const { parse } = vi.hoisted(() => ({ parse: vi.fn() }));
 vi.mock("openai", () => ({
   default: class {
@@ -46,6 +46,7 @@ it("grades only the stored project/questions and computes totals server-side", a
       feedback: "흐름 설명을 확인했습니다.",
       nextStep: "결과를 확인해 보세요.",
       blockingIssue: null,
+      verificationPlan: fixtureVerificationPlan,
       evidence: {
         feature: null,
         flow: questionIndex === 0 ? "q0s0" : null,
@@ -63,8 +64,9 @@ it("grades only the stored project/questions and computes totals server-side", a
     new AbortController().signal,
   );
   expect(result.score).toBe(10);
+  expect(result.feedback[0].verificationPlan).toEqual(fixtureVerificationPlan);
   expect(parse.mock.calls[0][0].model).toBe("gpt-5.6-luna");
-  expect(parse.mock.calls[0][0].max_output_tokens).toBe(6500);
+  expect(parse.mock.calls[0][0].max_output_tokens).toBe(10000);
   const data = JSON.parse(parse.mock.calls[0][0].input[1].content[0].text);
   expect(data.questions).toEqual(fixtureCheck.analysis.questions);
   expect(data.answerUnits[0].units).toEqual([{ id: "q0s0", text: "설명" }]);

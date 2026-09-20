@@ -2,7 +2,7 @@
 import { PreferenceChangeButton } from "@/components/library/learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { preferredDestinations } from "@/lib/learning-preference";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { usePathname } from "next/navigation";
 import { BrandIcon } from "@/components/ui/brand-icon";
 

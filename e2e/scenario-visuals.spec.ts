@@ -64,14 +64,7 @@ test("beginner previews and keyboard illustration controls remain understandable
   for (const mission of MISSIONS) {
     await page.goto(`/learn/${mission.id}`);
     await expect(page.getByRole("region", { name: "예제 서비스 첫 화면" })).toBeVisible();
-    if (scenarioFor(mission.id)) {
-      await page.getByText("그림으로 원리 살펴보기", { exact: true }).click();
-      await expect(page.locator(".scenario-visual")).toHaveAttribute(
-        "data-scene",
-        scenarioFor(mission.id)!,
-      );
-      await loadedImages(page);
-    }
+    await expect(page.getByText("그림으로 원리 살펴보기", { exact: true })).toHaveCount(0);
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.route("**/_next/image**", (route) => route.abort());

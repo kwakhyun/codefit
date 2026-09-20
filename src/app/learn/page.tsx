@@ -2,7 +2,7 @@ import { VisualIntro } from "@/components/experience/visual-intro";
 import { ExperienceJourney } from "@/components/experience/experience-journey";
 import { MISSIONS } from "@/lib/learn/catalog";
 import { SiteHeader } from "@/components/navigation/site-header";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import type { Metadata } from "next";
 
 import { LearningDashboard } from "@/components/learn/learning-dashboard";
@@ -17,11 +17,7 @@ export default function LearnPage() {
       <SiteHeader />
       <VisualIntro topic="principles" className="learn-intro">
         <span className="eyebrow">5개 서비스 분야, {MISSIONS.length}개 실습</span>
-        <h1>
-          예제 서비스로 배우는
-          <br />
-          개발 기초
-        </h1>
+        <h1>예제 서비스로 배우는 개발 기초</h1>
         <p>
           코딩 경험이 없어도 시작할 수 있습니다.
           <br />

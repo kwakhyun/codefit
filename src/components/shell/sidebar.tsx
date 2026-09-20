@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { preferredDestinations } from "@/lib/learning-preference";
 import type { Dispatch, SetStateAction } from "react";
@@ -21,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { BrandIcon } from "../ui/brand-icon";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 interface SidebarProps {
   mobileMenu: boolean;
   setMobileMenu: Dispatch<SetStateAction<boolean>>;
@@ -75,13 +76,13 @@ export function Sidebar({
           <small>AI 시대의 코딩 근력</small>
         </span>
       </Link>
-      <button
+      <Button
         className="sidebar-close icon-button"
         aria-label="메뉴 닫기"
         onClick={() => setMobileMenu(false)}
       >
         <X size={20} />
-      </button>
+      </Button>
       <div className="sidebar-workspace" aria-label="현재 이용 상태">
         <strong>{data?.account.user?.name || "로그인 없이 이용 중"}</strong>
         <small>
@@ -175,7 +176,7 @@ export function Sidebar({
             <strong>코딩 근력을 지키는 시간.</strong>
           </span>
         </div>
-        <button
+        <Button
           className="nav-item"
           onClick={(event) => {
             // Safari does not focus buttons on pointer activation; retain a dialog return target.
@@ -185,14 +186,7 @@ export function Sidebar({
         >
           <Settings2 size={17} />
           <span>환경 설정</span>
-        </button>
-        <div className="sidebar-version">
-          <span>CODE:FIT</span>
-          <span>
-            <i />
-            {data ? "CONNECTED" : "CONNECTING"}
-          </span>
-        </div>
+        </Button>
       </div>
     </aside>
   );

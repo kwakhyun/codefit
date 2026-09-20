@@ -1,4 +1,5 @@
 "use client";
+import { Status, Button, Card, FieldLabel, Input, Textarea } from "@/components/ui/primitives";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
@@ -101,10 +102,10 @@ export function Profile({
         </div>
       )}
       {error && (
-        <p className="inline-error" role="alert">
+        <Status className="inline-error" role="alert">
           {error}{" "}
           {!data && (
-            <button
+            <Button
               className="text-button"
               onClick={() => {
                 setError("");
@@ -112,23 +113,23 @@ export function Profile({
               }}
             >
               다시 불러오기
-            </button>
+            </Button>
           )}
-        </p>
+        </Status>
       )}
       {params.has("error") && (
-        <p className="inline-warning" role="alert">
+        <Status className="inline-warning" role="alert">
           계정을 연결하지 못했습니다. 프로필과 같은 이메일의 계정인지, 다른 CODE:FIT 계정에 이미
           연결되어 있는지 확인해 주세요.
-        </p>
+        </Status>
       )}
       <div className="profile-grid">
-        <section className="profile-panel">
+        <Card as="section" className="profile-panel">
           <h2>내 프로필</h2>
           <form onSubmit={save}>
-            <label>
+            <FieldLabel>
               이름
-              <input
+              <Input
                 required
                 minLength={2}
                 maxLength={40}
@@ -139,10 +140,10 @@ export function Profile({
                 }}
                 autoComplete="name"
               />
-            </label>
-            <label>
+            </FieldLabel>
+            <FieldLabel>
               한 줄 소개
-              <textarea
+              <Textarea
                 aria-label="한 줄 소개"
                 aria-describedby="profile-bio-count"
                 maxLength={300}
@@ -155,19 +156,19 @@ export function Profile({
                 placeholder="관심 있는 기술이나 학습 목표를 적어 주세요."
               />
               <small id="profile-bio-count">{bio.length}/300</small>
-            </label>
-            <button className="primary-button" disabled={busy || name.trim().length < 2}>
+            </FieldLabel>
+            <Button className="primary-button" disabled={busy || name.trim().length < 2}>
               {busy ? <LoaderCircle size={16} className="spin" /> : <Save size={16} />}프로필 저장
-            </button>
+            </Button>
             {saved && (
-              <p className="profile-saved" role="status">
+              <Status className="profile-saved" role="status">
                 <Check size={16} />
                 프로필을 저장했습니다.
-              </p>
+              </Status>
             )}
           </form>
-        </section>
-        <section className="profile-panel">
+        </Card>
+        <Card as="section" className="profile-panel">
           <h2>연결된 계정</h2>
           <p className="muted">
             같은 이메일의 Google, GitHub 계정을 연결하면 어느 쪽으로 로그인해도 같은 기록과 생성
@@ -180,24 +181,24 @@ export function Profile({
               returnTo="/profile"
             />
           ) : (
-            <p role="status">연결된 계정 확인 중…</p>
+            <Status role="status">연결된 계정 확인 중…</Status>
           )}
           <p className="muted">
             로그인 전 코딩 기록을 옮기려면 게스트 상태에서 환경 설정의 백업을 내보낸 뒤, 로그인하고
             가져오세요. 입문 실습 기록은 각 미션에서 별도로 내려받을 수 있으며 계정으로 옮기는
             기능은 지원하지 않습니다.
           </p>
-        </section>
+        </Card>
       </div>
       <AiUsage />
       <div className="profile-signout">
-        <button className="secondary-button" disabled={busy} onClick={() => void signOut(false)}>
+        <Button className="secondary-button" disabled={busy} onClick={() => void signOut(false)}>
           <LogOut size={16} />
           로그아웃
-        </button>
-        <button className="text-button" disabled={busy} onClick={() => void signOut(true)}>
+        </Button>
+        <Button className="text-button" disabled={busy} onClick={() => void signOut(true)}>
           모든 기기에서 로그아웃
-        </button>
+        </Button>
       </div>
     </div>
   );

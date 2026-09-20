@@ -1,4 +1,11 @@
 "use client";
+import {
+  Disclosure,
+  DisclosureSummary,
+  Button,
+  FieldLabel,
+  Textarea,
+} from "@/components/ui/primitives";
 import { useRef } from "react";
 import { FlaskConical, LoaderCircle } from "lucide-react";
 import type { LearningLabController } from "@/hooks/use-learning-lab";
@@ -36,11 +43,11 @@ export function LearningExperiment({
       {proposal && (
         <div className="lab-experiment-proposal">
           <p>AI가 제안한 실험입니다. 입력과 관찰할 값을 확인한 뒤 가져오세요.</p>
-          <details>
-            <summary>AI 제안 코드 보기</summary>
+          <Disclosure>
+            <DisclosureSummary>AI 제안 코드 보기</DisclosureSummary>
             <pre>{proposal.expression}</pre>
-          </details>
-          <button
+          </Disclosure>
+          <Button
             className="secondary-button"
             disabled={busy || blocked}
             onClick={() => {
@@ -51,18 +58,18 @@ export function LearningExperiment({
             }}
           >
             AI 실험 코드 가져오기
-          </button>
+          </Button>
         </div>
       )}
-      <details ref={details} className="lab-experiment-editor">
-        <summary>실험 코드와 예상 작성</summary>
-        <label htmlFor="experiment-expression">실험 코드</label>
+      <Disclosure ref={details} className="lab-experiment-editor">
+        <DisclosureSummary>실험 코드와 예상 작성</DisclosureSummary>
+        <FieldLabel htmlFor="experiment-expression">실험 코드</FieldLabel>
         <p id="experiment-help">
           함수를 호출하고 관찰할 값을 반환하는 JavaScript 표현식입니다. 원본 실행식을 바꿔 시작할 수
           있습니다. 비동기 실험은 async 함수로 감싸고 호출하세요. DOM, 네트워크와 타이머는 사용할 수
           없습니다.
         </p>
-        <textarea
+        <Textarea
           id="experiment-expression"
           ref={expressionInput}
           value={experiment.expression}
@@ -75,10 +82,10 @@ export function LearningExperiment({
           onChange={(e) => c.editExperiment({ expression: e.target.value })}
         />
         <small>{experiment.expression.length}/2,000자</small>
-        <label htmlFor="experiment-prediction">
+        <FieldLabel htmlFor="experiment-prediction">
           실험 결과 예상 <span className="optional-label">선택</span>
-        </label>
-        <textarea
+        </FieldLabel>
+        <Textarea
           id="experiment-prediction"
           value={experiment.prediction}
           maxLength={800}
@@ -86,7 +93,7 @@ export function LearningExperiment({
           placeholder="두 코드의 결과가 어떻게 다를지 적어 보세요."
           onChange={(e) => c.editExperiment({ prediction: e.target.value })}
         />
-        <button
+        <Button
           className="secondary-button"
           disabled={busy || blocked || !experiment.expression.trim()}
           onClick={() => void c.runExperiment()}
@@ -97,11 +104,11 @@ export function LearningExperiment({
             <FlaskConical size={16} />
           )}
           {activity === "experimenting" ? "두 코드 실험 중" : "두 코드로 실험 실행"}
-        </button>
+        </Button>
         <small>
           내 브라우저에서 실행하며 추가 AI 호출은 없습니다. 새 실행은 마지막 실험 결과를 갱신합니다.
         </small>
-      </details>
+      </Disclosure>
       {run && (
         <div className="lab-experiment-results" aria-label="추가 실험 결과" aria-live="polite">
           <strong>{stale ? "이전에 실행한 실험 결과" : "실험 실행 결과"}</strong>
@@ -111,10 +118,10 @@ export function LearningExperiment({
             </p>
           )}
           <p>실행 당시 예상: {run.prediction || "남기지 않음"}</p>
-          <details>
-            <summary>실행한 실험 코드 보기</summary>
+          <Disclosure>
+            <DisclosureSummary>실행한 실험 코드 보기</DisclosureSummary>
             <pre>{run.expression}</pre>
-          </details>
+          </Disclosure>
           <div className="lab-comparison">
             <div>
               <span>원본 코드 · {run.original.status === "ok" ? "실행 완료" : "실행 오류"}</span>
@@ -135,7 +142,7 @@ export function LearningExperiment({
       )}
       {run && (
         <div className="lab-experiment-reflection">
-          <label htmlFor="experiment-reflection">실험 후 알게 된 점</label>
+          <FieldLabel htmlFor="experiment-reflection">실험 후 알게 된 점</FieldLabel>
           <p id="experiment-reflection-help">
             예상과 실제 결과를 비교해 설명해 보세요. 아직 확인하지 못한 부분도 적을 수 있습니다.
           </p>
@@ -145,7 +152,7 @@ export function LearningExperiment({
               사용할지 확인해 주세요.
             </p>
           )}
-          <textarea
+          <Textarea
             id="experiment-reflection"
             rows={4}
             maxLength={800}
@@ -155,15 +162,15 @@ export function LearningExperiment({
             onChange={(e) => c.reflectOnExperiment(e.target.value)}
           />
           {reflectionStale && (
-            <button
+            <Button
               className="secondary-button"
               disabled={busy || blocked || stale || !c.currentExperimentHash}
               onClick={() => c.reflectOnExperiment(reflection?.text ?? "")}
             >
               현재 결과에도 이 설명 사용하기
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             className="secondary-button"
             disabled={
               busy ||
@@ -178,7 +185,7 @@ export function LearningExperiment({
           >
             {activity === "coaching" && <LoaderCircle size={16} className="spin" />}
             실험 결과로 다음 AI 질문 받기
-          </button>
+          </Button>
           <small>
             설명만 저장할 때는 AI를 호출하지 않습니다. 질문을 요청하면 AI 이용 횟수가 차감됩니다.
           </small>

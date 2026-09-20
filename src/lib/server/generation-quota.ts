@@ -1,4 +1,5 @@
-export const DAILY_GENERATIONS = 3;
+import { allowanceFor } from "../ai-access";
+export const generationAllowance = (owner: string) => allowanceFor(owner).generate;
 export const GENERATION_LEASE_MS = 150_000;
 /** Fixed calendar days in Asia/Seoul, including requests around UTC midnight. */
 export function generationDay(now = Date.now()) {

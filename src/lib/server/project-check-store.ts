@@ -1,7 +1,7 @@
+import { allowanceFor } from "../ai-access";
 import type { Query } from "./store-queries";
 import type { JobLease } from "./store-contract";
 import type { Assessment, Check, StoredCheck } from "../project-check/types";
-import { PROJECT_LIMITS } from "../project-check/types";
 import { z } from "zod";
 import { HttpError } from "./http";
 import { StaleJob } from "./write-conflicts";
@@ -149,8 +149,12 @@ export class ProjectCheckStore {
         Date.now(),
       ]);
       result[kind] = {
-        limit: PROJECT_LIMITS[kind],
-        remaining: Math.max(0, PROJECT_LIMITS[kind] - Number(row?.count || 0)),
+        limit: allowanceFor(owner)[kind === "analysis" ? "analysis" : "projectReview"],
+        remaining: Math.max(
+          0,
+          allowanceFor(owner)[kind === "analysis" ? "analysis" : "projectReview"] -
+            Number(row?.count || 0),
+        ),
         resetsAt: row ? new Date(Number(row.expires)).toISOString() : null,
       };
     }

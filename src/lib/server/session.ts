@@ -40,10 +40,6 @@ export async function session(request: Request) {
 
 export async function requireUser(request: Request) {
   const current = await session(request);
-  if (!current.user)
-    throw new HttpError(
-      401,
-      "로그인하면 하루 3회 AI 문제를 만들 수 있습니다. 문제 풀이는 로그인 없이 이용할 수 있습니다.",
-    );
+  if (!current.user) throw new HttpError(401, "이 계정 관리 기능은 로그인이 필요합니다.");
   return { ...current, user: current.user };
 }

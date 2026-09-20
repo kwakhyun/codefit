@@ -34,7 +34,7 @@
   background: transparent;
 }
 .feature-stage {
-  /* Flex measures every slide after resize, keeping the tallest one reserved. */
+  /* All slides participate in layout so switching does not resize the banner. */
   display: flex;
   align-items: flex-start;
   overflow: hidden;
@@ -44,7 +44,7 @@
   position: relative;
   flex: 0 0 100%;
   min-width: 0;
-  visibility: hidden;
+  opacity: 0;
   pointer-events: none;
   padding: 22px 24px;
   display: grid;
@@ -55,7 +55,7 @@
 }
 
 .feature-slide.is-active {
-  visibility: visible;
+  opacity: 1;
   pointer-events: auto;
   animation: feature-enter 1s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -685,10 +685,10 @@
 }
 @keyframes feature-enter {
   from {
-    transform: translateX(var(--feature-enter-x, 40px));
+    opacity: 0.45;
   }
   to {
-    transform: translateX(0);
+    opacity: 1;
   }
 }
 @media (max-width: 1000px) {

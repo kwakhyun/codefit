@@ -1,3 +1,4 @@
+import { waitForUiTransitions } from "./ui-helpers";
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { learnerTypes, preferenceForType } from "../src/lib/learner-types";
@@ -81,6 +82,7 @@ test("all illustrated types change home sections and menus while keeping every d
     await expect(change(page)).toContainText(item.name);
     await expect(picker).toHaveCount(0);
   }
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
@@ -132,6 +134,7 @@ test("legacy preferences migrate and the shared dialog changes type away from ho
   ).toHaveAttribute("href", "/project-check");
   await change(page).click();
   await page.setViewportSize({ width: 390, height: 844 });
+  await waitForUiTransitions(page);
   expect((await new AxeBuilder({ page }).include(".persona-modal").analyze()).violations).toEqual(
     [],
   );
@@ -198,7 +201,7 @@ test("type switching preserves editor code and the browser choice survives login
     await page.reload();
     await expect(change(page)).toContainText("배포 전 점검");
     await expect(project).not.toContainText(fixtureCheck.analysis.title);
-    await expect(project).toContainText("실제 분석은 로그인 필요");
+    await expect(project).toContainText("로그인 없이 실제 분석 2회");
   } finally {
     account.store.db.close();
   }

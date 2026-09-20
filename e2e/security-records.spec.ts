@@ -66,8 +66,12 @@ test("security notes survive practice navigation and reload, export without a sc
   await page
     .locator(".security-exercises")
     .screenshot({ path: `artifacts/security-records-${info.project.name}.png` });
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "임시 기록 지우기" }).click();
+  await page
+    .getByRole("dialog", { name: "기록 삭제 확인" })
+    .getByRole("button", { name: "삭제하기", exact: true })
+    .click();
+  await expect(page.locator(".security-exercises textarea").first()).toHaveValue("");
   await page.reload();
   await expect(page.locator(".security-exercises textarea").first()).toHaveValue("");
   await expect(page.getByRole("region", { name: "보안 점검 결과" })).toHaveCount(0);

@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 import { readHandoffDraft, writeHandoffDraft } from "@/lib/handoff/draft";
 import type { ConfirmationAction } from "@/components/workspace/types";
 import type { Dispatch, SetStateAction } from "react";
@@ -61,10 +62,10 @@ export function WorkspaceConfirmation({
           </p>
         )}
         <div className="modal-buttons">
-          <button className="secondary-button" onClick={() => setConfirm(null)}>
+          <Button className="secondary-button" onClick={() => setConfirm(null)}>
             계속 풀기
-          </button>
-          <button
+          </Button>
+          <Button
             className="primary-button"
             onClick={() => {
               if (confirm === "solution") void reveal("solution");
@@ -91,7 +92,7 @@ export function WorkspaceConfirmation({
               : confirm === "restore"
                 ? "제출본 불러오기"
                 : "시작 코드로 초기화"}
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

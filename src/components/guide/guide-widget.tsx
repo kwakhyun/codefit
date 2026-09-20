@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useRef, useState, useSyncExternalStore } from "react";
@@ -24,8 +25,8 @@ export function GuideWidget() {
   const practicing =
     pathname.startsWith("/problems/") ||
     pathname.startsWith("/learn/") ||
-    pathname === "/project-check";
-  const showInvitation = ["/", "/learn", "/handoff"].includes(pathname);
+    ["/project-check", "/security-check", "/learn", "/handoff"].includes(pathname);
+  const showInvitation = pathname === "/";
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -53,7 +54,7 @@ export function GuideWidget() {
       >
         {showInvitation && !dismissed && !storedDismissal && !open && !compactMode && (
           <div className="guide-intro-hint">
-            <button
+            <Button
               onClick={() => {
                 dismissIntro();
                 setLoaded(true);
@@ -63,17 +64,17 @@ export function GuideWidget() {
               처음이라면?
               <br />
               <strong>시작할 곳을 찾아드려요</strong>
-            </button>
-            <button
+            </Button>
+            <Button
               className="guide-dismiss"
               aria-label="첫 방문 안내 숨기기"
               onClick={dismissIntro}
             >
               <X size={14} />
-            </button>
+            </Button>
           </div>
         )}
-        <button
+        <Button
           ref={launcher}
           className="guide-launch-button"
           aria-label="핏 시작 가이드 열기"
@@ -88,9 +89,9 @@ export function GuideWidget() {
         >
           <FitMascot size={compactMode ? 32 : 64} />
           {!compactMode && <span>시작 가이드</span>}
-        </button>
+        </Button>
         {!compactMode && !open && (
-          <button
+          <Button
             className="guide-collapse"
             aria-label="시작 가이드 작게 보기"
             onClick={() => {
@@ -100,7 +101,7 @@ export function GuideWidget() {
             }}
           >
             <Minimize2 size={15} />
-          </button>
+          </Button>
         )}
       </aside>
       {loaded && <GuidePanel open={open} onClose={close} />}

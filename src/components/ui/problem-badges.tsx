@@ -1,4 +1,5 @@
 "use client";
+import { Badge } from "@/components/ui/primitives";
 
 import { KIND_LABELS, type DomainId } from "@/lib/catalog";
 import type { PublicProblem } from "@/lib/problem";
@@ -32,16 +33,16 @@ export function DomainIcon({ domain, size = 17 }: { domain: DomainId; size?: num
 }
 export function DifficultyBadge({ level }: { level: PublicProblem["difficulty"] }) {
   return (
-    <span className={`badge level-${level}`}>
+    <Badge className={`badge level-${level}`}>
       <span className="level-bars" aria-hidden="true">
         <i />
         <i />
         <i />
       </span>
       {level}
-    </span>
+    </Badge>
   );
 }
 export function KindBadge({ kind }: { kind: PublicProblem["kind"] }) {
-  return <span className={`kind-label kind-${kind}`}>{KIND_LABELS[kind]}</span>;
+  return <Badge className={`kind-label kind-${kind}`}>{KIND_LABELS[kind]}</Badge>;
 }

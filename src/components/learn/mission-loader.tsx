@@ -1,6 +1,8 @@
 "use client";
+import { LoadingState } from "@/components/ui/loading-state";
+import { Status, Button } from "@/components/ui/primitives";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { api, errorMessage } from "@/lib/client-api";
 import type { Mission } from "@/lib/learn/catalog";
 import type { LearningSession } from "@/lib/learn/session";
@@ -27,14 +29,14 @@ export function MissionLoader({ mission }: { mission: Mission }) {
         <Link href="/learn">← 서비스 원리 배우기로</Link>
         <h1>{mission.title}</h1>
         {error ? (
-          <p role="alert">
+          <Status role="alert">
             {error}{" "}
-            <button className="secondary-button" onClick={() => setRetry((n) => n + 1)}>
+            <Button className="secondary-button" onClick={() => setRetry((n) => n + 1)}>
               다시 불러오기
-            </button>
-          </p>
+            </Button>
+          </Status>
         ) : (
-          <p role="status">나의 학습 기록을 불러오는 중…</p>
+          <LoadingState>나의 학습 기록을 불러오는 중…</LoadingState>
         )}
       </main>
     );

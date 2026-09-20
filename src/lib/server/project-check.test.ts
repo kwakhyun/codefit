@@ -55,26 +55,26 @@ it("persists private questions and assessment, replaying identical requests with
       signal(),
     ),
   ).rejects.toThrow();
-  expect((await store.queries.projectChecks.usage("user:a")).analysis.remaining).toBe(1);
+  expect((await store.queries.projectChecks.usage("user:a")).analysis.remaining).toBe(4);
   await store.queries.projectChecks.remove("user:b", i.requestId);
   expect(await store.queries.projectChecks.get("user:a", i.requestId)).not.toBeNull();
   await store.queries.projectChecks.remove("user:a", i.requestId);
   expect(await store.queries.projectChecks.list("user:a")).toEqual([]);
   expect(await store.queries.projectChecks.review("user:a", i.requestId)).toBeUndefined();
 });
-it("limits concurrent distinct analyses to two, and keeps failed paid calls counted", async () => {
+it("limits concurrent distinct member analyses to five, and keeps failed paid calls counted", async () => {
   const service = new ProjectCheckService(store, ai);
   const results = await Promise.allSettled(
     Array.from({ length: 5 }, () => service.create("user:a", "network", input(), signal())),
   );
-  expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(2);
-  expect(ai.analyze).toHaveBeenCalledTimes(2);
+  expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(5);
+  expect(ai.analyze).toHaveBeenCalledTimes(5);
   expect((await store.queries.projectChecks.usage("user:a")).analysis.remaining).toBe(0);
   ai.analyze.mockRejectedValue(new Error("provider unavailable"));
   await expect(service.create("user:b", "network", input(), signal())).rejects.toThrow(
     "provider unavailable",
   );
-  expect((await store.queries.projectChecks.usage("user:b")).analysis.remaining).toBe(1);
+  expect((await store.queries.projectChecks.usage("user:b")).analysis.remaining).toBe(4);
 });
 it("does not charge AI quota when a page cannot be read or has insufficient evidence", async () => {
   const service = new ProjectCheckService(store, ai);
@@ -84,7 +84,7 @@ it("does not charge AI quota when a page cannot be read or has insufficient evid
   await expect(service.create("user:a", "network", input(), signal())).rejects.toMatchObject({
     status: 422,
   });
-  expect((await store.queries.projectChecks.usage("user:a")).analysis.remaining).toBe(2);
+  expect((await store.queries.projectChecks.usage("user:a")).analysis.remaining).toBe(5);
   expect(ai.analyze).not.toHaveBeenCalled();
 });
 it("fences stale completion and deletion during review with conditional SQL", async () => {
@@ -158,7 +158,7 @@ it("preserves original answers while creating replayable same-question revisions
   expect(revised.revisionNumber).toBe(1);
   expect(revised.review).toBeUndefined();
   expect(ai.analyze).toHaveBeenCalledTimes(1);
-  expect((await store.queries.projectChecks.usage("user:a")).analysis.remaining).toBe(1);
+  expect((await store.queries.projectChecks.usage("user:a")).analysis.remaining).toBe(4);
   await expect(service.revise("user:b", i.requestId, randomUUID())).rejects.toMatchObject({
     status: 404,
   });
@@ -172,7 +172,7 @@ it("preserves original answers while creating replayable same-question revisions
     answers,
   );
   expect(ai.assess).toHaveBeenCalledTimes(2);
-  expect((await store.queries.projectChecks.usage("user:a")).review.remaining).toBe(2);
+  expect((await store.queries.projectChecks.usage("user:a")).review.remaining).toBe(10);
 });
 it("saves owner-scoped project evidence with optimistic concurrency and preserves training", async () => {
   const service = new ProjectCheckService(store, ai);
@@ -267,4 +267,36 @@ it("cannot finish copying a revision after its source was deleted", async () => 
   await expect(
     store.queries.projectChecks.complete(claim.lease, { ...original!, id }, i.requestId),
   ).rejects.toThrow();
+});
+
+it("allows a guest to complete a real project flow within two independent quotas", async () => {
+  const service = new ProjectCheckService(store, ai),
+    owner = "visitor:guest";
+  for (let index = 0; index < 2; index++) {
+    const i = input();
+    await service.create(owner, "guest-network", i, signal());
+    const answers = {
+      id: i.requestId,
+      answers: Array(5).fill("서버의 저장 결과를 직접 확인했습니다."),
+    };
+    await service.review(owner, "guest-network", answers, signal());
+    await service.review(owner, "guest-network", answers, signal());
+    await expect(
+      service.review("visitor:other", "guest-network", answers, signal()),
+    ).rejects.toMatchObject({ status: 404 });
+  }
+  expect(ai.analyze).toHaveBeenCalledTimes(2);
+  expect(ai.assess).toHaveBeenCalledTimes(2);
+  expect(await store.queries.projectChecks.usage(owner)).toMatchObject({
+    analysis: { remaining: 0 },
+    review: { remaining: 0 },
+  });
+  await expect(service.create(owner, "guest-network", input(), signal())).rejects.toMatchObject({
+    status: 429,
+  });
+  await expect(
+    service.create("visitor:new-cookie", "guest-network", input(), signal()),
+  ).rejects.toMatchObject({ status: 429 });
+  expect(await store.queries.projectChecks.list("visitor:other")).toEqual([]);
+  expect((await store.queries.projectChecks.usage("user:member")).analysis.remaining).toBe(5);
 });

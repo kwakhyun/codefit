@@ -1,11 +1,12 @@
 "use client";
+import { Card, Status } from "@/components/ui/primitives";
 import { SectionArtwork, type ArtworkTopic } from "@/components/experience/section-artwork";
 import { LearningPreferencePicker } from "./learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { useRef } from "react";
 import { problemUrl } from "@/lib/library-state";
 import type { ProblemSummary, ProgressSummary } from "@/lib/problem";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { FeatureBanner } from "./feature-banner";
 import { LearningResume } from "@/components/learn/learning-resume";
 import { ProjectResume } from "./project-resume";
@@ -66,7 +67,7 @@ export function TrainingHero({
   const heading = useRef<HTMLHeadingElement>(null);
   const codeResume =
     resume && recommended ? (
-      <section className="resume-card illustrated-resume" aria-label="코딩 문제 이어하기">
+      <Card as="section" className="resume-card illustrated-resume" aria-label="코딩 문제 이어하기">
         <SectionArtwork topic="code" />
         <div>
           <span className="eyebrow">작성 중인 코드</span>
@@ -76,7 +77,7 @@ export function TrainingHero({
         <Link className="primary-button" href={problemUrl(recommended.id, libraryHref)}>
           이어서 훈련하기 →
         </Link>
-      </section>
+      </Card>
     ) : null;
   return (
     <div className="training-welcome" data-learner-type={type}>
@@ -88,21 +89,43 @@ export function TrainingHero({
         <p>{profile.description}</p>
       </div>
       {!hasChosen && (
+        <Card as="section" className="first-action" aria-label="처음 방문한 분의 시작점">
+          <div>
+            <span className="eyebrow">여기서 시작하세요</span>
+            <h2>만든 서비스가 있다면 링크부터 넣어보세요</h2>
+            <p>AI가 실제 공개 화면을 읽고, 내가 놓친 설계와 확인할 일을 질문합니다.</p>
+            <small>로그인 없이 분석 2회 체험 · 답변까지 약 10분</small>
+          </div>
+          <div>
+            <Link className="primary-button" href="/project-check">
+              내 서비스 무료로 점검하기 →
+            </Link>
+            <p>
+              <Link href="/learn/where-data-lives">아직 서비스가 없다면? 5분 실습부터 →</Link>
+            </p>
+          </div>
+        </Card>
+      )}
+      {!hasChosen && (
         <LearningPreferencePicker
           onSelect={() => requestAnimationFrame(() => heading.current?.focus())}
         />
       )}
       {hasChosen && storageError && (
-        <p role="status">
+        <Status role="status">
           브라우저에 저장할 수 없어 현재 화면에서만 적용됩니다. 재방문할 때 다시 선택해 주세요.
-        </p>
+        </Status>
       )}
       <FeatureBanner onGenerate={onGenerate} />
       <div className="persona-home-primary" aria-label={`${profile.name} 우선 콘텐츠`}>
         {type === "starter" && <LearningResume key={scope} scope={scope} recommendFirst />}
         {type === "coder" &&
           (codeResume || (
-            <section className="resume-card illustrated-resume" aria-label="추천 코드 훈련">
+            <Card
+              as="section"
+              className="resume-card illustrated-resume"
+              aria-label="추천 코드 훈련"
+            >
               <SectionArtwork topic="code" />
               <div>
                 <span className="eyebrow">첫 코드 이해 훈련</span>
@@ -112,10 +135,10 @@ export function TrainingHero({
               <Link className="primary-button" href="/problems/handoff-cart?from=%2Fhandoff">
                 코드 훈련 시작 →
               </Link>
-            </section>
+            </Card>
           ))}
         {type === "builder" && (
-          <section className="persona-security-start illustrated-panel">
+          <Card as="section" className="persona-security-start illustrated-panel">
             <SectionArtwork topic="security" />
             <span className="eyebrow">공개 설정부터 확인하기</span>
             <h2>배포 전 확인할 항목을 정리하세요</h2>
@@ -126,7 +149,7 @@ export function TrainingHero({
             <Link className="primary-button" href="/security-check">
               보안 설정과 확인 기록 열기 →
             </Link>
-          </section>
+          </Card>
         )}
         {(type === "maker" || type === "builder") && <ProjectResume key={scope} scope={scope} />}
       </div>

@@ -1,3 +1,4 @@
+import { FieldLabel, Input, Textarea, Button } from "@/components/ui/primitives";
 import { SimulationView } from "./simulation-view";
 import { VoiceInput } from "@/components/ui/voice-input";
 import type { Mission } from "@/lib/learn/catalog";
@@ -27,8 +28,8 @@ export function MissionPrediction({
         <fieldset disabled={record.locked}>
           <legend>{mission.prediction}</legend>
           {mission.choices.map((choice, i) => (
-            <label className="learn-option" key={choice}>
-              <input
+            <FieldLabel className="learn-option" key={choice}>
+              <Input
                 id={`learn-choice-${i}`}
                 name="prediction"
                 type="radio"
@@ -36,13 +37,13 @@ export function MissionPrediction({
                 onChange={() => update((x) => ({ ...x, prediction: i }))}
               />
               <span>{choice}</span>
-            </label>
+            </FieldLabel>
           ))}
         </fieldset>
-        <label htmlFor="learn-reason">
+        <FieldLabel htmlFor="learn-reason">
           왜 그렇게 생각했나요? <span className="optional-label">선택</span>
-        </label>
-        <textarea
+        </FieldLabel>
+        <Textarea
           id="learn-reason"
           value={record.reason}
           readOnly={record.locked}
@@ -61,9 +62,9 @@ export function MissionPrediction({
             }))
           }
         />
-        <button className="primary-button" onClick={onContinue}>
+        <Button className="primary-button" onClick={onContinue}>
           {record.locked ? "내 첫 예상으로 다시 살펴보기" : "예상 남기고 직접 확인 →"}
-        </button>
+        </Button>
       </div>
     </div>
   );

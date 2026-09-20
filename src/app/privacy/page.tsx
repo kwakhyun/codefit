@@ -1,3 +1,4 @@
+import { Anchor } from "@/components/ui/primitives";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { AccountShell } from "@/components/account/account-shell";
 export const metadata = { title: "개인정보 안내 | CODE:FIT" };
@@ -8,13 +9,13 @@ export default function PrivacyPage() {
         <VisualIntro topic="security" className="compact-visual-intro">
           <span className="eyebrow">PRIVACY</span>
           <h1>연습 기록과 계정 정보</h1>
-          <p>적용일: 2026년 9월 20일</p>
+          <p>적용일: 2026년 9월 21일</p>
         </VisualIntro>
         <nav className="section-jump-links" aria-label="개인정보 안내 바로가기">
-          <a href="#privacy-guest">게스트 기록</a>
-          <a href="#privacy-ai">AI 전송</a>
-          <a href="#privacy-project">프로젝트 점검</a>
-          <a href="#privacy-security">보안 점검</a>
+          <Anchor href="#privacy-guest">게스트 기록</Anchor>
+          <Anchor href="#privacy-ai">AI 전송</Anchor>
+          <Anchor href="#privacy-project">프로젝트 점검</Anchor>
+          <Anchor href="#privacy-security">보안 점검</Anchor>
         </nav>
         <h2 id="privacy-guest">로그인 없이 연습할 때</h2>
         <p>
@@ -87,6 +88,13 @@ export default function PrivacyPage() {
           사용자가 저장 버튼을 누를 때 내려받으며 공개 점검 결과와 세 가지 수동 확인 메모를
           포함합니다. 요청 한도 관리를 위해 세션, 해시한 접속망과 대상 호스트 식별자를 사용합니다.
         </p>
+        <p>
+          소유권 확인 후 CORS 테스트는 계정과 서비스 주소에 연결된 서명 파일을 확인하고, 입력한
+          주소에 세 가지 조건의 GET 요청을 보냅니다. 로그인 쿠키나 인증 토큰은 대상에 보내지 않으며
+          응답 본문은 보관하지 않습니다. 비교 결과는 현재 화면에만 남고 파일로 저장할 수 있습니다.
+          가져온 ZAP 보고서는 브라우저 안에서 처리하며 서버나 AI에 보내지 않습니다. 가져오기 결과도
+          페이지를 떠나면 사라집니다.
+        </p>
         <h2>마이크로 답변할 때</h2>
         <p>
           음성 입력 버튼을 눌렀을 때만 브라우저에 마이크 권한을 요청합니다. 음성 인식은 브라우저가
@@ -100,9 +108,9 @@ export default function PrivacyPage() {
           프로필에서 이름과 소개를 수정하고 환경 설정에서 코딩, 입문 실습과 프로젝트 학습 기록을
           함께 내려받거나 가져올 수 있습니다. 가져오기는 기존 기록을 덮어쓰지 않습니다. 입문 실습의
           미션별 내려받기도 지원합니다. 계정 정보와 기록 삭제 등 문의는{" "}
-          <a href="https://github.com/kwakhyun" target="_blank" rel="noreferrer">
+          <Anchor href="https://github.com/kwakhyun" target="_blank" rel="noreferrer">
             운영자 GitHub 프로필
-          </a>
+          </Anchor>
           의 연락처를 이용해 주세요. 공개 이슈에 이메일이나 비공개 코드를 게시하지 마세요.
         </p>
       </article>

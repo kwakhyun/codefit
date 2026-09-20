@@ -94,13 +94,13 @@ export function queryContract(getStore: () => ProblemStore & { addProblem(p: Pro
       "private handoff draft",
     );
   });
-  it("reserves three generations concurrently, refunds failures and isolates accounts", async () => {
+  it("reserves six member generations concurrently, refunds failures and isolates accounts", async () => {
     const store = getStore(),
       owner = `user:${randomUUID()}`,
       now = Date.now();
     const ids = await Promise.all(Array.from({ length: 8 }, () => claim(store, owner)));
     const claims = await Promise.all(ids.map((id) => store.reserveGeneration(id, now)));
-    expect(claims.filter(Boolean)).toHaveLength(3);
+    expect(claims.filter(Boolean)).toHaveLength(6);
     expect((await store.queries.usage(owner, now)).remaining.generate).toBe(0);
     const first = ids[claims.indexOf(true)];
     expect(await store.reserveGeneration(first, now)).toBe(true);
@@ -113,13 +113,13 @@ export function queryContract(getStore: () => ProblemStore & { addProblem(p: Pro
     expect((await store.queries.usage(owner, now)).remaining.generate).toBe(1);
     expect(await store.reserveGeneration(await claim(store, owner), now)).toBe(true);
     expect(await store.reserveGeneration(await claim(store), now)).toBe(true);
-    expect((await store.queries.usage(owner, Date.now() + 150001)).remaining.generate).toBe(3);
+    expect((await store.queries.usage(owner, Date.now() + 150001)).remaining.generate).toBe(6);
   }, 30000);
   it("persists completed usage and resets at Korean midnight", async () => {
     const store = getStore(),
       owner = `user:${randomUUID()}`,
       now = Date.parse("2026-09-13T14:59:59Z");
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 6; i++) {
       const id = await claim(store, owner);
       expect(await store.reserveGeneration(id, now)).toBe(true);
       await store.completeGeneration(
@@ -135,7 +135,7 @@ export function queryContract(getStore: () => ProblemStore & { addProblem(p: Pro
     expect(usage.remaining.generate).toBe(0);
     expect(usage.resetsAt.generate).toBe("2026-09-13T15:00:00.000Z");
     expect(await store.reserveGeneration(await claim(store, owner), now)).toBe(false);
-    expect((await store.queries.usage(owner, now + 1000)).remaining.generate).toBe(3);
+    expect((await store.queries.usage(owner, now + 1000)).remaining.generate).toBe(6);
     expect(await store.reserveGeneration(await claim(store, owner), now + 1000)).toBe(true);
   }, 30000);
   it("filters and pages summaries on the server, with stable order and no answer/draft disclosure", async () => {

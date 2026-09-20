@@ -52,7 +52,7 @@ it("uses separate guide allowances and shared service caps before calling AI", a
   const response = await POST(req());
   expect(response.status).toBe(200);
   const entries = consumeLimits.mock.calls[0][0];
-  expect(entries).toContainEqual({ key: "guide:owner:one", max: 12, windowMs: 86400000 });
+  expect(entries).toContainEqual({ key: "guide:owner:one", max: 2, windowMs: 86400000 });
   expect(
     entries.some(
       (e: { key: string }) => e.key.includes("ai:review:") || e.key.includes("ai:generate:"),

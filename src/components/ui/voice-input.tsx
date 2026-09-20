@@ -1,4 +1,5 @@
 "use client";
+import { ToggleButton, Status } from "@/components/ui/primitives";
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Mic, Square } from "lucide-react";
 
@@ -152,7 +153,7 @@ function ActiveVoiceInput({
   }
   return (
     <div className="voice-input">
-      <button
+      <ToggleButton
         type="button"
         className="secondary-button"
         disabled={!supported}
@@ -162,13 +163,13 @@ function ActiveVoiceInput({
       >
         {listening ? <Square size={15} /> : <Mic size={16} />}
         {listening ? "음성 입력 마치기" : "음성으로 입력"}
-      </button>
+      </ToggleButton>
       <small>
         {supported
           ? "음성은 브라우저의 음성 인식 서비스에서 처리될 수 있습니다."
           : "이 브라우저는 음성 입력을 지원하지 않습니다. 직접 입력해 주세요."}
       </small>
-      <p role="status">{message}</p>
+      <Status role="status">{message}</Status>
     </div>
   );
 }

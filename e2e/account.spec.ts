@@ -5,11 +5,11 @@ import { testAccount } from "../scripts/lib/test-account";
 import { resolve } from "node:path";
 import { editor, setCode } from "./editor-helpers";
 const base = E2E_BASE_URL;
-test("guests can practice, see login guidance, and cannot generate or read profiles", async ({
+test("guests can practice, see login guidance, and can generate but cannot read member profiles", async ({
   page,
   request,
 }) => {
-  expect((await request.post("/api/generate", { data: {} })).status()).toBe(401);
+  expect((await request.post("/api/generate", { data: {} })).status()).toBe(400);
   expect((await request.get("/api/profile")).status()).toBe(401);
   expect(
     (
@@ -19,10 +19,10 @@ test("guests can practice, see login guidance, and cannot generate or read profi
     ).status(),
   ).toBe(503);
   await page.goto("/?generate=1");
-  await expect(page.getByRole("heading", { name: /내게 필요한 문제를 만드세요/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /지금 필요한 문제를 만드세요/ })).toBeVisible();
   await page
     .getByRole("dialog")
-    .getByRole("link", { name: "간편 로그인하고 AI 기능 사용하기" })
+    .getByRole("link", { name: "로그인하고 하루 6회 이용하기" })
     .click();
   await expect(page.getByRole("heading", { name: /연습 기록을 이어가세요/ })).toBeVisible();
   await expect(
@@ -71,7 +71,7 @@ test("profile, account ownership, generation quota and logout work together", as
     await page.setViewportSize({ width: 1280, height: 900 });
     const prior = await context.request.get("/api/workspace");
     expect((await prior.json()).scope).toBe(fixture.owner);
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 6; i++) {
       const job = fixture.store.startJob(fixture.owner, crypto.randomUUID(), "generate", "fixture");
       if (job.state === "new") fixture.store.reserveGeneration(job.lease);
     }
@@ -88,7 +88,7 @@ test("profile, account ownership, generation quota and logout work together", as
     expect(generation.status()).toBe(429);
     expect(generation.headers()["retry-after"]).toBeTruthy();
     await page.goto("/?generate=1");
-    await expect(page.getByText("오늘 0 / 3회 남음")).toBeVisible();
+    await expect(page.getByText("오늘 0 / 6회 남음")).toBeVisible();
     await expect(page.getByText(/오늘의 문제 생성 횟수를 모두 사용했습니다/)).toBeVisible();
     await page.goto("/profile");
     await page.getByRole("button", { name: "로그아웃", exact: true }).click();
@@ -99,7 +99,7 @@ test("profile, account ownership, generation quota and logout work together", as
       data: { code: "private former account draft", baseRevision: 0 },
     });
     expect(staleSave.status()).toBe(409);
-    expect((await context.request.post("/api/generate", { data: {} })).status()).toBe(401);
+    expect((await context.request.post("/api/generate", { data: {} })).status()).toBe(400);
   } finally {
     fixture.store.db.close();
   }

@@ -1,4 +1,5 @@
 "use client";
+import { Disclosure, DisclosureSummary, Button } from "@/components/ui/primitives";
 import type { TrainingModuleView } from "@/lib/project-learning/types";
 const confidence = { unsure: "아직 헷갈림", likely: "대체로 이해", certain: "확신함" };
 export function TrainingResult({
@@ -85,10 +86,10 @@ export function TrainingResult({
         차이를 학습 효과로 해석하기는 어렵습니다. AI 설명 점수와는 별도로 기록합니다.
       </p>
       {(["baseline", "transfer"] as const).map((phase) => (
-        <details key={phase} className="training-explanation">
-          <summary>
+        <Disclosure key={phase} className="training-explanation">
+          <DisclosureSummary>
             {phase === "baseline" ? "시작 전 질문" : "다른 상황의 질문"} 답변과 해설
-          </summary>
+          </DisclosureSummary>
           {r.keys[phase].map((key, i) => (
             <article key={i}>
               <h5>
@@ -102,16 +103,16 @@ export function TrainingResult({
               <p>{key.explanation}</p>
             </article>
           ))}
-        </details>
+        </Disclosure>
       ))}
       <div className="training-actions">
-        <button className="secondary-button" onClick={download}>
+        <Button className="secondary-button" onClick={download}>
           내 확인 기록 내려받기
-        </button>
+        </Button>
         {hasNext && (
-          <button className="primary-button" onClick={onNext}>
+          <Button className="primary-button" onClick={onNext}>
             다음 영역 연습하기 →
-          </button>
+          </Button>
         )}
       </div>
     </div>

@@ -33,7 +33,7 @@ const destinations = {
     href: "/project-check",
     label: "내 프로젝트 점검",
     description:
-      "내 서비스로 질문받고 설계 설명을 보완하세요. 예시는 로그인 없이, 실제 분석은 로그인 후 24시간에 2개까지 가능합니다.",
+      "내 서비스로 질문받고 설계 설명을 보완하세요. 로그인 없이 분석 2회, 로그인하면 24시간에 5회 이용할 수 있습니다.",
   },
   security: {
     href: "/security-check",

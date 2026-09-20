@@ -5,14 +5,14 @@ import { generateProblem } from "@/lib/server/ai";
 import { getStore } from "@/lib/server/database";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
 import { aiLimit } from "@/lib/server/problem-access";
-import { requireUser } from "@/lib/server/session";
-import { generationDay } from "@/lib/server/generation-quota";
+import { session } from "@/lib/server/session";
+import { generationDay, generationAllowance } from "@/lib/server/generation-quota";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 export async function POST(request: Request) {
   let lease: JobLease | undefined;
   try {
-    const { owner } = await requireUser(request);
+    const { owner } = await session(request);
     const input = await readBody(request, generationSchema, 4000);
     const store = await getStore();
     const job = await store.startJob(
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     if (!(await store.reserveGeneration(lease))) {
       throw new HttpError(
         429,
-        "오늘의 문제 생성 3회를 모두 사용했습니다. 한국 시간 자정에 다시 3회가 제공됩니다.",
+        `오늘의 문제 생성 ${generationAllowance(owner)}회를 모두 사용했습니다. 한국 시간 자정에 초기화됩니다. 로그인하면 더 많이 사용할 수 있습니다.`,
         Math.ceil((generationDay().resetsAt - Date.now()) / 1000),
       );
     }

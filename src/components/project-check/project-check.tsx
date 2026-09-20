@@ -1,4 +1,19 @@
 "use client";
+import { useFadeTransition } from "@/components/ui/use-fade-transition";
+import { useConfirmation } from "@/components/ui/use-confirmation";
+import { LoadingState } from "@/components/ui/loading-state";
+import {
+  Status,
+  Card,
+  Button,
+  Disclosure,
+  DisclosureSummary,
+  ToggleButton,
+  FieldLabel,
+  Input,
+  Textarea,
+  Anchor,
+} from "@/components/ui/primitives";
 import { ProjectCaptures } from "./project-captures";
 import { ProjectFollowUp } from "./project-follow-up";
 
@@ -6,8 +21,8 @@ import { ProjectExample } from "./project-example";
 import { ProjectLearning } from "@/components/project-learning/project-learning";
 import { GuestLogin } from "@/components/account/guest-login";
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowRight, ExternalLink, Globe2, RefreshCw, ShieldCheck } from "lucide-react";
+import { AppLink as Link } from "@/components/ui/primitives";
+import { ArrowRight, ExternalLink, Globe2, RefreshCw } from "lucide-react";
 import { useProjectHistory, type UpdateOverview } from "@/hooks/use-project-history";
 import { useProjectDraft } from "@/hooks/use-project-draft";
 import { VoiceInput } from "@/components/ui/voice-input";
@@ -63,15 +78,11 @@ export function ProjectCheckApp() {
   }, [refresh]);
   return (
     <>
-      {checking && (
-        <p role="status" className="project-panel">
-          점검 기록 불러오는 중…
-        </p>
-      )}
+      {checking && <LoadingState>점검 기록 불러오는 중…</LoadingState>}
       {error && (
-        <div className="project-panel" role="alert">
+        <Card as="div" className="project-panel" role="alert">
           <p>{error}</p>
-          <button
+          <Button
             className="secondary-button"
             onClick={() => {
               setChecking(true);
@@ -79,33 +90,33 @@ export function ProjectCheckApp() {
             }}
           >
             다시 불러오기
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
       {data && (
         <div hidden={checking || !!error}>
-          {data.signedIn ? (
-            <MemberWorkspace
-              key={data.scope}
-              data={data}
-              onChange={(update) =>
-                setData((current) => (current?.scope === data.scope ? update(current) : current))
-              }
-            />
-          ) : (
-            <>
+          {!data.signedIn && (
+            <Card as="aside" className="guest-trial-notice">
+              <strong>로그인 없이 실제 프로젝트를 점검해 보세요</strong>
+              <p>
+                24시간에 분석 2회와 답변 평가 2회를 체험할 수 있습니다. 기록은 이 브라우저의 쿠키로
+                찾습니다. 로그인하면 분석 5회, 평가 12회를 사용할 수 있습니다.
+              </p>
+              <GuestLogin returnTo="/project-check" compact />
+            </Card>
+          )}
+          <MemberWorkspace
+            key={data.scope}
+            data={data}
+            onChange={(update) =>
+              setData((current) => (current?.scope === data.scope ? update(current) : current))
+            }
+          />
+          {!data.signedIn && (
+            <Disclosure className="project-example-disclosure">
+              <DisclosureSummary>입력 전에 질문과 피드백 예시 살펴보기</DisclosureSummary>
               <ProjectExample />
-              <section className="project-panel project-signin">
-                <ShieldCheck size={32} />
-                <h2>내 프로젝트로 질문을 받아보세요</h2>
-                <p>
-                  가입하면 24시간에 2개의 프로젝트를 분석할 수 있습니다. 질문과 평가 기록은 본인만
-                  볼 수 있습니다.
-                </p>
-                <GuestLogin returnTo="/project-check" />
-                <Link href="/learn">로그인 없이 서비스 원리 배우기 →</Link>
-              </section>
-            </>
+            </Disclosure>
           )}
         </div>
       )}
@@ -113,8 +124,10 @@ export function ProjectCheckApp() {
   );
 }
 function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: UpdateOverview }) {
+  const { confirm, confirmation } = useConfirmation();
   const history = useProjectHistory(data, onChange);
   const { selected, check, select } = history;
+  const fade = useFadeTransition<HTMLDivElement>(selected || "new");
   const alive = useRef(true);
   const activeMutation = useRef(false);
   useEffect(() => {
@@ -243,7 +256,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
     if (
       activeMutation.current ||
       !check ||
-      !window.confirm("이 프로젝트의 질문과 평가 기록을 삭제할까요?")
+      !(await confirm("이 프로젝트의 질문과 평가 기록을 삭제할까요?"))
     )
       return;
     activeMutation.current = true;
@@ -281,6 +294,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
   }
   return (
     <>
+      {confirmation}
       <div className="project-usage">
         <span>
           <strong>
@@ -299,32 +313,32 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
         {data.usage.review.resetsAt && (
           <span>{dateLabel(data.usage.review.resetsAt)} 평가 한도 초기화</span>
         )}
-        <button
+        <Button
           className="text-button"
           disabled={busy || recovering}
           onClick={() => reload().catch((e) => setError(errorMessage(e)))}
         >
           <RefreshCw size={15} /> 기록 새로고침
-        </button>
+        </Button>
       </div>
       {error && (
-        <p role="alert" className="project-error">
+        <Status role="alert" className="project-error">
           {error}
-        </p>
+        </Status>
       )}
       {notice && (
-        <p role="status" className="project-panel">
+        <Status role="status" className="project-panel">
           {notice}
-        </p>
+        </Status>
       )}
       {!data.aiReady && (
-        <p role="status" className="project-panel">
-          AI 연결을 준비 중입니다. 저장된 질문과 평가 기록은 계속 볼 수 있습니다.
-        </p>
+        <Status role="status" className="project-panel">
+          현재 새 AI 분석을 시작할 수 없습니다. 저장된 질문과 평가 기록은 계속 볼 수 있습니다.
+        </Status>
       )}
-      <div className="project-layout">
+      <div ref={fade} className="project-layout">
         <aside className="project-history" aria-label="내 프로젝트 점검 기록">
-          <button
+          <Button
             className="secondary-button"
             disabled={busy || recovering}
             onClick={() => {
@@ -335,18 +349,18 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
             }}
           >
             {analysisExhausted ? "+ 다음 프로젝트 초안 작성" : "+ 새 프로젝트 점검"}
-          </button>
-          <details ref={historyPanel} className="project-history-list" open={!selected}>
-            <summary>
+          </Button>
+          <Disclosure ref={historyPanel} className="project-history-list" open={!selected}>
+            <DisclosureSummary>
               {selected ? "다른 점검 기록 보기" : "점검 기록"}{" "}
               <small>({data.checks.length}개 불러옴)</small>
-            </summary>
+            </DisclosureSummary>
             <div className="project-history-items">
               {data.checks.length === 0 ? (
                 <p>첫 분석을 마치면 여기에 기록이 쌓입니다.</p>
               ) : (
                 data.checks.map((c) => (
-                  <button
+                  <ToggleButton
                     key={c.id}
                     aria-pressed={selected === c.id}
                     disabled={busy || recovering}
@@ -358,36 +372,36 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                       {c.review ? `평가 완료 ${c.review.assessment.score}점` : "질문에 답변하기"} ·{" "}
                       {dateLabel(c.createdAt)}
                     </small>
-                  </button>
+                  </ToggleButton>
                 ))
               )}
               {data.nextCursor && (
-                <button
+                <Button
                   className="secondary-button"
                   disabled={busy || recovering || history.paging}
                   onClick={() => void history.loadMore()}
                 >
                   {history.paging ? "이전 기록 불러오는 중…" : "이전 기록 더 보기"}
-                </button>
+                </Button>
               )}
-              {history.pageError && <p role="alert">{history.pageError}</p>}
+              {history.pageError && <Status role="alert">{history.pageError}</Status>}
             </div>
-          </details>
+          </Disclosure>
         </aside>
         <div className="project-main">
           {selected && !check ? (
-            <section className="project-panel">
+            <Card as="section" className="project-panel">
               {history.detailError ? (
                 <>
-                  <p role="alert">{history.detailError}</p>
-                  <button className="secondary-button" onClick={history.reloadDetail}>
+                  <Status role="alert">{history.detailError}</Status>
+                  <Button className="secondary-button" onClick={history.reloadDetail}>
                     기록 다시 불러오기
-                  </button>
+                  </Button>
                 </>
               ) : (
-                <p role="status">선택한 점검 기록 불러오는 중…</p>
+                <Status role="status">선택한 점검 기록 불러오는 중…</Status>
               )}
-            </section>
+            </Card>
           ) : !check ? (
             <form className="project-panel project-form" onSubmit={create}>
               <Globe2 size={28} />
@@ -396,7 +410,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 공개 페이지에서 확인한 기능을 바탕으로, 설계를 얼마나 이해하고 있는지 질문합니다.
               </p>
               {analysisExhausted && (
-                <section className="project-quota-notice" aria-label="새 분석 한도 안내">
+                <Card as="section" className="project-quota-notice" aria-label="새 분석 한도 안내">
                   <h3>지금은 새 프로젝트를 분석할 수 없습니다</h3>
                   <p>
                     새 분석 {data.usage.analysis.limit}회를 모두 사용했습니다. {analysisResetLabel}
@@ -411,7 +425,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   </p>
                   <div className="project-quota-actions">
                     {data.checks[0] && (
-                      <button
+                      <Button
                         type="button"
                         className="secondary-button"
                         onClick={() => select(data.checks[0].id)}
@@ -419,14 +433,14 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                         {data.usage.review.remaining > 0
                           ? "최근 점검에서 답변 이어가기"
                           : "최근 점검 기록 보기"}
-                      </button>
+                      </Button>
                     )}
                     <Link href="/learn">로그인 없이 서비스 원리 연습하기 →</Link>
                   </div>
-                </section>
+                </Card>
               )}
-              <label htmlFor="project-url">서비스 링크</label>
-              <input
+              <FieldLabel htmlFor="project-url">서비스 링크</FieldLabel>
+              <Input
                 id="project-url"
                 type="url"
                 required
@@ -443,10 +457,10 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 로그인 없이 열리는 HTTPS 주소를 입력하세요. 주소에 로그인 토큰이나 개인 정보가 들어
                 있으면 안 됩니다.
               </p>
-              <label htmlFor="project-description">
+              <FieldLabel htmlFor="project-description">
                 서비스와 구현 방식 설명 <span>(선택)</span>
-              </label>
-              <textarea
+              </FieldLabel>
+              <Textarea
                 id="project-description"
                 rows={4}
                 maxLength={2000}
@@ -476,32 +490,32 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 사용자 데이터는 입력하지 마세요.
               </p>
               <p className="project-help">
-                {description.length} / 2000자 · 주소와 설명은 이 계정의 현재 탭에 보관됩니다.
+                {description.length} / 2000자 · 주소와 설명은 현재 브라우저의 이 탭에 보관됩니다.
               </p>
               {storageError && (
-                <p role="alert">
+                <Status role="alert">
                   브라우저에 초안을 보관하지 못했습니다. 화면을 닫기 전에 작성한 내용을 복사해
                   주세요.
-                </p>
+                </Status>
               )}
               {requestId && !busy && (
                 <div className="project-recovery">
-                  <button
+                  <Button
                     type="button"
                     className="secondary-button"
                     disabled={recovering}
                     onClick={() => void recover()}
                   >
                     {recovering ? "저장된 결과 확인 중…" : "저장된 분석 결과 확인"}
-                  </button>
+                  </Button>
                   <p className="project-help">
                     앞선 요청의 결과만 조회합니다. AI를 다시 호출하거나 이용 횟수를 차감하지
                     않습니다.
                   </p>
                 </div>
               )}
-              <label className="project-consent">
-                <input
+              <FieldLabel className="project-consent">
+                <Input
                   type="checkbox"
                   checked={consent}
                   onChange={(e) => setConsent(e.target.checked)}
@@ -512,8 +526,8 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   내가 만든 서비스이며, 공개 페이지의 본문과 화면 이미지, 작성한 설명과 답변을
                   OpenAI에 전송해 분석하는 데 동의합니다.
                 </span>
-              </label>
-              <button
+              </FieldLabel>
+              <Button
                 className="primary-button"
                 type="submit"
                 disabled={busy || recovering || !data.aiReady || analysisExhausted}
@@ -525,7 +539,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                     ? "새 분석 한도를 모두 사용했습니다"
                     : "내 프로젝트 질문 받기"}
                 <ArrowRight size={17} />
-              </button>
+              </Button>
               {analysisExhausted && (
                 <p id="project-analysis-limit" className="project-help">
                   {analysisResetLabel} 입력한 초안은 유지됩니다. 위의 기존 점검 기록이나 서비스 원리
@@ -540,15 +554,15 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
             </form>
           ) : (
             <>
-              <section className="project-panel project-summary">
+              <Card as="section" className="project-panel project-summary">
                 <span className="eyebrow">내 프로젝트 이해도 점검</span>
                 <h2 ref={resultHeading} tabIndex={-1}>
                   {check.analysis.title}
                 </h2>
-                <a href={check.page.url} target="_blank" rel="noreferrer">
+                <Anchor href={check.page.url} target="_blank" rel="noreferrer">
                   {new URL(check.page.url).hostname}
                   <ExternalLink size={14} />
-                </a>
+                </Anchor>
                 <p>{check.analysis.summary}</p>
                 <p className="project-help">
                   {dateLabel(check.page.fetchedAt)} 수집.{" "}
@@ -561,10 +575,17 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   로그인 후 화면, 소스 코드와 실제 서버 구성은 확인하지 않았습니다.
                 </p>
                 <ProjectCaptures check={check} scope={data.scope} />
-                <button className="text-button" disabled={busy || recovering} onClick={remove}>
+                <Button
+                  className="text-button"
+                  disabled={busy || recovering}
+                  onClick={(event) => {
+                    event.currentTarget.focus();
+                    void remove();
+                  }}
+                >
                   이 점검 기록 삭제
-                </button>
-              </section>
+                </Button>
+              </Card>
               <ProjectQuestions
                 key={check.id}
                 check={check}
@@ -595,18 +616,18 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                       }));
                     }}
                   />
-                  <details
+                  <Disclosure
                     className="project-panel"
                     open={trainingOpen}
                     onToggle={(event) => setTrainingOpen(event.currentTarget.open)}
                   >
-                    <summary>기초 개념을 예제로 연습하기 (선택)</summary>
+                    <DisclosureSummary>기초 개념을 예제로 연습하기 (선택)</DisclosureSummary>
                     <ProjectLearning
                       key={`training:${check.id}`}
                       id={check.id}
                       scope={data.scope}
                     />
-                  </details>
+                  </Disclosure>
                 </>
               )}
             </>

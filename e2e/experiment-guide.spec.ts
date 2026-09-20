@@ -19,7 +19,8 @@ for (const mission of MISSIONS) {
         .locator(".experiment-spotlight-ring")
         .evaluate((el) => getComputedStyle(el, "::after").animationName),
     ).toBe("experiment-pulse");
-    for (let i = 0; i < steps.length; i++) {
+    const requiredSteps = steps.filter((step) => !step.optional);
+    for (let i = 0; i < requiredSteps.length; i++) {
       await expect(app.locator(".experiment-guide-bar")).toHaveAttribute(
         "data-guide-step",
         String(i),
@@ -40,8 +41,13 @@ for (const mission of MISSIONS) {
       await button.click();
     }
     await expect(page.getByTestId("experiment-spotlight")).toHaveCount(0);
-    await expect(app).toContainText("안내된 실험을 마쳤습니다");
-    await page.getByRole("button", { name: "수정 방법과 검사 살펴보기" }).click();
+    await expect(app).toContainText("필수 실험을 마쳤습니다");
+    await expect(page.getByRole("region", { name: "실험 결과 요약" })).toContainText(
+      mission.lesson,
+    );
+    await expect(page.getByRole("heading", { name: "이번 실험에서 배운 원리" })).toBeFocused();
+    await expect(page.getByText("그림으로 원리 살펴보기", { exact: true })).toHaveCount(0);
+    await page.getByRole("button", { name: "3. 수정과 검사로 이동" }).click();
     const good = mission.fixes.find((fix) =>
       verification(mission, fix.id).every((check) => check.passed),
     )!;
@@ -113,5 +119,5 @@ test("mobile spotlight is dismissible, follows history tabs, survives reload and
   await app.locator('[data-sim-action="case-standard"]').click();
   await expect(app.locator(".experiment-guide-bar")).toHaveAttribute("data-guide-step", "0");
   await app.locator('[data-sim-action="case-submit"]').click();
-  await expect(page.getByRole("button", { name: "수정 방법과 검사 살펴보기" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "3. 수정과 검사로 이동" })).toHaveCount(0);
 });

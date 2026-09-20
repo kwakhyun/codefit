@@ -1,3 +1,4 @@
+import { trackRequest } from "./request-progress";
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -23,26 +24,35 @@ export async function api<T>(
   },
 ): Promise<T> {
   const scope = options?.scope === null ? undefined : options?.scope || workspaceScope;
-  const response = await fetch(url, {
-    method: options?.method || "GET",
-    credentials: "same-origin",
-    cache: "no-store",
-    headers: {
-      ...(options?.body !== undefined && { "Content-Type": "application/json" }),
-      ...(scope && { "X-Codefit-Workspace": scope }),
-    },
-    body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
-    signal: options?.signal || AbortSignal.timeout(115_000),
-    keepalive: options?.keepalive,
-  });
-  let data;
+  const finish = trackRequest();
   try {
-    data = await response.json();
-  } catch {
-    throw new ApiError("서버 응답을 읽지 못했습니다. 연결 상태를 확인해 주세요.", response.status);
+    const response = await fetch(url, {
+      method: options?.method || "GET",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: {
+        ...(options?.body !== undefined && { "Content-Type": "application/json" }),
+        ...(scope && { "X-Codefit-Workspace": scope }),
+      },
+      body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
+      signal: options?.signal || AbortSignal.timeout(115_000),
+      keepalive: options?.keepalive,
+    });
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      throw new ApiError(
+        "서버 응답을 읽지 못했습니다. 연결 상태를 확인해 주세요.",
+        response.status,
+      );
+    }
+    if (!response.ok)
+      throw new ApiError(data.error || "요청에 실패했습니다.", response.status, data);
+    return data as T;
+  } finally {
+    finish();
   }
-  if (!response.ok) throw new ApiError(data.error || "요청에 실패했습니다.", response.status, data);
-  return data as T;
 }
 export function errorMessage(error: unknown) {
   if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError"))

@@ -79,8 +79,11 @@ test("older records remain reachable by pagination, reload and browser history",
       path: `artifacts/project-history-mobile-${info.project.name}.png`,
       fullPage: true,
     });
-    page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "이 점검 기록 삭제" }).click();
+    await page
+      .getByRole("dialog", { name: "기록 삭제 확인" })
+      .getByRole("button", { name: "삭제하기", exact: true })
+      .click();
     await expect(page.getByRole("heading", { name: "어떤 서비스를 만드셨나요?" })).toBeVisible();
     await page.goto(`/project-check?check=${older.id}`);
     await expect(page.locator("main [role=alert]")).toContainText(

@@ -1,4 +1,5 @@
 "use client";
+import { FieldLabel, Input, Button } from "@/components/ui/primitives";
 
 import type { RefObject } from "react";
 import type { Dispatch, SetStateAction } from "react";
@@ -6,7 +7,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { AiUsage } from "./ai-usage";
 import { Modal } from "@/components/ui/modal";
 import type { Workspace } from "@/lib/problem";
-import { ArrowDownToLine, LoaderCircle, ShieldCheck, Upload } from "lucide-react";
+import { ArrowDownToLine, LoaderCircle, Upload } from "lucide-react";
 interface SettingsDialogProps {
   settingsOpen: boolean;
   setSettingsOpen: Dispatch<SetStateAction<boolean>>;
@@ -34,13 +35,13 @@ export function SettingsDialog({
   settingsNotice,
 }: SettingsDialogProps) {
   return (
-    <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} title="WORKSPACE SETTINGS">
+    <Modal open={settingsOpen} onClose={() => setSettingsOpen(false)} title="환경 설정">
       <div className="settings-content">
         <span className="eyebrow">MAKE YOURSELF AT HOME</span>
         <h2>내게 맞는 연습 환경</h2>
-        <label className="font-setting">
+        <FieldLabel className="font-setting">
           코드 글자 크기 <strong>{fontSize}px</strong>
-          <input
+          <Input
             type="range"
             min={12}
             max={20}
@@ -51,25 +52,16 @@ export function SettingsDialog({
               setFontSize(size);
             }}
           />
-        </label>
+        </FieldLabel>
         <div className="font-preview mono" style={{ fontSize }}>
           const practice = () =&gt; progress++;
         </div>
         {settingsOpen && <AiUsage />}
-        <div className="settings-info">
-          <span>
-            <span className={`status-dot ${!data?.aiReady ? "waiting" : ""}`} />
-            AI 연결
-          </span>
-          <strong>{data?.aiReady ? "연결 설정 완료" : "현재 이용 불가"}</strong>
-        </div>
-        <div className="settings-info">
-          <span>
-            <ShieldCheck size={15} />
-            저장소
-          </span>
-          <strong>{data ? "서버 데이터베이스" : "연결 확인 중"}</strong>
-        </div>
+        {data && !data.aiReady && (
+          <p className="inline-warning">
+            현재 AI 기능을 이용할 수 없습니다. 기존 문제와 학습 기록은 계속 이용할 수 있습니다.
+          </p>
+        )}
         <p className="muted">
           생성한 문제는 누구나 볼 수 있습니다. 풀이와 진도는 로그인한 계정에 저장되며, 로그인 전
           기록은 현재 브라우저에서 이어서 볼 수 있습니다. 게스트 코딩 기록을 계정으로 옮기려면
@@ -81,11 +73,11 @@ export function SettingsDialog({
             원본이 포함됩니다.
           </p>
         )}
-        <button className="secondary-button full-width" onClick={exportData} disabled={exporting}>
+        <Button className="secondary-button full-width" onClick={exportData} disabled={exporting}>
           {exporting ? <LoaderCircle className="spin" size={16} /> : <ArrowDownToLine size={16} />}
           내 학습 기록 내보내기
-        </button>
-        <input
+        </Button>
+        <Input
           ref={importFile}
           type="file"
           accept="application/json,.json"
@@ -97,14 +89,14 @@ export function SettingsDialog({
             if (file) void importBackup(file);
           }}
         />
-        <button
+        <Button
           className="secondary-button full-width import-button"
           onClick={() => importFile.current?.click()}
           disabled={importing}
         >
           {importing ? <LoaderCircle className="spin" size={16} /> : <Upload size={16} />}백업
           가져오기
-        </button>
+        </Button>
         {settingsNotice && (
           <p
             className={settingsNotice.error ? "inline-error" : "draft-notice"}

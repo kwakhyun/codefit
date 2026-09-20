@@ -37,7 +37,7 @@ test("custom category select supports keyboard, dismissal and mobile; guest logi
   if (info.project.name === "chromium")
     await page.screenshot({ path: "docs/images/custom-select-mobile.png" });
   await page.getByRole("option", { name: "모든 개념", exact: true }).click();
-  await page.getByRole("link", { name: "간편 로그인하고 AI 기능 사용하기" }).click();
+  await page.getByRole("link", { name: "로그인하고 AI 이용 횟수 늘리기" }).click();
   await expect(page).toHaveURL(/login\?returnTo=%2Flearn/);
   for (const provider of ["google", "github"]) {
     const icon = page.locator(`.oauth-button .provider-${provider}`);

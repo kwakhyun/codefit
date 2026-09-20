@@ -1,5 +1,5 @@
 import { z } from "zod";
-export const PROJECT_LIMITS = { analysis: 2, review: 4, windowMs: 86_400_000 } as const;
+export const PROJECT_LIMITS = { windowMs: 86_400_000 } as const;
 export const AREAS = ["사용 흐름", "데이터 저장", "접근 권한", "오류 대응", "설계 선택"] as const;
 export const createCheckSchema = z
   .object({
@@ -67,11 +67,31 @@ export const assessmentIssueSchema = z
     explanation: z.string().min(1).max(350),
   })
   .strict();
+export const verificationPlanSchema = z
+  .object({
+    goal: z.string().min(1).max(180),
+    preparation: z.string().min(1).max(300),
+    steps: z
+      .array(
+        z
+          .object({
+            action: z.string().min(1).max(250),
+            expected: z.string().min(1).max(250),
+          })
+          .strict(),
+      )
+      .min(2)
+      .max(4),
+    completion: z.string().min(1).max(250),
+  })
+  .strict();
+type VerificationPlan = z.infer<typeof verificationPlanSchema>;
 export type Assessment = Omit<z.infer<typeof assessmentSchema>, "feedback"> & {
   score: number;
   rubricVersion?: "evidence-v1" | "evidence-v2" | "evidence-v3";
   feedback: (z.infer<typeof assessmentSchema>["feedback"][number] & {
     evidence?: AssessmentEvidence;
+    verificationPlan?: VerificationPlan;
     blockingIssue?: z.infer<typeof assessmentIssueSchema> | null;
   })[];
 };
@@ -121,7 +141,7 @@ export const practiceSchema = z
           .object({
             questionIndex: z.number().int().min(0).max(4),
             status: z.enum(["planned", "observed", "blocked"]),
-            result: z.string().trim().max(2000),
+            result: z.string().trim().max(4000),
           })
           .strict(),
       )

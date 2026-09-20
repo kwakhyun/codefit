@@ -1,0 +1,749 @@
+/* Shared terminal system. Semantic controls retain their native keyboard behavior. */
+:root {
+  --bg: #0c0c0e;
+  --surface: #141416;
+  --surface-raised: #1c1c1f;
+  --line: #343438;
+  --text: #ededee;
+  --muted: #aaaab2;
+  --action: #e4e4e8;
+  --action-soft: #ffffff;
+  --terminal-radius: 5px;
+  --motion-fast: 140ms;
+  --motion-enter: 220ms;
+}
+body {
+  background: var(--bg);
+}
+.ui-button,
+.ui-link,
+.ui-input,
+.ui-textarea,
+.ui-native-select,
+.ui-card,
+.ui-disclosure,
+.ui-select-trigger {
+  transition:
+    border-color var(--motion-fast),
+    background-color var(--motion-fast),
+    color var(--motion-fast),
+    box-shadow var(--motion-fast),
+    opacity var(--motion-fast);
+}
+.ui-button {
+  min-height: 34px;
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--terminal-radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  line-height: 1.5;
+  cursor: pointer;
+  gap: 8px;
+}
+.ui-button:hover:not(:disabled) {
+  background: #252529;
+  border-color: #777780;
+}
+.ui-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.ui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+:where(.ui-button.icon-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+}
+.ui-button.primary-button,
+.ui-link.primary-button {
+  background: var(--action);
+  color: #161618;
+  border: 1px solid var(--action);
+  border-radius: var(--terminal-radius);
+  box-shadow: none;
+  text-decoration: none;
+}
+.ui-button.text-button {
+  border-color: transparent;
+  background: transparent;
+}
+.ui-button:is(.ui-tab, .ui-toggle)[aria-pressed="true"],
+.ui-button.ui-tab[aria-selected="true"] {
+  color: #f1f1f3;
+  background: #29292e;
+  border-color: #898992;
+  box-shadow: inset 0 -2px #e4e4e8;
+}
+.ui-link {
+  text-underline-offset: 4px;
+  border-radius: 4px;
+}
+.ui-link:hover {
+  color: var(--action-soft);
+}
+.ui-link.primary-button:hover {
+  background: #ffffff;
+  color: #161618;
+}
+.ui-button:focus-visible,
+.ui-link:focus-visible,
+.ui-input:focus-visible,
+.ui-textarea:focus-visible,
+.ui-native-select:focus-visible,
+.ui-disclosure-summary:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+.ui-card,
+.ui-disclosure,
+.modal,
+.ui-select-options {
+  border-radius: var(--terminal-radius);
+  border-color: var(--line);
+  background-color: var(--surface);
+  background-image: none;
+  box-shadow: none;
+}
+.ui-card > :is(h2, h3) {
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.ui-card > p {
+  line-height: 1.8;
+}
+.ui-card > p + :is(p, button, a, form, details, div) {
+  margin-top: 16px;
+}
+.ui-card > :last-child {
+  margin-bottom: 0;
+}
+.ui-badge {
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+.ui-input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.ui-textarea,
+.ui-native-select,
+.ui-select-trigger {
+  background: #101012;
+  color: var(--text);
+  border: 1px solid #55555e;
+  border-radius: var(--terminal-radius);
+  padding: 11px 13px;
+  font: inherit;
+  line-height: 1.6;
+  max-width: 100%;
+}
+.ui-input::placeholder,
+.ui-textarea::placeholder {
+  color: #9999a3;
+  opacity: 1;
+}
+.ui-input:is([type="checkbox"], [type="radio"]) {
+  accent-color: #e4e4e8;
+  flex-shrink: 0;
+}
+.ui-label {
+  line-height: 1.7;
+}
+.ui-disclosure-summary {
+  cursor: pointer;
+  padding-block: 10px;
+  line-height: 1.7;
+}
+.ui-disclosure[open] > :not(summary) {
+  animation: terminal-enter var(--motion-enter) ease-out;
+}
+.ui-select-options:popover-open,
+.modal[open] {
+  animation: terminal-enter var(--motion-enter) ease-out;
+}
+.modal[open]::backdrop {
+  background: rgb(0 0 0 / 76%);
+  backdrop-filter: blur(4px);
+}
+.modal-heading {
+  padding-bottom: 16px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+.modal-heading::before {
+  content: ">_";
+  color: var(--action);
+  font-family: var(--mono);
+  margin-right: 10px;
+}
+.ui-select-options [role="option"] {
+  padding: 12px 14px;
+  border-radius: 3px;
+  transition: background var(--motion-fast);
+}
+.ui-select-options [role="option"][data-active="true"] {
+  background: #303036;
+}
+.ui-status {
+  line-height: 1.8;
+}
+.ui-status[role="alert"] {
+  border-left: 2px solid #eda88f;
+  padding: 12px 16px;
+}
+.section-artwork,
+.visual-intro > .section-artwork,
+.feature-art,
+.visual-path-card > .section-artwork {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+.section-artwork img,
+.feature-art img,
+.auth-artwork img,
+.persona-art > img,
+.scenario-art,
+.service-card-art > img {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  mask-image:
+    linear-gradient(to right, transparent, black 13%, black 87%, transparent),
+    linear-gradient(to bottom, transparent, black 13%, black 87%, transparent);
+  mask-composite: intersect;
+}
+.feature-banner,
+.feature-slide,
+.feature-banner.amber,
+.feature-banner.blue,
+.feature-banner.violet {
+  background: var(--surface);
+  border-radius: var(--terminal-radius);
+  --feature-accent: var(--action);
+  --feature: var(--action);
+  border-color: var(--line);
+}
+.feature-topic-rail .ui-button {
+  border-radius: 3px;
+}
+.visual-intro h1,
+.home-heading h1 {
+  letter-spacing: -0.035em;
+}
+.eyebrow {
+  letter-spacing: 0.035em;
+}
+.learn-page,
+.handoff-page,
+.quality-page,
+.profile-content {
+  --surface: #141416;
+}
+.ui-progress {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  appearance: none;
+  background: #333339;
+  color: #e4e4e8;
+  accent-color: #e4e4e8;
+}
+.ui-progress::-webkit-progress-bar {
+  background: #333339;
+}
+.ui-progress::-webkit-progress-value {
+  background: #e4e4e8;
+  transition: width 220ms;
+}
+.ui-progress::-moz-progress-bar {
+  background: #e4e4e8;
+}
+.ui-progress:indeterminate {
+  background: linear-gradient(90deg, #333339 0 30%, #e4e4e8 45% 55%, #333339 70%);
+  background-size: 240% 100%;
+  animation: terminal-pulse 1.7s linear infinite;
+}
+.ui-progress:indeterminate::-webkit-progress-bar {
+  background: transparent;
+}
+.ui-progress:indeterminate::-moz-progress-bar {
+  background: transparent;
+}
+.ui-loading {
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 5px;
+}
+.ui-loading-label {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  line-height: 1.7;
+}
+.ui-loading-label > span {
+  font-family: var(--mono);
+  color: var(--action);
+}
+.ui-network-progress {
+  position: fixed;
+  z-index: 120;
+  inset: 0 0 auto;
+  pointer-events: none;
+}
+.ui-network-progress span {
+  float: right;
+  padding: 5px 12px;
+  background: #232327;
+  color: #ededee;
+  border-radius: 0 0 0 4px;
+  font-size: 11px;
+}
+.project-request-status > .ui-progress,
+.learn-fineprint > .ui-progress {
+  margin-block: 12px;
+}
+.route-loading {
+  max-width: 1120px;
+  margin: 80px auto;
+  padding: 24px;
+}
+.guest-trial-notice {
+  padding: 20px 24px;
+  border: 1px solid #55555e;
+  border-left: 3px solid var(--action);
+  background: #1b1b1f;
+  margin: 24px 0;
+  border-radius: 5px;
+}
+.guest-trial-notice p {
+  margin-top: 10px;
+  line-height: 1.75;
+}
+.project-example-disclosure {
+  margin: 28px 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+}
+.first-action {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  margin: 24px 0;
+  border: 1px solid #666670;
+  border-left: 3px solid var(--action);
+}
+.first-action p {
+  margin-top: 10px;
+  max-width: 65ch;
+}
+.first-action small {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+}
+[role="tabpanel"],
+.project-questions,
+.project-feedback-list,
+.learn-step-panel {
+  animation: terminal-enter var(--motion-enter) ease-out;
+}
+@keyframes terminal-enter {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes terminal-pulse {
+  to {
+    background-position: -240% 0;
+  }
+}
+@media (max-width: 700px) {
+  .first-action {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
+  }
+  .first-action .ui-link {
+    justify-self: start;
+  }
+  .ui-button {
+    min-height: 40px;
+  }
+  .guest-trial-notice {
+    padding: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-button,
+  .ui-link,
+  .ui-card,
+  .ui-input,
+  .ui-textarea,
+  .ui-select-options,
+  .ui-native-select,
+  .ui-disclosure {
+    transition: none;
+  }
+  .ui-progress:indeterminate,
+  .ui-disclosure[open] > :not(summary),
+  .modal[open],
+  .ui-select-options:popover-open,
+  [role="tabpanel"],
+  .project-questions,
+  .project-feedback-list,
+  .learn-step-panel {
+    animation: none;
+  }
+}
+
+/* Illustration panels blend into their parent; evidence captures retain every pixel. */
+.persona-cards label.persona-card.ui-label,
+.ui-link.learn-card,
+.ui-link.visual-path-card {
+  border-radius: var(--terminal-radius);
+  border-color: var(--line);
+  background: var(--surface);
+}
+.persona-art,
+.scenario-visual,
+.service-card-art {
+  border: 0;
+  background: transparent;
+}
+.persona-art {
+  border-radius: 0;
+}
+.ui-button.primary-button:hover:not(:disabled) {
+  background: #ffffff;
+  color: #161618;
+  border-color: #ffffff;
+}
+.ui-button[hidden],
+.ui-input[hidden],
+.ui-card[hidden] {
+  display: none;
+}
+
+.guest-login.guest-login-compact {
+  display: flex;
+  gap: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  margin-top: 12px;
+}
+.guest-login-compact .guest-login-link {
+  min-height: 32px;
+  padding: 0;
+  color: var(--action);
+}
+.guest-login-compact .guest-login-providers {
+  display: none;
+}
+.project-page > .experience-journey {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.project-usage,
+.guest-login,
+.sidebar-account,
+.journey-options .ui-button {
+  border-radius: var(--terminal-radius);
+}
+
+.confirmation-modal {
+  width: min(460px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+}
+.confirmation-modal > p {
+  line-height: 1.8;
+  margin: 0 0 24px;
+}
+.ui-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.ui-button.danger-button {
+  border-color: #c48778;
+  color: #ffd1c4;
+  background: #311f1c;
+}
+
+.ui-link.nav-item.active,
+.ui-link.nav-item.domain-active,
+.site-navigation .ui-link[aria-current="page"] {
+  background: #29292e;
+  border-color: #777780;
+  color: #f1f1f3;
+  border-radius: var(--terminal-radius);
+}
+
+/* Overlapping grid cells reserve the tallest slide at every viewport width. */
+.feature-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  background: var(--surface);
+}
+.feature-slide {
+  grid-area: 1 / 1;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+.confirmation-modal > p {
+  margin: 0 24px 24px;
+}
+.confirmation-modal .ui-dialog-actions {
+  margin: 0 24px 24px;
+}
+
+/* Surface transitions use opacity only, preserving layout and input focus. */
+.ui-card,
+.ui-status,
+.ui-loading,
+.journey-detail,
+.project-results,
+.project-form,
+.project-training,
+.library-content,
+.review-content,
+.learn-step-panel,
+.lab-observation,
+.lab-prediction-layout,
+.lab-learning-summary {
+  animation: terminal-enter var(--motion-enter) ease-out;
+}
+.feature-slide.is-active {
+  animation-duration: var(--motion-enter);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Selection is navigation, not a success state. Keep it neutral throughout. */
+:root {
+  --sidebar: #111113;
+  --surface-hover: #252529;
+}
+.persona-change strong,
+.is-selected .persona-selected {
+  color: var(--text);
+}
+.persona-cards label.persona-card.is-selected {
+  border-color: #898992;
+  box-shadow: inset 0 0 0 1px #898992;
+}
+.persona-next-steps a.visual-path-card:hover,
+.feature-topic-rail .ui-button[aria-current],
+.learn-steps .ui-button[aria-current],
+.project-question-nav .ui-button[aria-current],
+.learn-option:has(input:checked) {
+  background: #29292e;
+  border-color: #898992;
+  color: var(--text);
+  box-shadow: inset 0 -2px var(--action);
+}
+.feature-topic-rail .ui-button[aria-current] span {
+  color: var(--text);
+}
+.learn-option {
+  background: var(--surface);
+  border-color: var(--line);
+}
+.persona-security-start.ui-card {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.feature-banner-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(3, 44px);
+  gap: 8px;
+}
+.feature-dots.feature-topic-rail {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.feature-banner-controls > [data-playback] {
+  grid-column: 2;
+}
+.project-panel.ui-status + .project-layout {
+  margin-top: 24px;
+}
+.training-welcome,
+.empty-state,
+.library-loading {
+  animation: terminal-enter var(--motion-enter) ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .training-welcome,
+  .empty-state,
+  .library-loading {
+    animation: none;
+  }
+}
+
+/* Pixel-inspired edges, readable prose: texture stays out of learning content. */
+:root {
+  --terminal-radius: 3px;
+}
+.checkpoint-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font: 500 12px/1.6 var(--mono);
+}
+.checkpoint-label::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  background: currentColor;
+  box-shadow:
+    7px 0 currentColor,
+    0 7px currentColor,
+    7px 7px currentColor;
+  margin: 0 10px 7px 0;
+}
+.observation-checkpoint.ui-card {
+  padding: 24px;
+  border: 1px solid #777780;
+  border-top: 3px solid var(--action);
+  box-shadow: 4px 4px 0 #000;
+}
+.observation-checkpoint h3 {
+  margin: 14px 0 16px;
+  font-size: 22px;
+  line-height: 1.45;
+  scroll-margin-top: 108px;
+}
+.observation-checkpoint .checkpoint-lesson {
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--text);
+}
+.checkpoint-evidence {
+  padding: 16px;
+  margin-top: 20px;
+  border-left: 2px solid var(--muted);
+  background: var(--bg);
+}
+.checkpoint-evidence strong {
+  font-size: 12px;
+  color: var(--muted);
+}
+.checkpoint-evidence p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.8;
+}
+.observation-checkpoint .checkpoint-next {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.observation-checkpoint .primary-button {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  justify-content: center;
+  margin-top: 20px;
+}
+.observation-history {
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  margin-top: 20px;
+}
+.observation-history h4 {
+  margin: 16px 0 8px;
+}
+.observation-history p {
+  line-height: 1.8;
+}
+.learn-observation-guide > span {
+  display: block;
+  margin-top: 8px;
+}
+.observation-prediction {
+  border-left: 2px solid var(--line);
+  padding-left: 18px;
+}
+.observation-prediction > p {
+  margin-top: 12px;
+  line-height: 1.8;
+}
+@media (min-width: 1001px) {
+  .learn-observations {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+  }
+}
+@media (max-width: 700px) {
+  .observation-checkpoint.ui-card {
+    padding: 20px;
+  }
+  .observation-checkpoint h3 {
+    font-size: 20px;
+  }
+  .observation-checkpoint .checkpoint-lesson {
+    font-size: 16px;
+  }
+}
+
+.learn-observations:has(.observation-checkpoint) {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+/* Flex avoids stale intrinsic grid-button heights after Safari viewport changes. */
+.feature-topic-rail .ui-button {
+  display: flex;
+  align-items: center;
+}
+/* Reserve two label lines so feature navigation does not jump on resize or selection. */
+.feature-topic-rail .ui-button {
+  min-height: 58px;
+}
+.repair-next-step {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.repair-next-step p {
+  margin: 0 0 16px;
+  line-height: 1.8;
+}
+.repair-next-step .primary-button {
+  min-height: 48px;
+  white-space: normal;
+}

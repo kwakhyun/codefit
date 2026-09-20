@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 
 import { Select } from "@/components/ui/select";
 import { useState } from "react";
@@ -36,7 +37,7 @@ export function LibraryFilters({ library }: LibraryFiltersProps) {
   ].filter(Boolean);
   return (
     <div className={`filter-bottom ${expanded ? "filters-expanded" : ""}`}>
-      <button
+      <Button
         className="secondary-button mobile-filter-toggle"
         aria-expanded={expanded}
         aria-controls="library-select-filters"
@@ -44,13 +45,13 @@ export function LibraryFilters({ library }: LibraryFiltersProps) {
       >
         상세 필터{selected.length ? ` (${selected.length})` : ""}
         <ChevronDown size={15} />
-      </button>
+      </Button>
       {selected.length > 0 && (
         <div className="filter-summary">
           <span>{selected.join(" / ")}</span>
-          <button className="text-button" onClick={resetFilters}>
+          <Button className="text-button" onClick={resetFilters}>
             초기화
-          </button>
+          </Button>
         </div>
       )}
       <div className="select-filters" id="library-select-filters">
@@ -107,10 +108,10 @@ export function LibraryFilters({ library }: LibraryFiltersProps) {
           />
         ))}
         {hasFilters && (
-          <button className="text-button clear-filters" onClick={resetFilters}>
+          <Button className="text-button clear-filters" onClick={resetFilters}>
             <RotateCcw size={12} />
             초기화
-          </button>
+          </Button>
         )}
       </div>
       <div className="sort-select">

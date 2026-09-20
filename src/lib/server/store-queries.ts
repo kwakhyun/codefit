@@ -3,7 +3,7 @@ import { ProjectCheckStore } from "./project-check-store";
 import { LearningStore } from "./learning-store";
 import { HANDOFF_TRACKS, handoffId } from "../handoff/catalog";
 import type { AiRun, AiUsage } from "../ai-telemetry";
-import { AI_ALLOWANCE } from "./usage-policy";
+import { aiAllowance } from "./usage-policy";
 import { generationDay } from "./generation-quota";
 import { z } from "zod";
 import { DOMAIN_IDS } from "../catalog";
@@ -310,21 +310,19 @@ export class StoreQueries {
         [owner, day.key, now],
       ),
     ]);
-    const remaining: AiUsage["remaining"] = { ...AI_ALLOWANCE };
+    const allowance = aiAllowance(owner);
+    const remaining: AiUsage["remaining"] = { ...allowance };
     const resetsAt: AiUsage["resetsAt"] = { generate: null, review: null };
     for (const kind of ["generate", "review"] as const) {
       const row = limits.find((r) => r.key === `ai:${kind}:${owner}`);
-      remaining[kind] = Math.max(0, AI_ALLOWANCE[kind] - Number(row?.count || 0));
+      remaining[kind] = Math.max(0, allowance[kind] - Number(row?.count || 0));
       resetsAt[kind] = row ? new Date(Number(row.expires)).toISOString() : null;
     }
-    const canGenerate = owner.startsWith("user:");
-    remaining.generate = canGenerate
-      ? Math.max(0, AI_ALLOWANCE.generate - Number(generation.count))
-      : 0;
+    remaining.generate = Math.max(0, allowance.generate - Number(generation.count));
     resetsAt.generate = new Date(day.resetsAt).toISOString();
     return {
-      canGenerate,
-      allowance: AI_ALLOWANCE,
+      canGenerate: true,
+      allowance,
       remaining,
       resetsAt,
       last30Days: {

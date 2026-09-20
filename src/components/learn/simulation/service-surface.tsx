@@ -1,4 +1,11 @@
 "use client";
+import {
+  Badge,
+  ToggleButton,
+  Button,
+  Disclosure,
+  DisclosureSummary,
+} from "@/components/ui/primitives";
 import Image from "next/image";
 import { useState } from "react";
 import {
@@ -68,9 +75,9 @@ export function ServiceSurface({
             <span className="service-overline">ORDINARY COLLECTION</span>
             <h3>취향을 담은 일상</h3>
             <p>세라믹, 조명과 문구를 한곳에서 만나보세요.</p>
-            <span className="service-badge">
+            <Badge className="service-badge">
               <Package size={13} /> 국내 배송
-            </span>
+            </Badge>
             <small>ORD-20260920 · 주문 정보 확인</small>
           </div>
         </div>
@@ -113,7 +120,7 @@ export function ServiceSurface({
             <h3>{c.entity}</h3>
             <p>업무 요청을 검토하고 처리해 주세요.</p>
           </div>
-          <span className="service-badge">검토 대기</span>
+          <Badge className="service-badge">검토 대기</Badge>
           <div className="service-stats">
             <div>
               <small>요청 부서</small>
@@ -140,9 +147,9 @@ export function ServiceSurface({
             <span>9월 20일 · 읽는 시간 5분</span>
           </div>
           <blockquote>오래 머물고 싶은 공간에는 어떤 이야기가 담겨 있을까요?</blockquote>
-          <span className="service-badge">
+          <Badge className="service-badge">
             <Mail size={13} /> 콘텐츠와 독자 관리
-          </span>
+          </Badge>
         </div>
       )}
       {c.domain === "support" && (
@@ -150,7 +157,7 @@ export function ServiceSurface({
           <div className="service-inbox-heading">
             <Inbox size={20} />
             <h3>{c.entity}</h3>
-            <span className="service-badge">처리 대기</span>
+            <Badge className="service-badge">처리 대기</Badge>
           </div>
           <div className="service-customer">
             <span className="sample-avatar">서</span>
@@ -176,17 +183,21 @@ export function ServiceSurface({
       )}
       <div className="service-body">
         <div className="service-view-switch" aria-label="상세 화면 전환">
-          <button
+          <ToggleButton
             type="button"
             data-sim-reveal
             aria-pressed={tab === "detail"}
             onClick={() => setTab("detail")}
           >
             상세 정보
-          </button>
-          <button type="button" aria-pressed={tab === "history"} onClick={() => setTab("history")}>
+          </ToggleButton>
+          <ToggleButton
+            type="button"
+            aria-pressed={tab === "history"}
+            onClick={() => setTab("history")}
+          >
             처리 이력 <span>{s.history.length}</span>
-          </button>
+          </ToggleButton>
         </div>
         {tab === "history" ? (
           <div className="service-history">
@@ -209,9 +220,9 @@ export function ServiceSurface({
             ) : (
               <p>아직 처리한 요청이 없습니다. 상세 정보에서 요청을 처리해 주세요.</p>
             )}
-            <button className="service-link" onClick={() => setTab("detail")}>
+            <Button className="service-link" onClick={() => setTab("detail")}>
               상세 정보로 돌아가기 <ArrowUpRight size={14} />
-            </button>
+            </Button>
           </div>
         ) : (
           <>
@@ -221,7 +232,7 @@ export function ServiceSurface({
             </div>
             <div className="service-records" role="group" aria-label="실습 데이터 선택">
               {c.samples.map((entry, i) => (
-                <button
+                <ToggleButton
                   type="button"
                   key={entry.label}
                   data-sim-action={sampleActions[i]}
@@ -248,13 +259,13 @@ export function ServiceSurface({
                     </small>
                   </span>
                   <span className="service-radio">{s.selected === i && <Check size={12} />}</span>
-                </button>
+                </ToggleButton>
               ))}
             </div>
             <section className="service-detail" aria-label="선택한 요청 정보">
               <div className="service-section-heading">
                 <h4>{c.entity}</h4>
-                <span className="service-badge">검토 중</span>
+                <Badge className="service-badge">검토 중</Badge>
               </div>
               <dl>
                 {sample.fields.map(([label, value]) => (
@@ -276,10 +287,10 @@ export function ServiceSurface({
                   </div>
                 )}
               </dl>
-              <details className="service-policy" open>
-                <summary>{consumer ? "이용 조건 안내" : "처리 기준"}</summary>
+              <Disclosure className="service-policy" open>
+                <DisclosureSummary>{consumer ? "이용 조건 안내" : "처리 기준"}</DisclosureSummary>
                 <p>{c.policy}</p>
-              </details>
+              </Disclosure>
               {s.result && (
                 <div className={`service-result ${s.result.allowed ? "accepted" : "rejected"}`}>
                   <b>{s.result.allowed ? "처리 결과" : "요청 확인 필요"}</b>
@@ -295,7 +306,7 @@ export function ServiceSurface({
                   )}
                 </div>
               )}
-              <button
+              <Button
                 type="button"
                 className="service-submit"
                 data-sim-action="case-submit"
@@ -304,7 +315,7 @@ export function ServiceSurface({
               >
                 {actionLabel(mission, "case-submit")}
                 <ChevronRight size={16} />
-              </button>
+              </Button>
             </section>
           </>
         )}

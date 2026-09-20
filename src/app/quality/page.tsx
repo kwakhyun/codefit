@@ -1,6 +1,7 @@
+import { Anchor } from "@/components/ui/primitives";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { SiteHeader } from "@/components/navigation/site-header";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 
 import report from "../../../reports/ai-review-luna.json";
 export const metadata = { title: "AI 검토 방식과 검증 결과 | CODE:FIT" };
@@ -11,21 +12,17 @@ export default function QualityPage() {
       <SiteHeader />
       <VisualIntro topic="code">
         <span className="eyebrow">HOW WE REVIEW YOUR CODE</span>
-        <h1>
-          AI의 피드백도,
-          <br />
-          확인하며 개선합니다.
-        </h1>
+        <h1>AI의 피드백도, 확인하며 개선합니다.</h1>
         <p>
           AI 풀이 검토는 코드를 읽는 정적 리뷰입니다. 코드 이해 훈련의 브라우저 실행 테스트는 별도로
           표시하며, 어느 결과도 실제 제품 환경의 모든 동작을 보장하지 않습니다.
         </p>
       </VisualIntro>
       <nav className="section-jump-links" aria-label="검토 안내 바로가기">
-        <a href="#quality-evidence">검증 결과</a>
-        <a href="#quality-handoff">코드 실행 범위</a>
-        <a href="#quality-project">프로젝트 점검</a>
-        <a href="#quality-feedback">피드백 활용</a>
+        <Anchor href="#quality-evidence">검증 결과</Anchor>
+        <Anchor href="#quality-handoff">코드 실행 범위</Anchor>
+        <Anchor href="#quality-project">프로젝트 점검</Anchor>
+        <Anchor href="#quality-feedback">피드백 활용</Anchor>
       </nav>
       <section id="quality-evidence" aria-label="고정 사례 평가 결과">
         <h2>고정된 코드로 확인한 결과</h2>
@@ -91,9 +88,9 @@ export default function QualityPage() {
           직접 실행하거나 학습자의 이해도를 확정한 결과로 표현하지 않습니다.
         </p>
         <p>
-          맞춤 질문은 기본 GPT-5.6 Luna를 사용하며 풀이 검토와 24시간 20회 한도를 공유합니다. AI
-          질문을 받은 과제는 도움 사용으로 기록합니다. 위 고정 사례 평가 수치는 이 새 질문 기능의
-          품질 평가 결과가 아닙니다.
+          맞춤 질문은 기본 GPT-5.6 Luna를 사용하며 로그인 없이 기능별 24시간 2회, 로그인하면 기능별
+          30회 이용할 수 있습니다. AI 질문을 받은 과제는 도움 사용으로 기록합니다. 위 고정 사례 평가
+          수치는 이 새 질문 기능의 품질 평가 결과가 아닙니다.
         </p>
       </section>
       <section>
@@ -120,10 +117,11 @@ export default function QualityPage() {
           품질이나 보안 인증이 아닙니다.
         </p>
         <p>
-          가입자는 24시간에 새 분석 2회를 이용할 수 있습니다. 최초 답변을 보관한 채 같은 질문에 최대
-          3번 보완 답변을 추가하고 평가를 비교할 수 있습니다. 보완 답변의 재평가, 실패 재시도와 이전
-          분석의 평가를 포함한 평가 요청은 모두 합쳐 24시간 4회까지입니다. 호출을 시작한 뒤 실패해도
-          횟수에 포함될 수 있으며, 남은 횟수는 프로젝트 점검 화면에서 확인할 수 있습니다.
+          로그인 없이 24시간에 분석과 평가를 각각 2회, 가입자는 분석 5회와 평가 12회를 이용할 수
+          있습니다. 최초 답변을 보관한 채 같은 질문에 최대 3번 보완 답변을 추가하고 평가를 비교할 수
+          있습니다. 보완 답변의 재평가, 실패 재시도와 이전 분석의 평가를 포함한 평가 요청은 모두
+          합쳐 24시간 12회까지입니다. 호출을 시작한 뒤 실패해도 횟수에 포함될 수 있으며, 남은 횟수는
+          프로젝트 점검 화면에서 확인할 수 있습니다.
         </p>
         <Link href="/project-check">내 프로젝트 점검하기 →</Link>
       </section>
@@ -145,7 +143,7 @@ export default function QualityPage() {
         <h2>공개 이용과 기록 보관</h2>
         <p>
           문제 풀이는 가입이나 암호 없이 시작할 수 있습니다. 로그인 전 기록은 브라우저별로, 로그인
-          후 기록은 계정별로 저장합니다. Google 또는 GitHub로 로그인하면 하루 3회 AI 문제를 생성할
+          후 기록은 계정별로 저장합니다. Google 또는 GitHub로 로그인하면 하루 6회 AI 문제를 생성할
           수 있으며 한국 시간 자정에 갱신됩니다.
         </p>
         <p>

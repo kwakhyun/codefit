@@ -1,4 +1,5 @@
 "use client";
+import { Status, FieldLabel, Input, Button } from "@/components/ui/primitives";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { api, errorMessage } from "@/lib/client-api";
@@ -101,7 +102,9 @@ export function ProbeForm({
         </p>
       )}
       {storageError && (
-        <p role="alert">이 탭에 답변을 보관하지 못했습니다. 화면을 닫기 전에 제출해 주세요.</p>
+        <Status role="alert">
+          이 탭에 답변을 보관하지 못했습니다. 화면을 닫기 전에 제출해 주세요.
+        </Status>
       )}
       <fieldset disabled={busy || disabled} className="training-fields">
         <legend className="sr-only">
@@ -114,8 +117,8 @@ export function ProbeForm({
             </legend>
             <p className="training-scenario">{p.scenario}</p>
             {p.choices.map((choice, j) => (
-              <label key={j}>
-                <input
+              <FieldLabel key={j}>
+                <Input
                   type="radio"
                   name={`probe-${m.id}-${i}`}
                   checked={draft.answers[i] === j}
@@ -127,7 +130,7 @@ export function ProbeForm({
                   }}
                 />
                 <span>{choice}</span>
-              </label>
+              </FieldLabel>
             ))}
           </fieldset>
         ))}
@@ -140,8 +143,8 @@ export function ProbeForm({
               ["certain", "확신해요"],
             ] as const
           ).map(([value, label]) => (
-            <label key={value}>
-              <input
+            <FieldLabel key={value}>
+              <Input
                 type="radio"
                 name={`confidence-${m.id}`}
                 required
@@ -149,18 +152,18 @@ export function ProbeForm({
                 onChange={() => update({ ...draft, confidence: value })}
               />
               {label}
-            </label>
+            </FieldLabel>
           ))}
         </fieldset>
-        <label className="training-assisted">
-          <input
+        <FieldLabel className="training-assisted">
+          <Input
             type="checkbox"
             checked={draft.assisted}
             onChange={(e) => update({ ...draft, assisted: e.target.checked })}
           />
           이 확인 문제를 풀 때 힌트나 외부 도움을 사용했어요
-        </label>
-        <button
+        </FieldLabel>
+        <Button
           className="primary-button"
           disabled={draft.answers.some((n) => n < 0) || !draft.confidence}
         >
@@ -170,12 +173,12 @@ export function ProbeForm({
               ? "첫 답변 저장하고 실습하기"
               : "답변 저장하고 결과 보기"}
           <ArrowRight size={16} />
-        </button>
+        </Button>
       </fieldset>
       {error && (
-        <p role="alert" className="project-error">
+        <Status role="alert" className="project-error">
           {error} 입력한 답변은 유지됩니다.
-        </p>
+        </Status>
       )}
     </form>
   );

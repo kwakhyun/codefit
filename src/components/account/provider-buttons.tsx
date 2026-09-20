@@ -1,4 +1,5 @@
 "use client";
+import { Button, Status, Anchor } from "@/components/ui/primitives";
 import { useState } from "react";
 import { Check, LoaderCircle } from "lucide-react";
 import { ProviderIcon } from "./provider-icon";
@@ -46,7 +47,7 @@ export function ProviderButtons({
         const connected = linked?.includes(provider);
         const enabled = providers.includes(provider);
         return (
-          <button
+          <Button
             className="secondary-button oauth-button"
             key={provider}
             disabled={Boolean(busy) || connected || !enabled}
@@ -71,22 +72,22 @@ export function ProviderButtons({
             ) : linked ? (
               <small>연결하기</small>
             ) : null}
-          </button>
+          </Button>
         );
       })}
       {error && (
-        <p className="inline-error" role="alert">
+        <Status className="inline-error" role="alert">
           {error}
-        </p>
+        </Status>
       )}
       {!providers.length && (
         <p className="inline-warning">
           {localPreview ? (
             <>
               로컬 미리보기에는 로그인 설정이 없습니다.{" "}
-              <a href="https://codefit-five.vercel.app/login" target="_blank" rel="noreferrer">
+              <Anchor href="https://codefit-five.vercel.app/login" target="_blank" rel="noreferrer">
                 운영 사이트에서 로그인하기 ↗
-              </a>
+              </Anchor>
             </>
           ) : (
             "지금은 로그인을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요."

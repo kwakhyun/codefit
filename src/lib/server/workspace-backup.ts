@@ -8,6 +8,7 @@ import {
   analysisSchema,
   assessmentSchema,
   assessmentIssueSchema,
+  verificationPlanSchema,
   AREAS,
 } from "../project-check/types";
 import { learningSchema, validLearning } from "../learn/progress";
@@ -87,6 +88,7 @@ const savedAssessment = assessmentSchema
         assessmentSchema.shape.feedback.element
           .extend({
             evidence: evidence.optional(),
+            verificationPlan: verificationPlanSchema.optional(),
             blockingIssue: assessmentIssueSchema.nullable().optional(),
           })
           .strict(),

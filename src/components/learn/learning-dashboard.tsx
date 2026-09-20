@@ -1,4 +1,5 @@
 "use client";
+import { Card, Status, Anchor, Button, ToggleButton, FieldLabel } from "@/components/ui/primitives";
 import { SectionArtwork } from "@/components/experience/section-artwork";
 import { learningStorageDescription } from "@/lib/learn/session";
 import { Select } from "@/components/ui/select";
@@ -8,7 +9,7 @@ import { ServiceDomainIcon } from "./service-domain-icon";
 import { ServiceThumbnail } from "./service-thumbnail";
 import { MISSIONS } from "@/lib/learn/catalog";
 import { SERVICE_DOMAINS, domainFor } from "@/lib/learn/services/domains";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { useLearningOverview } from "@/hooks/use-learning-overview";
 import { learningOverview, hasLearningDraft, LEARNING_STAGES } from "@/lib/learn/overview";
 export function LearningDashboard() {
@@ -19,7 +20,7 @@ export function LearningDashboard() {
   const { missions, next, resume, complete } = learningOverview(data?.progress || []);
   return (
     <>
-      <section className="resume-card illustrated-resume" aria-label="추천 입문 미션">
+      <Card as="section" className="resume-card illustrated-resume" aria-label="추천 입문 미션">
         <SectionArtwork topic="principles" />
         <div>
           <span className="eyebrow">
@@ -48,13 +49,13 @@ export function LearningDashboard() {
             →
           </Link>
         ) : (
-          <p role="status">
+          <Status role="status">
             {error ? "아래 미션은 바로 시작할 수 있습니다." : "학습 기록 불러오는 중…"}
-          </p>
+          </Status>
         )}
-      </section>
+      </Card>
       <nav className="course-shortcuts" aria-label="입문 과정 바로가기">
-        <a
+        <Anchor
           href="#basics"
           onClick={() => {
             setDomain("all");
@@ -62,8 +63,8 @@ export function LearningDashboard() {
           }}
         >
           서비스 원리 {MISSIONS.filter((m) => m.kind === "foundation").length}개
-        </a>
-        <a
+        </Anchor>
+        <Anchor
           href="#labs"
           onClick={() => {
             setDomain("all");
@@ -71,7 +72,7 @@ export function LearningDashboard() {
           }}
         >
           서비스 오류 해결 {MISSIONS.filter((m) => m.kind === "lab").length}개
-        </a>
+        </Anchor>
       </nav>
       <div className="learn-progress">
         <strong>
@@ -85,17 +86,17 @@ export function LearningDashboard() {
       </div>
       {data && !data.signedIn && <GuestLogin returnTo="/learn" />}
       {error && (
-        <p role="alert">
+        <Status role="alert">
           기록을 불러오지 못했습니다. {error}{" "}
-          <button className="text-button" onClick={reload}>
+          <Button className="text-button" onClick={reload}>
             다시 불러오기
-          </button>
-        </p>
+          </Button>
+        </Status>
       )}
       <section aria-label="실습 찾기" className="learn-catalog-filters">
         <h2>관심 있는 서비스부터 살펴보세요</h2>
         <div className="domain-filters" role="group" aria-label="서비스 분야">
-          <button
+          <ToggleButton
             data-service-domain="all"
             aria-pressed={domain === "all"}
             onClick={() => {
@@ -106,9 +107,9 @@ export function LearningDashboard() {
             <ServiceDomainIcon domain="all" />
             <span className="domain-name">전체</span>
             <span className="domain-count">{MISSIONS.length}</span>
-          </button>
+          </ToggleButton>
           {SERVICE_DOMAINS.map((d) => (
-            <button
+            <ToggleButton
               key={d.id}
               data-service-domain={d.id}
               aria-pressed={domain === d.id}
@@ -122,11 +123,11 @@ export function LearningDashboard() {
               <span className="domain-count">
                 {MISSIONS.filter((m) => domainFor(m) === d.id).length}
               </span>
-            </button>
+            </ToggleButton>
           ))}
         </div>
         <div className="learn-filter-row">
-          <label>
+          <FieldLabel>
             기술 개념
             <Select
               label="기술 개념"
@@ -143,8 +144,8 @@ export function LearningDashboard() {
                   .map((value) => ({ value, label: value })),
               ]}
             />
-          </label>
-          <p role="status">
+          </FieldLabel>
+          <Status role="status">
             {
               missions.filter(
                 ({ mission: m }) =>
@@ -153,7 +154,7 @@ export function LearningDashboard() {
               ).length
             }
             개 실습
-          </p>
+          </Status>
         </div>
       </section>
       {(["foundation", "lab"] as const).map((kind) => (

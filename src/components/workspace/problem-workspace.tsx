@@ -1,4 +1,13 @@
 "use client";
+import {
+  Button,
+  Card,
+  Disclosure,
+  DisclosureSummary,
+  FieldLabel,
+  Textarea,
+  Status,
+} from "@/components/ui/primitives";
 
 import { HandoffExport } from "@/components/handoff/handoff-export";
 import { HandoffFields, HandoffGuide } from "@/components/handoff/handoff-fields";
@@ -41,7 +50,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 const CodeEditor = dynamic(() => import("@/components/code-editor").then((m) => m.CodeEditor), {
   ssr: false,
   loading: () => (
@@ -138,7 +147,7 @@ export function ProblemWorkspace({
         <AlertCircle size={32} />
         <h2>문제를 불러오지 못했습니다.</h2>
         <p>{loadError}</p>
-        <button
+        <Button
           className="secondary-button"
           onClick={() => {
             setLoading(true);
@@ -147,7 +156,7 @@ export function ProblemWorkspace({
           }}
         >
           다시 시도
-        </button>
+        </Button>
         <Link href={returnTo}>문제 보관함으로</Link>
       </div>
     );
@@ -197,29 +206,29 @@ export function ProblemWorkspace({
           <h1>{problem.title}</h1>
         </div>
         <div className="workspace-heading-actions">
-          <button
+          <Button
             className={`icon-button ${progress?.bookmarked ? "active" : ""}`}
             aria-label={progress?.bookmarked ? "북마크 해제" : "북마크"}
             onClick={bookmark}
             disabled={bookmarkBusy}
           >
             <Bookmark size={20} fill={progress?.bookmarked ? "currentColor" : "none"} />
-          </button>
-          <button
+          </Button>
+          <Button
             className="icon-button"
             aria-label={focus ? "집중 모드 종료" : "집중 모드"}
             onClick={() => setFocus(!focus)}
           >
             {focus ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-          </button>
+          </Button>
         </div>
       </div>
       {notice && (
-        <div className="draft-notice" role="status">
+        <Card as="div" className="draft-notice" role="status">
           <Save size={15} />
           <span>{notice}</span>
           {undoCode !== null && (
-            <button
+            <Button
               className="text-button"
               onClick={() => {
                 changeCode(undoCode);
@@ -228,12 +237,12 @@ export function ProblemWorkspace({
               }}
             >
               변경 취소
-            </button>
+            </Button>
           )}
-          <button className="icon-button" aria-label="안내 닫기" onClick={() => setNotice("")}>
+          <Button className="icon-button" aria-label="안내 닫기" onClick={() => setNotice("")}>
             ×
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
       {learningEnabled ? (
         <LearningLab
@@ -270,9 +279,7 @@ export function ProblemWorkspace({
         />
         <section className="editor-pane" aria-label="풀이 작업 공간">
           <div className="editor-topbar">
-            <span>
-              <span className="status-dot" /> CODE WORKSPACE
-            </span>
+            <span>코드 작성</span>
             <div>
               <span
                 className={`save-indicator ${saveState === "failed" ? "failed" : ""}`}
@@ -298,18 +305,18 @@ export function ProblemWorkspace({
                     }[saveState]}
               </span>
               {(saveState === "failed" || saveState === "local" || saveState === "offline") && (
-                <button className="text-button" onClick={() => void saveNow()}>
+                <Button className="text-button" onClick={() => void saveNow()}>
                   지금 저장
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 className="icon-button"
                 aria-label="시작 코드로 초기화"
                 onClick={() => setConfirm("reset")}
                 disabled={busy}
               >
                 <RotateCcw size={14} />
-              </button>
+              </Button>
             </div>
           </div>
           <DraftConflict
@@ -329,22 +336,22 @@ export function ProblemWorkspace({
             }
           />
           {recoverable.length > 0 && (
-            <details className="draft-recovery">
-              <summary>다른 창에서 보관한 초안 {recoverable.length}개</summary>
+            <Disclosure className="draft-recovery">
+              <DisclosureSummary>다른 창에서 보관한 초안 {recoverable.length}개</DisclosureSummary>
               <p>필요한 코드를 복사해 현재 초안에 합칠 수 있습니다. 원본은 계속 보관됩니다.</p>
               {recoverable.map((draft, index) => (
-                <label key={draft.key}>
+                <FieldLabel key={draft.key}>
                   보관한 초안 {index + 1}
-                  <textarea
+                  <Textarea
                     aria-label={`보관한 초안 ${index + 1}`}
                     value={
                       problem.handoff ? formatHandoffDraft(draft.record.code) : draft.record.code
                     }
                     readOnly
                   />
-                </label>
+                </FieldLabel>
               ))}
-            </details>
+            </Disclosure>
           )}
           {problem.handoff && !learningEnabled && (
             <HandoffFields value={code} onChange={changeCode} section="before" />
@@ -379,7 +386,7 @@ export function ProblemWorkspace({
           <div className="workspace-report-section">
             {learningEnabled && attempts.length > 0 && (
               <div className="lab-history-action">
-                <button
+                <Button
                   className="text-button"
                   onClick={() => {
                     setTab("history");
@@ -388,7 +395,7 @@ export function ProblemWorkspace({
                   }}
                 >
                   이전 검토 기록 {attempts.length}개 보기 →
-                </button>
+                </Button>
               </div>
             )}
             {problem.handoff && (
@@ -409,7 +416,7 @@ export function ProblemWorkspace({
                 <kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd>
                 <small>AI가 요구사항을 검토합니다.</small>
               </span>
-              <button
+              <Button
                 className="primary-button"
                 onClick={() => requestReview(code)}
                 disabled={
@@ -423,7 +430,7 @@ export function ProblemWorkspace({
                 {busy ? <LoaderCircle size={16} className="spin" /> : <Sparkles size={16} />}
                 {busy ? "풀이 검토 중" : "AI 풀이 검토"}
                 {!busy && <ArrowRight size={16} />}
-              </button>
+              </Button>
             </div>
             {!aiReady && (
               <p className="inline-warning">
@@ -431,10 +438,10 @@ export function ProblemWorkspace({
               </p>
             )}
             {(inputError || error) && (
-              <p className="inline-error workspace-error" role="alert">
+              <Status className="inline-error workspace-error" role="alert">
                 <AlertCircle size={16} />
                 {inputError || error}
-                <button
+                <Button
                   aria-label="오류 메시지 닫기"
                   onClick={() => {
                     setError("");
@@ -442,8 +449,8 @@ export function ProblemWorkspace({
                   }}
                 >
                   ×
-                </button>
-              </p>
+                </Button>
+              </Status>
             )}
             <ReviewPanel
               handoff={Boolean(problem.handoff)}

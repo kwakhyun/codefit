@@ -1,4 +1,5 @@
 "use client";
+import { ToggleButton } from "@/components/ui/primitives";
 import { useState } from "react";
 import { FileText, LockKeyhole, UserRound } from "lucide-react";
 /** An explanatory state preview, never a request to a real service. */
@@ -12,12 +13,12 @@ export function AccessPreview() {
         <small>설명용 예시</small>
       </div>
       <div className="result-filter" role="group" aria-label="예시 요청자">
-        <button type="button" aria-pressed={owner} onClick={() => setOwner(true)}>
+        <ToggleButton type="button" aria-pressed={owner} onClick={() => setOwner(true)}>
           <UserRound size={16} /> 지민 (소유자)
-        </button>
-        <button type="button" aria-pressed={!owner} onClick={() => setOwner(false)}>
+        </ToggleButton>
+        <ToggleButton type="button" aria-pressed={!owner} onClick={() => setOwner(false)}>
           <UserRound size={16} /> 민수 (다른 사용자)
-        </button>
+        </ToggleButton>
       </div>
       <div
         className={`access-preview-result ${owner ? "is-owner" : "is-blocked"}`}

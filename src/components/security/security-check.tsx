@@ -1,6 +1,20 @@
 "use client";
+import { useFadeTransition } from "@/components/ui/use-fade-transition";
+import { useConfirmation } from "@/components/ui/use-confirmation";
+import {
+  Status,
+  Button,
+  FieldLabel,
+  Input,
+  ToggleButton,
+  Progress,
+  Disclosure,
+  DisclosureSummary,
+  Textarea,
+} from "@/components/ui/primitives";
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
+import { SecurityAudit } from "./security-audit";
 import { api, errorMessage } from "@/lib/client-api";
 import { useSecurityDraft } from "@/hooks/use-security-draft";
 import {
@@ -48,13 +62,13 @@ export function SecurityCheck() {
   }, [retry]);
   return (
     <>
-      {checking && <p role="status">현재 계정의 임시 기록을 확인하고 있습니다…</p>}
+      {checking && <Status role="status">현재 계정의 임시 기록을 확인하고 있습니다…</Status>}
       {error && (
         <div role="alert">
           <p>{error}</p>
-          <button className="secondary-button" onClick={() => setRetry((n) => n + 1)}>
+          <Button className="secondary-button" onClick={() => setRetry((n) => n + 1)}>
             기록 다시 불러오기
-          </button>
+          </Button>
         </div>
       )}
       {scope && (
@@ -67,9 +81,11 @@ export function SecurityCheck() {
 }
 
 function SecurityWorkspace({ scope }: { scope: string }) {
+  const { confirm, confirmation } = useConfirmation();
   const { draft, saveDraft, storageError, clear } = useSecurityDraft(scope);
   const { url, report, notes } = draft;
   const [filter, setFilter] = useState<"all" | "observed" | "review" | "unknown">("all");
+  const fade = useFadeTransition<HTMLElement>(`${filter}:${report?.checkedAt || "empty"}`);
   const [authorized, setAuthorized] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -87,6 +103,7 @@ function SecurityWorkspace({ scope }: { scope: string }) {
   }
   return (
     <div className="security-workspace">
+      {confirmation}
       <form
         className="security-form"
         onSubmit={async (event) => {
@@ -114,8 +131,8 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           }
         }}
       >
-        <label htmlFor="security-url">점검할 공개 서비스 링크</label>
-        <input
+        <FieldLabel htmlFor="security-url">점검할 공개 서비스 링크</FieldLabel>
+        <Input
           id="security-url"
           type="url"
           placeholder="https://my-service.com/"
@@ -132,8 +149,8 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           로그인 없이 이용할 수 있습니다. 주소에 토큰과 개인정보를 넣지 마세요. 한 시간에 최대
           5회이며 요청이 많으면 더 제한될 수 있습니다.
         </p>
-        <label className="security-consent">
-          <input
+        <FieldLabel className="security-consent">
+          <Input
             type="checkbox"
             checked={authorized}
             onChange={(e) => setAuthorized(e.target.checked)}
@@ -141,41 +158,41 @@ function SecurityWorkspace({ scope }: { scope: string }) {
             disabled={busy}
           />
           본인이 관리하거나 점검 허락을 받은 서비스입니다.
-        </label>
-        <button className="primary-button" disabled={!authorized || busy || !url.trim()}>
+        </FieldLabel>
+        <Button className="primary-button" disabled={!authorized || busy || !url.trim()}>
           {busy ? "공개 응답 확인 중… 최대 20초" : "공개 페이지 보안 점검"}
-        </button>
-        {busy && <p role="status">입력한 페이지의 응답 헤더와 HTML을 읽고 있습니다.</p>}
+        </Button>
+        {busy && <Status role="status">입력한 페이지의 응답 헤더와 HTML을 읽고 있습니다.</Status>}
         {error && (
-          <p role="alert" className="security-error">
+          <Status role="alert" className="security-error">
             {error}
-          </p>
+          </Status>
         )}
       </form>
       {report && (
-        <section className="security-results" aria-label="보안 점검 결과">
+        <section ref={fade} className="security-results" aria-label="보안 점검 결과">
           <div className="section-heading">
             <div>
               <h2>관찰한 설정과 다음 행동</h2>
               <p>{report.url}</p>
               <p>{new Date(report.checkedAt).toLocaleString("ko-KR")} 기준</p>
             </div>
-            <button className="secondary-button" onClick={download}>
+            <Button className="secondary-button" onClick={download}>
               결과와 AI 수정 요청 저장
-            </button>
+            </Button>
           </div>
-          <p role="status">
+          <Status role="status">
             설정 관찰 {report.findings.filter((f) => f.status === "observed").length}개 / 보완 검토{" "}
             {report.findings.filter((f) => f.status === "review").length}개 / 추가 확인{" "}
             {report.findings.filter((f) => f.status === "unknown").length}개
-          </p>
+          </Status>
           <p>
             설정이 있다는 사실만으로 안전하다고 판정하지 않습니다. 보완 검토는 취약점 확정이나 공격
             성공을 의미하지 않습니다.
           </p>
           <div className="result-filter" role="group" aria-label="점검 결과 필터">
             {(["all", "review", "unknown", "observed"] as const).map((status) => (
-              <button
+              <ToggleButton
                 type="button"
                 key={status}
                 aria-pressed={filter === status}
@@ -187,13 +204,13 @@ function SecurityWorkspace({ scope }: { scope: string }) {
                     ? report.findings.length
                     : report.findings.filter((f) => f.status === status).length}
                 </span>
-              </button>
+              </ToggleButton>
             ))}
           </div>
-          <p className="result-filter-status" role="status">
+          <Status className="result-filter-status" role="status">
             {filter === "all" ? "전체" : securityStatus[filter]} 항목{" "}
             {report.findings.filter((f) => filter === "all" || f.status === filter).length}개 표시
-          </p>
+          </Status>
           <div className="security-grid">
             {report.findings
               .filter((f) => filter === "all" || f.status === filter)
@@ -209,13 +226,14 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           </div>
         </section>
       )}
+      <SecurityAudit key={url} scope={scope} url={url} />
       <section className="security-exercises">
         <h2>내 테스트 환경에서 이어가는 모의해킹 준비</h2>
         <div className="notes-progress">
-          <label htmlFor="security-notes-progress">
+          <FieldLabel htmlFor="security-notes-progress">
             확인 메모 작성 {notes.filter((note) => note.trim()).length} / {securityExercises.length}
-          </label>
-          <progress
+          </FieldLabel>
+          <Progress
             id="security-notes-progress"
             max={securityExercises.length}
             value={notes.filter((note) => note.trim()).length}
@@ -232,19 +250,20 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           기록을 파일로 저장하세요. 비밀키, 비밀번호와 실제 사용자 정보는 적지 마세요.
         </p>
         {storageError && (
-          <p role="alert" className="security-error">
+          <Status role="alert" className="security-error">
             브라우저에 임시 보관하지 못했습니다. 화면을 떠나기 전에 확인 기록을 파일로 저장하세요.
-          </p>
+          </Status>
         )}
         <div className="security-record-actions">
-          <button className="secondary-button" onClick={download}>
+          <Button className="secondary-button" onClick={download}>
             확인 기록 파일로 저장
-          </button>
-          <button
+          </Button>
+          <Button
             className="text-button"
             disabled={busy}
-            onClick={() => {
-              if (window.confirm("이 탭에 보관한 주소, 점검 결과와 메모를 모두 지울까요?")) {
+            onClick={async (event) => {
+              event.currentTarget.focus();
+              if (await confirm("이 탭에 보관한 주소, 점검 결과와 메모를 모두 지울까요?")) {
                 clear();
                 setAuthorized(false);
                 setError("");
@@ -252,19 +271,19 @@ function SecurityWorkspace({ scope }: { scope: string }) {
             }}
           >
             임시 기록 지우기
-          </button>
+          </Button>
         </div>
         {securityExercises.map((item, index) => (
-          <details key={item.title}>
-            <summary>{item.title}</summary>
+          <Disclosure key={item.title}>
+            <DisclosureSummary>{item.title}</DisclosureSummary>
             <p>{item.steps}</p>
             <p>
               <strong>기대 결과: </strong>
               {item.expected}
             </p>
-            <label>
+            <FieldLabel>
               내 확인 결과
-              <textarea
+              <Textarea
                 placeholder="사용한 테스트 계정, 예상 결과, 실제 결과와 남은 문제를 기록하세요. 비밀번호나 실제 사용자 정보는 제외하세요."
                 maxLength={2000}
                 value={notes[index]}
@@ -276,9 +295,9 @@ function SecurityWorkspace({ scope }: { scope: string }) {
                   }))
                 }
               />
-            </label>
+            </FieldLabel>
             <Link href={item.href}>{item.linkLabel} →</Link>
-          </details>
+          </Disclosure>
         ))}
       </section>
     </div>

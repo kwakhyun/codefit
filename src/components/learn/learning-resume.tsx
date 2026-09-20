@@ -1,6 +1,7 @@
 "use client";
+import { Status, Button, Card } from "@/components/ui/primitives";
 import { SectionArtwork } from "@/components/experience/section-artwork";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { ArrowRight } from "lucide-react";
 import { useLearningOverview } from "@/hooks/use-learning-overview";
 import { learningOverview, LEARNING_STAGES } from "@/lib/learn/overview";
@@ -18,24 +19,25 @@ export function LearningResume({
   const overview = data ? learningOverview(data.progress) : null;
   if (error)
     return (
-      <p className="resume-status" role="status">
+      <Status className="resume-status" role="status">
         입문 기록을 확인하지 못했습니다. {error}{" "}
-        <button className="text-button" onClick={reload}>
+        <Button className="text-button" onClick={reload}>
           다시 확인
-        </button>
-      </p>
+        </Button>
+      </Status>
     );
   if (!overview)
     return (
-      <p className="resume-status" role="status">
+      <Status className="resume-status" role="status">
         입문 학습 기록을 확인하고 있습니다…
-      </p>
+      </Status>
     );
   const current = overview.resume;
   if (!current && recommendFirst && overview.complete < overview.missions.length) {
     const next = overview.next.mission;
     return (
-      <section
+      <Card
+        as="section"
         className="resume-card home-recommendation illustrated-resume"
         aria-label="추천 첫 학습"
       >
@@ -50,12 +52,12 @@ export function LearningResume({
         <Link className="primary-button" href={`/learn/${next.id}`}>
           추천 미션 시작하기 <ArrowRight size={16} />
         </Link>
-      </section>
+      </Card>
     );
   }
   if (!current && !showEmpty) return null;
   return (
-    <section className="resume-card illustrated-resume" aria-label="입문 학습 이어하기">
+    <Card as="section" className="resume-card illustrated-resume" aria-label="입문 학습 이어하기">
       <SectionArtwork topic="principles" />
       <div>
         <span className="eyebrow">{current ? "이어서 연습할 미션" : "서비스 원리 학습 기록"}</span>
@@ -73,6 +75,6 @@ export function LearningResume({
         {current ? "이어서 연습하기" : "입문 학습 보기"}
         <ArrowRight size={16} />
       </Link>
-    </section>
+    </Card>
   );
 }

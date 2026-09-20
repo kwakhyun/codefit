@@ -1,0 +1,421 @@
+/* Work surfaces: quiet introductions, consistent rhythm, and room for the task itself.
+   Domain problem lists and the code editor retain their existing layout. */
+.visual-intro.visual-intro {
+  grid-template-columns: minmax(0, 1fr) 168px;
+  gap: 32px;
+  margin: 24px 0;
+  padding: 8px 0 24px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+}
+.visual-intro .visual-intro-copy h1 {
+  font-size: clamp(25px, 2.5vw, 34px);
+  line-height: 1.45;
+  letter-spacing: -0.035em;
+  margin: 8px 0 12px;
+  text-wrap: balance;
+}
+.visual-intro .visual-intro-copy h1 br {
+  display: none;
+}
+.visual-intro .visual-intro-copy p {
+  max-width: 68ch;
+  margin: 8px 0 0;
+  line-height: 1.75;
+}
+.visual-intro > .section-artwork {
+  background: transparent;
+  border-radius: 8px;
+}
+.visual-intro .eyebrow {
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.experience-journey {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  margin-bottom: 28px;
+}
+.journey-label {
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.journey-options {
+  gap: 8px;
+}
+.journey-options button {
+  min-height: 44px;
+  padding: 10px 14px;
+  background: transparent;
+  border-color: var(--line);
+}
+.journey-options button[aria-pressed="true"] {
+  background: #19232b;
+  border-color: #68849b;
+  color: #deebf5;
+}
+.journey-options button > svg:last-child {
+  display: none;
+}
+.journey-detail {
+  min-height: 0;
+  margin-top: 12px;
+  padding: 4px 0 4px 14px;
+  background: none;
+  border-color: #68849b;
+}
+.journey-detail strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.journey-detail p {
+  font-size: 13px;
+  margin-top: 4px;
+}
+.project-usage {
+  margin: 20px 0;
+  padding: 14px 18px;
+  background: transparent;
+}
+.project-panel {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 28px;
+}
+.project-panel > p + :is(p, details, a, button, div) {
+  margin-top: 16px;
+}
+.project-feedback-list {
+  margin-top: 24px;
+}
+.project-feedback > :is(p, details, strong) {
+  margin-block: 14px;
+}
+.project-feedback > strong {
+  display: block;
+}
+.project-next-step {
+  margin-block: 20px;
+}
+.project-panel > .project-help {
+  margin-block: 12px;
+}
+.project-form {
+  gap: 12px;
+}
+.project-form > .primary-button {
+  align-self: flex-start;
+  padding-inline: 24px;
+}
+.project-page .project-form > label:not(.project-consent) {
+  margin-top: 16px;
+}
+.feature-banner,
+.feature-slide {
+  background: var(--surface);
+}
+.feature-banner {
+  border-radius: 12px;
+}
+.feature-banner-top {
+  padding: 12px 24px;
+}
+.feature-slide {
+  min-height: 218px;
+  padding: 24px;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 28px;
+}
+.feature-copy h2 {
+  font-size: 25px;
+  line-height: 1.5;
+  margin-block: 10px 12px;
+}
+.feature-copy p {
+  line-height: 1.75;
+  margin-bottom: 20px;
+}
+.feature-art {
+  height: 190px;
+  width: 100%;
+  margin: 0;
+  mask-image: none;
+}
+.feature-banner-controls {
+  padding: 12px 20px;
+}
+.feature-topic-rail button {
+  background: transparent;
+  border-color: var(--line);
+}
+.visual-path-card > .section-artwork img {
+  max-height: 160px;
+  object-fit: contain;
+}
+.persona-next-steps a.visual-path-card {
+  background: var(--surface);
+  border-radius: 12px;
+}
+.learn-page :is(h2, h3) {
+  text-wrap: balance;
+}
+.learn-page :is(button, a, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 4px;
+}
+.learn-page :is(input:not([type="checkbox"]), textarea, select) {
+  scroll-margin: 24px;
+}
+.learn-page details[open] > summary {
+  margin-bottom: 14px;
+}
+.learn-page .section-heading {
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.learn-page .section-heading p {
+  margin-top: 8px;
+  line-height: 1.75;
+}
+.learn-page .security-exercises > p {
+  max-width: 80ch;
+}
+.security-finding,
+.security-form {
+  border-radius: 12px;
+}
+@media (max-width: 700px) {
+  .visual-intro.visual-intro {
+    grid-template-columns: minmax(0, 1fr) 80px;
+    gap: 16px;
+    padding: 8px 0 20px;
+    margin: 16px 0 20px;
+  }
+  .visual-intro > .section-artwork {
+    grid-row: auto;
+    width: 80px;
+    align-self: start;
+    margin-top: 12px;
+  }
+  .visual-intro > .section-artwork img {
+    aspect-ratio: 1;
+    object-fit: contain;
+  }
+  .visual-intro .visual-intro-copy h1 {
+    font-size: 25px;
+  }
+  .visual-intro .visual-intro-copy p {
+    font-size: 14px;
+  }
+  .journey-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .journey-options button {
+    display: block;
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .journey-options button > svg {
+    display: none !important;
+  }
+  .journey-number {
+    display: block;
+    margin-bottom: 4px;
+  }
+  .journey-detail {
+    min-height: 0;
+  }
+  .project-panel {
+    padding: 22px 18px;
+  }
+  .feature-slide {
+    grid-template-columns: minmax(0, 1fr) 88px;
+    gap: 16px;
+    padding: 20px;
+    min-height: 250px;
+  }
+  .feature-art {
+    height: 100px;
+    align-self: start;
+    width: 88px;
+    margin: 12px 0 0;
+  }
+  .feature-copy h2 {
+    font-size: 21px;
+  }
+  .feature-copy p {
+    font-size: 14px;
+  }
+  .feature-copy .primary-button {
+    white-space: normal;
+  }
+  .feature-banner-controls {
+    padding: 12px;
+  }
+}
+.project-task-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 24px 0;
+  padding-block: 16px;
+  border-block: 1px solid var(--line);
+}
+.verification-plan {
+  margin: 20px 0;
+  padding: 20px;
+  background: #131b23;
+  border-left: 2px solid #819eb5;
+}
+.verification-plan h3 {
+  line-height: 1.6;
+}
+.verification-plan ol {
+  margin: 20px 0;
+  padding-left: 24px;
+}
+.verification-plan li {
+  padding-left: 6px;
+  margin: 16px 0;
+  line-height: 1.75;
+}
+.verification-plan li p {
+  margin-top: 6px;
+}
+.verification-plan small {
+  display: block;
+  margin-top: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.security-audit > p {
+  margin-top: 10px;
+}
+.audit-method {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin: 20px 0;
+  padding: 22px;
+  background: var(--surface);
+  min-width: 0;
+}
+.audit-method > summary {
+  cursor: pointer;
+  min-height: 44px;
+  line-height: 1.6;
+}
+.audit-method > summary > span {
+  display: block;
+  margin: 6px 0 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.audit-method > :is(p, label, button, div, section, ol) {
+  margin-top: 20px;
+}
+.audit-method :is(p, li) {
+  line-height: 1.8;
+}
+.learn-page .security-audit .security-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+}
+.audit-method input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.audit-method label:not(.security-consent) {
+  display: block;
+  margin-bottom: 10px;
+}
+.audit-method input[type="file"] {
+  max-width: 100%;
+  font: inherit;
+  font-size: 14px;
+}
+.ownership-instructions {
+  border-left: 2px solid #819eb5;
+  padding-left: 20px;
+}
+.ownership-instructions > :is(h3, p, button, code) {
+  display: block;
+  margin-block: 16px;
+}
+.ownership-instructions code,
+.zap-finding code {
+  overflow-wrap: anywhere;
+  white-space: normal;
+  font-size: 13px;
+}
+.audit-table-wrap {
+  overflow-x: auto;
+  margin: 20px 0;
+}
+.audit-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+.audit-table-wrap caption {
+  text-align: left;
+  margin-bottom: 12px;
+  color: var(--muted);
+}
+.audit-table-wrap :is(th, td) {
+  padding: 14px 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  max-width: 240px;
+}
+.audit-table-wrap th small {
+  display: block;
+  margin-top: 6px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.audit-steps {
+  padding-left: 24px;
+}
+.audit-steps li {
+  margin-block: 14px;
+}
+.zap-finding {
+  padding-block: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.zap-finding p {
+  margin-block: 14px;
+}
+.zap-finding ul {
+  padding-left: 20px;
+  margin-block: 16px;
+}
+.audit-method a {
+  color: var(--action-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 700px) {
+  .audit-method {
+    padding: 18px;
+  }
+  .project-task-toolbar button {
+    width: 100%;
+    white-space: normal;
+  }
+}

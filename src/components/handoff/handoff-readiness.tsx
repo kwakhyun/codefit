@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 import { HANDOFF_FIELDS, missingHandoffFields, readHandoffDraft } from "@/lib/handoff/draft";
 
 export function focusHandoffField(key: string) {
@@ -20,9 +21,9 @@ export function HandoffReadiness({ value }: { value: string }) {
           : "모든 항목을 작성했습니다. AI 풀이 검토를 요청하면 코드와 메모를 함께 검토합니다."}
       </p>
       {missing.map((f) => (
-        <button key={f.key} className="text-button" onClick={() => focusHandoffField(f.key)}>
+        <Button key={f.key} className="text-button" onClick={() => focusHandoffField(f.key)}>
           {f.label} 작성하기 →
-        </button>
+        </Button>
       ))}
     </div>
   );

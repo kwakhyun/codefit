@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { checkCodeRevision, existingClaim, ownsJob, StaleJob } from "./write-conflicts";
 import { StoreQueries } from "./store-queries";
 import { authSchema } from "./auth-schema.mjs";
-import { DAILY_GENERATIONS, GENERATION_LEASE_MS, generationDay } from "./generation-quota";
+import { generationAllowance, GENERATION_LEASE_MS, generationDay } from "./generation-quota";
 import { catalogColumns, catalogValues } from "./catalog-record";
 import { validateLimits } from "./usage-policy";
 import { mkdirSync } from "node:fs";
@@ -271,7 +271,7 @@ export class SqliteStore implements ProblemStore {
           "SELECT COUNT(*) AS count FROM generation_usage WHERE owner=? AND day=? AND request_id<>? AND (state='done' OR expires>?)",
         )
         .get(lease.owner, day, lease.id, now);
-      if (Number(used?.count) >= DAILY_GENERATIONS) return false;
+      if (Number(used?.count) >= generationAllowance(lease.owner)) return false;
       this.db
         .prepare(
           "INSERT INTO generation_usage(request_id,owner,day,state,expires,token) VALUES (?,?,?,'pending',?,?) ON CONFLICT(request_id) DO UPDATE SET day=excluded.day,state='pending',expires=excluded.expires,token=excluded.token",

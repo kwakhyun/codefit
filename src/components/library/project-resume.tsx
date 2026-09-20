@@ -1,14 +1,14 @@
 "use client";
+import { Card } from "@/components/ui/primitives";
 import { SectionArtwork } from "@/components/experience/section-artwork";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { api } from "@/lib/client-api";
 import type { CheckOverview } from "@/lib/project-check/types";
 export function ProjectResume({ scope }: { scope: string }) {
   const [overview, setOverview] = useState<CheckOverview | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
-    if (!scope.startsWith("user:")) return;
     const controller = new AbortController();
     api<CheckOverview>("/api/project-check", { scope, signal: controller.signal })
       .then((value) => {
@@ -21,7 +21,8 @@ export function ProjectResume({ scope }: { scope: string }) {
   }, [scope]);
   const check = overview?.scope === scope ? overview.checks[0] : undefined;
   return (
-    <section
+    <Card
+      as="section"
       className="persona-project-resume illustrated-panel"
       aria-label="내 프로젝트 점검 이어하기"
     >
@@ -43,7 +44,7 @@ export function ProjectResume({ scope }: { scope: string }) {
             : "/project-check"
         }
       >
-        {check ? "최근 프로젝트 이어서 점검" : "프로젝트 질문과 피드백 예시 보기"} →
+        {check ? "최근 프로젝트 이어서 점검" : "내 프로젝트 무료로 점검하기"} →
       </Link>
       <small>
         {failed
@@ -51,9 +52,9 @@ export function ProjectResume({ scope }: { scope: string }) {
           : check
             ? "저장된 질문과 답변 이어보기 · 기록 조회는 새 분석 횟수를 사용하지 않습니다."
             : scope.startsWith("user:")
-              ? "새 프로젝트 분석은 24시간에 2개까지 이용할 수 있습니다."
-              : "실제 분석은 로그인 필요 · 24시간에 프로젝트 2개까지"}
+              ? "24시간에 프로젝트 분석 5회 · 답변 평가 12회"
+              : "로그인 없이 실제 분석 2회 · 로그인하면 5회"}
       </small>
-    </section>
+    </Card>
   );
 }

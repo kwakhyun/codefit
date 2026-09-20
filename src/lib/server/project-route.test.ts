@@ -7,17 +7,22 @@ beforeEach(() => {
   current.mockReset();
   getStore.mockReset();
 });
-it("blocks guest mutations before fetching pages, consuming quota, or calling AI", async () => {
+it("rejects stale guest writes and reads only the current guest workspace", async () => {
   current.mockResolvedValue({ owner: "guest", scope: "guest:1", user: null });
   for (const handler of [POST, PATCH, DELETE])
     expect(
       (await handler(new Request("https://codefit.test/api/project-check", { method: "POST" })))
         .status,
-    ).toBe(401);
+    ).toBe(409);
+  expect(getStore).not.toHaveBeenCalled();
+  const page = vi.fn().mockResolvedValue({ checks: [], nextCursor: null });
+  getStore.mockResolvedValue({
+    queries: { projectChecks: { page, usage: vi.fn().mockResolvedValue({}) } },
+  });
   const response = await GET(new Request("https://codefit.test/api/project-check"));
   expect(await response.json()).toMatchObject({ signedIn: false, checks: [] });
   expect(response.headers.get("cache-control")).toBe("no-store");
-  expect(getStore).not.toHaveBeenCalled();
+  expect(page).toHaveBeenCalledWith("guest", null);
 });
 it("requires a matching workspace and rejects unexpected request fields", async () => {
   current.mockResolvedValue({ owner: "user:a", scope: "user:a", user: { id: "a" } });
@@ -58,7 +63,7 @@ it("requires ownership for deep links and returns a private 404 for absent recor
   expect((await detail(request, { params })).status).toBe(409);
   expect(find).toHaveBeenCalledTimes(1);
   current.mockResolvedValue({ owner: "guest", scope: "guest:1", user: null });
-  expect((await detail(request, { params })).status).toBe(401);
+  expect((await detail(request, { params })).status).toBe(409);
 });
 it("passes an opaque cursor to the owned page query and keeps the response uncached", async () => {
   current.mockResolvedValue({ owner: "user:a", scope: "user:a", user: { id: "a" } });

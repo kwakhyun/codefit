@@ -1,4 +1,6 @@
 "use client";
+import { useFadeTransition } from "@/components/ui/use-fade-transition";
+import { ToggleButton } from "@/components/ui/primitives";
 import { useId, useState } from "react";
 import { ArrowRight, Check, MousePointer2, Play, Search } from "lucide-react";
 const journeys = {
@@ -57,7 +59,7 @@ const journeys = {
     [
       "점검 범위 정하기",
       "내가 소유하거나 점검 권한이 있는 공개 주소를 입력하세요.",
-      "공개 응답의 설정을 읽습니다. 공격이나 로그인은 실행하지 않습니다.",
+      "기본 점검은 공개 응답을 읽고, CORS 테스트는 로그인과 소유권 확인 후 실행합니다.",
     ],
     [
       "관찰 근거 확인",
@@ -66,14 +68,15 @@ const journeys = {
     ],
     [
       "내 환경에서 검증",
-      "계정별 권한과 중복 요청을 직접 확인하고 기록하세요.",
-      "자동 점검 결과와 내가 남긴 검증 메모를 함께 내려받습니다.",
+      "소유권 확인 후 CORS를 비교하거나 ZAP 보고서를 가져오세요.",
+      "요청과 응답 근거, 수정 요청과 재검사 기록표를 내려받습니다.",
     ],
   ],
 } as const;
 const icons = [Search, Play, Check];
 export function ExperienceJourney({ topic }: { topic: keyof typeof journeys }) {
   const [active, setActive] = useState(0);
+  const fade = useFadeTransition<HTMLDivElement>(active);
   const id = useId();
   const steps = journeys[topic];
   return (
@@ -85,7 +88,7 @@ export function ExperienceJourney({ topic }: { topic: keyof typeof journeys }) {
         {steps.map(([title], index) => {
           const Icon = icons[index];
           return (
-            <button
+            <ToggleButton
               key={title}
               type="button"
               aria-pressed={index === active}
@@ -96,11 +99,11 @@ export function ExperienceJourney({ topic }: { topic: keyof typeof journeys }) {
               <Icon size={19} aria-hidden="true" />
               <strong>{title}</strong>
               <ArrowRight size={16} aria-hidden="true" />
-            </button>
+            </ToggleButton>
           );
         })}
       </div>
-      <div id={id} className="journey-detail" aria-live="polite">
+      <div ref={fade} id={id} className="journey-detail" aria-live="polite">
         <strong>{steps[active][1]}</strong>
         <p>{steps[active][2]}</p>
       </div>

@@ -1,4 +1,5 @@
 "use client";
+import { Button, Card } from "@/components/ui/primitives";
 import { useEffect, useId, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { actionLabel, type Action, type Mission } from "@/lib/learn/catalog";
@@ -21,6 +22,7 @@ export function ExperimentGuide({
   result,
   fixed,
   disabled,
+  finishOnRequired = false,
 }: {
   mission: Mission;
   actions: Action[];
@@ -28,15 +30,29 @@ export function ExperimentGuide({
   result: string;
   fixed: boolean;
   disabled: boolean;
+  finishOnRequired?: boolean;
 }) {
   const steps = experimentSteps(mission);
   const index = experimentProgress(mission, actions, steps);
   const step = steps[index];
+  const visibleTotal =
+    finishOnRequired && !step?.optional
+      ? steps.filter((item) => !item.optional).length
+      : steps.length;
+  const [extraExperiments, setExtraExperiments] = useState(false);
+  const requiredDone = finishOnRequired && (!step || Boolean(step.optional));
+  const [previousCompletion, setPreviousCompletion] = useState(requiredDone);
+  if (previousCompletion !== requiredDone) {
+    setPreviousCompletion(requiredDone);
+    // A restarted observation must pause at its own summary again.
+    if (!requiredDone) setExtraExperiments(false);
+  }
+  const pausedAtSummary = requiredDone && !extraExperiments;
   const [enabled, setEnabled] = useState(true);
   const [position, setPosition] = useState<Position | null>(null);
   const description = useId();
   const action = step?.action;
-  const active = enabled && !disabled && Boolean(action);
+  const active = enabled && !disabled && Boolean(action) && !pausedAtSummary;
 
   useEffect(() => {
     if (!active) return;
@@ -95,7 +111,10 @@ export function ExperimentGuide({
       frame = requestAnimationFrame(measure);
     }
     function escape(event: KeyboardEvent) {
-      if (event.key === "Escape") setEnabled(false);
+      if (event.key !== "Escape") return;
+      if (document.activeElement?.closest(".experiment-spotlight"))
+        target()?.focus({ preventScroll: true });
+      setEnabled(false);
     }
     const observer = new ResizeObserver(schedule);
     observer.observe(container);
@@ -128,29 +147,51 @@ export function ExperimentGuide({
     target?.scrollIntoView({ block: "center", behavior: "instant" });
     target?.focus({ preventScroll: true });
   }
+  function dismiss() {
+    const target =
+      root.current?.querySelector<HTMLElement>(`[data-sim-action="${action}"]`) ||
+      root.current?.querySelector<HTMLElement>("[data-sim-reveal]");
+    target?.focus({ preventScroll: true });
+    setEnabled(false);
+  }
   return (
     <>
       <div className="experiment-guide-bar" data-guide-step={index}>
         <div>
           <strong>
-            {!step
-              ? "안내된 실험을 마쳤습니다"
-              : `${fixed ? "수정 후 재실험" : "버튼 따라 실험하기"} · ${index + 1}/${steps.length}`}
+            {pausedAtSummary
+              ? "필수 실험을 마쳤습니다"
+              : !step
+                ? "안내된 실험을 마쳤습니다"
+                : `${fixed ? "수정 후 재실험" : "버튼 따라 실험하기"} · ${index + 1}/${visibleTotal}`}
           </strong>
           <p>
-            {disabled
-              ? "조작 한도에 도달했습니다. 기록을 보관한 뒤 실험을 다시 시작하세요."
-              : !step
-                ? "첫 예상과 결과를 비교하세요. 원하는 버튼을 더 눌러보거나 다음 학습 단계로 이동할 수 있습니다."
-                : step.optional
-                  ? "필수 관찰 완료. 지금부터는 선택 실험이며, 바로 다음 학습 단계로 이동해도 됩니다."
-                  : "강조된 실제 버튼을 누르면 다음 조작을 안내합니다."}
+            {pausedAtSummary
+              ? "결과 요약을 읽고 수정과 검사로 이어가세요. 추가 실험은 선택입니다."
+              : disabled
+                ? "조작 한도에 도달했습니다. 기록을 보관한 뒤 실험을 다시 시작하세요."
+                : !step
+                  ? "첫 예상과 결과를 비교하세요. 원하는 버튼을 더 눌러보거나 다음 학습 단계로 이동할 수 있습니다."
+                  : step.optional
+                    ? "필수 관찰 완료. 지금부터는 선택 실험이며, 바로 다음 학습 단계로 이동해도 됩니다."
+                    : "강조된 실제 버튼을 누르면 다음 조작을 안내합니다."}
           </p>
         </div>
-        {step && !disabled && (
-          <button type="button" onClick={enabled ? () => setEnabled(false) : locate}>
+        {pausedAtSummary && step && !disabled && (
+          <Button
+            type="button"
+            onClick={() => {
+              setExtraExperiments(true);
+              locate();
+            }}
+          >
+            선택 실험 이어하기
+          </Button>
+        )}
+        {step && !disabled && !pausedAtSummary && (
+          <Button type="button" onClick={enabled ? () => setEnabled(false) : locate}>
             {enabled ? "안내 숨기기" : "조작 안내 다시 보기"}
-          </button>
+          </Button>
         )}
       </div>
       {active &&
@@ -167,22 +208,19 @@ export function ExperimentGuide({
                 height: position.height,
               }}
             />
-            <aside
+            <Card
+              as="aside"
               className={`experiment-spotlight-card ${position.below ? "at-bottom" : "at-top"}`}
               aria-label="실습 조작 안내"
               style={{ maxHeight: Math.min(360, position.space) }}
             >
               <div className="experiment-spotlight-heading">
                 <span>
-                  {step!.optional ? "선택 실험" : "필수 실험"} · {index + 1}/{steps.length}
+                  {step!.optional ? "선택 실험" : "필수 실험"} · {index + 1}/{visibleTotal}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setEnabled(false)}
-                  aria-label="실습 조작 안내 닫기"
-                >
+                <Button type="button" onClick={dismiss} aria-label="실습 조작 안내 닫기">
                   닫기 ×
-                </button>
+                </Button>
               </div>
               <div id={description} aria-live="polite" aria-atomic="true">
                 <strong>‘{position.label}’ 버튼을 누르세요</strong>
@@ -202,10 +240,10 @@ export function ExperimentGuide({
                   <b>방금 결과</b> {result}
                 </p>
               )}
-              <button className="experiment-locate" type="button" onClick={locate}>
+              <Button className="experiment-locate" type="button" onClick={locate}>
                 버튼 위치로 이동
-              </button>
-            </aside>
+              </Button>
+            </Card>
           </div>,
           document.body,
         )}

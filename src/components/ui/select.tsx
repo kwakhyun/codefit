@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 
 import { Check, ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
@@ -123,7 +124,7 @@ export function Select({
   }
   return (
     <span className="ui-select">
-      <button
+      <Button
         ref={trigger}
         type="button"
         role="combobox"
@@ -140,7 +141,7 @@ export function Select({
       >
         <span>{options[selected]?.label}</span>
         <ChevronDown size={15} aria-hidden="true" />
-      </button>
+      </Button>
       <div
         ref={popup}
         id={id}

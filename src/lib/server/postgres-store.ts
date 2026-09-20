@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { checkCodeRevision, existingClaim, ownsJob, StaleJob } from "./write-conflicts";
 import { StoreQueries } from "./store-queries";
 import { authSchema } from "./auth-schema.mjs";
-import { DAILY_GENERATIONS, GENERATION_LEASE_MS, generationDay } from "./generation-quota";
+import { generationAllowance, GENERATION_LEASE_MS, generationDay } from "./generation-quota";
 import { catalogColumns, catalogValues } from "./catalog-record";
 import { validateLimits } from "./usage-policy";
 import postgres, { type Sql, type TransactionSql } from "postgres";
@@ -215,7 +215,7 @@ export class PostgresStore implements ProblemStore {
       const day = generationDay(now).key;
       const [used] =
         await store.sql`SELECT COUNT(*) AS count FROM generation_usage WHERE owner=${lease.owner} AND day=${day} AND request_id<>${lease.id} AND (state='done' OR expires>${now})`;
-      if (Number(used.count) >= DAILY_GENERATIONS) return false;
+      if (Number(used.count) >= generationAllowance(lease.owner)) return false;
       await store.sql`INSERT INTO generation_usage(request_id,owner,day,state,expires,token) VALUES(${lease.id},${lease.owner},${day},'pending',${Number(job.expires)},${lease.token}) ON CONFLICT(request_id) DO UPDATE SET day=EXCLUDED.day,state='pending',expires=EXCLUDED.expires,token=EXCLUDED.token`;
       return true;
     });

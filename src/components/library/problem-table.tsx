@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 
 import type { LibraryController } from "@/hooks/use-library-controller";
 
@@ -7,7 +8,7 @@ import { domainLabel, LANGUAGES } from "@/lib/catalog";
 import { problemUrl } from "@/lib/library-state";
 import type { ProblemSummary } from "@/lib/problem";
 import { Bookmark, CheckCircle2, Clock3, Search, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 interface ProblemTableProps {
   library: LibraryController;
   initialView: "library" | "bookmarks" | "browse";
@@ -29,9 +30,9 @@ export function ProblemTable({ library, initialView, bookmarking, bookmark }: Pr
       {library.loadError ? (
         <div className="empty-state" role="alert">
           <p>{library.loadError}</p>
-          <button className="secondary-button" onClick={library.retry}>
+          <Button className="secondary-button" onClick={library.retry}>
             다시 불러오기
-          </button>
+          </Button>
         </div>
       ) : library.loading ? (
         <div className="empty-state" role="status">
@@ -51,9 +52,9 @@ export function ProblemTable({ library, initialView, bookmarking, bookmark }: Pr
               : "검색 조건을 바꾸거나 원하는 주제로 새 문제를 만들어 보세요."}
           </p>
           {hasFilters ? (
-            <button className="secondary-button" onClick={resetFilters}>
+            <Button className="secondary-button" onClick={resetFilters}>
               필터 초기화
-            </button>
+            </Button>
           ) : (
             <Link href="/" className="secondary-button">
               전체 문제 보기
@@ -111,14 +112,14 @@ export function ProblemTable({ library, initialView, bookmarking, bookmark }: Pr
                 {p.minutes}
                 <small> min</small>
               </span>
-              <button
+              <Button
                 className={`bookmark-button icon-button ${progress?.bookmarked ? "active" : ""}`}
                 aria-label={`${p.title} ${progress?.bookmarked ? "북마크 해제" : "북마크"}`}
                 disabled={bookmarking === p.id}
                 onClick={() => bookmark(p, Boolean(progress?.bookmarked))}
               >
                 <Bookmark size={17} fill={progress?.bookmarked ? "currentColor" : "none"} />
-              </button>
+              </Button>
             </div>
           );
         })

@@ -1,3 +1,4 @@
+import { waitForUiTransitions } from "./ui-helpers";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { fixtureCheck, fixtureAssessment } from "../src/lib/project-check/fixtures";
@@ -16,15 +17,15 @@ function overview(): CheckOverview {
     checks: [],
   };
 }
-test("project checks require login and provide an accessible mobile entry", async ({
+test("guests can enter project checks while stale writes remain blocked", async ({
   page,
   request,
 }) => {
   await page.goto("/project-check");
-  await expect(page.getByRole("link", { name: "간편 로그인하고 AI 기능 사용하기" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "로그인하고 AI 이용 횟수 늘리기" })).toBeVisible();
   for (const method of ["POST", "PATCH", "DELETE"]) {
     const response = await request.fetch("/api/project-check", { method, data: {} });
-    expect(response.status()).toBe(401);
+    expect(response.status()).toBe(409);
   }
   for (const width of [320, 390, 768]) {
     await page.setViewportSize({ width, height: 900 });
@@ -32,9 +33,10 @@ test("project checks require login and provide an accessible mobile entry", asyn
       true,
     );
   }
+  await waitForUiTransitions(page);
   const scan = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(scan.violations).toEqual([]);
-  await page.getByRole("link", { name: "간편 로그인하고 AI 기능 사용하기" }).click();
+  await page.getByRole("link", { name: "로그인하고 AI 이용 횟수 늘리기" }).click();
   await expect(page).toHaveURL(/login\?returnTo=/);
 });
 test("link to questions, draft restore, keyboard navigation, assessment and deletion", async ({
@@ -94,6 +96,7 @@ test("link to questions, draft restore, keyboard navigation, assessment and dele
       true,
     );
   }
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
@@ -103,14 +106,18 @@ test("link to questions, draft restore, keyboard navigation, assessment and dele
   await page.getByRole("button", { name: "이 답변으로 이해도 확인" }).click();
   await expect(page.getByRole("heading", { name: "설계 설명 점수 50 / 100" })).toBeVisible();
   expect(lastAnswers).toHaveLength(5);
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
   ).toEqual([]);
   if (info.project.name === "chromium")
     await page.screenshot({ path: "docs/images/project-check-result.png", fullPage: true });
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "이 점검 기록 삭제" }).click();
+  await page
+    .getByRole("dialog", { name: "기록 삭제 확인" })
+    .getByRole("button", { name: "삭제하기", exact: true })
+    .click();
   await expect(page.getByRole("heading", { name: "어떤 서비스를 만드셨나요?" })).toBeVisible();
 });
 test("quota, failed assessment retry and account isolation preserve the right drafts", async ({

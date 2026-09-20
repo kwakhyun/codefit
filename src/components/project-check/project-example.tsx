@@ -1,10 +1,15 @@
+import { Card, Disclosure, DisclosureSummary } from "@/components/ui/primitives";
 import { AccessPreview } from "@/components/experience/access-preview";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 
 /** An editorial example of the flow, never presented as a live AI assessment. */
 export function ProjectExample() {
   return (
-    <section className="project-panel project-example" aria-labelledby="project-example-title">
+    <Card
+      as="section"
+      className="project-panel project-example"
+      aria-labelledby="project-example-title"
+    >
       <span className="eyebrow">로그인 없이 먼저 살펴보기</span>
       <h2 id="project-example-title">어떤 질문과 피드백을 받나요?</h2>
       <p>
@@ -39,17 +44,17 @@ export function ProjectExample() {
           <Link href="/learn/private-board">접근 권한 실습으로 확인하기 →</Link>
         </div>
       </div>
-      <details>
-        <summary>데이터 저장에 관한 질문도 보기</summary>
+      <Disclosure>
+        <DisclosureSummary>데이터 저장에 관한 질문도 보기</DisclosureSummary>
         <p>
           메모를 저장한 직후 새로고침하거나 다른 기기로 접속하면 같은 내용을 볼 수 있나요? 어느
           저장소를 기준으로 화면을 보여주는지 설명해 주세요.
         </p>
-      </details>
+      </Disclosure>
       <p className="learn-fineprint">
         실제 점검에서는 공개 페이지와 직접 작성한 설명을 바탕으로 질문을 만듭니다. 서버 코드나 보안
         상태를 자동 검사하는 기능은 아닙니다.
       </p>
-    </section>
+    </Card>
   );
 }

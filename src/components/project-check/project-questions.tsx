@@ -1,4 +1,15 @@
 "use client";
+import { useFadeTransition } from "@/components/ui/use-fade-transition";
+import {
+  Card,
+  Anchor,
+  Disclosure,
+  DisclosureSummary,
+  Button,
+  FieldLabel,
+  Textarea,
+  Status,
+} from "@/components/ui/primitives";
 import { useEffect, useRef, useState } from "react";
 import { api, errorMessage } from "@/lib/client-api";
 import { VoiceInput } from "@/components/ui/voice-input";
@@ -38,6 +49,7 @@ export function ProjectQuestions({
   const [draft, setDraft] = useState(() => loadDraft(draftKey, check.previousReview?.answers));
   const currentDraft = useRef(draft);
   const { step } = draft;
+  const fade = useFadeTransition<HTMLElement>(`${check.id}:${step}:${Boolean(check.review)}`);
   const [busy, setBusy] = useState(false);
   const [recovering, setRecovering] = useState(false);
   const [notice, setNotice] = useState("");
@@ -131,7 +143,7 @@ export function ProjectQuestions({
   }
   if (check.review)
     return (
-      <section className="project-panel project-results">
+      <Card ref={fade} as="section" className="project-panel project-results">
         <span className="eyebrow">이번 답변에서 확인한 이해도</span>
         <h2 ref={result} tabIndex={-1}>
           설계 설명 점수 <strong>{check.review.assessment.score}</strong>
@@ -154,11 +166,11 @@ export function ProjectQuestions({
           서비스 품질이나 보안을 인증하는 점수가 아닙니다. 답변에 드러난 흐름 설명, 선택 이유, 오류
           대응과 검증 계획을 평가했습니다.
         </p>
-        <a className="primary-button" href="#project-follow-up">
+        <Anchor className="primary-button" href="#project-follow-up">
           내 프로젝트에서 확인하고 보완하기 →
-        </a>
-        <details className="project-feedback-list">
-          <summary>질문별 AI 피드백 5개 보기</summary>
+        </Anchor>
+        <Disclosure className="project-feedback-list">
+          <DisclosureSummary>질문별 AI 피드백 5개 보기</DisclosureSummary>
           {check.review.assessment.feedback.map((f) => (
             <article key={f.questionIndex} className="project-feedback">
               <header>
@@ -169,13 +181,13 @@ export function ProjectQuestions({
                 <span style={{ width: `${f.level * 25}%` }} />
               </div>
               <p>{check.analysis.questions[f.questionIndex].question}</p>
-              <details>
-                <summary>내 답변 보기</summary>
+              <Disclosure>
+                <DisclosureSummary>내 답변 보기</DisclosureSummary>
                 <p className="project-answer">{answers[f.questionIndex] || "답변하지 않음"}</p>
-              </details>
+              </Disclosure>
               {check.previousReview && (
-                <details>
-                  <summary>이전 답변과 비교</summary>
+                <Disclosure>
+                  <DisclosureSummary>이전 답변과 비교</DisclosureSummary>
                   <p>
                     이전{" "}
                     {check.previousReview.assessment.feedback.find(
@@ -213,7 +225,7 @@ export function ProjectQuestions({
                           .join(", ") || "없음"}
                       </p>
                     )}
-                </details>
+                </Disclosure>
               )}
               {f.blockingIssue && (
                 <div className="project-assessment-issue">
@@ -229,8 +241,8 @@ export function ProjectQuestions({
                 </div>
               )}
               {f.evidence && (
-                <details className="project-assessment-evidence">
-                  <summary>평가에 사용한 내 설명 보기</summary>
+                <Disclosure className="project-assessment-evidence">
+                  <DisclosureSummary>평가에 사용한 내 설명 보기</DisclosureSummary>
                   <p className="project-help">
                     인용문은 제출한 답변과 대조했습니다. 기준에 맞는 설명인지는 AI가 판단하므로 잘못
                     해석할 수 있습니다.
@@ -251,7 +263,7 @@ export function ProjectQuestions({
                       </div>
                     ))}
                   </dl>
-                </details>
+                </Disclosure>
               )}
               <p>{f.feedback}</p>
               <div className="project-next-step">
@@ -260,9 +272,9 @@ export function ProjectQuestions({
               </div>
             </article>
           ))}
-        </details>
-        <details className="project-help">
-          <summary>점수는 어떻게 정하나요?</summary>
+        </Disclosure>
+        <Disclosure className="project-help">
+          <DisclosureSummary>점수는 어떻게 정하나요?</DisclosureSummary>
           <p>
             질문당 0~4단계입니다. 근거 없음 → 기능 식별 → 흐름 설명 → 이유와 실패 상황 → 구체적인
             확인 방법과 대안 비교 순으로 평가하며 각 단계는 5점입니다. 다른 설계 방식도 타당한
@@ -275,11 +287,11 @@ export function ProjectQuestions({
               아닙니다.
             </p>
           )}
-        </details>
-      </section>
+        </Disclosure>
+      </Card>
     );
   return (
-    <section className="project-panel project-questions">
+    <Card ref={fade} as="section" className="project-panel project-questions">
       {check.previousReview && (
         <p className="project-next-step">
           보완 답변 {check.revisionNumber}차입니다. 이전 답변을 불러왔습니다. 확인한 내용과 아직
@@ -292,14 +304,14 @@ export function ProjectQuestions({
       </div>
       <nav className="project-question-nav" aria-label="설계 질문 이동">
         {check.analysis.questions.map((item, i) => (
-          <button
+          <Button
             key={item.area}
             aria-current={i === step ? "step" : undefined}
             onClick={() => move(i)}
           >
             {i + 1}. {item.area}
             {answers[i].trim() ? " ✓" : ""}
-          </button>
+          </Button>
         ))}
       </nav>
       <h2 ref={heading} tabIndex={-1}>
@@ -319,8 +331,8 @@ export function ProjectQuestions({
         </strong>
         <p>{q.evidence}</p>
       </div>
-      <label htmlFor="project-answer">내 설계 설명</label>
-      <textarea
+      <FieldLabel htmlFor="project-answer">내 설계 설명</FieldLabel>
+      <Textarea
         id="project-answer"
         rows={7}
         maxLength={1500}
@@ -353,9 +365,9 @@ export function ProjectQuestions({
         현재 탭에 보관됩니다.
       </p>
       {storageError && (
-        <p role="alert">
+        <Status role="alert">
           브라우저 보관 공간을 사용할 수 없습니다. 화면을 닫기 전에 답변을 복사해 주세요.
-        </p>
+        </Status>
       )}
       {draft.submitted && (
         <div className="project-recovery">
@@ -364,41 +376,41 @@ export function ProjectQuestions({
             평가는 한 번만 저장됩니다.
           </p>
           {!busy && (
-            <button
+            <Button
               type="button"
               className="secondary-button"
               disabled={recovering}
               onClick={() => void recover()}
             >
               {recovering ? "저장된 결과 확인 중…" : "저장된 평가 결과 확인"}
-            </button>
+            </Button>
           )}
           <p className="project-help">
             결과 확인은 AI를 다시 호출하거나 이용 횟수를 차감하지 않습니다.
           </p>
         </div>
       )}
-      {notice && <p role="status">{notice}</p>}
+      {notice && <Status role="status">{notice}</Status>}
       {error && (
-        <p role="alert" className="project-error">
+        <Status role="alert" className="project-error">
           {error}
-        </p>
+        </Status>
       )}
       {busy && <RequestStatus label="작성한 설명을 바탕으로 피드백을 준비하고 있습니다" />}
       <div className="project-question-actions">
-        <button
+        <Button
           className="secondary-button"
           disabled={step === 0 || busy}
           onClick={() => move(step - 1)}
         >
           이전 질문
-        </button>
+        </Button>
         {step < 4 ? (
-          <button className="primary-button" onClick={() => move(step + 1)}>
+          <Button className="primary-button" onClick={() => move(step + 1)}>
             다음 질문 →
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             className="primary-button"
             disabled={busy || recovering || !enabled || !answers.some((a) => a.trim())}
             onClick={submit}
@@ -408,7 +420,7 @@ export function ProjectQuestions({
               : draft.submitted
                 ? "같은 답변으로 다시 요청"
                 : "이 답변으로 이해도 확인"}
-          </button>
+          </Button>
         )}
       </div>
       <p className="project-help">
@@ -416,6 +428,6 @@ export function ProjectQuestions({
         보완 답변을 추가할 수 있습니다.{" "}
         {busy ? "검토 중에도 다른 질문과 작성한 답변을 살펴볼 수 있습니다." : ""}
       </p>
-    </section>
+    </Card>
   );
 }

@@ -25,7 +25,7 @@ async function reproduce(page: Page, m: Mission) {
         exact: true,
       })
       .click();
-  await page.getByRole("button", { name: "수정 방법과 검사 살펴보기" }).click();
+  await page.getByRole("button", { name: "3. 수정과 검사로 이동" }).click();
 }
 async function saved(page: Page, id: string) {
   return (await (await page.request.get(`/api/learn/${id}`)).json()).progress;
@@ -94,7 +94,7 @@ test("stage navigation preserves observation undo and repair experiments", async
   await navigation.getByRole("button", { name: /직접 확인/ }).click();
   await page.getByRole("button", { name: "이전 관찰 복구", exact: true }).click();
   await expect(observations).toHaveText(original);
-  await page.getByRole("button", { name: "수정 방법과 검사 살펴보기" }).click();
+  await page.getByRole("button", { name: "3. 수정과 검사로 이동" }).click();
   await page.getByRole("radio", { name: /^서버 저장 결과를 확인/ }).check();
   await page.getByText("수정안이 적용된 서비스 사용해 보기", { exact: true }).click();
   await app.getByRole("button", { name: ACTION_LABELS.save, exact: true }).click();
@@ -255,6 +255,15 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
       .evaluate((el) => Number((el as HTMLElement).style.transform.match(/scaleX\(([^)]+)\)/)![1]));
   expect(await progress()).toBeLessThan(0.2);
   await expect(banner.locator(".feature-time-track")).toHaveCSS("height", "1px");
+  await page.clock.fastForward(10000);
+  await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 6");
+  expect(await progress()).toBeLessThan(0.2);
+  await banner.getByRole("button", { name: "배너 자동 넘김 시작하기", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await page.mouse.move(0, 0);
+  await expect(
+    banner.getByRole("button", { name: "배너 자동 넘김 멈추기", exact: true }),
+  ).toBeVisible();
   await page.clock.fastForward(3000);
   expect(await progress()).toBeGreaterThanOrEqual(0.35);
   expect(await progress()).toBeLessThan(0.5);
@@ -278,8 +287,8 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
   }));
   expect(activeStyle).toEqual({
     animation: "feature-enter",
-    duration: "1s",
-    background: "rgb(16, 19, 24)",
+    duration: "0.22s",
+    background: "rgb(20, 20, 22)",
   });
   const resumeRotation = banner.getByRole("button", {
     name: "배너 자동 넘김 시작하기",
@@ -297,6 +306,7 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
   await banner.getByRole("button", { name: "1번 기능: 서비스 원리 배우기" }).click();
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
+    await page.clock.runFor(250);
     const heights: number[] = [];
     for (let i = 0; i < 6; i++) {
       await banner.locator(".feature-dots button").nth(i).click();
@@ -308,12 +318,12 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
       await expect(button).toHaveCSS(
         "background-color",
         [
-          "rgb(125, 211, 172)",
-          "rgb(242, 200, 121)",
-          "rgb(147, 197, 253)",
-          "rgb(196, 181, 253)",
-          "rgb(147, 197, 253)",
-          "rgb(125, 211, 172)",
+          "rgb(228, 228, 232)",
+          "rgb(228, 228, 232)",
+          "rgb(228, 228, 232)",
+          "rgb(228, 228, 232)",
+          "rgb(228, 228, 232)",
+          "rgb(228, 228, 232)",
         ][i],
       );
       const art = banner.getByRole("group").locator(".feature-art img");
@@ -321,8 +331,13 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
       await expect
         .poll(() => art.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
         .toBe(true);
+      await page.clock.runFor(250);
       heights.push((await banner.boundingBox())!.height);
-      if (width === 1440) await accessible(page);
+
+      if (width === 1440) {
+        await expect(banner.getByRole("group")).toHaveCSS("opacity", "1");
+        await accessible(page);
+      }
     }
     expect(
       Math.max(...heights) - Math.min(...heights),
@@ -330,6 +345,8 @@ test("feature banner rotates, pauses for keyboard and honors reduced motion", as
     ).toBeLessThanOrEqual(1);
   }
   await banner.getByRole("button", { name: "1번 기능: 서비스 원리 배우기" }).click();
+  await page.clock.runFor(250);
+  await expect(banner.getByRole("group")).toHaveCSS("opacity", "1");
   await accessible(page);
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/beginner-banner.png", fullPage: true });
@@ -362,7 +379,7 @@ test("banner entrypoints open lessons, labs, code understanding and generation",
   await create.click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(
-    page.getByRole("dialog").getByRole("link", { name: "간편 로그인하고 AI 기능 사용하기" }),
+    page.getByRole("dialog").getByRole("link", { name: "로그인하고 하루 6회 이용하기" }),
   ).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);

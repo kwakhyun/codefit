@@ -1,4 +1,5 @@
 "use client";
+import { Status, Button, FieldLabel, ToggleButton, Textarea } from "@/components/ui/primitives";
 
 import { Modal } from "@/components/ui/modal";
 import {
@@ -10,7 +11,7 @@ import {
   type DomainId,
   type Language,
 } from "@/lib/catalog";
-import { api, ApiError, errorMessage } from "@/lib/client-api";
+import { api, errorMessage } from "@/lib/client-api";
 import { Select } from "@/components/ui/select";
 import { GuestLogin } from "@/components/account/guest-login";
 import type { AccountState } from "@/lib/auth-types";
@@ -54,12 +55,11 @@ export function Generator({
   const [topic, setTopic] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [needsLogin, setNeedsLogin] = useState(false);
   const [usage, setUsage] = useState<AiUsage | null>(null);
   const [usageError, setUsageError] = useState("");
   const [usageRetry, setUsageRetry] = useState(0);
   useEffect(() => {
-    if (!open || !account.user) return;
+    if (!open) return;
     const controller = new AbortController();
     api<AiUsage>("/api/usage", { signal: controller.signal })
       .then((value) => {
@@ -97,61 +97,45 @@ export function Generator({
       onCreated(problem);
     } catch (e) {
       setError(errorMessage(e));
-      if (e instanceof ApiError && e.status === 401) setNeedsLogin(true);
     } finally {
       setBusy(false);
       setUsageRetry((value) => value + 1);
     }
   }
-  if (!account.user || needsLogin)
-    return (
-      <Modal open={open} onClose={onClose} title="NEW CHALLENGE" className="generator-modal">
-        <div className="generator-login">
-          <span className="eyebrow">THREE NEW CHALLENGES A DAY</span>
-          <h2>
-            로그인하고,
-            <br />
-            내게 필요한 문제를 만드세요.
-          </h2>
-          <p>
-            Google 또는 GitHub로 로그인하면 하루 3회 AI 문제를 만들 수 있습니다. 이용 횟수는 한국
-            시간 자정에 초기화됩니다.
-          </p>
-          <div className="generation-note">
-            <Database size={16} />
-            <span>생성한 문제는 공개 보관함에 저장되어 누구나 풀 수 있습니다.</span>
-          </div>
-          <GuestLogin returnTo={`/?domain=${initialDomain}&generate=1`} />
-          <p>문제 풀이, 힌트, 정답 확인, AI 풀이 검토는 로그인 없이도 이용할 수 있습니다.</p>
-        </div>
-      </Modal>
-    );
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="NEW CHALLENGE"
+      title="AI 문제 만들기"
       className="generator-modal"
       busy={busy}
     >
       <form onSubmit={generate}>
         <div className="generation-allowance" aria-live="polite">
           <strong>
-            {usage ? `오늘 ${usage.remaining.generate} / 3회 남음` : "생성 가능 횟수 확인 중…"}
+            {usage
+              ? `오늘 ${usage.remaining.generate} / ${usage.allowance.generate}회 남음`
+              : "생성 가능 횟수 확인 중…"}
           </strong>
-          <small>매일 한국 시간 자정에 초기화 · GPT-5.6 Sol</small>
+          <small>매일 한국 시간 자정에 초기화 · 비로그인 2회, 로그인 6회</small>
+          {!account.user && (
+            <GuestLogin
+              returnTo={`/?domain=${initialDomain}&generate=1`}
+              label="로그인하고 하루 6회 이용하기"
+            />
+          )}
         </div>
         {usageError && (
-          <p className="inline-error" role="alert">
+          <Status className="inline-error" role="alert">
             {usageError}{" "}
-            <button
+            <Button
               className="text-button"
               type="button"
               onClick={() => setUsageRetry(usageRetry + 1)}
             >
               다시 확인
-            </button>
-          </p>
+            </Button>
+          </Status>
         )}
         {usage?.remaining.generate === 0 && (
           <p className="inline-warning">
@@ -168,7 +152,7 @@ export function Generator({
         </div>
         <fieldset disabled={busy} className="generator-fields">
           <div className="form-row">
-            <label>
+            <FieldLabel>
               분야
               <Select
                 label="분야"
@@ -180,8 +164,8 @@ export function Generator({
                 }}
                 options={DOMAINS.map((d) => ({ value: d.id, label: d.label }))}
               />
-            </label>
-            <label>
+            </FieldLabel>
+            <FieldLabel>
               언어 / 기술
               <Select
                 label="언어 / 기술"
@@ -192,12 +176,12 @@ export function Generator({
                   label: LANGUAGES[value].label,
                 }))}
               />
-            </label>
+            </FieldLabel>
           </div>
-          <label className="field-label">문제 유형</label>
+          <FieldLabel className="field-label">문제 유형</FieldLabel>
           <div className="segmented" role="group" aria-label="문제 유형">
             {KINDS.map((k) => (
-              <button
+              <ToggleButton
                 type="button"
                 key={k}
                 aria-pressed={kind === k}
@@ -206,13 +190,13 @@ export function Generator({
               >
                 {KIND_LABELS[k]}
                 {kind === k && <Check size={13} />}
-              </button>
+              </ToggleButton>
             ))}
           </div>
-          <label className="field-label">난이도</label>
+          <FieldLabel className="field-label">난이도</FieldLabel>
           <div className="difficulty-options" role="group" aria-label="난이도">
             {LEVELS.map((level, i) => (
-              <button
+              <ToggleButton
                 type="button"
                 key={level}
                 data-difficulty={level}
@@ -225,12 +209,12 @@ export function Generator({
                   <span>{["기본기를 탄탄하게", "실무 감각 익히기", "깊이 있는 도전"][i]}</span>
                 </strong>
                 <small>{["5–20분", "20–40분", "35–90분"][i]}</small>
-              </button>
+              </ToggleButton>
             ))}
           </div>
-          <label className="topic-label">
+          <FieldLabel className="topic-label">
             연습 주제 <span>{topic.length}/200</span>
-            <textarea
+            <Textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               required
@@ -239,12 +223,12 @@ export function Generator({
               placeholder="예: 연속 검색 시 이전 API 응답이 최신 결과를 덮어쓰는 오류"
               rows={3}
             />
-          </label>
+          </FieldLabel>
           <div className="topic-suggestions">
             {topics[domain].map((t) => (
-              <button type="button" key={t} onClick={() => setTopic(t)}>
+              <Button type="button" key={t} onClick={() => setTopic(t)}>
                 + {t}
-              </button>
+              </Button>
             ))}
           </div>
         </fieldset>
@@ -254,9 +238,9 @@ export function Generator({
           </p>
         )}
         {error && (
-          <p className="inline-error" role="alert">
+          <Status className="inline-error" role="alert">
             {error}
-          </p>
+          </Status>
         )}
         <div className="generation-note">
           <Database size={15} />
@@ -273,7 +257,7 @@ export function Generator({
             </div>
           </div>
         )}
-        <button
+        <Button
           className="primary-button generate-submit"
           disabled={
             busy ||
@@ -287,7 +271,7 @@ export function Generator({
           {busy ? <LoaderCircle className="spin" size={17} /> : <Sparkles size={17} />}
           {busy ? "문제 생성 중" : "문제 생성하기"}
           {!busy && <ArrowRight size={17} />}
-        </button>
+        </Button>
       </form>
     </Modal>
   );

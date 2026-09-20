@@ -1,3 +1,4 @@
+import { Status } from "@/components/ui/primitives";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { ExperienceJourney } from "@/components/experience/experience-journey";
 import { Suspense } from "react";
@@ -14,20 +15,16 @@ export default function ProjectCheckPage() {
       <SiteHeader />
       <VisualIntro topic="project" className="learn-intro">
         <span className="eyebrow">내 서비스로 연습하는 설계 설명</span>
-        <h1>
-          만든 서비스,
-          <br />
-          어디까지 설명할 수 있나요?
-        </h1>
+        <h1>만든 서비스, 어디까지 설명할 수 있나요?</h1>
         <p>
           서비스 링크를 넣으면 AI가 프로젝트에 맞는 질문을 준비합니다.
           <br />내 말로 설계를 설명하고, 내 프로젝트에서 직접 확인하고 답변을 보완하세요.
         </p>
       </VisualIntro>
-      <ExperienceJourney topic="project" />
-      <Suspense fallback={<p role="status">점검 기록 불러오는 중…</p>}>
+      <Suspense fallback={<Status role="status">점검 기록 불러오는 중…</Status>}>
         <ProjectCheckApp />
       </Suspense>
+      <ExperienceJourney topic="project" />
     </main>
   );
 }

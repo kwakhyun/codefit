@@ -110,7 +110,7 @@ export function pageSnapshot(html: string, url: string): PageSnapshot {
   };
 }
 
-async function resolvePublic(hostname: string, signal: AbortSignal) {
+export async function resolvePublic(hostname: string, signal: AbortSignal) {
   const resolver = new Resolver({ timeout: 2500, tries: 1 });
   const cancel = () => resolver.cancel();
   signal.throwIfAborted();

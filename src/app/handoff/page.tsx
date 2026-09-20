@@ -1,7 +1,7 @@
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { ExperienceJourney } from "@/components/experience/experience-journey";
 import { SiteHeader } from "@/components/navigation/site-header";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import type { Metadata } from "next";
 
 import { HandoffDashboard } from "@/components/handoff/handoff-dashboard";
@@ -16,11 +16,7 @@ export default function HandoffPage() {
       <SiteHeader />
       <VisualIntro topic="code" className="handoff-intro">
         <span className="eyebrow">읽고, 실행하고, 내 말로 설명하기</span>
-        <h1>
-          AI가 작성한 코드를
-          <br />
-          직접 분석하고 수정해 보세요
-        </h1>
+        <h1>AI가 작성한 코드를 직접 분석하고 수정해 보세요</h1>
         <p>
           코드를 읽고 실행 결과를 예상한 뒤 실제 결과와 비교해 보세요. 오류를 수정하고 테스트하며,
           코드가 어떻게 작동하는지 설명하는 연습을 합니다.

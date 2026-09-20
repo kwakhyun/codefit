@@ -8,13 +8,13 @@ beforeEach(() => {
   current.mockReset();
   getStore.mockReset();
 });
-it("blocks guests and stale workspaces before touching private training", async () => {
+it("blocks stale guest and member workspaces before touching private training", async () => {
   current.mockResolvedValue({ owner: "guest", scope: "g", user: null });
   for (const method of [GET, POST])
     expect(
       (await method(new Request(`https://codefit.test/api/project-check/training?id=${id}`)))
         .status,
-    ).toBe(401);
+    ).toBe(409);
   current.mockResolvedValue({ owner: "user:a", scope: "a", user: { id: "a" } });
   expect(
     (await GET(new Request(`https://codefit.test/api/project-check/training?id=${id}`))).status,

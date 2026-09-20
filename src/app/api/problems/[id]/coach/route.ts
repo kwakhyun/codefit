@@ -70,7 +70,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (job.state === "pending")
       throw new HttpError(409, "AI 질문을 준비하고 있습니다. 잠시 후 다시 확인해 주세요.");
     lease = job.lease;
-    await aiLimit(request, owner, "review");
+    await aiLimit(request, owner, "coach");
     const reply = await coachUnderstanding(
       {
         originalCode: problem.starterCode,

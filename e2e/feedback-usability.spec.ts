@@ -18,19 +18,18 @@ test("first visit recommends one mission and previews project questions before l
   await expect(recommended.getByRole("link")).toHaveAttribute("href", "/learn/where-data-lives");
   await expect(page.getByRole("region", { name: "코드핏 핵심 기능" })).toBeVisible();
   await page.getByRole("radio", { name: "내 서비스 이해", exact: true }).click();
-  await expect(page.locator(".persona-project-resume")).toContainText(
-    "로그인 필요 · 24시간에 프로젝트 2개까지",
-  );
+  await expect(page.locator(".persona-project-resume")).toContainText("로그인 없이 실제 분석 2회");
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/feedback-home-desktop.png", fullPage: true });
   await accessible(page);
   await page.locator(".persona-project-resume").getByRole("link").click();
+  await page.getByText("입력 전에 질문과 피드백 예시 살펴보기", { exact: true }).click();
   const sample = page.getByRole("region", { name: "어떤 질문과 피드백을 받나요?" });
   await expect(sample).toContainText("실제 AI 분석 결과나 사용자 답변이 아닙니다");
   await expect(sample).toContainText("서버에서 요청자와 메모 소유자를 비교하는지");
   await sample.getByText("데이터 저장에 관한 질문도 보기", { exact: true }).click();
   await expect(sample).toContainText("어느 저장소를 기준으로");
-  await expect(page.getByRole("link", { name: "간편 로그인하고 AI 기능 사용하기" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "로그인하고 AI 이용 횟수 늘리기" })).toBeVisible();
   for (const width of [320, 390, 768]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -55,7 +54,7 @@ test("observation draft preserves writing, is editable, and survives record save
   await page.getByRole("button", { name: "예상 남기고 직접 확인" }).click();
   for (const action of mission.reproduce)
     await page.getByRole("button", { name: actionLabel(mission, action), exact: true }).click();
-  await page.getByRole("button", { name: "수정 방법과 검사 살펴보기" }).click();
+  await page.getByRole("button", { name: "3. 수정과 검사로 이동" }).click();
   await page
     .getByLabel("어디에서 문제가 생겼나요?", { exact: true })
     .fill("내가 직접 적은 관찰 위치");
@@ -98,18 +97,15 @@ test("storage mission distinguishes learning save and optional observation actio
   await expect(page.getByRole("button", { name: "학습 기록 저장", exact: true })).toBeVisible();
   await page.getByRole("radio").first().check();
   await page.getByRole("button", { name: "예상 남기고 직접 확인" }).click();
-  await expect(page.locator(".learn-observation-guide")).toContainText(
-    "데이터 저장 (저장하기) → 새로고침 실험",
-  );
-  const next = page.getByRole("button", { name: "수정 방법과 검사 살펴보기" });
-  await expect(next).toBeDisabled();
+  await expect(page.locator(".learn-observation-guide")).toContainText("저장하기 → 새로고침 실험");
+  const next = page.getByRole("button", { name: "3. 수정과 검사로 이동" });
+  await expect(next).toHaveCount(0);
   await page.getByRole("button", { name: "데이터 저장", exact: true }).click();
-  await expect(next).toBeDisabled();
+  await expect(next).toHaveCount(0);
   await page.getByRole("button", { name: "새로고침 실험", exact: true }).click();
   await expect(next).toBeEnabled();
-  await expect(page.locator(".learn-observation-guide")).toContainText(
-    "나머지 조작은 이 단계에서 선택 사항",
-  );
+  await expect(page.getByRole("region", { name: "실험 결과 요약" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "선택 실험 이어하기" })).toBeVisible();
   await expect(page.getByRole("button", { name: "다른 기기에서 보기", exact: true })).toBeEnabled();
   await page.goto("/learn");
   await expect(page.locator(".learn-progress")).toContainText(

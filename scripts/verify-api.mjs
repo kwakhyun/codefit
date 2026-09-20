@@ -106,8 +106,8 @@ assert.equal(
       },
     })
   ).status,
-  401,
+  400,
 );
 console.log(
-  "PASS: public access, anonymous sessions, 12+ problems, hidden answers, origin protection, malformed/oversized inputs, autosave, per-user isolation, hints, solution, backup export/import and authenticated generation guard.",
+  "PASS: public access, anonymous sessions, 12+ problems, hidden answers, origin protection, malformed/oversized inputs, autosave, per-user isolation, hints, solution, backup export/import and guest generation input validation.",
 );

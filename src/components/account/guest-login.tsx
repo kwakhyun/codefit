@@ -1,13 +1,21 @@
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { ArrowRight } from "lucide-react";
 import { ProviderIcon } from "./provider-icon";
 
 /** Parent renders only after the current account has resolved to a guest. */
-export function GuestLogin({ returnTo }: { returnTo: string }) {
+export function GuestLogin({
+  returnTo,
+  compact = false,
+  label = "로그인하고 AI 이용 횟수 늘리기",
+}: {
+  returnTo: string;
+  label?: string;
+  compact?: boolean;
+}) {
   return (
-    <aside className="guest-login">
+    <aside className={`guest-login${compact ? " guest-login-compact" : ""}`}>
       <Link className="guest-login-link" href={`/login?returnTo=${encodeURIComponent(returnTo)}`}>
-        <span>간편 로그인하고 AI 기능 사용하기</span>
+        <span>{label}</span>
         <ArrowRight size={17} aria-hidden="true" />
       </Link>
       <span className="guest-login-providers">

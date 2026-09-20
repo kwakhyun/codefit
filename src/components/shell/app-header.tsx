@@ -1,6 +1,7 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 import { PreferenceChangeButton } from "@/components/library/learning-preference";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import type { Dispatch, SetStateAction } from "react";
 
 import type { Workspace } from "@/lib/problem";
@@ -29,13 +30,16 @@ export function AppHeader({
   return (
     <header className="topbar">
       <div className="topbar-path">
-        <button
+        <Button
           className="mobile-menu icon-button"
           aria-label="메뉴 열기"
-          onClick={() => setMobileMenu(true)}
+          onClick={(event) => {
+            event.currentTarget.focus();
+            setMobileMenu(true);
+          }}
         >
           <Menu size={21} />
-        </button>
+        </Button>
         <Link className="path-root" href="/" aria-label="CODE:FIT 홈">
           <BrandIcon size={30} />
           <span>CODE:FIT</span>
@@ -45,21 +49,17 @@ export function AppHeader({
       </div>
       <div className="topbar-actions">
         <PreferenceChangeButton />
-        <span className="connection">
-          <span className={`status-dot ${!data ? "waiting" : ""}`} />
-          {data ? "저장소 연결됨" : "연결 중"}
-        </span>
         {!initialProblemId && (
-          <button
+          <Button
             className="icon-button"
             aria-label="문제와 기록 새로고침"
             disabled={refreshing}
             onClick={() => void load()}
           >
             <RotateCcw size={17} className={refreshing ? "spin" : ""} />
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           className="icon-button help-button"
           aria-label="사용 안내"
           onClick={(event) => {
@@ -69,8 +69,8 @@ export function AppHeader({
           }}
         >
           <CircleHelp size={18} />
-        </button>
-        <button
+        </Button>
+        <Button
           className="secondary-button small"
           onClick={(event) => {
             // Safari does not focus buttons on pointer activation; retain a dialog return target.
@@ -81,7 +81,7 @@ export function AppHeader({
         >
           <Sparkles size={15} />
           AI 문제 생성
-        </button>
+        </Button>
       </div>
     </header>
   );

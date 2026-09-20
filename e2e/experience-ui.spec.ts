@@ -92,6 +92,7 @@ test("project preview changes the expected permission result without running AI"
     return route.continue();
   });
   await page.goto("/project-check");
+  await page.getByText("입력 전에 질문과 피드백 예시 살펴보기", { exact: true }).click();
   const preview = page.getByLabel("접근 권한 설명용 예시", { exact: true });
   await expect(preview).toContainText("설명용 예시");
   await preview.getByRole("button", { name: "민수 (다른 사용자)" }).click();

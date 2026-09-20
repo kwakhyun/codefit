@@ -1,6 +1,8 @@
 "use client";
+import { useFadeTransition } from "@/components/ui/use-fade-transition";
+import { TabButton, Button, Card } from "@/components/ui/primitives";
 import { ScenarioWalkthrough } from "@/components/ui/scenario-walkthrough";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import type { ConfirmationAction } from "@/components/workspace/types";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -52,6 +54,7 @@ export function ProblemMaterials({
   selectedAttempt,
   setSelectedAttempt,
 }: ProblemMaterialsProps) {
+  const fade = useFadeTransition<HTMLDivElement>(tab);
   return (
     <section className="problem-pane" aria-label="문제 설명">
       <div
@@ -86,7 +89,7 @@ export function ProblemMaterials({
             { id: "history", label: "기록", Icon: History },
           ] as const
         ).map((t) => (
-          <button
+          <TabButton
             key={t.id}
             id={`tab-${t.id}`}
             role="tab"
@@ -99,10 +102,11 @@ export function ProblemMaterials({
             {t.label}
             {t.id === "hints" && <small>{hints.length}/3</small>}
             {t.id === "history" && attempts.length > 0 && <small>{attempts.length}</small>}
-          </button>
+          </TabButton>
         ))}
       </div>
       <div
+        ref={fade}
         className="problem-content"
         role="tabpanel"
         id="problem-tab-panel"
@@ -150,9 +154,9 @@ export function ProblemMaterials({
             <div className="help-nudge">
               <Lightbulb size={17} />
               <span>막히는 부분이 있다면 힌트를 한 단계씩 열어 보세요.</span>
-              <button onClick={() => setTab("hints")} aria-label="힌트 탭 열기">
+              <Button onClick={() => setTab("hints")} aria-label="힌트 탭 열기">
                 <ArrowRight size={16} />
-              </button>
+              </Button>
             </div>
           </>
         )}
@@ -165,7 +169,7 @@ export function ProblemMaterials({
             </p>
             <div className="hints-list">
               {[0, 1, 2].map((i) => (
-                <div className={`hint-card ${hints[i] ? "revealed" : "locked"}`} key={i}>
+                <Card as="div" className={`hint-card ${hints[i] ? "revealed" : "locked"}`} key={i}>
                   <div>
                     <span className="mono">HINT 0{i + 1}</span>
                     {hints[i] ? (
@@ -183,17 +187,17 @@ export function ProblemMaterials({
                         : "이전 힌트를 먼저 확인해 주세요."}
                     </p>
                   )}
-                </div>
+                </Card>
               ))}
             </div>
-            <button
+            <Button
               className="secondary-button full-width"
               disabled={revealing || hints.length >= 3}
               onClick={() => reveal("hint")}
             >
               {revealing ? <LoaderCircle className="spin" size={16} /> : <Lightbulb size={16} />}
               {hints.length >= 3 ? "모든 힌트를 확인했습니다" : `힌트 ${hints.length + 1} 보기`}
-            </button>
+            </Button>
           </>
         )}
         {tab === "solution" && (
@@ -209,21 +213,21 @@ export function ProblemMaterials({
                   <br />
                   작성한 코드와 비교하며 접근 방법과 구현의 차이를 확인해 보세요.
                 </p>
-                <button
+                <Button
                   className="secondary-button"
                   onClick={() => setConfirm("solution")}
                   disabled={revealing}
                 >
                   {revealing ? <LoaderCircle className="spin" size={16} /> : <Eye size={16} />}
                   정답 보기
-                </button>
+                </Button>
                 <small>정답을 본 기록이 남으며 자동으로 완료 처리되지 않습니다.</small>
               </div>
             ) : (
               <>
                 <div className="solution-title">
                   <span className="eyebrow">REFERENCE SOLUTION</span>
-                  <button
+                  <Button
                     className="text-button"
                     onClick={async () => {
                       try {
@@ -237,7 +241,7 @@ export function ProblemMaterials({
                   >
                     {copied ? <Check size={14} /> : <Copy size={14} />}
                     {copied ? "복사됨" : "복사"}
-                  </button>
+                  </Button>
                 </div>
                 <h2>참고 정답</h2>
                 <p className="muted">같은 요구사항을 만족하는 다른 구현도 올바른 풀이입니다.</p>
@@ -269,7 +273,7 @@ export function ProblemMaterials({
                   <Link href="/?view=history">전체 학습 기록</Link>에서 열 수 있습니다.
                 </p>
                 {attempts.map((a) => (
-                  <button
+                  <Button
                     key={a.id}
                     className={selectedAttempt?.id === a.id ? "selected" : ""}
                     onClick={() => setSelectedAttempt(a)}
@@ -284,7 +288,7 @@ export function ProblemMaterials({
                     <span className={a.review.passed ? "success-text" : "muted"}>
                       {a.review.score}%<ChevronRight size={15} />
                     </span>
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}

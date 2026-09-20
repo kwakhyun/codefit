@@ -1,6 +1,14 @@
+import {
+  Disclosure,
+  DisclosureSummary,
+  FieldLabel,
+  Input,
+  Button,
+} from "@/components/ui/primitives";
 import type { Action, Mission } from "@/lib/learn/catalog";
 import type { LearningRecord, LearningRecordUpdate } from "@/lib/learn/progress";
-import { requestReady } from "@/lib/learn/progress";
+import { requestFields } from "@/lib/learn/progress";
+import { useId } from "react";
 import { verification } from "@/lib/learn/simulation";
 import { MissionRequest } from "./mission-request";
 import { SimulationView } from "./simulation-view";
@@ -29,6 +37,21 @@ export function MissionRepair({
   onContinue: () => void;
 }) {
   const results = verification(mission, record.fix);
+  const nextHintId = useId();
+  const unchecked = results.filter((check) => !record.checked.includes(check.id)).length;
+  const failed = results.some((check) => record.checked.includes(check.id) && !check.passed);
+  const missingFields = requestFields.filter(
+    (field) => record.request[field.key].trim().length < 3,
+  );
+  const nextHint = !record.fix
+    ? "먼저 적용할 수정안을 하나 선택하세요."
+    : failed
+      ? "보완이 필요한 검사가 있습니다. 다른 수정안을 선택하고 다시 검사하세요."
+      : unchecked > 0
+        ? `아직 실행하지 않은 검사 ${unchecked}개가 있습니다. 각 항목의 검사 버튼을 눌러 주세요.`
+        : mission.kind === "lab" && missingFields.length > 0
+          ? `수정 요청의 남은 ${missingFields.length}개 항목을 각각 3자 이상 작성하세요.`
+          : "모든 검사를 통과했습니다. 이제 다른 상황에서도 같은 원리를 적용해 보세요.";
   const requestForm = (
     <MissionRequest
       mission={mission}
@@ -42,10 +65,10 @@ export function MissionRepair({
   return (
     <>
       {mission.kind === "foundation" ? (
-        <details>
-          <summary>AI에게 요청하는 연습도 해보기 (선택)</summary>
+        <Disclosure>
+          <DisclosureSummary>AI에게 요청하는 연습도 해보기 (선택)</DisclosureSummary>
           {requestForm}
-        </details>
+        </Disclosure>
       ) : (
         requestForm
       )}
@@ -58,8 +81,8 @@ export function MissionRepair({
         <fieldset>
           <legend>적용할 수정안</legend>
           {mission.fixes.map((f) => (
-            <label className="learn-option" key={f.id}>
-              <input
+            <FieldLabel className="learn-option" key={f.id}>
+              <Input
                 type="radio"
                 name="fix"
                 checked={record.fix === f.id}
@@ -72,24 +95,24 @@ export function MissionRepair({
                 <strong>{f.title}</strong>
                 <small>{f.detail}</small>
               </span>
-            </label>
+            </FieldLabel>
           ))}
         </fieldset>
       </div>
       {record.fix && (
         <>
-          <details className="learn-sandbox">
-            <summary>수정안이 적용된 서비스 사용해 보기</summary>
+          <Disclosure className="learn-sandbox">
+            <DisclosureSummary>수정안이 적용된 서비스 사용해 보기</DisclosureSummary>
             <SimulationView
               mission={mission}
               fix={record.fix}
               actions={sandboxActions}
               onAction={(a) => onSandboxChange([...sandboxActions, a].slice(-80))}
             />
-            <button className="text-button" onClick={() => onSandboxChange([])}>
+            <Button className="text-button" onClick={() => onSandboxChange([])}>
               실험 상태 초기화
-            </button>
-          </details>
+            </Button>
+          </Disclosure>
           <section className="learn-checks" aria-label="수정 결과 검사">
             <h3>수정 후에도 기능이 제대로 작동하는지 확인하세요.</h3>
             <p>
@@ -106,7 +129,7 @@ export function MissionRepair({
                     </p>
                   )}
                 </div>
-                <button
+                <Button
                   className="secondary-button"
                   onClick={() =>
                     update((x) => ({
@@ -116,18 +139,25 @@ export function MissionRepair({
                   }
                 >
                   {check.label} 검사
-                </button>
+                </Button>
               </div>
             ))}
           </section>
         </>
       )}
-      <button className="primary-button" disabled={!canContinue} onClick={onContinue}>
-        다른 상황에 적용하기 →
-      </button>
-      {mission.kind === "lab" && !requestReady(record) && (
-        <p className="learn-fineprint">수정 요청의 다섯 항목도 채워 주세요.</p>
-      )}
+      <div className="repair-next-step">
+        <p id={nextHintId} role="status">
+          {nextHint}
+        </p>
+        <Button
+          className="primary-button"
+          disabled={!canContinue}
+          aria-describedby={nextHintId}
+          onClick={onContinue}
+        >
+          다른 상황에 적용하기 →
+        </Button>
+      </div>
     </>
   );
 }

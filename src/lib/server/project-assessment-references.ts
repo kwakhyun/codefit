@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { groundedAssessmentSchema, validateGroundedAssessment } from "./project-assessment";
-import { type Assessment, evidenceLabels, assessmentIssueSchema } from "../project-check/types";
+import {
+  type Assessment,
+  evidenceLabels,
+  assessmentIssueSchema,
+  verificationPlanSchema,
+} from "../project-check/types";
 import { HttpError } from "./http";
 const reference = z
   .string()
@@ -17,7 +22,7 @@ const references = z
   })
   .strict();
 export const ASSESSMENT_RUBRIC_VERSION = "evidence-v3";
-export const referencedAssessmentSchema = groundedAssessmentSchema.extend({
+const referencedAssessmentSchema = groundedAssessmentSchema.extend({
   feedback: z
     .array(
       groundedAssessmentSchema.shape.feedback.element.extend({
@@ -27,6 +32,17 @@ export const referencedAssessmentSchema = groundedAssessmentSchema.extend({
           })
           .nullable(),
         evidence: references,
+        verificationPlan: verificationPlanSchema.optional(),
+      }),
+    )
+    .length(5),
+});
+// New provider responses must include an actionable plan; old stored evaluations remain readable.
+export const plannedAssessmentSchema = referencedAssessmentSchema.extend({
+  feedback: z
+    .array(
+      referencedAssessmentSchema.shape.feedback.element.extend({
+        verificationPlan: verificationPlanSchema,
       }),
     )
     .length(5),
@@ -90,9 +106,13 @@ export function validateReferencedAssessment(raw: unknown, answers: string[]): A
     });
   const graded = validated.feedback.map((item) => {
     const issue = issues.get(item.questionIndex) ?? null;
+    const plan = parsed.data.feedback.find(
+      (f) => f.questionIndex === item.questionIndex,
+    )?.verificationPlan;
     return {
       ...item,
       level: issue ? Math.min(item.level, 1) : item.level,
+      ...(plan ? { verificationPlan: plan } : {}),
       blockingIssue: issue && {
         ...issue,
         explanation: displayReferences(issue.explanation, item.questionIndex),

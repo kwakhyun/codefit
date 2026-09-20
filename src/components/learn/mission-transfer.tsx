@@ -1,5 +1,6 @@
+import { FieldLabel, Input, Status, Textarea, Button } from "@/components/ui/primitives";
 import { projectExperiment } from "@/lib/learn/project-experiment";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { Check } from "lucide-react";
 import { VoiceInput } from "@/components/ui/voice-input";
 import type { Mission } from "@/lib/learn/catalog";
@@ -25,19 +26,19 @@ export function MissionTransfer({
         <fieldset>
           <legend>{mission.transfer.question}</legend>
           {mission.transfer.choices.map((choice, i) => (
-            <label className="learn-option" key={choice}>
-              <input
+            <FieldLabel className="learn-option" key={choice}>
+              <Input
                 type="radio"
                 name="transfer"
                 checked={record.transfer === i}
                 onChange={() => update((x) => ({ ...x, transfer: i, completed: false }))}
               />
               <span>{choice}</span>
-            </label>
+            </FieldLabel>
           ))}
         </fieldset>
         {record.transfer >= 0 && (
-          <p
+          <Status
             role="status"
             className={
               record.transfer === mission.transfer.answer ? "learn-success" : "learn-warning"
@@ -46,7 +47,7 @@ export function MissionTransfer({
             {record.transfer === mission.transfer.answer
               ? mission.transfer.explanation
               : "앞에서 확인한 원리를 다른 상황에도 적용해 보세요. 힌트를 다시 볼 수 있습니다."}
-          </p>
+          </Status>
         )}
         {projectExperiment(mission) && (
           <section className="learn-concept" aria-label="내 서비스에 적용하기">
@@ -58,9 +59,9 @@ export function MissionTransfer({
             </p>
           </section>
         )}
-        <label htmlFor="learn-reflection">
+        <FieldLabel htmlFor="learn-reflection">
           내 제품에서는 무엇을 확인할 건가요?
-          <textarea
+          <Textarea
             id="learn-reflection"
             rows={3}
             maxLength={1000}
@@ -70,7 +71,7 @@ export function MissionTransfer({
             }
             placeholder="예: 저장 완료 안내뿐 아니라 새로고침 후에도 데이터가 남는지 확인하겠습니다."
           />
-        </label>
+        </FieldLabel>
         <VoiceInput
           targetId="learn-reflection"
           onTranscript={(text) =>
@@ -82,9 +83,9 @@ export function MissionTransfer({
           }
         />
         <small>10자 이상 · 실제로 해볼 검사를 내 말로 남겨 주세요.</small>
-        <button className="primary-button" onClick={onComplete}>
+        <Button className="primary-button" onClick={onComplete}>
           학습 기록 마치기 <Check size={16} />
-        </button>
+        </Button>
       </div>
       {record.completed && canComplete(mission, record) && (
         <div className="learn-completed" role="status">

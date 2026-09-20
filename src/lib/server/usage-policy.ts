@@ -1,10 +1,13 @@
 import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
 import type { UsageLimit } from "./store-contract";
-import { DAILY_GENERATIONS } from "./generation-quota";
+import { allowanceFor, type AiFeature } from "../ai-access";
 import { BACKUP_MAX_PROBLEMS } from "../backup-limits";
 
-export const AI_ALLOWANCE = { generate: DAILY_GENERATIONS, review: 20 } as const;
+export function aiAllowance(owner: string) {
+  const a = allowanceFor(owner);
+  return { generate: a.generate, review: a.review };
+}
 const day = 86_400_000;
 
 /** Vercel supplies this header at its edge. Never trust client IP headers on other hosts. */
@@ -24,11 +27,14 @@ export function networkIdentity(
 export function aiLimits(
   owner: string,
   network: string,
-  kind: keyof typeof AI_ALLOWANCE,
+  kind: Extract<AiFeature, "generate" | "review" | "coach" | "learnCoach">,
 ): UsageLimit[] {
   return [
-    ...(kind === "review"
-      ? [{ key: `ai:${kind}:${owner}`, max: AI_ALLOWANCE[kind], windowMs: day }]
+    ...(!owner.startsWith("user:")
+      ? [{ key: `ai:guest-network:${kind}:${network}`, max: 2, windowMs: day }]
+      : []),
+    ...(kind !== "generate"
+      ? [{ key: `ai:${kind}:${owner}`, max: allowanceFor(owner)[kind], windowMs: day }]
       : []),
     { key: `ai:network:${kind}:${network}`, max: kind === "generate" ? 30 : 40, windowMs: day },
     { key: "ai:global:hour", max: 40, windowMs: 3_600_000 },

@@ -2,7 +2,11 @@ import { aiLimits, networkIdentity } from "./usage-policy";
 import { getStore } from "./database";
 import { HttpError } from "./http";
 
-export async function aiLimit(request: Request, owner: string, kind: "generate" | "review") {
+export async function aiLimit(
+  request: Request,
+  owner: string,
+  kind: "generate" | "review" | "coach" | "learnCoach",
+) {
   if (!(await (await getStore()).consumeLimits(aiLimits(owner, networkIdentity(request), kind))))
     throw new HttpError(
       429,

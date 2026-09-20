@@ -1,3 +1,4 @@
+import { allowanceFor } from "@/lib/ai-access";
 import { guideInputSchema } from "@/lib/guide";
 import { askGuide } from "@/lib/server/ai-guide";
 import { basicGuide } from "@/lib/server/guide-catalog";
@@ -33,8 +34,11 @@ export async function POST(request: Request) {
     const store = await getStore();
     const network = networkIdentity(request);
     const allowed = await store.consumeLimits([
+      ...(!owner.startsWith("user:")
+        ? [{ key: `guide:guest-network:${network}`, max: 2, windowMs: 86_400_000 }]
+        : []),
       { key: `guide:burst:${owner}`, max: 3, windowMs: 60_000 },
-      { key: `guide:owner:${owner}`, max: 12, windowMs: 86_400_000 },
+      { key: `guide:owner:${owner}`, max: allowanceFor(owner).guide, windowMs: 86_400_000 },
       { key: `guide:network:${network}`, max: 40, windowMs: 86_400_000 },
       { key: "ai:global:hour", max: 40, windowMs: 3_600_000 },
       { key: "ai:global:day", max: 100, windowMs: 86_400_000 },

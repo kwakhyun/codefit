@@ -1,4 +1,5 @@
 "use client";
+import { Status, Button } from "@/components/ui/primitives";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { LearningResume } from "@/components/learn/learning-resume";
 
@@ -18,7 +19,7 @@ import {
   FileCode2,
   History,
 } from "lucide-react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 interface LearningHistoryProps {
   data: Workspace;
   library: LibraryController;
@@ -117,7 +118,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
           <span className="muted">최근 검토 순</span>
         </div>
         {history.loading && !history.attempts.length ? (
-          <p role="status">풀이 기록을 불러오는 중입니다.</p>
+          <Status role="status">풀이 기록을 불러오는 중입니다.</Status>
         ) : !history.error && data.stats.attempts === 0 ? (
           <div className="empty-state bordered">
             <History size={36} />
@@ -160,12 +161,12 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
           </div>
         )}
         {history.error && (
-          <p className="inline-error" role="alert">
+          <Status className="inline-error" role="alert">
             {history.error}
-          </p>
+          </Status>
         )}
         {(history.nextCursor || history.error) && (
-          <button
+          <Button
             className="secondary-button"
             onClick={history.loadMore}
             disabled={history.loading}
@@ -175,7 +176,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
               : history.error
                 ? "다시 불러오기"
                 : "이전 풀이 더 보기"}
-          </button>
+          </Button>
         )}
       </section>
     </>

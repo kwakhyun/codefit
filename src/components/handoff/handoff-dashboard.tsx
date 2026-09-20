@@ -1,7 +1,8 @@
 "use client";
+import { Card, Status, Button, Disclosure, DisclosureSummary } from "@/components/ui/primitives";
 import { SectionArtwork } from "@/components/experience/section-artwork";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { api, ApiError, errorMessage } from "@/lib/client-api";
 import { HANDOFF_TRACKS } from "@/lib/handoff/catalog";
 import { recommendedHandoff, type HandoffDashboard as Dashboard } from "@/lib/handoff/learning";
@@ -53,7 +54,11 @@ export function HandoffDashboard() {
   return (
     <>
       {recommended && recommendedTrack && (
-        <section className="resume-card illustrated-resume" aria-label="추천 코드 이해 훈련">
+        <Card
+          as="section"
+          className="resume-card illustrated-resume"
+          aria-label="추천 코드 이해 훈련"
+        >
           <SectionArtwork topic="code" />
           <div>
             <span className="eyebrow">
@@ -70,24 +75,24 @@ export function HandoffDashboard() {
           >
             {recommended.next.priority === 3 ? "코드 이해 훈련 시작" : recommended.next.label} →
           </Link>
-        </section>
+        </Card>
       )}
       <section className="handoff-progress" aria-label="내 코드 이해 훈련 기록">
         <h2>내 코드 이해 훈련 기록</h2>
         {error ? (
-          <p role="alert">
+          <Status role="alert">
             {error}{" "}
-            <button
+            <Button
               className="text-button"
               onClick={() => (accountChanged ? window.location.reload() : setReload((v) => v + 1))}
             >
               {accountChanged ? "계정 다시 확인" : "다시 불러오기"}
-            </button>
-          </p>
+            </Button>
+          </Status>
         ) : !data ? (
-          <p role="status">
+          <Status role="status">
             내 훈련 기록을 불러오는 중입니다. 아래 과제는 바로 시작할 수 있습니다.
-          </p>
+          </Status>
         ) : (
           <>
             <div role="status">
@@ -108,8 +113,8 @@ export function HandoffDashboard() {
             </div>
           </>
         )}
-        <details className="handoff-measurement">
-          <summary>7일 후 복습 기록은 어떻게 계산하나요?</summary>
+        <Disclosure className="handoff-measurement">
+          <DisclosureSummary>7일 후 복습 기록은 어떻게 계산하나요?</DisclosureSummary>
           <p>
             기본 과제를 처음 검토한 날로부터 7일 이상 지난 뒤 변형 과제를 처음 제출했을 때
             확인합니다. 코드핏의 힌트, 정답과 AI 질문을 사용하지 않고 AI 검토 기준을 모두 충족하면
@@ -123,7 +128,7 @@ export function HandoffDashboard() {
           <p>
             서비스 밖의 AI 사용은 확인하지 않으며 이 기록은 실력 인증이나 실행 채점 결과가 아닙니다.
           </p>
-        </details>
+        </Disclosure>
       </section>
       <div className="handoff-grid">
         {HANDOFF_TRACKS.map((track, index) => (

@@ -1,4 +1,11 @@
 "use client";
+import {
+  FieldLabel,
+  Textarea,
+  Button,
+  Disclosure,
+  DisclosureSummary,
+} from "@/components/ui/primitives";
 import { VoiceInput } from "@/components/ui/voice-input";
 import {
   HANDOFF_FIELDS,
@@ -31,10 +38,10 @@ export function HandoffFields({
     <div className="handoff-fields">
       {fields.map((field) => (
         <div key={field.key}>
-          <label htmlFor={`${prefix}-${field.key}`}>
+          <FieldLabel htmlFor={`${prefix}-${field.key}`}>
             <strong id={`${prefix}-${field.key}-label`}>{field.label}</strong>
             <span id={`${prefix}-${field.key}-help`}>{field.prompt}</span>
-            <textarea
+            <Textarea
               id={`${prefix}-${field.key}`}
               aria-labelledby={`${prefix}-${field.key}-label`}
               aria-describedby={`${prefix}-${field.key}-help`}
@@ -59,7 +66,7 @@ export function HandoffFields({
                 자동 저장
               </small>
             )}
-          </label>
+          </FieldLabel>
           <VoiceInput
             targetId={`${prefix}-${field.key}`}
             disabled={readOnly || !onChange}
@@ -102,7 +109,7 @@ export function HandoffGuide({ starterCode }: { starterCode: string }) {
           ["verification", "4. 검증"],
           ["decision", "5. 인수인계"],
         ].map(([id, label]) => (
-          <button
+          <Button
             type="button"
             className="secondary-button"
             key={id}
@@ -121,16 +128,16 @@ export function HandoffGuide({ starterCode }: { starterCode: string }) {
             }}
           >
             {label}
-          </button>
+          </Button>
         ))}
       </nav>
-      <details className="handoff-original">
-        <summary>인수받은 원본 코드 보기</summary>
+      <Disclosure className="handoff-original">
+        <DisclosureSummary>인수받은 원본 코드 보기</DisclosureSummary>
         <p>원본은 바뀌지 않습니다. 아래 편집 중인 코드와 비교하며 수정 이유를 설명하세요.</p>
         <pre>
           <code>{starterCode}</code>
         </pre>
-      </details>
+      </Disclosure>
       <small>
         교육용 시나리오 · 참고 코드와 예제는 자동 테스트 확인 · 내 풀이와 테스트는 AI 정적 검토
       </small>

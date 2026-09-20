@@ -1,6 +1,6 @@
 import { projectMember } from "@/lib/server/project-member";
 import { z } from "zod";
-import { createCheckSchema, reviewCheckSchema, PROJECT_LIMITS } from "@/lib/project-check/types";
+import { createCheckSchema, reviewCheckSchema } from "@/lib/project-check/types";
 import { session } from "@/lib/server/session";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
 import { getStore } from "@/lib/server/database";
@@ -11,16 +11,6 @@ export const maxDuration = 120;
 export async function GET(request: Request) {
   try {
     const { owner, scope, user } = await session(request);
-    const empty = (limit: number) => ({ limit, remaining: 0, resetsAt: null });
-    if (!user)
-      return json({
-        scope,
-        signedIn: false,
-        aiReady: Boolean(process.env.OPENAI_API_KEY),
-        usage: { analysis: empty(PROJECT_LIMITS.analysis), review: empty(PROJECT_LIMITS.review) },
-        checks: [],
-        nextCursor: null,
-      });
     const store = await getStore();
     const [usage, page] = await Promise.all([
       store.queries.projectChecks.usage(owner),
@@ -28,7 +18,7 @@ export async function GET(request: Request) {
     ]);
     return json({
       scope,
-      signedIn: true,
+      signedIn: !!user,
       aiReady: Boolean(process.env.OPENAI_API_KEY),
       usage,
       ...page,

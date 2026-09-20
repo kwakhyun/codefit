@@ -1,7 +1,7 @@
 "use client";
-import { ScenarioVisual } from "@/components/ui/scenario-visual";
-import { scenarioFor } from "@/lib/scenario-visuals";
-import Link from "next/link";
+import { useFadeTransition } from "@/components/ui/use-fade-transition";
+import { Button, Status, Disclosure, DisclosureSummary } from "@/components/ui/primitives";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, Download, Lightbulb } from "lucide-react";
 import { useBeginnerMission } from "@/hooks/use-beginner-mission";
@@ -48,6 +48,7 @@ export function MissionSession({
 }) {
   const controller = useBeginnerMission(mission, session),
     record = controller.record;
+  const fade = useFadeTransition<HTMLElement>(record.stage);
   const [observationUndo, setObservationUndo] = useState<Action[] | null>(null);
   const [sandbox, setSandbox] = useState<Action[]>([]),
     [notice, setNotice] = useState("");
@@ -121,16 +122,16 @@ export function MissionSession({
         </Link>
         <div className="learn-save">
           <span role="status">{labels[controller.draft.saveState]}</span>
-          <button className="text-button" onClick={() => void controller.draft.saveNow()}>
+          <Button className="text-button" onClick={() => void controller.draft.saveNow()}>
             학습 기록 저장
-          </button>
-          <button
+          </Button>
+          <Button
             className="icon-button"
             aria-label="학습 기록 내려받기"
             onClick={() => download(mission, record)}
           >
             <Download size={18} />
-          </button>
+          </Button>
         </div>
       </header>
       <p className="learn-fineprint">
@@ -152,26 +153,26 @@ export function MissionSession({
         <p>{mission.task}</p>
       </div>
       {!controller.draft.localSaved && (
-        <p role="alert">
+        <Status role="alert">
           브라우저 보관에 실패했습니다. 창을 닫기 전에 학습 기록을 내려받아 주세요.
-        </p>
+        </Status>
       )}
       {conflict && (
         <section className="learn-conflict" aria-label="학습 기록 충돌">
-          <p role="alert">
+          <Status role="alert">
             <strong>다른 곳에서 저장한 학습 기록이 있습니다.</strong> 내 작성 내용은 유지됩니다. 두
             기록을 비교하고 필요한 내용을 아래 입력란에 옮긴 뒤 저장하세요.
-          </p>
-          <details>
-            <summary>내 기록과 서버 기록 비교</summary>
+          </Status>
+          <Disclosure>
+            <DisclosureSummary>내 기록과 서버 기록 비교</DisclosureSummary>
             <div className="learn-comparison">
               <pre aria-label="내 학습 기록">{learningSummary(mission, record)}</pre>
               <pre aria-label="서버 학습 기록">
                 {learningSummary(mission, readLearning(conflict.server.code))}
               </pre>
             </div>
-          </details>
-          <button
+          </Disclosure>
+          <Button
             className="secondary-button"
             disabled={conflict.kind === "resolving"}
             onClick={async () => {
@@ -179,18 +180,18 @@ export function MissionSession({
             }}
           >
             비교한 버전에 내 기록 저장
-          </button>
+          </Button>
           <p>그사이 서버 내용이 바뀌면 다시 비교를 안내합니다.</p>
         </section>
       )}
       {(controller.error || notice) && (
-        <p className="inline-error" role="alert">
+        <Status className="inline-error" role="alert">
           {controller.error || notice}
-        </p>
+        </Status>
       )}
       <nav className="learn-steps" aria-label="입문 미션 단계">
         {stages.map((s, i) => (
-          <button
+          <Button
             key={s}
             disabled={!controller.ready || !allowed[i]}
             aria-current={record.stage === i ? "step" : undefined}
@@ -198,10 +199,10 @@ export function MissionSession({
           >
             <span>{i + 1}</span>
             {s}
-          </button>
+          </Button>
         ))}
       </nav>
-      <section className="mission-stage" aria-busy={!controller.ready}>
+      <section ref={fade} className="mission-stage" aria-busy={!controller.ready}>
         <h2 ref={heading} tabIndex={-1}>
           {record.stage + 1}. {stages[record.stage]}
         </h2>
@@ -209,12 +210,6 @@ export function MissionSession({
           <p>초안을 복원하는 중…</p>
         ) : (
           <>
-            {scenarioFor(mission.id) && (
-              <details className="mission-concept-art">
-                <summary>그림으로 원리 살펴보기</summary>
-                <ScenarioVisual scene={scenarioFor(mission.id)!} stage={record.stage} />
-              </details>
-            )}
             {record.stage === 0 && (
               <MissionPrediction
                 mission={mission}
@@ -262,14 +257,14 @@ export function MissionSession({
         )}
       </section>
       <aside className="learn-support">
-        <button
+        <Button
           className="secondary-button"
           disabled={record.hints >= 3 || !controller.ready}
           onClick={() => controller.update((x) => ({ ...x, hints: Math.min(3, x.hints + 1) }))}
         >
           <Lightbulb size={16} />
           힌트 보기 {record.hints}/3
-        </button>
+        </Button>
         {record.hints > 0 && (
           <ol>
             {mission.hint.slice(0, record.hints).map((h) => (
@@ -277,8 +272,8 @@ export function MissionSession({
             ))}
           </ol>
         )}
-        <details>
-          <summary>용어와 짧은 코드로 더 알아보기</summary>
+        <Disclosure>
+          <DisclosureSummary>용어와 짧은 코드로 더 알아보기</DisclosureSummary>
           <h3>{mission.concept}</h3>
           <p>{mission.lesson}</p>
           <pre>
@@ -287,7 +282,7 @@ export function MissionSession({
           <p className="learn-fineprint">
             개념을 설명하는 코드입니다. 실제 제품에 그대로 붙여 넣는 구현은 아닙니다.
           </p>
-        </details>
+        </Disclosure>
       </aside>
       <footer className="learn-fineprint">
         예제 서비스는 실제 네트워크나 계정에 영향을 주지 않는 모의 실습입니다.{" "}

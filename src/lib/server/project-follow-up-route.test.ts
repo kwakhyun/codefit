@@ -10,10 +10,10 @@ beforeEach(() => {
   current.mockReset();
   getStore.mockReset();
 });
-it("requires a signed-in matching workspace for screenshots and follow-up writes", async () => {
+it("requires a matching workspace for guests and members for screenshots and follow-up writes", async () => {
   current.mockResolvedValue({ owner: "guest", scope: "g", user: null });
   for (const handler of [GET, POST, PATCH])
-    expect((await handler(new Request("https://codefit.test/api"), context)).status).toBe(401);
+    expect((await handler(new Request("https://codefit.test/api"), context)).status).toBe(409);
   current.mockResolvedValue({ owner: "user:a", scope: "a", user: { id: "a" } });
   for (const handler of [GET, POST, PATCH])
     expect((await handler(new Request("https://codefit.test/api"), context)).status).toBe(409);

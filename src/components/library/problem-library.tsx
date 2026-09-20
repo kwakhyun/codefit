@@ -1,6 +1,7 @@
 "use client";
-import { useEffect } from "react";
-import Link from "next/link";
+import { Button, Input, ToggleButton } from "@/components/ui/primitives";
+import { useEffect, useRef } from "react";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 
 import type { LibraryController } from "@/hooks/use-library-controller";
@@ -46,6 +47,7 @@ export function ProblemLibrary({
   exportData,
   exporting,
 }: ProblemLibraryProps) {
+  const searchInput = useRef<HTMLInputElement>(null);
   const { type } = useLearningPreference();
   const isHome =
     initialView === "library" &&
@@ -166,16 +168,17 @@ export function ProblemLibrary({
                 </h2>
                 <p>연습할 분야와 난이도에 맞는 문제를 골라보세요.</p>
               </div>
-              <button className="text-button" onClick={onGenerate}>
+              <Button className="text-button" onClick={onGenerate}>
                 <Sparkles size={14} />
                 원하는 문제가 없다면 직접 생성
                 <ArrowRight size={14} />
-              </button>
+              </Button>
             </div>
             <div className="filter-top">
               <div className="search-box">
                 <Search size={17} />
-                <input
+                <Input
+                  ref={searchInput}
                   id="problem-search"
                   maxLength={200}
                   value={search}
@@ -187,19 +190,23 @@ export function ProblemLibrary({
                   aria-label="문제 검색"
                 />
                 {search ? (
-                  <button
+                  <Button
                     className="icon-button"
                     aria-label="검색어 지우기"
-                    onClick={() => setSearch("")}
+                    onClick={() => {
+                      setSearch("");
+                      setPage(1);
+                      searchInput.current?.focus();
+                    }}
                   >
                     <X size={14} />
-                  </button>
+                  </Button>
                 ) : (
                   <kbd>/</kbd>
                 )}
               </div>
               <div className="type-filters">
-                <button
+                <ToggleButton
                   className={kind === "all" ? "selected" : ""}
                   aria-pressed={kind === "all"}
                   onClick={() => {
@@ -208,9 +215,9 @@ export function ProblemLibrary({
                   }}
                 >
                   전체 유형
-                </button>
+                </ToggleButton>
                 {KINDS.map((k) => (
-                  <button
+                  <ToggleButton
                     key={k}
                     className={kind === k ? "selected" : ""}
                     aria-pressed={kind === k}
@@ -220,7 +227,7 @@ export function ProblemLibrary({
                     }}
                   >
                     {KIND_LABELS[k]}
-                  </button>
+                  </ToggleButton>
                 ))}
               </div>
             </div>
@@ -239,25 +246,25 @@ export function ProblemLibrary({
                 <span className="muted">/ {total}개 문제</span>
               </span>
               <div className="pagination">
-                <button
+                <Button
                   className="icon-button"
                   aria-label="이전 페이지"
                   disabled={currentPage <= 1}
                   onClick={() => setPage(currentPage - 1)}
                 >
                   <ChevronLeft size={16} />
-                </button>
+                </Button>
                 <span>
                   {currentPage} <span className="muted">/ {Math.max(1, Math.ceil(total / 8))}</span>
                 </span>
-                <button
+                <Button
                   className="icon-button"
                   aria-label="다음 페이지"
                   disabled={currentPage * 8 >= total}
                   onClick={() => setPage(currentPage + 1)}
                 >
                   <ChevronRight size={16} />
-                </button>
+                </Button>
               </div>
             </div>
           </section>
@@ -266,9 +273,9 @@ export function ProblemLibrary({
               <ShieldCheck size={14} />
               생성한 문제와 학습 기록은 서버에 보관됩니다.
             </span>
-            <button className="text-button" onClick={exportData} disabled={exporting}>
+            <Button className="text-button" onClick={exportData} disabled={exporting}>
               <ArrowDownToLine size={13} />내 기록 내보내기
-            </button>
+            </Button>
           </div>
         </>
       ) : (

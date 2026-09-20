@@ -36,3 +36,19 @@ export const fixtureCheck: StoredCheck = {
   },
   analysis: fixtureAnalysis,
 };
+
+export const fixtureVerificationPlan = {
+  goal: "테스트 예약의 중복 실행 확인",
+  preparation: "테스트 환경과 빈 시간대, 폐기 가능한 예약 자료를 준비합니다.",
+  steps: [
+    {
+      action: "같은 예약 작업을 두 번 요청합니다.",
+      expected: "같은 작업의 예약은 한 건만 남습니다.",
+    },
+    {
+      action: "다른 작업 번호로 새 예약을 요청합니다.",
+      expected: "정상적인 새 예약은 별도로 처리됩니다.",
+    },
+  ],
+  completion: "요청별 작업 번호와 예약 개수를 비밀 정보 없이 기록합니다.",
+};

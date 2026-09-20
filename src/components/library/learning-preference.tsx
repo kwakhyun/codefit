@@ -1,4 +1,5 @@
 "use client";
+import { FieldLabel, Input, Status, Button } from "@/components/ui/primitives";
 import Image from "next/image";
 import { useId, useRef, useState } from "react";
 import { Check, SlidersHorizontal } from "lucide-react";
@@ -19,11 +20,11 @@ export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }
       <fieldset className="persona-cards">
         <legend className="sr-only">맞춤 타입 선택</legend>
         {learnerTypes.map((item) => (
-          <label
+          <FieldLabel
             className={`persona-card ${hasChosen && type === item.id ? "is-selected" : ""}`}
             key={item.id}
           >
-            <input
+            <Input
               type="radio"
               name={group}
               value={item.id}
@@ -57,7 +58,7 @@ export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }
               <Check size={14} aria-hidden="true" />
               {hasChosen && type === item.id ? "선택됨" : "이 타입 선택"}
             </span>
-          </label>
+          </FieldLabel>
         ))}
       </fieldset>
       <p className="persona-storage">
@@ -65,9 +66,9 @@ export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }
         사람에게도 적용됩니다. 학습 기록, 작성 중인 코드와 이용 권한은 바뀌지 않습니다.
       </p>
       {storageError && (
-        <p role="status">
+        <Status role="status">
           브라우저에 저장할 수 없어 현재 화면에서만 적용됩니다. 재방문할 때 다시 선택해 주세요.
-        </p>
+        </Status>
       )}
     </section>
   );
@@ -82,7 +83,7 @@ export function PreferenceChangeButton() {
   }
   return (
     <>
-      <button
+      <Button
         ref={button}
         className="persona-change"
         aria-haspopup="dialog"
@@ -96,14 +97,14 @@ export function PreferenceChangeButton() {
           <strong>{profile.name}</strong>
           <span>맞춤 타입 변경</span>
         </span>
-      </button>
+      </Button>
       <Modal open={open} onClose={close} title="맞춤 타입 변경" className="persona-modal">
         {open && (
           <>
             <LearningPreferencePicker />
-            <button className="primary-button persona-done" onClick={close}>
+            <Button className="primary-button persona-done" onClick={close}>
               선택 완료
-            </button>
+            </Button>
           </>
         )}
       </Modal>

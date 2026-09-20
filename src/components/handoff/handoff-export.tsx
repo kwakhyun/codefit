@@ -1,11 +1,12 @@
 "use client";
+import { Button, Status } from "@/components/ui/primitives";
 import { useState } from "react";
 import { handoffDocument } from "@/lib/handoff/document";
 export function HandoffExport({ title, id, value }: { title: string; id: string; value: string }) {
   const [error, setError] = useState("");
   return (
     <div className="handoff-export">
-      <button
+      <Button
         className="text-button"
         onClick={() => {
           try {
@@ -26,9 +27,9 @@ export function HandoffExport({ title, id, value }: { title: string; id: string;
         }}
       >
         인수인계 문서 저장 ↓
-      </button>
+      </Button>
       <small>현재 코드와 메모를 Markdown 초안으로 저장합니다.</small>
-      {error && <p role="alert">{error}</p>}
+      {error && <Status role="alert">{error}</Status>}
     </div>
   );
 }

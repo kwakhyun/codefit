@@ -1,5 +1,6 @@
 "use client";
-import Link from "next/link";
+import { Status, Button, FieldLabel, Input, Textarea } from "@/components/ui/primitives";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { ArrowRight, RotateCcw, Send, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { EXPERIENCE_OPTIONS, GOAL_OPTIONS, TIME_OPTIONS, type GuideProfile } from "@/lib/guide";
@@ -76,11 +77,11 @@ function GuideConversation({
         </p>
         {!guide.status ? (
           <div className="guide-connect">
-            <p role="status">{guide.error || "가이드를 준비하고 있어요…"}</p>
+            <Status role="status">{guide.error || "가이드를 준비하고 있어요…"}</Status>
             {guide.error && (
-              <button className="secondary-button" onClick={guide.reconnect}>
+              <Button className="secondary-button" onClick={guide.reconnect}>
                 연결 다시 확인
-              </button>
+              </Button>
             )}
           </div>
         ) : (
@@ -107,8 +108,8 @@ function GuideConversation({
                   <fieldset disabled={guide.busy}>
                     <legend>1. 개발 경험은 어느 정도인가요?</legend>
                     {EXPERIENCE_OPTIONS.map((item, index) => (
-                      <label key={item.value}>
-                        <input
+                      <FieldLabel key={item.value}>
+                        <Input
                           ref={index === 0 ? firstChoice : undefined}
                           type="radio"
                           name="guide-experience"
@@ -117,7 +118,7 @@ function GuideConversation({
                           onChange={() => setExperience(item.value)}
                         />
                         <span>{item.label}</span>
-                      </label>
+                      </FieldLabel>
                     ))}
                   </fieldset>
                 )}
@@ -125,8 +126,8 @@ function GuideConversation({
                   <fieldset disabled={guide.busy}>
                     <legend>2. 무엇을 해보고 싶나요?</legend>
                     {GOAL_OPTIONS.map((item, index) => (
-                      <label key={item.value}>
-                        <input
+                      <FieldLabel key={item.value}>
+                        <Input
                           ref={index === 0 ? firstChoice : undefined}
                           type="radio"
                           name="guide-goal"
@@ -135,7 +136,7 @@ function GuideConversation({
                           onChange={() => setGoal(item.value)}
                         />
                         <span>{item.label}</span>
-                      </label>
+                      </FieldLabel>
                     ))}
                   </fieldset>
                 )}
@@ -143,8 +144,8 @@ function GuideConversation({
                   <fieldset disabled={guide.busy} className="guide-time">
                     <legend>3. 지금 얼마나 연습할 수 있나요?</legend>
                     {TIME_OPTIONS.map((item, index) => (
-                      <label key={item.value}>
-                        <input
+                      <FieldLabel key={item.value}>
+                        <Input
                           ref={index === 0 ? firstChoice : undefined}
                           type="radio"
                           name="guide-time"
@@ -153,7 +154,7 @@ function GuideConversation({
                           onChange={() => setMinutes(item.value)}
                         />
                         <span>{item.label}</span>
-                      </label>
+                      </FieldLabel>
                     ))}
                   </fieldset>
                 )}
@@ -165,7 +166,7 @@ function GuideConversation({
                     </Link>
                   </p>
                 )}
-                <button
+                <Button
                   className="guide-primary"
                   disabled={
                     guide.busy || (step === 0 ? !experience : step === 1 ? !goal : !profile)
@@ -178,26 +179,26 @@ function GuideConversation({
                       ? "첫 미션을 고르고 있어요…"
                       : "내 시작점 추천받기"}
                   <ArrowRight size={17} />
-                </button>
+                </Button>
                 {step > 0 && (
-                  <button
+                  <Button
                     type="button"
                     className="guide-text-button"
                     disabled={guide.busy}
                     onClick={() => moveStep(step - 1)}
                   >
                     이전 질문
-                  </button>
+                  </Button>
                 )}
                 {step === 2 && (
-                  <button
+                  <Button
                     className="guide-text-button"
                     type="button"
                     disabled={!profile || guide.busy}
                     onClick={() => void submit("선택한 조건으로 추천해 줘.", "basic")}
                   >
                     AI 없이 선택한 답변으로 추천받기
-                  </button>
+                  </Button>
                 )}
               </form>
             )}
@@ -208,7 +209,7 @@ function GuideConversation({
                     {EXPERIENCE_OPTIONS.find((o) => o.value === experience)?.label} ·{" "}
                     {TIME_OPTIONS.find((o) => o.value === minutes)?.label}
                   </span>
-                  <button
+                  <Button
                     onClick={() => {
                       guide.reset();
                       setEditing(true);
@@ -216,7 +217,7 @@ function GuideConversation({
                     }}
                   >
                     선택 바꾸기
-                  </button>
+                  </Button>
                 </div>
                 <div
                   className="guide-chat-log"
@@ -266,7 +267,7 @@ function GuideConversation({
                 {guide.status.aiReady ? (
                   <div className="guide-followups" role="group" aria-label="이어서 물어보기">
                     {["무엇을 먼저 살펴보면 좋을까?", "이 연습이 왜 도움이 될까?"].map((text) => (
-                      <button
+                      <Button
                         key={text}
                         disabled={guide.busy}
                         onClick={() => {
@@ -275,7 +276,7 @@ function GuideConversation({
                         }}
                       >
                         {text}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 ) : (
@@ -284,17 +285,17 @@ function GuideConversation({
               </>
             )}
             {guide.error && (
-              <p className="guide-error" role="alert">
+              <Status className="guide-error" role="alert">
                 {guide.error}
-              </p>
+              </Status>
             )}
             {guide.busy && (
               <div className="guide-wait" role="status">
                 <span>핏이 답변을 준비하고 있어요…</span>
-                <button onClick={guide.cancel}>
+                <Button onClick={guide.cancel}>
                   <Square size={12} />
                   중지
-                </button>
+                </Button>
               </div>
             )}
           </>
@@ -309,9 +310,11 @@ function GuideConversation({
             if (question.trim()) void submit(question.trim());
           }}
         >
-          <label htmlFor="guide-question">목표를 더 알려주거나 궁금한 점을 물어보세요</label>
+          <FieldLabel htmlFor="guide-question">
+            목표를 더 알려주거나 궁금한 점을 물어보세요
+          </FieldLabel>
           <div>
-            <textarea
+            <Textarea
               ref={composer}
               id="guide-question"
               value={question}
@@ -321,16 +324,16 @@ function GuideConversation({
               placeholder="예: AI로 만든 서비스의 오류를 찾고 싶어요"
               disabled={guide.busy}
             />
-            <button
+            <Button
               type="submit"
               aria-label="핏에게 질문 보내기"
               disabled={!question.trim() || guide.busy}
             >
               <Send size={18} />
-            </button>
+            </Button>
           </div>
           <p>학습 목표만 적어주세요. 코드·비밀번호·개인정보는 제외해 주세요.</p>
-          <button
+          <Button
             type="button"
             className="guide-text-button"
             onClick={() => {
@@ -342,11 +345,12 @@ function GuideConversation({
           >
             <RotateCcw size={13} />
             대화 지우고 다시 시작
-          </button>
+          </Button>
         </form>
       )}
       <p className="guide-footer">
-        AI는 잘못 안내할 수 있어요. AI 안내는 하루 최대 12회이며, 대화는 새로고침하면 지워져요.
+        AI는 잘못 안내할 수 있어요. AI 안내는 24시간에 비로그인 2회, 로그인 20회이며, 대화는
+        새로고침하면 지워져요.
       </p>
     </>
   );

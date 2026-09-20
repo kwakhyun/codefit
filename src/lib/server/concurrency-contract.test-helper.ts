@@ -112,7 +112,7 @@ export function concurrencyContract(
       Promise.resolve().then(() => store.completeGeneration(late, old)),
     ).rejects.toBeInstanceOf(StaleJob);
     expect(await store.problem(late.id)).toBeNull();
-    expect((await store.queries.usage(old.owner)).remaining.generate).toBe(2);
+    expect((await store.queries.usage(old.owner)).remaining.generate).toBe(5);
     // A failed insertion leaves job and reservation available for the current execution.
     await expect(
       Promise.resolve().then(() => store.completeGeneration(seedProblems[0], current)),
@@ -128,7 +128,7 @@ export function concurrencyContract(
       state: "done",
       result: result.id,
     });
-    expect((await store.queries.usage(old.owner)).remaining.generate).toBe(2);
+    expect((await store.queries.usage(old.owner)).remaining.generate).toBe(5);
   }, 30000);
   it("fences late reviews and retains request identity through failure and completion", async () => {
     const store = getStore(),

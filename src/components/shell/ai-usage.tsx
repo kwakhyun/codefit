@@ -1,6 +1,7 @@
 "use client";
+import { Card, Status, Button } from "@/components/ui/primitives";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { api, errorMessage } from "@/lib/client-api";
 import type { AiUsage as Usage } from "@/lib/ai-telemetry";
 import { dateLabel } from "@/lib/client-api";
@@ -21,23 +22,23 @@ export function AiUsage() {
     return () => controller.abort();
   }, [retry]);
   return (
-    <section className="usage-panel" aria-label="내 AI 이용 현황">
+    <Card as="section" className="usage-panel" aria-label="내 AI 이용 현황">
       <h3>내 AI 이용 현황</h3>
       {error ? (
-        <p role="alert">
+        <Status role="alert">
           {error}{" "}
-          <button className="text-button" onClick={() => setRetry(retry + 1)}>
+          <Button className="text-button" onClick={() => setRetry(retry + 1)}>
             다시 확인
-          </button>
-        </p>
+          </Button>
+        </Status>
       ) : !usage ? (
-        <p role="status">이용 현황 확인 중…</p>
+        <Status role="status">이용 현황 확인 중…</Status>
       ) : (
         <>
           <div className="usage-grid">
             {(["generate", "review"] as const).map((kind) => (
               <div key={kind}>
-                <span>{kind === "generate" ? "문제 생성" : "풀이 검토와 AI 질문"}</span>
+                <span>{kind === "generate" ? "문제 생성" : "풀이 검토"}</span>
                 <strong>
                   {kind === "generate" && !usage.canGenerate
                     ? "로그인 필요"
@@ -56,12 +57,6 @@ export function AiUsage() {
               </div>
             ))}
           </div>
-          <p className="muted">
-            최근 30일 {usage.last30Days.requests}회 요청, 평균{" "}
-            {(usage.last30Days.averageLatencyMs / 1000).toFixed(1)}초. 입력{" "}
-            {usage.last30Days.inputTokens.toLocaleString()} / 출력{" "}
-            {usage.last30Days.outputTokens.toLocaleString()} 토큰.
-          </p>
         </>
       )}
       <p className="muted">
@@ -72,6 +67,6 @@ export function AiUsage() {
       <Link className="text-button" href="/quality">
         AI 검토 방식과 검증 결과 보기 →
       </Link>
-    </section>
+    </Card>
   );
 }

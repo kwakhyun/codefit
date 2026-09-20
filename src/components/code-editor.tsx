@@ -1,4 +1,5 @@
 "use client";
+import { ToggleButton, Button, Card } from "@/components/ui/primitives";
 
 import { configureMonaco } from "@/lib/editor/monaco-setup";
 
@@ -88,7 +89,7 @@ export function CodeEditor({
           <span className="file-dot" />
         </span>
         <div>
-          <button
+          <ToggleButton
             className={`icon-button ${wrap ? "active" : ""}`}
             aria-label="자동 줄바꿈"
             aria-pressed={wrap}
@@ -103,8 +104,8 @@ export function CodeEditor({
             title="자동 줄바꿈"
           >
             <WrapText size={16} />
-          </button>
-          <button
+          </ToggleButton>
+          <Button
             className="icon-button"
             aria-label="실행 취소"
             title="실행 취소 (Ctrl / ⌘ Z)"
@@ -114,8 +115,8 @@ export function CodeEditor({
             }}
           >
             <Undo2 size={16} />
-          </button>
-          <button
+          </Button>
+          <Button
             className="icon-button"
             aria-label="다시 실행"
             title="다시 실행"
@@ -125,18 +126,18 @@ export function CodeEditor({
             }}
           >
             <Redo2 size={16} />
-          </button>
+          </Button>
           {onSave && (
-            <button
+            <Button
               className="icon-button"
               aria-label="지금 저장"
               title="지금 저장 (Ctrl / ⌘ S)"
               onClick={onSave}
             >
               <Save size={16} />
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             className="icon-button"
             aria-label="코드 정리"
             title="코드 정리 (지원 언어)"
@@ -155,16 +156,16 @@ export function CodeEditor({
             }}
           >
             <AlignLeft size={16} />
-          </button>
+          </Button>
         </div>
       </div>
       {editorNotice && (
-        <div className="editor-notice" role="status">
+        <Card as="div" className="editor-notice" role="status">
           <span>{editorNotice}</span>
-          <button aria-label="편집기 안내 닫기" onClick={() => setEditorNotice("")}>
+          <Button aria-label="편집기 안내 닫기" onClick={() => setEditorNotice("")}>
             ×
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
       <div className="monaco-shell">
         <Editor

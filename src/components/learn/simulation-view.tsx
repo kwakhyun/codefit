@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 import { useRef, useState } from "react";
 import { RotateCcw, Monitor } from "lucide-react";
 import { ACTION_LABELS, type Action, type Mission } from "@/lib/learn/catalog";
@@ -21,12 +22,14 @@ export function SimulationView({
   fix = "",
   onAction,
   preview = false,
+  finishOnRequired = false,
 }: {
   mission: Mission;
   actions: Action[];
   fix?: string;
   onAction?: (action: Action) => void;
   preview?: boolean;
+  finishOnRequired?: boolean;
 }) {
   const root = useRef<HTMLElement>(null);
   const [trial, setTrial] = useState<Action[]>([]);
@@ -52,9 +55,9 @@ export function SimulationView({
           <Monitor size={16} /> 실습 서비스 <small>가상 데이터</small>
         </span>
         {preview && (
-          <button type="button" onClick={() => setTrial([])}>
+          <Button type="button" onClick={() => setTrial([])}>
             <RotateCcw size={14} /> 처음으로
-          </button>
+          </Button>
         )}
       </div>
       {!preview && (
@@ -65,6 +68,7 @@ export function SimulationView({
           root={root}
           result={`${mission.app === "request" || mission.app === "booking" ? `${state.online ? "온라인" : "오프라인"} 상태 · ` : mission.app === "access" ? `사용자 ${state.actor} · ` : ""}${state.message}`}
           fixed={Boolean(fix)}
+          finishOnRequired={finishOnRequired}
           disabled={disabled}
         />
       )}
@@ -78,7 +82,7 @@ export function SimulationView({
           <strong>상황 바꾸기</strong>
           <div>
             {tools.map((action) => (
-              <button
+              <Button
                 type="button"
                 data-sim-action={action}
                 key={action}
@@ -86,7 +90,7 @@ export function SimulationView({
                 onClick={() => act(action)}
               >
                 {ACTION_LABELS[action]}
-              </button>
+              </Button>
             ))}
           </div>
           {mission.app === "request" || mission.app === "booking" ? (

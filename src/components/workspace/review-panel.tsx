@@ -1,7 +1,9 @@
 "use client";
+import { useFadeTransition } from "@/components/ui/use-fade-transition";
+import { Disclosure, DisclosureSummary, Button } from "@/components/ui/primitives";
 import { formatHandoffDraft } from "@/lib/handoff/draft";
 import { HANDOFF_CRITERIA } from "@/lib/handoff/catalog";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import type { ConfirmationAction } from "@/components/workspace/types";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -22,8 +24,9 @@ export function ReviewPanel({
   code,
   setConfirm,
 }: ReviewPanelProps) {
+  const fade = useFadeTransition<HTMLElement>(`${busy}:${selectedAttempt?.id || "empty"}`);
   return (
-    <section className="review-console" aria-label="AI 검토 결과" aria-live="polite">
+    <section ref={fade} className="review-console" aria-label="AI 검토 결과" aria-live="polite">
       <div className="console-heading">
         <Terminal size={14} />
         <strong>검토 결과</strong>
@@ -31,7 +34,6 @@ export function ReviewPanel({
       </div>
       {busy ? (
         <div className="console-idle">
-          <span className="mono success-text">$ review --requirements</span>
           <p>
             <LoaderCircle size={15} className="spin" />
             요구사항과 경계 조건을 하나씩 살펴보고 있습니다.
@@ -108,23 +110,23 @@ export function ReviewPanel({
               <Link href="/handoff">과제별 피드백과 복습할 문제 보기 →</Link>
             </p>
           )}
-          <details className="submitted-code">
-            <summary>
+          <Disclosure className="submitted-code">
+            <DisclosureSummary>
               제출했던 코드 보기 <span>{dateLabel(selectedAttempt.createdAt)}</span>
-            </summary>
+            </DisclosureSummary>
             <pre>
               <code>
                 {handoff ? formatHandoffDraft(selectedAttempt.code) : selectedAttempt.code}
               </code>
             </pre>
-            <button
+            <Button
               className="secondary-button"
               disabled={busy || selectedAttempt.code === code}
               onClick={() => setConfirm("restore")}
             >
               <History size={15} />이 제출본으로 이어 풀기
-            </button>
-          </details>
+            </Button>
+          </Disclosure>
         </div>
       ) : (
         <div className="console-idle">

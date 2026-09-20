@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { z } from "zod";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";

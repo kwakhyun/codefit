@@ -24,7 +24,7 @@ export async function PATCH(request: Request, context: Context) {
     const id = (await context.params).id;
     if (!z.uuid().safeParse(id).success)
       throw new HttpError(400, "점검 기록 주소가 올바르지 않습니다.");
-    const input = await readBody(request, practiceSchema, 40_000);
+    const input = await readBody(request, practiceSchema, 80_000);
     return json(await (await getStore()).queries.projectChecks.savePractice(owner, id, input));
   } catch (error) {
     return failure(error);

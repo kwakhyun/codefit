@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 
 import { X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
@@ -42,9 +43,9 @@ export function Modal({
       <div className="modal-heading">
         <span className="mono">{title}</span>
         {dismissible && (
-          <button className="icon-button" aria-label="닫기" onClick={onClose} disabled={busy}>
+          <Button className="icon-button" aria-label="닫기" onClick={onClose} disabled={busy}>
             <X size={19} />
-          </button>
+          </Button>
         )}
       </div>
       {children}

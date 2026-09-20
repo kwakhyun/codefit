@@ -1,4 +1,5 @@
 "use client";
+import { Button, FieldLabel, Textarea } from "@/components/ui/primitives";
 import { requestFromObservation } from "@/lib/learn/request-draft";
 import {
   requestFields,
@@ -34,7 +35,7 @@ export function MissionRequest({
           ? "실습을 마치려면 다섯 항목을 채워 주세요."
           : "기초 미션에서는 선택 사항입니다."}
       </p>
-      <button
+      <Button
         className="secondary-button"
         disabled={
           !record.actions.length ||
@@ -45,7 +46,7 @@ export function MissionRequest({
         }
       >
         관찰 기록으로 빈칸 채우기
-      </button>
+      </Button>
       <p className="learn-fineprint">
         관찰한 위치, 조작 순서, 마지막 결과를 가져옵니다. 이미 쓴 내용은 유지되며 초안은 고칠 수
         있습니다. 기대 동작과 유지할 기능은 직접 정리해 주세요.
@@ -53,9 +54,9 @@ export function MissionRequest({
       <span className="learn-chip">요청 항목 {filled} / 5</span>
       {requestFields.map((f) => (
         <div key={f.key}>
-          <label htmlFor={`request-${f.key}`}>
+          <FieldLabel htmlFor={`request-${f.key}`}>
             {f.label}
-            <textarea
+            <Textarea
               id={`request-${f.key}`}
               value={record.request[f.key]}
               placeholder={f.placeholder}
@@ -69,7 +70,7 @@ export function MissionRequest({
                 }))
               }
             />
-          </label>
+          </FieldLabel>
           <VoiceInput
             targetId={`request-${f.key}`}
             onTranscript={(text) =>
@@ -89,12 +90,12 @@ export function MissionRequest({
         각 항목에 3자 이상 적어 주세요. 작성 여부만 확인하며, 내용의 정확성을 자동으로 판정하지는
         않습니다.
       </p>
-      <button className="secondary-button" disabled={busy || !aiReady} onClick={() => void coach()}>
+      <Button className="secondary-button" disabled={busy || !aiReady} onClick={() => void coach()}>
         {busy ? "AI가 질문을 준비하는 중…" : "AI에게 보완할 점 묻기"}
-      </button>
+      </Button>
       <p className="learn-fineprint">
         {aiReady
-          ? "선택한 미션과 작성 내용을 AI에 보냅니다. 기존 풀이 검토와 24시간 20회 한도를 공유합니다."
+          ? "선택한 미션과 작성 내용을 AI에 보냅니다. 실습 AI 코치는 로그인 없이 24시간 2회, 로그인하면 30회 이용할 수 있습니다."
           : "AI 연결이 없어도 힌트와 동작 검사로 끝까지 연습할 수 있습니다."}
       </p>
       {record.coach && (

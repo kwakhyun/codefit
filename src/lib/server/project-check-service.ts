@@ -1,3 +1,4 @@
+import { allowanceFor } from "../ai-access";
 import type { z } from "zod";
 import {
   createCheckSchema,
@@ -20,9 +21,18 @@ export class ProjectCheckService {
   ) {}
   private async consume(owner: string, network: string, kind: "analysis" | "review") {
     const allowed = await this.store.consumeLimits([
+      ...(!owner.startsWith("user:")
+        ? [
+            {
+              key: `project:guest-network:${kind}:${network}`,
+              max: 2,
+              windowMs: PROJECT_LIMITS.windowMs,
+            },
+          ]
+        : []),
       {
         key: `project:${kind}:${owner}`,
-        max: PROJECT_LIMITS[kind],
+        max: allowanceFor(owner)[kind === "analysis" ? "analysis" : "projectReview"],
         windowMs: PROJECT_LIMITS.windowMs,
       },
       {

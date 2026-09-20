@@ -1,7 +1,8 @@
 "use client";
+import { Button } from "@/components/ui/primitives";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import type { LearnerType } from "@/lib/learner-types";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
@@ -41,7 +42,7 @@ const slideCatalog = [
     tag: "04 / AI 문제 생성",
     title: "원하는 분야와 난이도로\n코딩 문제를 만들어보세요",
     description:
-      "기능 구현, 오류 수정, 리팩터링 중 연습할 내용을 고르세요. 로그인하면 하루 3회까지 AI로 문제를 만들 수 있습니다.",
+      "기능 구현, 오류 수정, 리팩터링 중 연습할 내용을 고르세요. 비로그인으로 2회, 로그인하면 하루 6회까지 AI로 문제를 만들 수 있습니다.",
     href: null,
     cta: "AI 문제 만들기",
     image: "/images/features/practice-builder.webp",
@@ -51,7 +52,7 @@ const slideCatalog = [
     tag: "내 프로젝트 점검",
     title: "내가 만든 서비스로\n설계 질문을 받아보세요",
     description:
-      "서비스의 공개 화면을 바탕으로 질문받고, 빠진 설명과 직접 확인할 방법을 찾아보세요. 예시는 로그인 없이 볼 수 있습니다.",
+      "서비스의 공개 화면을 바탕으로 질문받고, 빠진 설명과 직접 확인할 방법을 찾아보세요. 로그인 없이 분석과 답변 평가를 2회씩 체험할 수 있습니다.",
     href: "/project-check",
     cta: "내 프로젝트 점검",
     image: "/images/experience/project.webp",
@@ -61,7 +62,7 @@ const slideCatalog = [
     tag: "서비스 보안 점검",
     title: "배포하기 전에\n보안 설정을 확인하세요",
     description:
-      "공개 설정을 읽고 권한과 중복 요청의 확인 기록을 남기세요. 공격을 실행하거나 모든 취약점을 검증하는 기능은 아닙니다.",
+      "공개 설정과 소유한 주소의 CORS 응답을 확인하세요. ZAP 검사 보고서를 가져와 수정과 재검사 기록으로 이어갈 수 있습니다.",
     href: "/security-check",
     cta: "서비스 보안 점검",
     image: "/images/experience/security.webp",
@@ -85,13 +86,27 @@ export function FeatureBanner({ onGenerate }: { onGenerate: () => void }) {
 }
 function FeatureCarousel({ type, onGenerate }: { type: LearnerType; onGenerate: () => void }) {
   const slides = order[type].map((index) => slideCatalog[index]);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [stageWidth, setStageWidth] = useState<number>();
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    // Give every overlaid slide the same explicit constraint after a resize.
+    // Safari can retain intrinsic child heights until that slide becomes active.
+    const observer = new ResizeObserver(([entry]) => {
+      const width = entry.contentRect.width;
+      setStageWidth((previous) => (previous === width ? previous : width));
+    });
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, []);
   const reduced = useSyncExternalStore(
     subscribeMotion,
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     () => true,
   );
   const [index, setIndex] = useState(0),
-    [paused, setPaused] = useState(false),
+    [paused, setPaused] = useState(true),
     [hover, setHover] = useState(false),
     [hidden, setHidden] = useState(false);
   const [remaining, setRemaining] = useState(SLIDE_DURATION);
@@ -152,12 +167,12 @@ function FeatureCarousel({ type, onGenerate }: { type: LearnerType; onGenerate: 
           {String(index + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
         </span>
       </div>
-      <div className="feature-stage">
+      <div ref={stageRef} className="feature-stage">
         {slides.map((slide, slideIndex) => (
           <div
             className={`feature-slide ${slide.accent} ${slideIndex === index ? "is-active" : ""}`}
-            style={{ left: `${-100 * slideIndex}%` }}
             key={slide.tag}
+            style={{ width: stageWidth }}
             inert={slideIndex !== index}
             aria-hidden={slideIndex !== index}
             role="group"
@@ -175,7 +190,7 @@ function FeatureCarousel({ type, onGenerate }: { type: LearnerType; onGenerate: 
                   <ArrowRight size={17} />
                 </Link>
               ) : (
-                <button
+                <Button
                   className="primary-button"
                   onClick={(event) => {
                     // Safari does not focus clicked buttons; give the dialog a return target.
@@ -185,7 +200,7 @@ function FeatureCarousel({ type, onGenerate }: { type: LearnerType; onGenerate: 
                 >
                   {slide.cta}
                   <ArrowRight size={17} />
-                </button>
+                </Button>
               )}
             </div>
             <div className="feature-art" aria-hidden="true">
@@ -207,17 +222,17 @@ function FeatureCarousel({ type, onGenerate }: { type: LearnerType; onGenerate: 
       <div className="feature-banner-controls">
         <div className="feature-dots feature-topic-rail" aria-label="기능 바로 선택">
           {slides.map((s, i) => (
-            <button
+            <Button
               key={s.tag}
               aria-label={`${i + 1}번 기능: ${s.cta}`}
               aria-current={i === index ? "true" : undefined}
               onClick={() => handleGo(i)}
             >
               <span>{s.tag.replace(/^\d+ \/ /, "")}</span>
-            </button>
+            </Button>
           ))}
         </div>
-        <button
+        <Button
           className="icon-button"
           data-playback
           aria-label={!paused && !reduced ? "배너 자동 넘김 멈추기" : "배너 자동 넘김 시작하기"}
@@ -225,13 +240,13 @@ function FeatureCarousel({ type, onGenerate }: { type: LearnerType; onGenerate: 
           disabled={reduced}
         >
           {!paused && !reduced ? <Pause size={16} /> : <Play size={16} />}
-        </button>
-        <button className="icon-button" aria-label="이전 기능" onClick={() => handleGo(index - 1)}>
+        </Button>
+        <Button className="icon-button" aria-label="이전 기능" onClick={() => handleGo(index - 1)}>
           <ChevronLeft size={18} />
-        </button>
-        <button className="icon-button" aria-label="다음 기능" onClick={() => handleGo(index + 1)}>
+        </Button>
+        <Button className="icon-button" aria-label="다음 기능" onClick={() => handleGo(index + 1)}>
           <ChevronRight size={18} />
-        </button>
+        </Button>
       </div>
     </section>
   );

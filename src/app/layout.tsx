@@ -1,3 +1,5 @@
+import { RouteFeedback } from "@/components/ui/route-feedback";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import "./globals.css";
 import { GuideWidget } from "@/components/guide/guide-widget";
@@ -13,6 +15,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         {children}
         <GuideWidget />
+        <Suspense fallback={null}>
+          <RouteFeedback />
+        </Suspense>
       </body>
     </html>
   );

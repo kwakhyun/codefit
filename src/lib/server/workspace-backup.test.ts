@@ -68,6 +68,8 @@ it("round-trips captured screens, project evidence and previous answers without 
   const review = file.projects[0].review as NonNullable<
     import("../project-check/types").Check["review"]
   >;
+  const { fixtureVerificationPlan } = await import("../project-check/fixtures");
+  review.assessment.feedback[0].verificationPlan = fixtureVerificationPlan;
   check.page.source = "rendered";
   check.page.captures = [
     { url: "https://example.com/", title: "화면", text: "직접 수집한 본문", screenshot: "YWJj" },
@@ -92,6 +94,7 @@ it("round-trips captured screens, project evidence and previous answers without 
   );
   expect(detail?.previousReview).toEqual(check.previousReview);
   expect(detail?.review?.practice).toEqual(review.practice);
+  expect(detail?.review?.assessment.feedback[0].verificationPlan).toEqual(fixtureVerificationPlan);
   const stored = await store.queries.projectChecks.get("target", restoredProjectId("target", id));
   expect(stored?.page.captures).toEqual(check.page.captures);
   check.previousReview.assessment.score = 99;

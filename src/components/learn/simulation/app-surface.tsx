@@ -1,3 +1,10 @@
+import {
+  Button,
+  Disclosure,
+  DisclosureSummary,
+  ToggleButton,
+  Card,
+} from "@/components/ui/primitives";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import {
@@ -39,7 +46,7 @@ function AppAction({
   primary?: boolean;
 }) {
   return (
-    <button
+    <Button
       type="button"
       className={primary ? "sample-primary" : "sample-button"}
       data-sim-action={action}
@@ -47,7 +54,7 @@ function AppAction({
       onClick={() => act(action)}
     >
       {children || ACTION_LABELS[action]}
-    </button>
+    </Button>
   );
 }
 export function AppSurface({ mission, state: s, act, disabled }: Props) {
@@ -243,13 +250,13 @@ export function AppSurface({ mission, state: s, act, disabled }: Props) {
                   <br />
                   무료배송 / 영업일 기준 2–3일 소요
                 </p>
-                <details>
-                  <summary>교환 및 반품 안내</summary>
+                <Disclosure>
+                  <DisclosureSummary>교환 및 반품 안내</DisclosureSummary>
                   <p>
                     상품 수령 후 7일 이내 고객센터로 접수해 주세요. 사용한 상품은 반품이 제한될 수
                     있습니다.
                   </p>
-                </details>
+                </Disclosure>
               </div>
             </>
           )}
@@ -267,7 +274,7 @@ export function AppSurface({ mission, state: s, act, disabled }: Props) {
               </div>
               <p className="sample-subtitle">출시 전에 팀에서 함께 확인할 작업입니다.</p>
               <div className="sample-tabs">
-                <button
+                <ToggleButton
                   type="button"
                   aria-pressed={!s.filtered}
                   onClick={() => act("refresh")}
@@ -275,8 +282,8 @@ export function AppSurface({ mission, state: s, act, disabled }: Props) {
                   aria-label="전체 다시 보기"
                 >
                   전체
-                </button>
-                <button
+                </ToggleButton>
+                <ToggleButton
                   type="button"
                   aria-pressed={s.filtered}
                   onClick={() => act("filter")}
@@ -284,7 +291,7 @@ export function AppSurface({ mission, state: s, act, disabled }: Props) {
                   aria-label={ACTION_LABELS.filter}
                 >
                   완료
-                </button>
+                </ToggleButton>
               </div>
               <ul className="sample-task-list">
                 {(s.filtered ? s.todos.filter((t) => t.done) : s.todos).map((t) => (
@@ -332,7 +339,7 @@ export function AppSurface({ mission, state: s, act, disabled }: Props) {
                 {s.result ? (
                   <>
                     <span className="sample-kicker">검색 결과 · {s.result}</span>
-                    <div className="sample-pet-card">
+                    <Card as="div" className="sample-pet-card">
                       <div className={`sample-pet-art ${s.result === "고양이" ? "cat" : "dog"}`}>
                         <PawPrint size={44} />
                       </div>
@@ -347,7 +354,7 @@ export function AppSurface({ mission, state: s, act, disabled }: Props) {
                         </p>
                         <span className="sample-tag">새 가족을 기다려요</span>
                       </div>
-                    </div>
+                    </Card>
                   </>
                 ) : (
                   <div className="sample-empty">

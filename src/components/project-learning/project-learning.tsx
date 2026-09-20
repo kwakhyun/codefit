@@ -1,6 +1,15 @@
 "use client";
+import { useFadeTransition } from "@/components/ui/use-fade-transition";
+import {
+  Card,
+  Status,
+  Button,
+  ToggleButton,
+  Disclosure,
+  DisclosureSummary,
+} from "@/components/ui/primitives";
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { ArrowRight, Check, FlaskConical, RefreshCw } from "lucide-react";
 import { api, errorMessage } from "@/lib/client-api";
 import type { TrainingView } from "@/lib/project-learning/types";
@@ -16,6 +25,7 @@ export function ProjectLearning({ id, scope }: { id: string; scope: string }) {
   const [view, setView] = useState<TrainingView>();
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<string>();
+  const fade = useFadeTransition<HTMLElement>(selected || "initial");
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -48,7 +58,9 @@ export function ProjectLearning({ id, scope }: { id: string; scope: string }) {
     view?.modules.find((m) => m.phase !== "complete") ??
     view?.modules[0];
   return (
-    <section
+    <Card
+      as="section"
+      ref={fade}
       id="training"
       className="project-panel training-panel"
       aria-label="기초 개념 실습과 확인"
@@ -63,11 +75,11 @@ export function ProjectLearning({ id, scope }: { id: string; scope: string }) {
       </p>
       <p className="project-help">이 실습에는 AI 이용 횟수가 차감되지 않습니다.</p>
       {error && (
-        <p role="alert" className="project-error">
+        <Status role="alert" className="project-error">
           {error}
-        </p>
+        </Status>
       )}
-      <button
+      <Button
         className="text-button"
         disabled={loading}
         onClick={() => {
@@ -77,13 +89,13 @@ export function ProjectLearning({ id, scope }: { id: string; scope: string }) {
       >
         <RefreshCw size={15} />
         {loading ? "기록 확인 중…" : "실습 기록 새로고침"}
-      </button>
-      {!view && !error && <p role="status">기초 개념 실습을 준비하고 있습니다…</p>}
+      </Button>
+      {!view && !error && <Status role="status">기초 개념 실습을 준비하고 있습니다…</Status>}
       {view && current && (
         <>
           <nav className="training-topics" aria-label="연습 영역">
             {view.modules.map((m, i) => (
-              <button
+              <ToggleButton
                 key={m.id}
                 aria-pressed={m.id === current.id}
                 onClick={() => {
@@ -95,21 +107,21 @@ export function ProjectLearning({ id, scope }: { id: string; scope: string }) {
                   {m.phase === "complete" ? <Check size={15} /> : i + 1}. {m.area}
                 </span>
                 <small>{phaseLabel[m.phase]}</small>
-              </button>
+              </ToggleButton>
             ))}
           </nav>
           <h3 ref={heading} tabIndex={-1}>
             {current.title}
           </h3>
           <p>{current.objective}</p>
-          <details className="training-reason">
-            <summary>이 연습을 추천한 이유</summary>
+          <Disclosure className="training-reason">
+            <DisclosureSummary>이 연습을 추천한 이유</DisclosureSummary>
             <p>{current.reason}</p>
             <p className="project-help">
               이 영역의 답변은 AI 평가에서 {current.level}/4단계를 받았습니다. 평가가 낮은 영역부터
               연습을 안내하며, 실제 구현 능력을 평가한 결과는 아닙니다.
             </p>
-          </details>
+          </Disclosure>
           <ol className="training-stages" aria-label="학습 순서">
             {["baseline", "practice", "transfer", "complete"].map((p) => (
               <li key={p} aria-current={p === current.phase ? "step" : undefined}>
@@ -170,6 +182,6 @@ export function ProjectLearning({ id, scope }: { id: string; scope: string }) {
           )}
         </>
       )}
-    </section>
+    </Card>
   );
 }

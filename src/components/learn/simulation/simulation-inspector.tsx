@@ -1,3 +1,4 @@
+import { Disclosure, DisclosureSummary } from "@/components/ui/primitives";
 import type { Mission } from "@/lib/learn/catalog";
 import type { Simulation } from "@/lib/learn/simulation";
 export function SimulationInspector({
@@ -8,8 +9,8 @@ export function SimulationInspector({
   state: Simulation;
 }) {
   return (
-    <details className="sim-inspector">
-      <summary>서비스 내부 상태 보기</summary>
+    <Disclosure className="sim-inspector">
+      <DisclosureSummary>서비스 내부 상태 보기</DisclosureSummary>
       {mission.service && (
         <p>
           선택한 데이터: <b>{mission.service.samples[s.service.selected].label}</b>
@@ -54,6 +55,6 @@ export function SimulationInspector({
           접수된 요청: <b>{s.bookings.join(" / ") || "없음"}</b>
         </p>
       )}
-    </details>
+    </Disclosure>
   );
 }

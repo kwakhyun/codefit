@@ -1,6 +1,7 @@
+import { Card, Disclosure, DisclosureSummary } from "@/components/ui/primitives";
 import { ScenarioImage } from "@/components/ui/scenario-visual";
 import { scenarioFor } from "@/lib/scenario-visuals";
-import Link from "next/link";
+import { AppLink as Link } from "@/components/ui/primitives";
 import { HANDOFF_TRACKS, handoffId } from "@/lib/handoff/catalog";
 import type { HandoffDashboard } from "@/lib/handoff/learning";
 import { problemUrl } from "@/lib/library-state";
@@ -19,7 +20,7 @@ export function HandoffCard({
   const action = learning?.next ?? { problemId: handoffId(track.key), label: "코드 분석 시작" };
   const latest = learning?.latest;
   return (
-    <article className="handoff-card">
+    <Card as="article" className="handoff-card">
       <span className="scenario-thumbnail">
         <ScenarioImage scene={scenarioFor(handoffId(track.key))!} />
       </span>
@@ -53,8 +54,8 @@ export function HandoffCard({
             검토한 코드와 피드백 보기 →
           </Link>
           {learning.weaknesses.length ? (
-            <details>
-              <summary>다시 연습할 부분 {learning.weaknesses.length}개</summary>
+            <Disclosure>
+              <DisclosureSummary>다시 연습할 부분 {learning.weaknesses.length}개</DisclosureSummary>
               <ul>
                 {learning.weaknesses.map((w) => (
                   <li key={w.label}>
@@ -63,7 +64,7 @@ export function HandoffCard({
                   </li>
                 ))}
               </ul>
-            </details>
+            </Disclosure>
           ) : (
             <p>최근 제출은 기준을 모두 충족했습니다.</p>
           )}
@@ -91,6 +92,6 @@ export function HandoffCard({
           {track.variantTitle} →
         </Link>
       </div>
-    </article>
+    </Card>
   );
 }
