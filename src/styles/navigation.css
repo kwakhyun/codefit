@@ -459,7 +459,46 @@
   margin-left: auto;
 }
 .theme-picture {
-  display: contents;
+  display: block;
+  position: relative;
+  width: 100%;
+}
+.persona-art .theme-picture {
+  height: 100%;
+}
+.theme-picture[data-image-state="loading"]::after,
+.theme-picture[data-image-state="error"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(
+    100deg,
+    var(--surface-hover) 25%,
+    var(--surface) 50%,
+    var(--surface-hover) 75%
+  );
+  background-size: 200% 100%;
+  pointer-events: none;
+}
+.theme-picture[data-image-state="loading"]::after {
+  animation: themed-image-shimmer 1.8s ease-in-out infinite;
+}
+.theme-picture:not([data-image-state="loaded"]) img {
+  opacity: 0;
+}
+@keyframes themed-image-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-picture[data-image-state="loading"]::after {
+    animation: none;
+  }
 }
 .ui-button.theme-toggle {
   display: inline-flex;
