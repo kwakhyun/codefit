@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BookOpen, ArrowRight, FolderOpen, Pencil, Trash2, RotateCcw } from "lucide-react";
-import { api, dateLabel, errorMessage } from "@/lib/client-api";
+import { ApiError, api, dateLabel, errorMessage } from "@/lib/client-api";
 import type { CheckListItem, CheckOverview } from "@/lib/project-check/types";
 import type { ClassMetadata, ProjectClassDetail } from "@/lib/project-check/project-class";
 import {
@@ -27,22 +27,53 @@ export function ProjectClasses() {
   const [overview, setOverview] = useState<CheckOverview>();
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
+  const [pageCount, setPageCount] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const currentScope = useRef<string | undefined>(undefined);
   useEffect(() => {
     const abort = new AbortController();
-    api<CheckOverview>("/api/project-check", { scope: null, signal: abort.signal })
+    async function load() {
+      const first = await api<CheckOverview>("/api/project-check", {
+        scope: null,
+        signal: abort.signal,
+      });
+      const count = currentScope.current && currentScope.current !== first.scope ? 1 : pageCount;
+      const checks = [...first.checks];
+      let cursor = first.nextCursor;
+      for (let page = 1; page < count && cursor; page++) {
+        const next = await api<CheckOverview>(
+          `/api/project-check?cursor=${encodeURIComponent(cursor)}`,
+          { scope: first.scope, signal: abort.signal },
+        );
+        checks.push(
+          ...next.checks.filter((item) => !checks.some((existing) => existing.id === item.id)),
+        );
+        cursor = next.nextCursor;
+      }
+      return { ...first, checks, nextCursor: cursor };
+    }
+    load()
       .then((value) => {
         if (!abort.signal.aborted) {
+          if (currentScope.current && currentScope.current !== value.scope) setPageCount(1);
+          currentScope.current = value.scope;
           setOverview(value);
           setError("");
         }
       })
       .catch((e) => {
         if (!abort.signal.aborted) setError(errorMessage(e));
+      })
+      .finally(() => {
+        if (!abort.signal.aborted) setLoading(false);
       });
     return () => abort.abort();
-  }, [revision]);
+  }, [revision, pageCount]);
   useEffect(() => {
-    const refresh = () => setRevision((v) => v + 1);
+    const refresh = () => {
+      setLoading(true);
+      setRevision((v) => v + 1);
+    };
     window.addEventListener("focus", refresh);
     window.addEventListener("codefit:backup-imported", refresh);
     return () => {
@@ -65,36 +96,35 @@ export function ProjectClasses() {
             key={`${overview.scope}:${id}`}
             id={id}
             scope={overview.scope}
+            overview={overview}
             onChanged={() => setRevision((v) => v + 1)}
           />
         ) : (
-          <ClassList key={`${overview.scope}:${revision}`} overview={overview} />
+          <ClassList
+            key={overview.scope}
+            overview={overview}
+            busy={loading}
+            more={() => {
+              setLoading(true);
+              setPageCount((count) => count + 1);
+            }}
+          />
         ))}
     </>
   );
 }
-function ClassList({ overview }: { overview: CheckOverview }) {
-  const [items, setItems] = useState(overview.checks),
-    [cursor, setCursor] = useState(overview.nextCursor),
-    [query, setQuery] = useState(""),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
-  async function more() {
-    if (!cursor || busy) return;
-    setBusy(true);
-    try {
-      const page = await api<CheckOverview>(
-        `/api/project-check?cursor=${encodeURIComponent(cursor)}`,
-        { scope: overview.scope },
-      );
-      setItems((old) => [...old, ...page.checks.filter((c) => !old.some((p) => p.id === c.id))]);
-      setCursor(page.nextCursor);
-    } catch (e) {
-      setError(errorMessage(e));
-    } finally {
-      setBusy(false);
-    }
-  }
+function ClassList({
+  overview,
+  busy,
+  more,
+}: {
+  overview: CheckOverview;
+  busy: boolean;
+  more: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const items = overview.checks;
+  const cursor = overview.nextCursor;
   const visible = items.filter((item) =>
     `${nameOf(item)} ${item.classMetadata?.goal || ""} ${item.page.url}`
       .toLowerCase()
@@ -165,7 +195,6 @@ function ClassList({ overview }: { overview: CheckOverview }) {
           {cursor ? " 이전 프로젝트를 더 불러와 찾아보세요." : " 다른 검색어를 입력해 보세요."}
         </p>
       )}
-      {error && <p role="alert">{error}</p>}
       {cursor && (
         <Button disabled={busy} onClick={more}>
           {busy ? "불러오는 중…" : "이전 프로젝트 더 보기"}
@@ -177,10 +206,12 @@ function ClassList({ overview }: { overview: CheckOverview }) {
 function ClassDetail({
   id,
   scope,
+  overview,
   onChanged,
 }: {
   id: string;
   scope: string;
+  overview: CheckOverview;
   onChanged: () => void;
 }) {
   const router = useRouter();
@@ -190,22 +221,27 @@ function ClassDetail({
     [modal, setModal] = useState<"edit" | "delete" | null>(null),
     [name, setName] = useState(""),
     [goal, setGoal] = useState(""),
+    [editRevision, setEditRevision] = useState(0),
     [busy, setBusy] = useState(false),
     [review, setReview] = useState(false);
   useEffect(() => {
+    if (busy) return;
     const abort = new AbortController();
     api<ProjectClassDetail>(`/api/projects/${id}`, { scope, signal: abort.signal })
       .then((value) => {
         if (!abort.signal.aborted) {
           setDetail(value);
-          setError("");
+          if (!modal) setError("");
         }
       })
       .catch((e) => {
-        if (!abort.signal.aborted) setError(errorMessage(e));
+        if (!abort.signal.aborted) {
+          if (e instanceof ApiError && (e.status === 404 || e.status === 403)) setDetail(undefined);
+          setError(errorMessage(e));
+        }
       });
     return () => abort.abort();
-  }, [id, scope, reload]);
+  }, [id, scope, reload, overview, busy, modal]);
   async function save() {
     if (!detail || busy) return;
     setBusy(true);
@@ -214,7 +250,7 @@ function ClassDetail({
       const classMetadata = await api<ClassMetadata>(`/api/projects/${id}`, {
         method: "PATCH",
         scope,
-        body: { name, goal, revision: detail.check.classMetadata?.revision ?? 0 },
+        body: { name, goal, revision: editRevision },
       });
       setDetail({ ...detail, check: { ...detail.check, classMetadata } });
       setModal(null);
@@ -319,6 +355,7 @@ function ClassDetail({
             onClick={() => {
               setName(title.slice(0, 100));
               setGoal(check.classMetadata?.goal || "");
+              setEditRevision(check.classMetadata?.revision ?? 0);
               setModal("edit");
               setError("");
             }}
