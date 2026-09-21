@@ -10,16 +10,34 @@ import {
 } from "@/components/ui/primitives";
 import {
   repositoryCitation,
+  repositoryEvidenceContext,
   type RepositorySnapshot,
   type RepositoryFile,
 } from "@/lib/project-check/repository";
-export function CodeExcerpt({ file, focus }: { file: RepositoryFile; focus?: number }) {
-  const lines = focus ? file.lines.filter((l) => Math.abs(l.number - focus) <= 4) : file.lines;
+export function CodeExcerpt({
+  file,
+  focus,
+  end = focus,
+}: {
+  file: RepositoryFile;
+  focus?: number;
+  end?: number;
+}) {
+  const lines = focus
+    ? repositoryEvidenceContext(file, [{ line: focus, endLine: end ?? focus }])
+    : file.lines;
   return (
     <pre className="repository-code" tabIndex={0} aria-label={`${file.path} 코드 발췌`}>
       <code>
         {lines.map((line, i) => (
-          <span key={line.number} className={line.number === focus ? "is-focus" : undefined}>
+          <span
+            key={line.number}
+            className={
+              focus !== undefined && line.number >= focus && line.number <= (end ?? focus)
+                ? "is-focus"
+                : undefined
+            }
+          >
             {i > 0 && line.number > lines[i - 1].number + 1 && (
               <span className="repository-gap">… 중간 줄 생략 …{"\n"}</span>
             )}
@@ -45,10 +63,15 @@ export function SourceEvidence({
   if (!citation) return null;
   return (
     <Disclosure className="repository-evidence" open={defaultOpen || undefined}>
-      <DisclosureSummary>근거 코드와 앞뒤 문맥 보기</DisclosureSummary>
-      <CodeExcerpt file={citation.file} focus={citation.line} />
+      <DisclosureSummary>
+        근거 코드: {citation.file.path} ({citation.line}
+        {citation.endLine > citation.line ? `–${citation.endLine}` : ""}줄)
+      </DisclosureSummary>
+      <CodeExcerpt file={citation.file} focus={citation.line} end={citation.endLine} />
       <Anchor href={citation.url} target="_blank" rel="noreferrer">
-        {citation.file.path}:{citation.line} 원본 <ExternalLink size={14} />
+        {citation.file.path}:{citation.line}
+        {citation.endLine > citation.line ? `–${citation.endLine}` : ""} 원본{" "}
+        <ExternalLink size={14} />
       </Anchor>
     </Disclosure>
   );

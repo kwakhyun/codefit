@@ -347,8 +347,8 @@ export function ProjectQuestions({
               ? "작성한 설명에서 참고한 내용"
               : "직접 설명이 필요한 내용"}
         </strong>
-        <p>{q.evidence}</p>
-        {check.page.repository && (
+        {!(check.page.repository && q.basis === "page") && <p>{q.evidence}</p>}
+        {check.page.repository && q.basis === "page" && (
           <SourceEvidence repository={check.page.repository} evidence={q.evidence} />
         )}
       </div>

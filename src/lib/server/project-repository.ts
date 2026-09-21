@@ -41,9 +41,34 @@ export const repositorySourcePolicy = {
   excludedNames: /(^|\/)(\.env[^/]*|[^/]*(?:secret|credential|private.key)[^/]*|[^/]+\.min\.[jt]s)$/
     .source,
   extensions:
-    /\.(py|tsx?|jsx?|mjs|go|java|rs|md|toml|ya?ml|cs|c|cpp|h|swift|kt|rb|php|vue|svelte|sql)$/
+    /\.(py|tsx?|jsx?|mjs|go|java|rs|md|toml|ya?ml|cs|c|cpp|h|swift|kt|rb|php|vue|svelte|sql|sh|bash|zsh|fish)$/
       .source,
+  extensionless: /(?:^|\/)(?:bin|sbin)\/[^/.]+$/.source,
   priorities: [
+    { pattern: /(?:^|\/)(?:assets|evals|animations?)\//.source, rank: 10 },
+    {
+      pattern:
+        /(^|\/)(tests?|__tests__|docs|examples|scripts|changes|infra|\.github)\/|(?:^|\/)test_[^/]+|(?:test|spec)\.[^.]+$/
+          .source,
+      rank: 8,
+    },
+    {
+      pattern: /(?:^|\/)(?:__init__\.py|setup\.py|conftest\.py|[^/]*config\.[^.]+)$/.source,
+      rank: 12,
+    },
+    { pattern: /(?:^|\/)(?:bin|sbin)\//.source, rank: 1 },
+    {
+      pattern:
+        /(?:^|\/)(?:runner|pipeline|scheduler|orchestrator|service|main|app)\.(?:py|[jt]s|go|rs|sh)$/
+          .source,
+      rank: 0.75,
+    },
+    {
+      pattern:
+        /^(?=.*\.(?:py|[cm]?[jt]sx?|go|rs|java|rb|php|sh|bash|zsh|fish)$).*(?:reliability|inference|transcri(?:b|p)[a-z]*|speech|conversation|pipeline|scheduler|orchestrat[a-z]*|executor|service|workflow|worker|session|payment|checkout|booking|handler|jobs?)(?:[-_.]|$)/
+          .source,
+      rank: 1,
+    },
     { pattern: /^readme\.md$/.source, rank: 0 },
     {
       pattern: /(?:^|\/)(?:packages\/ui|components|pages)\/|(?:page|layout)\.tsx$/.source,
@@ -85,12 +110,14 @@ export const repositorySourcePolicy = {
     },
   ],
 };
-export function eligibleSource(value: string) {
+export function eligibleSource(value: string, mode?: string) {
   return (
     safePath(value) &&
     !new RegExp(repositorySourcePolicy.excludedSegments, "i").test(value) &&
     !new RegExp(repositorySourcePolicy.excludedNames, "i").test(value) &&
-    new RegExp(repositorySourcePolicy.extensions, "i").test(value)
+    (new RegExp(repositorySourcePolicy.extensions, "i").test(value) ||
+      new RegExp(repositorySourcePolicy.extensionless, "i").test(value) ||
+      (mode === "100755" && !path.posix.basename(value).includes(".")))
   );
 }
 function sourcePriority(value: string) {
@@ -122,7 +149,7 @@ export function selectRepositoryFiles<T extends { path: string }>(
   return selected;
 }
 
-function dependencyCandidates<T extends { path: string }>(
+export function dependencyCandidates<T extends { path: string }>(
   files: RepositoryFile[],
   candidates: T[],
 ) {
@@ -131,6 +158,37 @@ function dependencyCandidates<T extends { path: string }>(
     for (const line of file.lines) {
       const match = /(?:from\s*|import\s*\(|require\s*\()(["'])([^"']+)\1/.exec(line.text);
       const spec = match?.[2];
+      const python = /^\s*from\s+([.\w]+)\s+import\s+(\w+)/.exec(line.text);
+      if (python) {
+        const relative = python[1].match(/^\.+/)?.[0].length ?? 0;
+        const modulePath = python[1].replace(/^\.+/, "").replace(/\./g, "/");
+        const base = relative
+          ? path.posix.normalize(
+              path.posix.join(
+                path.posix.dirname(file.path),
+                ...Array(relative - 1).fill(".."),
+                modulePath,
+              ),
+            )
+          : modulePath;
+        for (const candidate of candidates) {
+          const name = candidate.path.replace(/\.py$/, "").replace(/\/__init__$/, "");
+          if (
+            name === base ||
+            name.endsWith(`/${base}`) ||
+            name === `${base}/${python[2]}` ||
+            name.endsWith(`/${base}/${python[2]}`)
+          )
+            wanted.add(name);
+        }
+      }
+      const shell = /(?:^|[;\s])(?:source|\.)\s+["']?([^"'\s;]+)/.exec(line.text)?.[1];
+      if (shell && !shell.includes("$"))
+        wanted.add(
+          path.posix
+            .normalize(path.posix.join(path.posix.dirname(file.path), shell))
+            .replace(/\.(?:sh|bash|zsh|fish)$/, ""),
+        );
       if (!spec) continue;
       if (spec.startsWith("."))
         wanted.add(
@@ -144,14 +202,19 @@ function dependencyCandidates<T extends { path: string }>(
         wanted.add(`${prefix}${spec.slice(2)}`);
       }
     }
-  return candidates.filter((f) =>
-    wanted.has(f.path.replace(/\.[cm]?[jt]sx?$/, "").replace(/\/index$/, "")),
+  return candidates.filter(
+    (f) =>
+      wanted.has(
+        f.path
+          .replace(/\.(?:[cm]?[jt]sx?|py|sh|bash|zsh|fish)$/, "")
+          .replace(/\/(?:index|__init__)$/, ""),
+      ) && sourcePriority(f.path) < 7,
   );
 }
 
 // These are review locations, not vulnerability findings. No target code is executed.
 const decisionLine =
-  /\b(if |raise |except |catch\b|throw |return |verify|authorize|permission|transaction|commit\(|write|sign\(|exec\(|eval\(|pickle\.|subprocess\.)/;
+  /\b(if |raise |except |catch\b|throw |return |verify|authorize|permission|transaction|commit\(|write|sign\(|exec\(|eval\(|pickle\.|subprocess\.|InferenceSession|session\.run|predict\(|case |then\b|exit |trap |flock|wait\b)/;
 export function extractSource(
   filePath: string,
   text: string,
@@ -349,7 +412,7 @@ export async function readProjectRepository(
   const blobs = tree.tree.filter((f) => f.type === "blob" && ["100644", "100755"].includes(f.mode));
   const eligible = blobs.filter(
     (f) =>
-      eligibleSource(f.path) &&
+      eligibleSource(f.path, f.mode) &&
       (f.size || 0) <= 100_000 &&
       (!changed || (changed.get(f.path)?.size || 0) > 0),
   );

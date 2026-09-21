@@ -56,7 +56,7 @@ it("derives the correct index from text for both learning tracks, never model nu
     c.resolve({ question: "q", evidence: ["bad"], correctChoice: "yes", distractors: ["no"] }),
   ).toThrow();
 });
-it("anchors source references to readable code instead of braces or import comments", () => {
+it("preserves the full cited block including the actual decision after imports", () => {
   const c = learningEvidence({
     ...repo,
     files: [
@@ -72,7 +72,24 @@ it("anchors source references to readable code instead of braces or import comme
       },
     ],
   });
-  expect(c.resolveEvidence("E1")).toBe("src/service.ts:L4 if (!configured) return fallback;");
+  expect(c.resolveEvidence("E1")).toContain("src/service.ts:L4 if (!configured) return fallback;");
+  expect(
+    repositoryCitation(
+      {
+        ...repo,
+        files: [
+          {
+            ...repo.files[0],
+            lines: [
+              { number: 1, text: "a" },
+              { number: 2, text: "b" },
+            ],
+          },
+        ],
+      },
+      "src/service.ts:L1 a\nsrc/service.ts:L2 b",
+    ),
+  ).toMatchObject({ line: 1, endLine: 2 });
 });
 it("prioritizes business implementations across packages over routes and generated records", () => {
   const files = [
@@ -111,4 +128,127 @@ it("keeps later modules and later branches within a shared context budget", asyn
     .flatMap((f) => f.lines.map((l) => `${f.path}:L${l.number} ${l.text}\n`))
     .join("").length;
   expect(cost).toBeLessThanOrEqual(16000);
+});
+
+it("selects runtime Python modules before package initializers, setup and tests", () => {
+  const candidates = [
+    ...Array.from({ length: 8 }, (_, i) => ({ path: `sensor_${i}/sensor_${i}/__init__.py` })),
+    ...Array.from({ length: 8 }, (_, i) => ({ path: `sensor_${i}/setup.py` })),
+    { path: "sensor/test/test_reliability.py" },
+    { path: "sensor/sensor/reliability_node.py" },
+    { path: "api/app/transcription.py" },
+    { path: "api/app/service.py" },
+  ];
+  expect(
+    selectRepositoryFiles(candidates, 3)
+      .map((f) => f.path)
+      .sort(),
+  ).toEqual([
+    "api/app/service.py",
+    "api/app/transcription.py",
+    "sensor/sensor/reliability_node.py",
+  ]);
+});
+
+it("accepts shell and executable extensionless source without opening binary or private paths", () => {
+  for (const file of ["config/lib/session.sh", "bin/workspace", "scripts/run.bash"])
+    expect(eligibleSource(file)).toBe(true);
+  expect(eligibleSource("launch", "100755")).toBe(true);
+  expect(eligibleSource("launch", "100644")).toBe(false);
+  for (const file of ["bin/tool.png", ".git/bin/run", "bin/.env", "bin/private.key", "../bin/run"])
+    expect(eligibleSource(file, "100755")).toBe(false);
+});
+
+it("keeps the full cited range and rejects missing or reordered lines", () => {
+  const evidence =
+    "src/service.ts:L1 if (previous) return previous;\nsrc/service.ts:L2 return create();";
+  expect(repositoryCitation(repo, evidence)).toMatchObject({
+    line: 1,
+    endLine: 2,
+    url: expect.stringContaining("#L1-L2"),
+  });
+  expect(repositoryCitation(repo, evidence.replace("L2", "L3"))).toBeUndefined();
+  expect(repositoryCitation(repo, evidence.split("\n").reverse().join("\n"))).toBeUndefined();
+});
+
+it("keeps all later decision blocks within each citation's storage limit", () => {
+  const file = {
+    path: "src/flow.py",
+    totalLines: 700,
+    partial: false,
+    lines: Array.from({ length: 700 }, (_, i) => ({
+      number: i + 1,
+      text: `if condition_${i}: return ${i}`,
+    })),
+  };
+  const source = { ...repo, files: [file] };
+  const contract = learningEvidence(source);
+  expect(contract.snippets.some((s) => s.code.includes("condition_699"))).toBe(true);
+  for (const snippet of contract.snippets) {
+    const evidence = contract.resolveEvidence(snippet.id);
+    expect(evidence.length).toBeLessThanOrEqual(1100);
+    expect(repositoryCitation(source, evidence)).toBeDefined();
+  }
+});
+
+it("follows Python implementation imports without selecting decorative JS dependencies", async () => {
+  const { dependencyCandidates, extractSource } = await import("./project-repository");
+  const files = [
+    extractSource(
+      "api/app/main.py",
+      "from .service import handle\nfrom app.transcription import transcribe",
+    ),
+    extractSource("src/App.tsx", "import {Orb} from './components/Orb';"),
+  ];
+  const candidates = [
+    "api/app/service.py",
+    "api/app/transcription.py",
+    "src/components/Orb.tsx",
+  ].map((path) => ({ path }));
+  expect(dependencyCandidates(files, candidates).map((f) => f.path)).toEqual([
+    "api/app/service.py",
+    "api/app/transcription.py",
+  ]);
+});
+
+it("links GitLab ranges using its permalink syntax and keeps trailing blank lines valid", () => {
+  const source = {
+    ...repo,
+    url: "https://gitlab.com/owner/repo",
+    files: [
+      {
+        ...repo.files[0],
+        lines: [
+          { number: 1, text: "return existing;" },
+          { number: 2, text: "" },
+        ],
+      },
+    ],
+  };
+  const contract = learningEvidence(source);
+  const evidence = contract.resolveEvidence("E1").trim();
+  expect(repositoryCitation(source, evidence)).toMatchObject({
+    line: 1,
+    endLine: 2,
+    url: expect.stringContaining("#L1-2"),
+  });
+});
+
+it("includes a referenced literal constant outside the decision window without unrelated declarations", async () => {
+  const { repositoryEvidenceContext } = await import("../project-check/repository");
+  const file = {
+    path: "grade.py",
+    totalLines: 50,
+    partial: true,
+    lines: [
+      { number: 1, text: "MERGE_GAP = 10" },
+      { number: 2, text: "UNUSED_LIMIT = 99" },
+      { number: 3, text: "DYNAMIC_VALUE = calculate()" },
+      { number: 30, text: "if start <= end + MERGE_GAP:" },
+      { number: 31, text: "    return DYNAMIC_VALUE" },
+    ],
+  };
+  expect(repositoryEvidenceContext(file, [{ line: 30, endLine: 31 }]).map((l) => l.number)).toEqual(
+    [1, 30, 31],
+  );
 });

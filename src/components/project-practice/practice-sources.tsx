@@ -1,6 +1,10 @@
 import { Anchor, Disclosure, DisclosureSummary } from "@/components/ui/primitives";
 import { CodeExcerpt } from "@/components/project-check/project-repository";
-import { repositoryCitation, type RepositorySnapshot } from "@/lib/project-check/repository";
+import {
+  repositoryCitation,
+  repositoryEvidenceContext,
+  type RepositorySnapshot,
+} from "@/lib/project-check/repository";
 export function PracticeSources({
   repository,
   evidence,
@@ -21,9 +25,7 @@ export function PracticeSources({
         const refs = citations.filter((c) => c.file.path === path);
         const file = refs[0].file;
         // Merge overlapping context from the same file instead of repeating three code blocks.
-        const lines = file.lines.filter((line) =>
-          refs.some((ref) => Math.abs(line.number - ref.line) <= 6),
-        );
+        const lines = repositoryEvidenceContext(file, refs, 3);
         return (
           <Disclosure
             key={path}
@@ -35,7 +37,8 @@ export function PracticeSources({
             <div className="practice-origin">
               {[...new Set(refs.map((c) => c.url))].map((url) => (
                 <Anchor key={url} href={url} target="_blank" rel="noreferrer">
-                  {refs.find((c) => c.url === url)!.line}줄 원본 ↗
+                  {refs.find((c) => c.url === url)!.line}–{refs.find((c) => c.url === url)!.endLine}
+                  줄 원본 ↗
                 </Anchor>
               ))}
             </div>
