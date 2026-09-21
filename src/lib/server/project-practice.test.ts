@@ -8,6 +8,7 @@ vi.mock("./ai-project-check", () => ({
   generateProjectWorkshop: vi.fn(),
 }));
 import { generateProjectExercises, generateProjectWorkshop } from "./ai-project-check";
+import { ProjectCheckStore } from "./project-check-store";
 import { SqliteStore } from "./sqlite-store";
 import { ProjectCheckService } from "./project-check-service";
 import { fixtureCheck } from "../project-check/fixtures";
@@ -294,4 +295,29 @@ it("lets a guest analyze one repository, generate both learning bundles and then
       AbortSignal.timeout(5000),
     ),
   ).rejects.toMatchObject({ status: 429 });
+});
+
+it("recovers finalized stage data without another credit or AI call after final write failure", async () => {
+  const service = new ProjectCheckService(store);
+  for (let i = 0; i < 4; i++)
+    await store.consumeLimits([{ key: `project:analysis:${owner}`, max: 5, windowMs: 86400000 }]);
+  const advance = () =>
+    service.advanceLearning(owner, "net", id, "practice", AbortSignal.timeout(5000));
+  await advance();
+  const complete = vi
+    .spyOn(ProjectCheckStore.prototype, "completePractice")
+    .mockRejectedValueOnce(new Error("storage interrupted"));
+  await expect(advance()).rejects.toThrow("storage interrupted");
+  expect((await store.queries.projectChecks.usage(owner)).analysis.remaining).toBe(0);
+  expect(await store.queries.projectChecks.learningStatus(owner, id, "practice")).toMatchObject({
+    result: null,
+    completed: 2,
+    canRecover: true,
+  });
+  expect((await advance()).status).toBe("done");
+  expect(generateProjectExercises).toHaveBeenCalledTimes(2);
+  expect(vi.mocked(generateProjectExercises).mock.calls[1][3]).toEqual(
+    exercises.code.map(({ title, situation, question }) => ({ title, situation, question })),
+  );
+  complete.mockRestore();
 });

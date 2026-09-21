@@ -20,6 +20,7 @@ export function SiteHeader() {
   const items = [
     { href: "/", label: "홈" },
     ...preferredDestinations(preference),
+    { href: "/projects", label: "내 프로젝트" },
     { href: "/?view=history", label: "내 기록" },
   ];
   function close() {

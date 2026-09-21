@@ -53,8 +53,8 @@ for (const width of [1280, 390]) {
     await page.route(`**/api/project-check/${nextId}`, (route) =>
       route.fulfill({ json: { ...check, id: nextId } }),
     );
-    await page.route(`**/api/project-check/${nextId}/practice`, (route) =>
-      route.fulfill({ json: null }),
+    await page.route(`**/api/project-check/${nextId}/practice**`, (route) =>
+      route.fulfill({ json: { result: null, completed: 0, canRecover: false } }),
     );
     await page.route("**/api/project-check", (route) => {
       if (route.request().method() === "POST") {
@@ -80,9 +80,15 @@ for (const width of [1280, 390]) {
     };
     let completed = false,
       generationRequests = 0;
-    await page.route(`**/api/project-check/${check.id}/practice`, (route) => {
+    await page.route(`**/api/project-check/${check.id}/practice**`, (route) => {
       if (route.request().method() === "GET")
-        return route.fulfill({ json: completed ? learning : null });
+        return route.fulfill({
+          json: {
+            result: completed ? learning : null,
+            completed: generationRequests ? 1 : 0,
+            canRecover: false,
+          },
+        });
       expect(route.request().postDataJSON()).toEqual({ stepwise: true });
       generationRequests++;
       if (generationRequests === 1)

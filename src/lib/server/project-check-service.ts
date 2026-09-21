@@ -212,7 +212,16 @@ export class ProjectCheckService {
           stageLease = stageClaim.lease;
           const part =
             kind === "practice"
-              ? await generateProjectExercises(check, signal, stage as "code" | "service")
+              ? await generateProjectExercises(
+                  check,
+                  signal,
+                  stage as "code" | "service",
+                  index
+                    ? (parts[0] as GeneratedPractice["exercises"]).code.map(
+                        ({ title, situation, question }) => ({ title, situation, question }),
+                      )
+                    : undefined,
+                )
               : await generateProjectWorkshop(
                   check,
                   signal,

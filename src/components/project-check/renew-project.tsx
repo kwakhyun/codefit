@@ -12,11 +12,13 @@ export function RenewProject({
   scope,
   destination,
   disabled = false,
+  queryKey = "check",
 }: {
   check: Check;
   scope: string;
   destination: string;
   disabled?: boolean;
+  queryKey?: "check" | "class";
 }) {
   const router = useRouter();
   const { draft, saveDraft, clearSavedDraft, storageError } = useProjectDraft(
@@ -55,7 +57,7 @@ export function RenewProject({
       });
       if (!controller.signal.aborted) {
         clearSavedDraft();
-        router.push(`${destination}${destination.includes("?") ? "&" : "?"}check=${next.id}`);
+        router.push(`${destination}${destination.includes("?") ? "&" : "?"}${queryKey}=${next.id}`);
       }
     } catch (e) {
       if (!controller.signal.aborted) setError(errorMessage(e));

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import type { LearningStatus } from "@/lib/project-check/learning-generation";
 import { generateLearning } from "@/lib/project-check/generate-learning";
 import { RenewProject } from "@/components/project-check/renew-project";
 import { api, errorMessage } from "@/lib/client-api";
@@ -85,6 +86,7 @@ function PracticeWorkspace({
 }) {
   const [check, setCheck] = useState<Check>();
   const [saved, setSaved] = useState<GeneratedPractice | null>();
+  const [progress, setProgress] = useState({ completed: 0, canRecover: false });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   const [url, setUrl] = useState("");
@@ -101,12 +103,16 @@ function PracticeWorkspace({
     const controller = new AbortController();
     Promise.all([
       api<Check>(`/api/project-check/${id}`, { scope: data.scope, signal: controller.signal }),
-      api<GeneratedPractice | null>(endpoint, { scope: data.scope, signal: controller.signal }),
+      api<LearningStatus<GeneratedPractice>>(`${endpoint}?stepwise=true`, {
+        scope: data.scope,
+        signal: controller.signal,
+      }),
     ])
       .then(([record, practice]) => {
         if (!controller.signal.aborted) {
           setCheck(record);
-          setSaved(practice);
+          setSaved(practice.result);
+          setProgress(practice);
           setError("");
         }
       })
@@ -163,6 +169,17 @@ function PracticeWorkspace({
       }
     } catch (e) {
       setError(errorMessage(e));
+      if (generate) {
+        try {
+          const status = await api<LearningStatus<GeneratedPractice>>(`${endpoint}?stepwise=true`, {
+            scope: data.scope,
+          });
+          setProgress(status);
+          if (status.result) setSaved(status.result);
+        } catch {
+          /* Keep the original error; the manual reload remains available. */
+        }
+      }
     } finally {
       active.current = false;
       setBusy("");
@@ -173,6 +190,7 @@ function PracticeWorkspace({
   return (
     <div className="project-practice-workspace">
       <nav className="practice-origin" aria-label="프로젝트 연습 종류">
+        <AppLink href={id ? `/projects?class=${id}` : "/projects"}>내 프로젝트</AppLink>
         <AppLink
           aria-current={mode === "code" ? "page" : undefined}
           href={`/project-practice?mode=code${id ? `&check=${id}` : ""}`}
@@ -317,6 +335,14 @@ function PracticeWorkspace({
           {!saved ? (
             <Card className="practice-connect">
               <h2>내 코드로 두 가지 연습 만들기</h2>
+              {progress.completed > 0 && (
+                <p role="status">
+                  {progress.completed}/2단계 저장됨
+                  {progress.canRecover
+                    ? " · AI 호출 없이 결과를 복구할 수 있어요."
+                    : " · 남은 단계부터 이어갑니다."}
+                </p>
+              )}
               <p>
                 코드 흐름을 읽는 훈련 3개와 서비스 동작을 비교하는 실습 3개를 함께 만듭니다. 분석한
                 코드 버전을 기준으로 저장하며, 이후 저장소 변경 사항은 새 분석에서 반영합니다.
@@ -335,12 +361,19 @@ function PracticeWorkspace({
               </p>
               <Button
                 className="primary-button"
-                disabled={!!busy || !data.aiReady || data.usage.analysis.remaining < 1}
+                disabled={
+                  !!busy ||
+                  (!progress.canRecover && (!data.aiReady || data.usage.analysis.remaining < 1))
+                }
                 onClick={() => run(true)}
               >
-                {error ? "저장된 단계부터 이어서 생성" : "맞춤 연습 6개 만들기"}
+                {progress.canRecover
+                  ? "저장된 결과 복구"
+                  : error || progress.completed
+                    ? "저장된 단계부터 이어서 생성"
+                    : "맞춤 연습 6개 만들기"}
               </Button>
-              {data.usage.analysis.remaining < 1 && (
+              {data.usage.analysis.remaining < 1 && !progress.canRecover && (
                 <p role="status">
                   분석 횟수를 모두 사용했습니다.{" "}
                   {data.usage.analysis.resetsAt

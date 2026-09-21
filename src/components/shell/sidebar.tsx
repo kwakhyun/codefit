@@ -110,6 +110,10 @@ export function Sidebar({
           <Home size={17} />
           <span>홈</span>
         </Link>
+        <Link className="nav-item" href="/projects">
+          <BookOpen size={17} />
+          <span>내 프로젝트</span>
+        </Link>
         {preferredDestinations(preference).map((item, index) => (
           <div key={item.href}>
             {(index === 0 || index === 2) && (

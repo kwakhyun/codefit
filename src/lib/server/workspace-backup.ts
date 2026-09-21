@@ -1,3 +1,4 @@
+import { classMetadataSchema } from "../project-check/project-class";
 import {
   workshopSchema,
   validWorkshop,
@@ -139,6 +140,7 @@ const savedAssessment = assessmentSchema
   .strict();
 const savedCheck = z
   .object({
+    classMetadata: classMetadataSchema.optional(),
     id: z.uuid(),
     createdAt: z.iso.datetime(),
     description: z.string().max(2000),

@@ -1,3 +1,4 @@
+import type { ClassMetadata } from "./project-class";
 import { z } from "zod";
 import type { RepositorySnapshot } from "./repository";
 export const PROJECT_LIMITS = { windowMs: 86_400_000 } as const;
@@ -160,6 +161,7 @@ export const practiceSchema = z
   );
 export type ProjectPractice = z.infer<typeof practiceSchema>;
 export interface StoredCheck {
+  classMetadata?: ClassMetadata;
   id: string;
   createdAt: string;
   description: string;
@@ -182,7 +184,7 @@ interface CheckUsage {
   remaining: number;
   resetsAt: string | null;
 }
-export type CheckListItem = Pick<Check, "id" | "createdAt"> & {
+export type CheckListItem = Pick<Check, "id" | "createdAt" | "classMetadata"> & {
   page: Pick<Check["page"], "url" | "source">;
   analysis: Pick<Check["analysis"], "title">;
   review?: { assessment: { score: number } };
@@ -191,6 +193,7 @@ export function checkListItem(check: Check): CheckListItem {
   return {
     id: check.id,
     createdAt: check.createdAt,
+    ...(check.classMetadata ? { classMetadata: check.classMetadata } : {}),
     page: { url: check.page.url, ...(check.page.source ? { source: check.page.source } : {}) },
     analysis: { title: check.analysis.title },
     ...(check.review ? { review: { assessment: { score: check.review.assessment.score } } } : {}),

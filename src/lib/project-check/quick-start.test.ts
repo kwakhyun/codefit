@@ -64,3 +64,21 @@ it("stops before paid requests on account changes or insufficient allowance", as
   );
   expect(limited.mock.calls.some(([, options]) => options?.method === "POST")).toBe(false);
 });
+
+it("reports saved practice stages to the home while preserving the analysis", async () => {
+  const request = vi
+    .fn()
+    .mockResolvedValueOnce(overview)
+    .mockResolvedValueOnce(check)
+    .mockResolvedValueOnce(null)
+    .mockResolvedValueOnce({
+      status: "pending",
+      completed: 1,
+      total: 2,
+      label: "코드 이해 실습 저장 완료",
+    })
+    .mockResolvedValueOnce({ status: "done", result: {} });
+  const stage = vi.fn();
+  await prepareProjectLearning(input, vi.fn(), request as typeof api, stage);
+  expect(stage).toHaveBeenCalledWith("1/2단계 완료 — 코드 이해 실습 저장 완료");
+});

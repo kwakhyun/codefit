@@ -6,6 +6,7 @@ export async function prepareProjectLearning(
   input: { id: string; url: string; scope: string },
   onAnalyzed: (check: Check) => void,
   request: typeof api = api,
+  onStage: (label: string) => void = () => {},
 ) {
   const { id, url, scope } = input;
   const overview = await request<CheckOverview>("/api/project-check", { scope });
@@ -39,7 +40,7 @@ export async function prepareProjectLearning(
     await generateLearning<GeneratedPractice>(
       `/api/project-check/${check.id}/practice`,
       scope,
-      () => {},
+      onStage,
       request,
     );
   return check;

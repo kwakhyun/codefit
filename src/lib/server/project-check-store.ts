@@ -1,3 +1,4 @@
+import { classEditSchema, type ClassMetadata } from "../project-check/project-class";
 import type { ProjectWorkshop, workshopSaveSchema } from "../ai-learning/project-workshop";
 import {
   validPracticeProgress,
@@ -50,6 +51,45 @@ export class ProjectCheckStore {
       [id, owner],
     );
     return row ? JSON.parse(String(row.result)) : null;
+  }
+  async editClass(owner: string, id: string, input: z.infer<typeof classEditSchema>) {
+    const patch = classEditSchema.parse(input);
+    const [row] = await this.query(
+      "SELECT result FROM jobs WHERE id=? AND owner=? AND kind='project-analysis' AND state='done'",
+      [id, owner],
+    );
+    if (!row) throw new HttpError(404, "프로젝트를 찾지 못했습니다.");
+    const raw = String(row.result),
+      check: StoredCheck = JSON.parse(raw);
+    if ((check.classMetadata?.revision ?? 0) !== patch.revision)
+      throw new HttpError(
+        409,
+        "다른 화면에서 프로젝트 정보가 바뀌었습니다. 다시 불러온 뒤 수정해 주세요.",
+      );
+    const metadata: ClassMetadata = {
+      ...patch,
+      revision: patch.revision + 1,
+      updatedAt: new Date().toISOString(),
+    };
+    const updated = await this.query(
+      "UPDATE jobs SET result=? WHERE id=? AND owner=? AND kind='project-analysis' AND state='done' AND result=? RETURNING id",
+      [JSON.stringify({ ...check, classMetadata: metadata }), id, owner, raw],
+    );
+    if (!updated.length)
+      throw new HttpError(409, "프로젝트 정보가 바뀌었습니다. 다시 불러와 주세요.");
+    return metadata;
+  }
+  async learningStatus(owner: string, id: string, kind: "practice" | "workshop") {
+    const result =
+      kind === "practice"
+        ? await this.generatedPractice(owner, id)
+        : await this.workshop(owner, id);
+    const stages = kind === "practice" ? ["code", "service"] : ["observed", "proposed"];
+    const parts = await Promise.all(
+      stages.map((stage) => this.learningStage(owner, id, kind, stage)),
+    );
+    const completed = result ? 2 : parts.filter((part) => part !== null).length;
+    return { result, completed, canRecover: !result && completed === 2 };
   }
   async review(owner: string, id: string): Promise<Check["review"]> {
     const [row] = await this.query(

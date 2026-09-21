@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import type { LearningStatus } from "@/lib/project-check/learning-generation";
 import { generateLearning } from "@/lib/project-check/generate-learning";
 import { RenewProject } from "@/components/project-check/renew-project";
 import { api, ApiError, errorMessage } from "@/lib/client-api";
@@ -74,6 +75,7 @@ function Workspace({
   const router = useRouter();
   const [check, setCheck] = useState<Check>();
   const [saved, setSaved] = useState<ProjectWorkshop | null>();
+  const [progress, setProgress] = useState({ completed: 0, canRecover: false });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   const [reload, setReload] = useState(0);
@@ -85,14 +87,16 @@ function Workspace({
     const abort = new AbortController();
     Promise.all([
       api<Check>(`/api/project-check/${id}`, { scope: overview.scope, signal: abort.signal }),
-      api<ProjectWorkshop | null>(`/api/project-check/${id}/workshop`, {
+      api<LearningStatus<ProjectWorkshop>>(`/api/project-check/${id}/workshop?stepwise=true`, {
         scope: overview.scope,
         signal: abort.signal,
       }),
     ])
       .then(([c, w]) => {
         setCheck(c);
-        setSaved(w);
+        if (abort.signal.aborted) return;
+        setSaved(w.result);
+        setProgress(w);
         setError("");
       })
       .catch((e) => {
@@ -152,6 +156,16 @@ function Workspace({
       refresh();
     } catch (e) {
       setError(errorMessage(e));
+      try {
+        const status = await api<LearningStatus<ProjectWorkshop>>(
+          `/api/project-check/${id}/workshop?stepwise=true`,
+          { scope: overview.scope },
+        );
+        setProgress(status);
+        if (status.result) setSaved(status.result);
+      } catch {
+        /* Preserve the generation error. */
+      }
     } finally {
       lock.current = false;
       setBusy("");
@@ -266,6 +280,7 @@ function Workspace({
                 {check.page.repository?.files.length}개 파일 일부
               </p>
             </div>
+            <AppLink href={`/projects?class=${id}`}>내 프로젝트 관리</AppLink>
             <AppLink href="/learn/ai/project">프로젝트 변경</AppLink>
           </div>
           {!check.page.repository ? (
@@ -290,6 +305,14 @@ function Workspace({
           ) : (
             <Card className="project-ai-connect">
               <h2>이 코드에 맞는 AI 학습을 준비해요</h2>
+              {progress.completed > 0 && (
+                <p role="status">
+                  {progress.completed}/2단계 저장됨
+                  {progress.canRecover
+                    ? " · AI 호출 없이 결과를 복구할 수 있어요."
+                    : " · 남은 단계부터 이어갑니다."}
+                </p>
+              )}
               <p>
                 사용 중인 AI는 코드 근거로 설명하고, 새 도구는 적용 아이디어로 구분합니다. 관련
                 수업과 작은 실험 계획까지 함께 준비합니다.
@@ -304,16 +327,25 @@ function Workspace({
               </p>
               <Button
                 className="primary-button"
-                disabled={!!busy || !overview.aiReady || overview.usage.analysis.remaining < 1}
+                disabled={
+                  !!busy ||
+                  (!progress.canRecover &&
+                    (!overview.aiReady || overview.usage.analysis.remaining < 1))
+                }
                 onClick={generate}
               >
-                {error ? "저장된 단계부터 이어서 생성" : "AI 활용 학습 만들기"}
+                {progress.canRecover
+                  ? "저장된 결과 복구"
+                  : error || progress.completed
+                    ? "저장된 단계부터 이어서 생성"
+                    : "AI 활용 학습 만들기"}
               </Button>
-              {(!overview.aiReady || overview.usage.analysis.remaining < 1) && (
-                <p role="status">
-                  지금은 새 학습을 생성할 수 없습니다. 저장된 학습이나 일반 수업을 이용해 주세요.
-                </p>
-              )}
+              {!progress.canRecover &&
+                (!overview.aiReady || overview.usage.analysis.remaining < 1) && (
+                  <p role="status">
+                    지금은 새 학습을 생성할 수 없습니다. 저장된 학습이나 일반 수업을 이용해 주세요.
+                  </p>
+                )}
               <Button disabled={!!busy} onClick={() => setReload((n) => n + 1)}>
                 저장된 학습 다시 불러오기
               </Button>

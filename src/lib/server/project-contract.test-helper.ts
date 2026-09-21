@@ -4,6 +4,42 @@ import type { ProblemStore } from "./store-contract";
 import { fixtureCheck, fixtureAssessment } from "../project-check/fixtures";
 /** The same private-result SQL and fencing contract runs against either adapter. */
 export function projectContract(getStore: () => ProblemStore) {
+  it("edits class metadata without changing source or answers, detects conflicts, and backs it up", async () => {
+    const store = getStore(),
+      owner = `user:${randomUUID()}`,
+      id = randomUUID();
+    const job = await store.startJob(owner, id, "project-analysis", "class");
+    if (job.state !== "new") throw Error();
+    await store.queries.projectChecks.complete(job.lease, { ...fixtureCheck, id });
+    const meta = await store.queries.projectChecks.editClass(owner, id, {
+      name: "내 예약 서비스",
+      goal: "재시도와 중복 저장 확인",
+      revision: 0,
+    });
+    expect(meta.revision).toBe(1);
+    const saved = await store.queries.projectChecks.get(owner, id);
+    expect(saved?.page).toEqual(fixtureCheck.page);
+    expect(saved?.analysis).toEqual(fixtureCheck.analysis);
+    await expect(
+      store.queries.projectChecks.editClass(owner, id, { name: "덮어쓰기", goal: "", revision: 0 }),
+    ).rejects.toMatchObject({ status: 409 });
+    await expect(
+      store.queries.projectChecks.editClass("user:other", id, {
+        name: "침범",
+        goal: "",
+        revision: 1,
+      }),
+    ).rejects.toMatchObject({ status: 404 });
+    const restoredOwner = `user:${randomUUID()}`;
+    await store.importBackup(restoredOwner, await store.exportBackup(owner));
+    const restored = await store.queries.projectChecks.list(restoredOwner);
+    expect(restored[0].classMetadata).toEqual(meta);
+    await store.queries.projectChecks.remove(owner, id);
+    expect(await store.queries.projectChecks.get(owner, id)).toBeNull();
+    expect((await store.queries.projectChecks.list(restoredOwner))[0].classMetadata?.name).toBe(
+      meta.name,
+    );
+  });
   it("stores only owned project results and removes the associated assessment", async () => {
     const store = getStore(),
       id = randomUUID(),

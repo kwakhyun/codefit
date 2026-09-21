@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { ArrowRight, Check, Code2, GitBranch, Workflow, ClipboardCheck } from "lucide-react";
-import { errorMessage } from "@/lib/client-api";
+import { api, errorMessage } from "@/lib/client-api";
 import type { Check as ProjectCheck } from "@/lib/project-check/types";
 import { prepareProjectLearning } from "@/lib/project-check/quick-start";
 import { useProjectDraft } from "@/hooks/use-project-draft";
@@ -16,6 +16,7 @@ export function ProjectQuickStart({
 }) {
   const { draft, saveDraft, storageError } = useProjectDraft(scope, "project-start");
   const [busy, setBusy] = useState<"analysis" | "practice" | null>(null);
+  const [stage, setStage] = useState("");
   const [error, setError] = useState("");
   const [result, setResult] = useState<{ check: ProjectCheck; ready: boolean }>();
   const lock = useRef(false);
@@ -25,13 +26,19 @@ export function ProjectQuickStart({
     lock.current = true;
     setError("");
     setBusy("analysis");
+    setStage("");
     const id = draft.requestId || crypto.randomUUID();
     saveDraft((current) => ({ ...current, requestId: id }));
     try {
-      const check = await prepareProjectLearning({ id, url: draft.url, scope }, (record) => {
-        setResult({ check: record, ready: false });
-        setBusy("practice");
-      });
+      const check = await prepareProjectLearning(
+        { id, url: draft.url, scope },
+        (record) => {
+          setResult({ check: record, ready: false });
+          setBusy("practice");
+        },
+        api,
+        setStage,
+      );
       setResult({ check, ready: true });
     } catch (e) {
       setError(errorMessage(e));
@@ -128,7 +135,7 @@ export function ProjectQuickStart({
           label={
             busy === "analysis"
               ? "1/2 저장소를 읽고 프로젝트 질문을 만드는 중"
-              : "2/2 내 코드에 맞는 두 가지 실습을 만드는 중"
+              : stage || "2/2 실습 준비 — 코드 이해 훈련부터 만드는 중"
           }
         />
       )}
@@ -156,7 +163,7 @@ export function ProjectQuickStart({
       )}
       <div className="quick-start-alternatives">
         <AppLink href="/project-check">서비스 주소로 점검하기 →</AppLink>
-        <AppLink href="/project-practice">기존 기록 이어보기 →</AppLink>
+        <AppLink href="/projects">내 프로젝트 클래스 →</AppLink>
         {!embedded && <AppLink href="/handoff?source=sample">연결 없이 샘플로 체험 →</AppLink>}
       </div>
     </Card>

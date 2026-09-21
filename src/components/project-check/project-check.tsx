@@ -3,6 +3,7 @@ import { useFadeTransition } from "@/components/ui/use-fade-transition";
 import { useConfirmation } from "@/components/ui/use-confirmation";
 import { LoadingState } from "@/components/ui/loading-state";
 import {
+  AppLink,
   Status,
   Card,
   Button,
@@ -377,6 +378,9 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
           >
             {analysisExhausted ? "+ 다음 프로젝트 초안 작성" : "+ 새 프로젝트 점검"}
           </Button>
+          <AppLink href={selected ? `/projects?class=${selected}` : "/projects"}>
+            내 프로젝트 클래스 관리 →
+          </AppLink>
           <Disclosure ref={historyPanel} className="project-history-list" open={!selected}>
             <DisclosureSummary>
               <FolderOpen size={18} aria-hidden="true" />
