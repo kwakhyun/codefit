@@ -5,8 +5,9 @@ vi.mock("./ai-project-check", () => ({
   assessProject: vi.fn(),
   discussProjectCode: vi.fn(),
   generateProjectExercises: vi.fn(),
+  generateProjectWorkshop: vi.fn(),
 }));
-import { generateProjectExercises } from "./ai-project-check";
+import { generateProjectExercises, generateProjectWorkshop } from "./ai-project-check";
 import { SqliteStore } from "./sqlite-store";
 import { ProjectCheckService } from "./project-check-service";
 import { fixtureCheck } from "../project-check/fixtures";
@@ -199,4 +200,98 @@ it("restores the personal analysis credit after provider failure and can retry t
   expect((await store.queries.projectChecks.usage(owner)).analysis.remaining).toBe(5);
   await generate();
   expect((await store.queries.projectChecks.usage(owner)).analysis.remaining).toBe(4);
+});
+
+it("checkpoints the first track and retries only the failed second track for one credit", async () => {
+  const advance = () =>
+    new ProjectCheckService(store).advanceLearning(
+      owner,
+      "net",
+      id,
+      "practice",
+      AbortSignal.timeout(5000),
+    );
+  expect(await advance()).toMatchObject({ status: "pending", completed: 1 });
+  expect((await store.queries.projectChecks.usage(owner)).analysis.remaining).toBe(5);
+  expect(
+    await store.queries.projectChecks.learningStage("user:other", id, "practice", "code"),
+  ).toBeNull();
+  vi.mocked(generateProjectExercises).mockRejectedValueOnce(new Error("timeout"));
+  await expect(advance()).rejects.toThrow("timeout");
+  expect((await store.queries.projectChecks.usage(owner)).analysis.remaining).toBe(5);
+  const done = await advance();
+  expect(done.status).toBe("done");
+  expect((await store.queries.projectChecks.usage(owner)).analysis.remaining).toBe(4);
+  expect(vi.mocked(generateProjectExercises).mock.calls.map((c) => c[2])).toEqual([
+    "code",
+    "service",
+    "service",
+  ]);
+  expect(await advance()).toEqual(done);
+  expect(generateProjectExercises).toHaveBeenCalledTimes(3);
+  await store.queries.projectChecks.remove(owner, id);
+  expect(await store.queries.projectChecks.learningStage(owner, id, "practice", "code")).toBeNull();
+});
+it("rejects a checkpoint when the project was deleted during generation", async () => {
+  vi.mocked(generateProjectExercises).mockImplementation(async () => {
+    await store.queries.projectChecks.remove(owner, id);
+    return exercises;
+  });
+  await expect(
+    new ProjectCheckService(store).advanceLearning(
+      owner,
+      "net",
+      id,
+      "practice",
+      AbortSignal.timeout(5000),
+    ),
+  ).rejects.toThrow();
+  expect(await store.queries.projectChecks.learningStage(owner, id, "practice", "code")).toBeNull();
+});
+
+it("lets a guest analyze one repository, generate both learning bundles and then reach its limit", async () => {
+  const snapshot = (await store.queries.projectChecks.get(owner, id))!;
+  const ai = {
+    readPage: vi.fn().mockResolvedValue(snapshot.page),
+    analyze: vi.fn().mockResolvedValue(snapshot.analysis),
+    assess: vi.fn(),
+  };
+  const guest = "visitor:full-flow",
+    network = "full-flow",
+    service = new ProjectCheckService(store, ai);
+  const freshId = randomUUID();
+  await service.create(
+    guest,
+    network,
+    { requestId: freshId, url: snapshot.page.url, description: "", source: "repository" },
+    AbortSignal.timeout(5000),
+  );
+  vi.mocked(generateProjectWorkshop).mockResolvedValue({
+    summary: "확인한 코드",
+    limitations: "AI 사용 근거가 없습니다.",
+    topics: [],
+  });
+  for (const kind of ["practice", "workshop"] as const) {
+    expect(
+      (await service.advanceLearning(guest, network, freshId, kind, AbortSignal.timeout(5000)))
+        .status,
+    ).toBe("pending");
+    expect(
+      (await service.advanceLearning(guest, network, freshId, kind, AbortSignal.timeout(5000)))
+        .status,
+    ).toBe("done");
+  }
+  expect((await store.queries.projectChecks.usage(guest)).analysis.remaining).toBe(0);
+  expect(
+    (await service.advanceLearning(guest, network, freshId, "practice", AbortSignal.timeout(5000)))
+      .status,
+  ).toBe("done");
+  await expect(
+    service.create(
+      guest,
+      network,
+      { requestId: randomUUID(), url: snapshot.page.url, description: "", source: "repository" },
+      AbortSignal.timeout(5000),
+    ),
+  ).rejects.toMatchObject({ status: 429 });
 });

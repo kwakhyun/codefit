@@ -6,7 +6,7 @@ const AI_ACCESS = {
     coach: 2,
     learnCoach: 2,
     guide: 2,
-    analysis: 2,
+    analysis: 3,
     projectReview: 2,
   },
   member: {

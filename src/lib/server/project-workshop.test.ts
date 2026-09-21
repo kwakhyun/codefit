@@ -164,3 +164,28 @@ it("refunds failed preparation and guards deletion during generation", async () 
   await expect(generate()).rejects.toThrow();
   expect(await store.queries.projectChecks.workshop(owner, id)).toBeNull();
 });
+
+it("keeps an empty observed stage and resumes proposed topics without repeating it", async () => {
+  const advance = () =>
+    new ProjectCheckService(store).advanceLearning(
+      owner,
+      "net",
+      id,
+      "workshop",
+      AbortSignal.timeout(5000),
+    );
+  vi.mocked(generateProjectWorkshop).mockResolvedValueOnce({ ...plan, topics: [] });
+  expect(await advance()).toMatchObject({ status: "pending", completed: 1 });
+  vi.mocked(generateProjectWorkshop).mockRejectedValueOnce(new Error("timeout"));
+  await expect(advance()).rejects.toThrow("timeout");
+  expect((await store.queries.projectChecks.usage(owner)).analysis.remaining).toBe(5);
+  const done = await advance();
+  expect(done).toMatchObject({ status: "done", result: { plan: { topics: plan.topics } } });
+  expect(vi.mocked(generateProjectWorkshop).mock.calls.map((c) => c[2])).toEqual([
+    "observed",
+    "proposed",
+    "proposed",
+  ]);
+  expect((await store.queries.projectChecks.usage(owner)).analysis.remaining).toBe(4);
+  expect(await advance()).toEqual(done);
+});

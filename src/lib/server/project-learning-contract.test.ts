@@ -25,12 +25,12 @@ const repo: RepositorySnapshot = {
 it("only exposes bounded server-issued citations and rejects decorated or invented references", () => {
   const c = learningEvidence(repo);
   const evidence = c.practiceSchema.shape.code.element.shape.evidence;
-  expect(evidence.safeParse(["E1"]).success).toBe(true);
-  for (const ref of ["E1 associated?", "src/service.ts:L1", "E9999"])
+  expect(evidence.safeParse(["CFREF_1"]).success).toBe(true);
+  for (const ref of ["CFREF_1 associated?", "src/service.ts:L1", "CFREF_9999"])
     expect(evidence.safeParse([ref]).success).toBe(false);
   const resolved = c.resolve({
     question: "중복 요청은 어떻게 되나요?",
-    evidence: ["E1"],
+    evidence: ["CFREF_1"],
     correctChoice: "기존 결과를 반환한다",
     distractors: ["새로 만든다"],
   });
@@ -42,7 +42,7 @@ it("derives the correct index from text for both learning tracks, never model nu
     const correctChoice = "정의한 필수 항목과 자료형을 만족했다";
     const resolved = c.resolve({
       question: `형식 검사 통과 ${i}`,
-      evidence: ["E1"],
+      evidence: ["CFREF_1"],
       correctChoice,
       distractors: ["모든 세법 해석이 정확하다", "전문가 승인이 완료됐다"],
     });
@@ -50,7 +50,12 @@ it("derives the correct index from text for both learning tracks, never model nu
   }
   expect(c.workshopSchema.shape.topics.element.shape).not.toHaveProperty("answer");
   expect(() =>
-    c.resolve({ question: "q", evidence: ["E1"], correctChoice: "same", distractors: ["same"] }),
+    c.resolve({
+      question: "q",
+      evidence: ["CFREF_1"],
+      correctChoice: "same",
+      distractors: ["same"],
+    }),
   ).toThrow();
   expect(() =>
     c.resolve({ question: "q", evidence: ["bad"], correctChoice: "yes", distractors: ["no"] }),
@@ -72,7 +77,9 @@ it("preserves the full cited block including the actual decision after imports",
       },
     ],
   });
-  expect(c.resolveEvidence("E1")).toContain("src/service.ts:L4 if (!configured) return fallback;");
+  expect(c.resolveEvidence("CFREF_1")).toContain(
+    "src/service.ts:L4 if (!configured) return fallback;",
+  );
   expect(
     repositoryCitation(
       {
@@ -226,7 +233,7 @@ it("links GitLab ranges using its permalink syntax and keeps trailing blank line
     ],
   };
   const contract = learningEvidence(source);
-  const evidence = contract.resolveEvidence("E1").trim();
+  const evidence = contract.resolveEvidence("CFREF_1").trim();
   expect(repositoryCitation(source, evidence)).toMatchObject({
     line: 1,
     endLine: 2,
@@ -285,7 +292,7 @@ it("overlaps a guard and the return value across citation boundaries", () => {
   }));
   const snapshot = { ...repo, files: [{ ...repo.files[0], lines, totalLines: 14 }] };
   const contract = learningEvidence(snapshot);
-  const citation = contract.resolveEvidence("E1");
+  const citation = contract.resolveEvidence("CFREF_1");
   expect(citation).toContain("translation_status");
   expect(repositoryCitation(snapshot, citation)).not.toBeNull();
 });
@@ -293,12 +300,12 @@ it("overlaps a guard and the return value across citation boundaries", () => {
 it("cleans internal labels including Korean particles without changing evidence or code identifiers", () => {
   const c = learningEvidence(repo);
   const value = c.cleanText({
-    summary: "E1은 조건을 검사합니다(E1). E1에서 반환합니다.",
-    evidence: ["E1"],
+    summary: "CFREF_1은 조건을 검사합니다(CFREF_1). CFREF_1에서 반환합니다.",
+    evidence: ["CFREF_1"],
     other: "CODE1 E400",
   });
   expect(value.summary).toBe("인용한 코드는 조건을 검사합니다. 인용한 코드에서 반환합니다.");
-  expect(value.evidence).toEqual(["E1"]);
+  expect(value.evidence).toEqual(["CFREF_1"]);
   expect(value.other).toBe("CODE1 E400");
 });
 
@@ -360,4 +367,24 @@ it("keeps a return visible when long leading context exhausts a citation budget"
     expect(s.code).toContain("translation_status");
     expect(c.resolveEvidence(s.id).length).toBeLessThanOrEqual(1100);
   }
+});
+
+it("preserves real error values and skips internal IDs already present in source", () => {
+  const c = learningEvidence({
+    ...repo,
+    files: [
+      { ...repo.files[0], lines: [{ number: 1, text: 'throw new Error("E1"); // CFREF_1' }] },
+    ],
+  });
+  expect(c.snippets[0].id).toBe("CFREF_2");
+  const resolved = c.resolve({
+    question: "오류 코드 E1은 무엇인가요?",
+    evidence: ["CFREF_2"],
+    correctChoice: "E1",
+    distractors: ["CFREF_1"],
+    explanation: "오류 코드 E1을 반환합니다.",
+  });
+  expect(resolved.choices[resolved.answer]).toBe("E1");
+  expect(resolved.choices).toContain("CFREF_1");
+  expect(c.cleanText(resolved)).toEqual(resolved);
 });

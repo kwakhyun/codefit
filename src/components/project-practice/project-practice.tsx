@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { generateLearning } from "@/lib/project-check/generate-learning";
+import { RenewProject } from "@/components/project-check/renew-project";
 import { api, errorMessage } from "@/lib/client-api";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import type { GeneratedPractice, PracticeMode } from "@/lib/project-check/generated-practice";
@@ -149,13 +151,7 @@ function PracticeWorkspace({
     setError("");
     try {
       if (generate) {
-        setSaved(
-          await api<GeneratedPractice>(endpoint, {
-            method: "POST",
-            scope: data.scope,
-            body: {},
-          }),
-        );
+        setSaved(await generateLearning<GeneratedPractice>(endpoint, data.scope, setBusy));
       } else {
         requestId.current ??= crypto.randomUUID();
         const record = await api<Check>("/api/project-check", {
@@ -329,6 +325,10 @@ function PracticeWorkspace({
                 생성 시 분석 1회 사용 · 현재 {data.usage.analysis.remaining}회 남음. 답변 저장과
                 이어하기에는 AI 횟수를 사용하지 않습니다.
               </p>
+              <p>
+                두 단계로 준비하며 완료한 단계는 저장합니다. 연결이 끊겨도 다시 누르면 남은 단계부터
+                진행합니다.
+              </p>
               <p className="muted">
                 수집한 공개 코드와 설명을 OpenAI에 보내 연습을 만듭니다. 분석할 권한이 있는
                 프로젝트만 입력해 주세요.
@@ -338,7 +338,7 @@ function PracticeWorkspace({
                 disabled={!!busy || !data.aiReady || data.usage.analysis.remaining < 1}
                 onClick={() => run(true)}
               >
-                맞춤 연습 6개 만들기
+                {error ? "저장된 단계부터 이어서 생성" : "맞춤 연습 6개 만들기"}
               </Button>
               {data.usage.analysis.remaining < 1 && (
                 <p role="status">
@@ -357,6 +357,14 @@ function PracticeWorkspace({
               saved={saved}
               scope={data.scope}
               onSaved={setSaved}
+            />
+          )}
+          {saved && (
+            <RenewProject
+              check={check}
+              scope={data.scope}
+              destination={`/project-practice?mode=${mode}`}
+              disabled={!!busy}
             />
           )}
           <AppLink href={`/project-check?check=${id}`}>프로젝트 점검과 분석 범위 보기 →</AppLink>

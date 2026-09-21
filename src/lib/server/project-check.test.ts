@@ -269,7 +269,7 @@ it("cannot finish copying a revision after its source was deleted", async () => 
   ).rejects.toThrow();
 });
 
-it("allows a guest to complete a real project flow within two independent quotas", async () => {
+it("allows three guest analyses while keeping the two-review limit", async () => {
   const service = new ProjectCheckService(store, ai),
     owner = "visitor:guest";
   for (let index = 0; index < 2; index++) {
@@ -287,6 +287,8 @@ it("allows a guest to complete a real project flow within two independent quotas
   }
   expect(ai.analyze).toHaveBeenCalledTimes(2);
   expect(ai.assess).toHaveBeenCalledTimes(2);
+  await service.create(owner, "guest-network", input(), signal());
+  expect(ai.analyze).toHaveBeenCalledTimes(3);
   expect(await store.queries.projectChecks.usage(owner)).toMatchObject({
     analysis: { remaining: 0 },
     review: { remaining: 0 },

@@ -87,7 +87,7 @@ export function ExerciseRunner({
       <nav className="practice-origin" aria-label="실습 단계">
         {tasks.map((t, i) => (
           <Button
-            key={t.title}
+            key={`${mode}-${i}`}
             disabled={busy || (i > 0 && !responses[i - 1]?.completed)}
             aria-current={i === index ? "step" : undefined}
             onClick={() => {

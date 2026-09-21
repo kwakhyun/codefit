@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { generateLearning } from "@/lib/project-check/generate-learning";
+import { RenewProject } from "@/components/project-check/renew-project";
 import { api, ApiError, errorMessage } from "@/lib/client-api";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import type { ProjectWorkshop } from "@/lib/ai-learning/project-workshop";
@@ -141,11 +143,11 @@ function Workspace({
     setError("");
     try {
       setSaved(
-        await api<ProjectWorkshop>(`/api/project-check/${id}/workshop`, {
-          method: "POST",
-          scope: overview.scope,
-          body: {},
-        }),
+        await generateLearning<ProjectWorkshop>(
+          `/api/project-check/${id}/workshop`,
+          overview.scope,
+          setBusy,
+        ),
       );
       refresh();
     } catch (e) {
@@ -271,13 +273,30 @@ function Workspace({
               <p>AI 기술 학습에는 소스 저장소 분석이 필요합니다. 공개 저장소를 연결해 주세요.</p>
             </Card>
           ) : saved ? (
-            <WorkshopTopics check={check} saved={saved} scope={overview.scope} onSaved={setSaved} />
+            <>
+              <WorkshopTopics
+                check={check}
+                saved={saved}
+                scope={overview.scope}
+                onSaved={setSaved}
+              />
+              <RenewProject
+                check={check}
+                scope={overview.scope}
+                destination="/learn/ai/project"
+                disabled={!!busy}
+              />
+            </>
           ) : (
             <Card className="project-ai-connect">
               <h2>이 코드에 맞는 AI 학습을 준비해요</h2>
               <p>
                 사용 중인 AI는 코드 근거로 설명하고, 새 도구는 적용 아이디어로 구분합니다. 관련
                 수업과 작은 실험 계획까지 함께 준비합니다.
+              </p>
+              <p>
+                현재 쓰는 기술과 새로운 활용 방법을 나눠 준비합니다. 완료한 단계는 저장되며 다시
+                누르면 남은 단계만 생성합니다.
               </p>
               <p className="muted">
                 수집한 공개 코드를 OpenAI로 보냅니다. 분석 1회 사용 ·{" "}
@@ -288,7 +307,7 @@ function Workspace({
                 disabled={!!busy || !overview.aiReady || overview.usage.analysis.remaining < 1}
                 onClick={generate}
               >
-                AI 활용 학습 만들기
+                {error ? "저장된 단계부터 이어서 생성" : "AI 활용 학습 만들기"}
               </Button>
               {(!overview.aiReady || overview.usage.analysis.remaining < 1) && (
                 <p role="status">

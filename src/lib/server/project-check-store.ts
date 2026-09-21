@@ -246,6 +246,41 @@ export class ProjectCheckStore {
         [charge.key, charge.expires, lease.id, lease.owner, lease.kind, lease.token],
       );
   }
+  async learningStage(
+    owner: string,
+    id: string,
+    kind: "practice" | "workshop",
+    stage: string,
+  ): Promise<unknown | null> {
+    const [row] = await this.query(
+      "SELECT result FROM jobs WHERE owner=? AND id=? AND kind=? AND state='done'",
+      [owner, `${id}:${kind}:${stage}`, `project-learning-stage:${id}`],
+    );
+    return row ? JSON.parse(String(row.result)) : null;
+  }
+  async completeLearningStage(lease: JobLease, id: string, result: unknown) {
+    if (
+      lease.kind !== `project-learning-stage:${id}` ||
+      !["practice:code", "practice:service", "workshop:observed", "workshop:proposed"].some(
+        (s) => lease.id === `${id}:${s}`,
+      )
+    )
+      throw new StaleJob();
+    const rows = await this.query(
+      "UPDATE jobs SET state='done',result=? WHERE id=? AND owner=? AND kind=? AND token=? AND state='pending' AND expires>? AND EXISTS(SELECT 1 FROM jobs p WHERE p.id=? AND p.owner=? AND p.kind='project-analysis' AND p.state='done') RETURNING id",
+      [
+        JSON.stringify(result),
+        lease.id,
+        lease.owner,
+        lease.kind,
+        lease.token,
+        Date.now(),
+        id,
+        lease.owner,
+      ],
+    );
+    if (!rows.length) throw new StaleJob();
+  }
   async generatedPractice(owner: string, id: string): Promise<GeneratedPractice | null> {
     const [row] = await this.query(
       "SELECT result FROM jobs WHERE owner=? AND id=? AND kind=? AND state='done'",
@@ -360,13 +395,14 @@ export class ProjectCheckStore {
   }
   async remove(owner: string, id: string) {
     await this.query(
-      "DELETE FROM jobs WHERE owner=? AND ((id=? AND kind='project-analysis') OR kind=? OR kind=? OR kind=? OR kind IN (?,?,?,?,?))",
+      "DELETE FROM jobs WHERE owner=? AND ((id=? AND kind='project-analysis') OR kind=? OR kind=? OR kind=? OR kind=? OR kind IN (?,?,?,?,?))",
       [
         owner,
         id,
         `project-review:${id}`,
         `project-practice:${id}`,
         `project-workshop:${id}`,
+        `project-learning-stage:${id}`,
         ...Array.from({ length: 5 }, (_, i) => `project-dialogue:${id}:${i}`),
       ],
     );

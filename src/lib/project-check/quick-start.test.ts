@@ -11,7 +11,7 @@ it("one link creates analysis then both training tracks without a consent gate",
     .mockRejectedValueOnce(new ApiError("missing", 404))
     .mockResolvedValueOnce(check)
     .mockResolvedValueOnce(null)
-    .mockResolvedValueOnce({});
+    .mockResolvedValueOnce({ status: "done", result: {} });
   const progress = vi.fn();
   expect(await prepareProjectLearning(input, progress, request as typeof api)).toEqual(check);
   expect(progress).toHaveBeenCalledWith(check);
@@ -24,7 +24,10 @@ it("one link creates analysis then both training tracks without a consent gate",
         body: { requestId: input.id, url: input.url, description: "", source: "repository" },
       },
     ],
-    ["/api/project-check/check/practice", { method: "POST", scope: input.scope, body: {} }],
+    [
+      "/api/project-check/check/practice",
+      { method: "POST", scope: input.scope, body: { stepwise: true } },
+    ],
   ]);
 });
 it("recovers completed stages without new AI calls even when exhausted or AI is offline", async () => {
@@ -32,7 +35,7 @@ it("recovers completed stages without new AI calls even when exhausted or AI is 
     .fn()
     .mockResolvedValueOnce({ ...overview, aiReady: false, usage: { analysis: { remaining: 0 } } })
     .mockResolvedValueOnce(check)
-    .mockResolvedValueOnce({});
+    .mockResolvedValueOnce({ status: "done", result: {} });
   await prepareProjectLearning(input, vi.fn(), request as typeof api);
   expect(request.mock.calls.some(([, options]) => options?.method === "POST")).toBe(false);
 });
@@ -42,7 +45,7 @@ it("retries only practice when the earlier analysis was saved", async () => {
     .mockResolvedValueOnce(overview)
     .mockResolvedValueOnce(check)
     .mockResolvedValueOnce(null)
-    .mockResolvedValueOnce({});
+    .mockResolvedValueOnce({ status: "done", result: {} });
   await prepareProjectLearning(input, vi.fn(), request as typeof api);
   expect(request.mock.calls.filter(([, options]) => options?.method === "POST")).toHaveLength(1);
   expect(request.mock.calls.at(-1)?.[0]).toBe("/api/project-check/check/practice");

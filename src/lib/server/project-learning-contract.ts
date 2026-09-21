@@ -7,6 +7,18 @@ import { workshopPlanSchema } from "../ai-learning/project-workshop";
 
 /** Only server-issued IDs can be cited; the model never writes paths or line numbers. */
 export function learningEvidence(repository: RepositorySnapshot) {
+  const reserved = new Set(
+    repository.files.flatMap((file) =>
+      file.lines.flatMap((line) => line.text.match(/CFREF_\d+/g) ?? []),
+    ),
+  );
+  let sequence = 0;
+  const nextId = () => {
+    do {
+      sequence++;
+    } while (reserved.has(`CFREF_${sequence}`));
+    return `CFREF_${sequence}`;
+  };
   const snippets: { id: string; file: string; code: string; evidence: string }[] = [];
   for (const file of repository.files) {
     const groups: (typeof file.lines)[] = [];
@@ -52,7 +64,7 @@ export function learningEvidence(repository: RepositorySnapshot) {
           lines.shift();
       }
       snippets.push({
-        id: `E${snippets.length + 1}`,
+        id: nextId(),
         file: file.path,
         code: lines.map((l) => `${l.number}: ${l.text}`).join("\n"),
         evidence: lines.map((l) => sourceLine(file.path, l.number, l.text)).join("\n"),
@@ -65,13 +77,13 @@ export function learningEvidence(repository: RepositorySnapshot) {
     const visit = (item: unknown): unknown => {
       if (typeof item === "string")
         return item
-          .replace(/\((?:E\d+[ ,]*)+\)/g, (match) =>
-            [...match.matchAll(/E\d+/g)].every(([id]) => byId.has(id)) ? "" : match,
+          .replace(/\((?:CFREF_\d+[ ,]*)+\)/g, (match) =>
+            [...match.matchAll(/CFREF_\d+/g)].every(([id]) => byId.has(id)) ? "" : match,
           )
           .replace(
-            /(?<![A-Za-z0-9_])E\d+(은|는|이|가|을|를|과|와)?(?![A-Za-z0-9_])/g,
+            /(?<![A-Za-z0-9_])CFREF_\d+(은|는|이|가|을|를|과|와)?(?![A-Za-z0-9_])/g,
             (match, particle: string | undefined) => {
-              const id = /^E\d+/.exec(match)![0];
+              const id = /^CFREF_\d+/.exec(match)![0];
               if (!byId.has(id)) return match;
               const suffix = particle
                 ? (

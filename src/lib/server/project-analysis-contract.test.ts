@@ -43,17 +43,17 @@ const response = (evidence: string) => ({
   model: "gpt-5.6-sol",
 });
 it("maps bounded evidence IDs to exact source and preserves long citations in storage contracts", async () => {
-  mocked.parse.mockResolvedValue(response("E1"));
+  mocked.parse.mockResolvedValue(response("CFREF_1"));
   const result = await analyzeProject(page, "", AbortSignal.timeout(1000));
   expect(result.questions[0].evidence).toBe(page.text);
   expect(analysisSchema.safeParse(result).success).toBe(true);
   const args = mocked.parse.mock.calls.at(-1)![0];
   const input = JSON.parse(args.input[1].content[0].text);
   expect(input.page.text).toBeUndefined();
-  expect(input.page.snippets[0].id).toBe("E1");
+  expect(input.page.snippets[0].id).toBe("CFREF_1");
 });
 it("rejects decorated IDs even if a provider returns malformed structured output", async () => {
-  mocked.parse.mockResolvedValue(response("E1 Wait invalid"));
+  mocked.parse.mockResolvedValue(response("CFREF_1 Wait invalid"));
   await expect(analyzeProject(page, "", AbortSignal.timeout(1000))).rejects.toThrow("형식");
 });
 it("keeps exact text citation behavior for public websites", async () => {

@@ -27,11 +27,25 @@ export async function GET(request: Request, context: Context) {
 export async function POST(request: Request, context: Context) {
   try {
     const { owner, id, store } = await contextFor(request, context);
-    await readBody(request, z.object({ consent: z.boolean().optional() }).strict(), 1000);
+    const input = await readBody(
+      request,
+      z.object({ consent: z.boolean().optional(), stepwise: z.boolean().optional() }).strict(),
+      1000,
+    );
     // Saved exercises stay available even if the AI provider is temporarily offline.
     const saved = await store.queries.projectChecks.generatedPractice(owner, id);
-    if (saved) return json(saved);
+    if (saved) return json(input.stepwise ? { status: "done", result: saved } : saved);
     if (!process.env.OPENAI_API_KEY) throw new HttpError(503, "AI 연결을 준비 중입니다.");
+    if (input.stepwise)
+      return json(
+        await new ProjectCheckService(store).advanceLearning(
+          owner,
+          networkIdentity(request),
+          id,
+          "practice",
+          AbortSignal.timeout(105_000),
+        ),
+      );
     return json(
       await new ProjectCheckService(store).generatePractice(
         owner,

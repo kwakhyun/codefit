@@ -1,3 +1,7 @@
+import type { LearningGeneration, LearningKind } from "../project-check/learning-generation";
+import { projectExercisesSchema, validProjectExercises } from "../project-check/generated-practice";
+import { workshopPlanSchema, validWorkshop } from "../ai-learning/project-workshop";
+import type { JobLease } from "./store-contract";
 import { readPublicGitRepository, looksLikeRepository } from "./public-git-repository";
 import { generateProjectWorkshop } from "./ai-project-check";
 import type { ProjectWorkshop } from "../ai-learning/project-workshop";
@@ -43,7 +47,7 @@ export class ProjectCheckService {
         ? [
             {
               key: `project:guest-network:${kind}:${network}`,
-              max: 2,
+              max: kind === "analysis" ? allowanceFor(owner).analysis : 2,
               windowMs: PROJECT_LIMITS.windowMs,
             },
           ]
@@ -130,6 +134,151 @@ export class ProjectCheckService {
     } catch (error) {
       if (await this.store.failJob(claim.lease))
         await this.store.queries.projectChecks.refundPractice(claim.lease, charges);
+      throw error;
+    }
+  }
+  /** One provider call per HTTP request. Completed stages survive retries and navigation. */
+  async advanceLearning(
+    owner: string,
+    network: string,
+    id: string,
+    kind: LearningKind,
+    signal: AbortSignal,
+  ): Promise<LearningGeneration<GeneratedPractice | ProjectWorkshop>> {
+    const q = this.store.queries.projectChecks;
+    const check = await q.get(owner, id);
+    if (!check?.page.repository) throw new HttpError(404, "분석한 공개 저장소를 찾지 못했습니다.");
+    const saved =
+      kind === "practice" ? await q.generatedPractice(owner, id) : await q.workshop(owner, id);
+    if (saved) return { status: "done", result: saved };
+    const claim = await this.store.startJob(
+      owner,
+      `${id}:${kind}`,
+      `project-${kind}:${id}`,
+      requestFingerprint(check.page.repository.commit),
+    );
+    if (claim.state === "done") return { status: "done", result: JSON.parse(claim.result) };
+    if (claim.state === "pending")
+      throw new HttpError(
+        409,
+        "다른 요청에서 학습을 만들고 있습니다. 잠시 후 이어서 생성해 주세요.",
+      );
+    const stages =
+      kind === "practice" ? (["code", "service"] as const) : (["observed", "proposed"] as const);
+    let stageLease: JobLease | undefined;
+    let charges: { key: string; expires: number }[] = [];
+    let persisted = false;
+    try {
+      const parts = await Promise.all(
+        stages.map((stage) => q.learningStage(owner, id, kind, stage)),
+      );
+      const index = parts.findIndex((part) => part === null);
+      if (index >= 0) {
+        if (index === 1) {
+          await this.consume(owner, network, "analysis");
+          charges = await q.practiceCharges(owner, network);
+        } else {
+          if ((await q.usage(owner)).analysis.remaining < 1)
+            throw new HttpError(
+              429,
+              "학습 생성에 사용할 횟수가 없습니다. 한도 초기화 후 이어서 진행해 주세요.",
+            );
+          // The two-stage bundle consumes one personal credit at its final stage.
+          // Every provider attempt still counts toward global and network cost limits.
+          if (
+            !(await this.store.consumeLimits([
+              {
+                key: `project:learning-stage:${network}`,
+                max: 10,
+                windowMs: PROJECT_LIMITS.windowMs,
+              },
+              { key: "ai:global:hour", max: 40, windowMs: 3_600_000 },
+              { key: "ai:global:day", max: 100, windowMs: PROJECT_LIMITS.windowMs },
+            ]))
+          )
+            throw new HttpError(429, "잠시 후 학습 생성을 다시 시도해 주세요.");
+        }
+        const stage = stages[index];
+        const stageClaim = await this.store.startJob(
+          owner,
+          `${id}:${kind}:${stage}`,
+          `project-learning-stage:${id}`,
+          requestFingerprint(check.page.repository.commit, "learning-stages-v1", stage),
+        );
+        if (stageClaim.state === "pending")
+          throw new HttpError(409, "이 단계를 생성하고 있습니다. 잠시 후 이어서 진행해 주세요.");
+        if (stageClaim.state === "done") parts[index] = JSON.parse(stageClaim.result);
+        else {
+          stageLease = stageClaim.lease;
+          const part =
+            kind === "practice"
+              ? await generateProjectExercises(check, signal, stage as "code" | "service")
+              : await generateProjectWorkshop(
+                  check,
+                  signal,
+                  stage as "observed" | "proposed",
+                  index ? workshopPlanSchema.parse(parts[0]).topics.map((t) => t.title) : undefined,
+                );
+          signal.throwIfAborted();
+          // Validate before storing a durable checkpoint, including mocked/injected generators.
+          if (kind === "practice") {
+            const mode = stage as "code" | "service";
+            const tasks = projectExercisesSchema.shape[mode].parse(
+              (part as GeneratedPractice["exercises"])[mode],
+            );
+            if (
+              !validProjectExercises(
+                { code: mode === "code" ? tasks : [], service: mode === "service" ? tasks : [] },
+                check.page.repository,
+              )
+            )
+              throw new HttpError(502, "실습 근거를 확인하지 못했습니다.");
+          } else if (!validWorkshop(workshopPlanSchema.parse(part), check.page.repository))
+            throw new HttpError(502, "학습 근거를 확인하지 못했습니다.");
+          await q.completeLearningStage(stageLease, id, part);
+          parts[index] = part;
+        }
+        persisted = true;
+        if (index === 0) {
+          await this.store.failJob(claim.lease); // Release the request lease; keep the completed stage.
+          return {
+            status: "pending",
+            completed: 1,
+            total: 2,
+            label:
+              kind === "practice"
+                ? "코드 이해 실습을 저장했습니다. 서비스 동작 실습을 만들고 있습니다."
+                : "현재 AI 활용 학습을 저장했습니다. 새로운 활용 방법을 정리하고 있습니다.",
+          };
+        }
+      }
+      const createdAt = new Date().toISOString();
+      if (kind === "practice") {
+        const a = parts[0] as GeneratedPractice["exercises"],
+          b = parts[1] as GeneratedPractice["exercises"];
+        const result: GeneratedPractice = {
+          exercises: projectExercisesSchema.parse({ code: a.code, service: b.service }),
+          progress: { code: [], service: [] },
+          revision: 0,
+          createdAt,
+        };
+        await q.completePractice(claim.lease, id, result);
+        return { status: "done", result };
+      }
+      const a = workshopPlanSchema.parse(parts[0]),
+        b = workshopPlanSchema.parse(parts[1]);
+      const result: ProjectWorkshop = {
+        plan: workshopPlanSchema.parse({ ...a, topics: [...a.topics, ...b.topics] }),
+        responses: [],
+        revision: 0,
+        createdAt,
+      };
+      await q.completeWorkshop(claim.lease, id, result);
+      return { status: "done", result };
+    } catch (error) {
+      if (stageLease) await this.store.failJob(stageLease);
+      if ((await this.store.failJob(claim.lease)) && !persisted)
+        await q.refundPractice(claim.lease, charges);
       throw error;
     }
   }

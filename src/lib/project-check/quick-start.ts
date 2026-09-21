@@ -1,3 +1,4 @@
+import { generateLearning } from "./generate-learning";
 import { api, ApiError } from "../client-api";
 import type { Check, CheckOverview } from "./types";
 import type { GeneratedPractice } from "./generated-practice";
@@ -35,10 +36,11 @@ export async function prepareProjectLearning(
     scope,
   });
   if (!saved)
-    await request<GeneratedPractice>(`/api/project-check/${check.id}/practice`, {
-      method: "POST",
+    await generateLearning<GeneratedPractice>(
+      `/api/project-check/${check.id}/practice`,
       scope,
-      body: {},
-    });
+      () => {},
+      request,
+    );
   return check;
 }
