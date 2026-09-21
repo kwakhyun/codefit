@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { ProjectAiEntry } from "@/components/ai-learning/project-ai-entry";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/navigation/site-header";
@@ -33,7 +35,9 @@ export default function AiLearningPage() {
           <Anchor href="#ai-catalog">배우고 싶은 도구 바로 찾기 ↓</Anchor>
         </p>
       </header>
-      <AiCatalog />
+      <Suspense fallback={<ScreenSkeleton variant="cards" />}>
+        <AiCatalog />
+      </Suspense>
     </main>
   );
 }

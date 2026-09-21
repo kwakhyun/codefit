@@ -1,3 +1,4 @@
+import { catalogReturn } from "@/lib/ai-learning/catalog-navigation";
 import { AppLink } from "@/components/ui/primitives";
 import { z } from "zod";
 import type { Metadata } from "next";
@@ -26,7 +27,7 @@ export default async function AiLessonPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ project?: string; topic?: string }>;
+  searchParams: Promise<{ project?: string; topic?: string; returnTo?: string }>;
 }) {
   const query = await searchParams;
   const project = z.uuid().safeParse(query.project);
@@ -44,7 +45,12 @@ export default async function AiLessonPage({
           </AppLink>
         </aside>
       )}
-      <AiLesson key={lesson.id} id={lesson.id} content={AI_CONTENT[lesson.id]} />
+      <AiLesson
+        key={lesson.id}
+        id={lesson.id}
+        content={AI_CONTENT[lesson.id]}
+        returnTo={catalogReturn(query.returnTo)}
+      />
       {project.success && (
         <AppLink
           className="project-ai-return"

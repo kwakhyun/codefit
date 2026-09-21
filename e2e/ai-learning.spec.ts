@@ -14,8 +14,7 @@ test("home sidebar opens AI learning", async ({ page }) => {
 });
 
 test("catalog discovery, Korean search, filters and no-results recovery", async ({ page }) => {
-  await page.goto("/learn");
-  await page.locator(".ai-learning-entry").click();
+  await page.goto("/learn/ai");
   await expect(page).toHaveURL(/\/learn\/ai$/);
   await expect(page.locator(".ai-lesson-card")).toHaveCount(AI_LESSONS.length);
   await expect(page.locator(".ai-course-group")).toHaveCount(AI_TRACKS.length);
@@ -28,7 +27,7 @@ test("catalog discovery, Korean search, filters and no-results recovery", async 
   await expect(page.locator(".ai-lesson-card")).toHaveCount(AI_LESSONS.length);
   await page.getByRole("button", { name: /^LangChain과 LangGraph/ }).click();
   await expect(page.locator(".ai-lesson-card")).toHaveCount(2);
-  await page.locator('.ai-lesson-card[href="/learn/ai/langgraph"]').click();
+  await page.locator('.ai-lesson-card[href^="/learn/ai/langgraph?"]').click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "LangGraph로 멈추고 이어가는 흐름 만들기",
   );
@@ -66,7 +65,7 @@ test("lesson gates completion, resumes after reload, retries a wrong answer and 
   await page.getByRole("radio").nth(AI_CONTENT.langchain.quiz.answer).check();
   await page.getByRole("button", { name: "답 확인하기" }).click();
   await page.getByRole("link", { name: "다른 수업 고르기" }).click();
-  await expect(page.locator('.ai-lesson-card[href="/learn/ai/langchain"]')).toContainText("완료");
+  await expect(page.locator('.ai-lesson-card[href^="/learn/ai/langchain?"]')).toContainText("완료");
   await expect(page.locator(".ai-progress-summary strong")).toHaveText(`1 / ${AI_LESSONS.length}`);
 });
 

@@ -1,4 +1,5 @@
 "use client";
+import { catalogLessonUrl } from "@/lib/ai-learning/catalog-navigation";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Copy, ExternalLink } from "lucide-react";
@@ -14,7 +15,15 @@ import { EMPTY_AI_PROGRESS, type AiProgress } from "@/lib/ai-learning/progress";
 import { useAiLearningProgress } from "@/hooks/use-ai-learning-progress";
 
 const stages = ["개념 이해", "선택하며 실습", "확인 문제"];
-export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonContent }) {
+export function AiLesson({
+  id,
+  content,
+  returnTo = "/learn/ai",
+}: {
+  id: AiLessonId;
+  content: AiLessonContent;
+  returnTo?: string;
+}) {
   const lesson = AI_LESSONS.find((item) => item.id === id)!;
   const category = AI_TRACKS.find((item) => item.id === lesson.track)!;
   const { records, save, ready, storageError } = useAiLearningProgress();
@@ -46,7 +55,9 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
       <nav className="ai-breadcrumb" aria-label="현재 위치">
         <Link href="/">홈</Link>
         <span aria-hidden="true">/</span>
-        <Link href="/learn/ai">AI 실무 배우기</Link>
+        <Link href={returnTo}>
+          {returnTo.includes("?") ? "검색 결과로 돌아가기" : "AI 실무 배우기"}
+        </Link>
         <span aria-hidden="true">/</span>
         <span>{category.title}</span>
       </nav>
@@ -87,7 +98,9 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
               ? "저장할 수 없어 현재 탭에서만 기록됩니다. 새로고침하면 기록이 사라질 수 있어요."
               : "이 브라우저에 학습 위치와 완료 기록이 저장됩니다."}
           </p>
-          <Link href="/learn/ai">전체 수업으로 돌아가기</Link>
+          <Link href={returnTo}>
+            {returnTo.includes("?") ? "검색 결과로 돌아가기" : "전체 수업으로 돌아가기"}
+          </Link>
         </aside>
         <article className="ai-lesson-body">
           <span className="eyebrow">{step + 1} / 3단계</span>
@@ -283,15 +296,20 @@ export function AiLesson({ id, content }: { id: AiLessonId; content: AiLessonCon
                       </details>
                       <div className="ai-step-actions">
                         {next ? (
-                          <Link className="primary-button" href={`/learn/ai/${next.id}`}>
+                          <Link
+                            className="primary-button"
+                            href={catalogLessonUrl(next.id, returnTo)}
+                          >
                             다음 수업: {next.title} <ArrowRight size={16} aria-hidden="true" />
                           </Link>
                         ) : (
-                          <Link className="primary-button" href="/learn/ai">
+                          <Link className="primary-button" href={returnTo}>
                             학습 현황 보기
                           </Link>
                         )}
-                        <Link href="/learn/ai">다른 수업 고르기</Link>
+                        <Link href={returnTo}>
+                          {returnTo.includes("?") ? "검색 결과로 돌아가기" : "다른 수업 고르기"}
+                        </Link>
                         <Button
                           onClick={() => {
                             setRetry(true);

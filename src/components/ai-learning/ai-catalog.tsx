@@ -1,5 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  catalogFilters,
+  catalogUrl,
+  catalogLessonUrl,
+  catalogScrollKey,
+} from "@/lib/ai-learning/catalog-navigation";
 import {
   ArrowRight,
   CheckCircle2,
@@ -41,10 +48,39 @@ const paths = [
 ];
 
 export function AiCatalog() {
-  const [query, setQuery] = useState("");
-  const [track, setTrack] = useState("all");
-  const [level, setLevel] = useState("all");
+  const params = useSearchParams();
+  const filters = catalogFilters(params);
+  const { query, track, level } = filters;
+  const returnTo = catalogUrl(filters);
+  function change(patch: Partial<typeof filters>) {
+    window.history.replaceState(null, "", catalogUrl({ ...filters, ...patch }));
+  }
+  function rememberPosition() {
+    try {
+      sessionStorage.setItem(catalogScrollKey(returnTo), String(window.scrollY));
+    } catch {
+      /* Navigation remains available without storage. */
+    }
+  }
   const { records, ready, storageError } = useAiLearningProgress();
+  useEffect(() => {
+    if (!ready) return;
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
+        try {
+          const saved = sessionStorage.getItem(catalogScrollKey(returnTo));
+          const y = Number(saved);
+          if (saved !== null && Number.isFinite(y) && y >= 0) {
+            window.scrollTo({ top: y, behavior: "instant" });
+            sessionStorage.removeItem(catalogScrollKey(returnTo));
+          }
+        } catch {
+          /* Browser history still restores scroll when storage is unavailable. */
+        }
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [ready, returnTo]);
   const completed = AI_LESSONS.filter((lesson) => records[lesson.id]?.completed).length;
   const resume = AI_LESSONS.filter(
     (lesson) => records[lesson.id] && !records[lesson.id]?.completed,
@@ -54,9 +90,7 @@ export function AiCatalog() {
   const visible = filterAiLessons(query, track, level);
   const filtered = query.trim() !== "" || track !== "all" || level !== "all";
   function reset() {
-    setQuery("");
-    setTrack("all");
-    setLevel("all");
+    change({ query: "", track: "all", level: "all" });
   }
   return (
     <>
@@ -75,7 +109,11 @@ export function AiCatalog() {
               ? "학습하던 단계부터 이어갈 수 있습니다."
               : `약 ${next.minutes}분이면 개념과 적용 방법을 함께 살펴볼 수 있어요.`}
           </p>
-          <Link className="primary-button" href={`/learn/ai/${next.id}`}>
+          <Link
+            className="primary-button"
+            href={catalogLessonUrl(next.id, returnTo)}
+            onNavigate={rememberPosition}
+          >
             {completed === AI_LESSONS.length
               ? "첫 수업 복습하기"
               : resume
@@ -105,7 +143,9 @@ export function AiCatalog() {
                 const lesson = AI_LESSONS.find((item) => item.id === id)!;
                 return (
                   <li key={id}>
-                    <Link href={`/learn/ai/${id}`}>{lesson.title}</Link>
+                    <Link href={catalogLessonUrl(id, returnTo)} onNavigate={rememberPosition}>
+                      {lesson.title}
+                    </Link>
                   </li>
                 );
               })}
@@ -130,12 +170,12 @@ export function AiCatalog() {
               type="search"
               placeholder="예: 랭체인, RAG, Ollama, 음성"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => change({ query: event.target.value })}
             />
           </FieldLabel>
           <FieldLabel>
             학습 수준
-            <NativeSelect value={level} onChange={(event) => setLevel(event.target.value)}>
+            <NativeSelect value={level} onChange={(event) => change({ level: event.target.value })}>
               <option value="all">모든 수준</option>
               <option value="입문">입문 — 처음 시작해요</option>
               <option value="기초">기초 — 원리를 적용해요</option>
@@ -144,14 +184,14 @@ export function AiCatalog() {
           </FieldLabel>
         </div>
         <div className="ai-category-filters" role="group" aria-label="학습 카테고리">
-          <Button aria-pressed={track === "all"} onClick={() => setTrack("all")}>
+          <Button aria-pressed={track === "all"} onClick={() => change({ track: "all" })}>
             전체 <span>{AI_LESSONS.length}</span>
           </Button>
           {AI_TRACKS.map((item) => (
             <Button
               key={item.id}
               aria-pressed={track === item.id}
-              onClick={() => setTrack(item.id)}
+              onClick={() => change({ track: item.id })}
             >
               {item.title}
               <span>{AI_LESSONS.filter((lesson) => lesson.track === item.id).length}</span>
@@ -194,7 +234,12 @@ export function AiCatalog() {
               {lessons.map((lesson) => {
                 const record = records[lesson.id];
                 return (
-                  <Link key={lesson.id} className="ai-lesson-card" href={`/learn/ai/${lesson.id}`}>
+                  <Link
+                    key={lesson.id}
+                    className="ai-lesson-card"
+                    href={catalogLessonUrl(lesson.id, returnTo)}
+                    onNavigate={rememberPosition}
+                  >
                     <div className="ai-card-meta">
                       <span>{lesson.level}</span>
                       <span>
