@@ -46,6 +46,16 @@ it("projects only lightweight fields and paginates related repositories within t
     expect(tail.nextCursor).toBeNull();
     expect(new Set([...related.checks, ...tail.checks].map((item) => item.id)).size).toBe(21);
     expect((await q.summaryPage("nobody")).checks).toEqual([]);
+    expect(
+      (await q.summaryPage("owner", null, undefined, "분석 21")).checks.map(
+        (item) => item.classMetadata?.name,
+      ),
+    ).toEqual(["분석 21"]);
+    expect((await q.summaryPage("owner", null, undefined, "EXAMPLE/another")).checks).toHaveLength(
+      1,
+    );
+    expect((await q.summaryPage("owner", null, undefined, "%_")).checks).toEqual([]);
+    expect((await q.summaryPage("other", null, undefined, "분석 21")).checks).toEqual([]);
   } finally {
     store.db.close();
   }

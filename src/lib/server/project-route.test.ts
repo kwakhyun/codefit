@@ -22,7 +22,7 @@ it("rejects stale guest writes and reads only the current guest workspace", asyn
   const response = await GET(new Request("https://codefit.test/api/project-check"));
   expect(await response.json()).toMatchObject({ signedIn: false, checks: [] });
   expect(response.headers.get("cache-control")).toBe("no-store");
-  expect(page).toHaveBeenCalledWith("guest", null);
+  expect(page).toHaveBeenCalledWith("guest", null, undefined, "");
 });
 it("requires a matching workspace and rejects unexpected request fields", async () => {
   current.mockResolvedValue({ owner: "user:a", scope: "user:a", user: { id: "a" } });
@@ -72,7 +72,7 @@ it("passes an opaque cursor to the owned page query and keeps the response uncac
     queries: { projectChecks: { summaryPage: page, usage: vi.fn().mockResolvedValue({}) } },
   });
   const response = await GET(new Request("https://codefit.test/api/project-check?cursor=previous"));
-  expect(page).toHaveBeenCalledWith("user:a", "previous");
+  expect(page).toHaveBeenCalledWith("user:a", "previous", undefined, "");
   expect(await response.json()).toMatchObject({ nextCursor: "next", checks: [] });
   expect(response.headers.get("cache-control")).toBe("no-store");
 });

@@ -18,6 +18,7 @@ import {
 import { Modal } from "@/components/ui/modal";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { RenewProject } from "@/components/project-check/renew-project";
+import { useProjectSearch } from "@/hooks/use-project-search";
 import { reviewStorageKey } from "@/hooks/use-project-review";
 import { ProjectVersions } from "./project-versions";
 import { ProjectReview } from "./project-review";
@@ -166,13 +167,12 @@ function ClassList({
       return "";
     }
   });
-  const items = overview.checks;
-  const cursor = overview.nextCursor;
-  const visible = items.filter((item) =>
-    `${nameOf(item)} ${item.classMetadata?.goal || ""} ${item.page.url}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
-  );
+  const search = useProjectSearch(query, overview);
+  const searching = !!query.trim();
+  const items = searching ? (search.page?.checks ?? []) : overview.checks;
+  const cursor = searching ? search.page?.nextCursor : overview.nextCursor;
+  const visible = items;
+  const pending = searching ? search.busy : busy;
   return (
     <>
       <div className="class-toolbar">
@@ -181,6 +181,7 @@ function ClassList({
           <Input
             id="class-search"
             type="search"
+            maxLength={200}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -203,7 +204,19 @@ function ClassList({
           설정에서 백업해 주세요.
         </p>
       )}
-      {!items.length ? (
+      {searching && search.busy && !search.page && (
+        <ScreenSkeleton variant="list" label="전체 프로젝트 검색 중" />
+      )}
+      {searching && search.error && (
+        <Card role="alert">
+          <p>{search.error}</p>
+          <Button onClick={search.retry}>검색 다시 시도</Button>
+        </Card>
+      )}
+      {searching && !search.busy && !search.error && !items.length && (
+        <p role="status">검색 결과가 없습니다. 다른 이름이나 주소로 검색해 보세요.</p>
+      )}
+      {!items.length && !searching ? (
         <Card className="class-empty">
           <FolderOpen size={36} />
           <h2>내 프로젝트가 나만의 수업이 됩니다</h2>
@@ -239,15 +252,9 @@ function ClassList({
           ))}
         </div>
       )}
-      {!!items.length && !visible.length && (
-        <p role="status">
-          불러온 프로젝트 중 검색 결과가 없습니다.
-          {cursor ? " 이전 프로젝트를 더 불러와 찾아보세요." : " 다른 검색어를 입력해 보세요."}
-        </p>
-      )}
       {cursor && (
-        <Button disabled={busy} onClick={more}>
-          {busy ? "불러오는 중…" : "이전 프로젝트 더 보기"}
+        <Button disabled={pending} onClick={searching ? search.more : more}>
+          {pending ? "불러오는 중…" : searching ? "검색 결과 더 보기" : "이전 프로젝트 더 보기"}
         </Button>
       )}
     </>

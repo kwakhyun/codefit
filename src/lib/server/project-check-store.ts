@@ -126,8 +126,13 @@ export class ProjectCheckStore {
       ? `json_extract(${column}, '$.${path}')`
       : `${column}::jsonb #>> '{${path.replaceAll(".", ",")}}'`;
   }
-  async summaryPage(owner: string, cursor?: string | null, repositoryUrl?: string) {
-    const page = await this.pageRows(owner, cursor, true, repositoryUrl);
+  async summaryPage(
+    owner: string,
+    cursor?: string | null,
+    repositoryUrl?: string,
+    search?: string,
+  ) {
+    const page = await this.pageRows(owner, cursor, true, repositoryUrl, search);
     const checks: CheckListItem[] = page.rows.map((row) => ({
       id: String(row.id),
       createdAt: String(row.created_at),
@@ -148,6 +153,7 @@ export class ProjectCheckStore {
     cursor?: string | null,
     summary = false,
     repositoryUrl?: string,
+    search?: string,
   ) {
     let after: { expires: number; id: string } | undefined;
     if (cursor !== undefined && cursor !== null) {
@@ -174,9 +180,30 @@ export class ProjectCheckStore {
     const filter = urls.length
       ? ` AND ${this.field("j.result", "page.source")}='repository' AND ${this.field("j.result", "page.url")} IN (?,?,?,?)`
       : "";
+    const term = z
+      .string()
+      .trim()
+      .max(200)
+      .parse(search ?? "")
+      .toLowerCase();
+    const searchable = ["classMetadata.name", "classMetadata.goal", "analysis.title", "page.url"];
+    const searchFilter = term
+      ? ` AND (${searchable
+          .map((field) =>
+            this.dialect === "sqlite"
+              ? `instr(lower(coalesce(${this.field("j.result", field)}, '')), ?) > 0`
+              : `strpos(lower(coalesce(${this.field("j.result", field)}, '')), ?) > 0`,
+          )
+          .join(" OR ")})`
+      : "";
     const rows = await this.query(
-      `SELECT j.id,j.expires,${columns} FROM jobs j LEFT JOIN jobs r ON r.id='project-review-' || j.id AND r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.kind='project-analysis' AND j.state='done' ${filter} ${after ? "AND (j.expires<? OR (j.expires=? AND j.id<?))" : ""} ORDER BY j.expires DESC,j.id DESC LIMIT 21`,
-      [owner, ...urls, ...(after ? [after.expires, after.expires, after.id] : [])],
+      `SELECT j.id,j.expires,${columns} FROM jobs j LEFT JOIN jobs r ON r.id='project-review-' || j.id AND r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.kind='project-analysis' AND j.state='done' ${filter} ${searchFilter} ${after ? "AND (j.expires<? OR (j.expires=? AND j.id<?))" : ""} ORDER BY j.expires DESC,j.id DESC LIMIT 21`,
+      [
+        owner,
+        ...urls,
+        ...(term ? searchable.map(() => term) : []),
+        ...(after ? [after.expires, after.expires, after.id] : []),
+      ],
     );
     const visible = rows.slice(0, 20);
     const last = visible.at(-1);

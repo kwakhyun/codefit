@@ -16,6 +16,23 @@ test("focus preserves search and loaded pages while refreshing changed and delet
     analysis: { ...first.analysis, title: "이전 예약 클래스" },
   };
   await page.route("**/api/project-check?*", (route) => {
+    if (new URL(route.request().url()).searchParams.has("q"))
+      return route.fulfill({
+        json: {
+          scope: "visitor:refresh",
+          checks: [
+            {
+              ...first,
+              analysis: {
+                ...first.analysis,
+                title: changed ? "갱신된 예약 클래스" : "새 예약 클래스",
+              },
+            },
+            ...(changed ? [] : [second]),
+          ],
+          nextCursor: null,
+        },
+      });
     secondPageReads++;
     return route.fulfill({
       json: { scope: "visitor:refresh", checks: changed ? [] : [second], nextCursor: null },

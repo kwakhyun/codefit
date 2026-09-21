@@ -12,12 +12,15 @@ export async function GET(request: Request) {
   try {
     const { owner, scope, user } = await session(request);
     const store = await getStore();
+    const params = new URL(request.url).searchParams;
+    const search = z
+      .string()
+      .trim()
+      .max(200)
+      .parse(params.get("q") ?? "");
     const [usage, page] = await Promise.all([
       store.queries.projectChecks.usage(owner),
-      store.queries.projectChecks.summaryPage(
-        owner,
-        new URL(request.url).searchParams.get("cursor"),
-      ),
+      store.queries.projectChecks.summaryPage(owner, params.get("cursor"), undefined, search),
     ]);
     return json({
       scope,

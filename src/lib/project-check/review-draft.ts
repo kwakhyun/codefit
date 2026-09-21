@@ -1,5 +1,5 @@
 import { z } from "zod";
-export const reviewEntrySchema = z.object({
+const reviewEntrySchema = z.object({
   note: z.string().max(2000),
   choice: z.number().int().min(0).max(20).nullable(),
   revealed: z.boolean(),

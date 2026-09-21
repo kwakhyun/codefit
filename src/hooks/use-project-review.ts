@@ -25,10 +25,20 @@ export function useProjectReview(scope: string, id: string) {
   const [saved, setSaved] = useState(initial.value);
   const latest = useRef(saved);
   const sequence = useRef(0);
+  const pending = useRef<
+    {
+      ticket: number;
+      base: ReviewDraft;
+      active: string;
+      patch: Partial<ReviewEntry>;
+      reset: boolean;
+    }[]
+  >([]);
   const [failed, setFailed] = useState(initial.failed);
   const [saving, setSaving] = useState(false);
   function persist(base: ReviewDraft, active: string, patch: Partial<ReviewEntry>, reset = false) {
     const ticket = ++sequence.current;
+    pending.current.push({ ticket, base, active, patch, reset });
     const optimistic = reset
       ? { ...emptyReview(), active }
       : mergeReviewDraft(latest.current, base, active, patch);
@@ -39,8 +49,17 @@ export function useProjectReview(scope: string, id: string) {
     const operation = navigator.locks
       ? navigator.locks.request(key, () => {
           const remote = read(key);
-          const next = reset ? optimistic : mergeReviewDraft(remote, base, active, patch);
+          const next = pending.current
+            .filter((edit) => edit.ticket <= ticket)
+            .reduce(
+              (value, edit) =>
+                edit.reset
+                  ? { ...emptyReview(), active: edit.active }
+                  : mergeReviewDraft(value, edit.base, edit.active, edit.patch),
+              remote,
+            );
           localStorage.setItem(key, JSON.stringify(next));
+          pending.current = pending.current.filter((edit) => edit.ticket > ticket);
           return next;
         })
       : Promise.reject(new Error("Browser locks unavailable"));

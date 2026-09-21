@@ -93,6 +93,26 @@ export function projectContract(getStore: () => ProblemStore) {
         checks: first.checks.map(checkListItem),
         nextCursor: first.nextCursor,
       });
+      const searched = await store.queries.projectChecks.summaryPage(
+        owner,
+        null,
+        undefined,
+        fixtureCheck.analysis.title,
+      );
+      expect(searched.checks).toHaveLength(20);
+      expect(
+        (
+          await store.queries.projectChecks.summaryPage(
+            owner,
+            searched.nextCursor,
+            undefined,
+            fixtureCheck.analysis.title,
+          )
+        ).checks,
+      ).toHaveLength(20);
+      expect(
+        (await store.queries.projectChecks.summaryPage(owner, null, undefined, "%_")).checks,
+      ).toEqual([]);
       // A saved deep link does not depend on the first page.
       expect((await store.queries.projectChecks.detail(owner, ids[44]))?.id).toBe(ids[44]);
       expect(await store.queries.projectChecks.detail("other", ids[44])).toBeNull();

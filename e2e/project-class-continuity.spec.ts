@@ -11,7 +11,7 @@ const overview = {
   nextCursor: null,
 };
 test("search survives a trip to class details", async ({ page }) => {
-  await page.route("**/api/project-check", (route) => route.fulfill({ json: overview }));
+  await page.route(/\/api\/project-check(?:\?.*)?$/, (route) => route.fulfill({ json: overview }));
   await page.route(`**/api/projects/${id}`, (route) =>
     route.fulfill({ json: { check, practice: null, workshop: null } }),
   );
@@ -63,7 +63,7 @@ test("history refresh keeps loaded pages and removes deleted versions", async ({
     id: "77777777-7777-4777-8777-777777777777",
     analysis: { title: "이전 분석" },
   };
-  await page.route("**/api/project-check", (route) => route.fulfill({ json: overview }));
+  await page.route(/\/api\/project-check(?:\?.*)?$/, (route) => route.fulfill({ json: overview }));
   await page.route(`**/api/projects/${id}`, (route) =>
     route.fulfill({
       json: {
@@ -104,13 +104,17 @@ test("history refresh keeps loaded pages and removes deleted versions", async ({
 test("storage failures keep the draft visible and explain that it is unsaved", async ({ page }) => {
   await page.addInitScript(() => {
     const original = Storage.prototype.setItem;
+    original.call(localStorage, "test:blockreview", "1");
     Storage.prototype.setItem = function (key, value) {
-      if (key.startsWith("codefit-project-review:"))
+      if (
+        key.startsWith("codefit-project-review:") &&
+        localStorage.getItem("test:blockreview") === "1"
+      )
         throw new DOMException("Full", "QuotaExceededError");
       return original.call(this, key, value);
     };
   });
-  await page.route("**/api/project-check", (route) => route.fulfill({ json: overview }));
+  await page.route(/\/api\/project-check(?:\?.*)?$/, (route) => route.fulfill({ json: overview }));
   await page.route(`**/api/projects/${id}`, (route) =>
     route.fulfill({ json: { check, practice: null, workshop: null } }),
   );
@@ -119,5 +123,15 @@ test("storage failures keep the draft visible and explain that it is unsaved", a
   const note = page.getByRole("textbox", { name: "지금 떠오르는 설명" });
   await note.fill("아직 저장되지 않은 메모");
   await expect(page.getByText(/브라우저에 복습을 저장하지 못했습니다/)).toBeVisible();
+  await expect(note).toHaveValue("아직 저장되지 않은 메모");
+  await page.evaluate(() => localStorage.setItem("test:blockreview", "0"));
+  await page.getByRole("button", { name: "이전 답변과 비교" }).click();
+  await page.getByRole("button", { name: "다음 복습" }).click();
+  await note.fill("두 번째 문제 메모");
+  await expect(page.getByText(/복습 위치와 메모는 이 브라우저에 저장됩니다/)).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: "복습하기", exact: true }).click();
+  await expect(note).toHaveValue("두 번째 문제 메모");
+  await page.getByRole("button", { name: "이전", exact: true }).click();
   await expect(note).toHaveValue("아직 저장되지 않은 메모");
 });
