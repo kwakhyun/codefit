@@ -8,14 +8,14 @@
   gap: 16px 28px;
   padding: 20px 24px;
   margin: 28px 0;
-  background: #11161d;
+  background: light-dark(var(--light-panel), #11161d);
   border: 1px solid var(--line);
   border-radius: 14px;
   font-size: 14px;
-  color: #c1cbd7;
+  color: light-dark(var(--light-muted), #c1cbd7);
 }
 .project-usage strong {
-  color: #f5f7fb;
+  color: light-dark(var(--light-text), #f5f7fb);
 }
 .project-usage button {
   display: inline-flex;
@@ -36,9 +36,15 @@
 }
 .project-panel {
   padding: 30px;
-  border: 1px solid #303944;
+  border: 1px solid light-dark(var(--light-line), #303944);
   border-radius: 18px;
-  background: radial-gradient(ellipse at 90% 0%, #97bfff0a, transparent 55%), #101318;
+  background:
+    radial-gradient(
+      ellipse at 90% 0%,
+      light-dark(color-mix(in srgb, var(--light-blue) 3.92%, transparent), #97bfff0a),
+      transparent 55%
+    ),
+    light-dark(var(--light-panel), #101318);
 }
 .project-panel h2 {
   font-size: 24px;
@@ -48,7 +54,7 @@
 }
 .project-panel p {
   line-height: 1.85;
-  color: #c5cdd8;
+  color: light-dark(var(--light-text), #c5cdd8);
   overflow-wrap: anywhere;
 }
 .project-signin {
@@ -77,7 +83,7 @@
 }
 .project-history-list summary {
   font-size: 15px;
-  color: #bbc5d4;
+  color: light-dark(var(--light-muted), #bbc5d4);
   padding: 12px 0;
   cursor: pointer;
 }
@@ -93,18 +99,18 @@
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #101318;
-  color: #dce5f2;
+  background: light-dark(var(--light-panel), #101318);
+  color: light-dark(var(--light-text), #dce5f2);
   overflow-wrap: anywhere;
 }
 .project-history button[aria-pressed="true"] {
   border-color: var(--action);
-  background: #192331;
+  background: light-dark(var(--light-blue-soft), #192331);
 }
 .project-history small,
 .project-history span {
   font-size: 12px;
-  color: #acb9cb;
+  color: light-dark(var(--light-muted), #acb9cb);
   line-height: 1.6;
 }
 .project-form {
@@ -131,15 +137,15 @@
   margin: 8px 0 0;
 }
 .project-form label > span {
-  color: #b6c3d4;
+  color: light-dark(var(--light-muted), #b6c3d4);
 }
 .project-page input:not([type="checkbox"]),
 .project-page textarea {
   box-sizing: border-box;
   width: 100%;
-  background: #080b10;
-  color: #f4f6fa;
-  border: 1px solid #49566a;
+  background: light-dark(var(--light-panel), #080b10);
+  color: light-dark(var(--light-text), #f4f6fa);
+  border: 1px solid light-dark(var(--light-line), #49566a);
   border-radius: 9px;
   padding: 13px 15px;
   font: 16px/1.8 var(--sans);
@@ -149,11 +155,11 @@
   min-height: 140px;
 }
 .project-page textarea:read-only {
-  background: #151a21;
-  color: #c9d3e0;
+  background: light-dark(var(--light-canvas), #151a21);
+  color: light-dark(var(--light-text), #c9d3e0);
 }
 .project-panel .project-help {
-  color: #a9b6c7;
+  color: light-dark(var(--light-muted), #a9b6c7);
   font-size: 13px;
   line-height: 1.85;
   margin: 0 0 12px;
@@ -196,7 +202,7 @@
   justify-content: space-between;
   gap: 12px;
   font-size: 14px;
-  color: #bdcce0;
+  color: light-dark(var(--light-text), #bdcce0);
 }
 .project-question-nav {
   display: flex;
@@ -209,25 +215,25 @@
   min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #151b24;
-  color: #b7c3d4;
+  background: light-dark(var(--light-canvas), #151b24);
+  color: light-dark(var(--light-muted), #b7c3d4);
   font-size: 13px;
 }
 .project-question-nav [aria-current] {
-  color: #eaf2ff;
-  border-color: #95bffc;
-  background: #22344c;
+  color: light-dark(var(--light-text), #eaf2ff);
+  border-color: light-dark(var(--light-strong-line), #95bffc);
+  background: light-dark(var(--light-blue-soft), #22344c);
 }
 .project-evidence {
   padding: 16px 18px;
-  background: #1a222d;
-  border-left: 3px solid #98b6dd;
+  background: light-dark(var(--light-canvas), #1a222d);
+  border-left: 3px solid light-dark(var(--light-strong-line), #98b6dd);
   border-radius: 4px;
   margin: 20px 0;
 }
 .project-evidence strong {
   font-size: 13px;
-  color: #bccde5;
+  color: light-dark(var(--light-blue), #bccde5);
 }
 .project-evidence p {
   font-size: 14px;
@@ -243,9 +249,9 @@
 .project-error {
   margin-bottom: 24px;
   padding: 16px 20px;
-  background: #341f21;
-  color: #ffcdc9;
-  border: 1px solid #6b4145;
+  background: light-dark(var(--light-raised), #341f21);
+  color: light-dark(var(--light-red), #ffcdc9);
+  border: 1px solid light-dark(var(--light-line), #6b4145);
   border-radius: 10px;
   line-height: 1.8;
 }
@@ -255,12 +261,12 @@
   gap: 10px;
   padding: 16px;
   margin: 12px 0;
-  background: #19222e;
-  border: 1px solid #3a4e68;
+  background: light-dark(var(--light-blue-soft), #19222e);
+  border: 1px solid light-dark(var(--light-line), #3a4e68);
   border-radius: 10px;
 }
 .project-request-status > span {
-  color: #b9cce5;
+  color: light-dark(var(--light-blue), #b9cce5);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
@@ -269,15 +275,15 @@
   margin: 0;
 }
 .project-results h2 strong {
-  color: #a8cdfa;
+  color: light-dark(var(--light-blue), #a8cdfa);
   font-size: 40px;
 }
 .project-results h2 small {
   font-size: 16px;
-  color: #b5c1d2;
+  color: light-dark(var(--light-muted), #b5c1d2);
 }
 .project-feedback {
-  border-top: 1px solid #313c4b;
+  border-top: 1px solid light-dark(var(--light-line), #313c4b);
   padding-top: 24px;
   margin-top: 30px;
 }
@@ -292,41 +298,41 @@
   margin: 0;
 }
 .project-feedback header span {
-  color: #b9cce5;
+  color: light-dark(var(--light-blue), #b9cce5);
   font-size: 14px;
 }
 .project-score-track {
   margin: 14px 0 20px;
   height: 5px;
-  background: #2b3542;
+  background: light-dark(var(--light-raised), #2b3542);
   border-radius: 4px;
   overflow: hidden;
 }
 .project-score-track span {
   display: block;
   height: 100%;
-  background: #99c4ff;
+  background: light-dark(var(--light-blue), #99c4ff);
 }
 .project-feedback summary {
   cursor: pointer;
   padding: 12px 0;
   min-height: 44px;
-  color: #c9daf3;
+  color: light-dark(var(--light-blue), #c9daf3);
 }
 .project-answer {
   white-space: pre-wrap;
-  background: #0a0d12;
+  background: light-dark(var(--light-panel), #0a0d12);
   padding: 16px;
   border-radius: 8px;
 }
 .project-next-step {
   padding: 16px 20px;
-  background: #19222e;
+  background: light-dark(var(--light-blue-soft), #19222e);
   border-radius: 10px;
   margin-bottom: 24px;
 }
 .project-next-step strong {
-  color: #c0d8fa;
+  color: light-dark(var(--light-blue), #c0d8fa);
   font-size: 14px;
 }
 .project-next-step p {
@@ -338,26 +344,30 @@
   justify-content: space-between;
   gap: 20px;
   padding: 22px 26px;
-  background: linear-gradient(110deg, #172333, #101318 80%);
-  border: 1px solid #3a4e68;
+  background: linear-gradient(
+    110deg,
+    light-dark(var(--light-blue-soft), #172333),
+    light-dark(var(--light-panel), #101318) 80%
+  );
+  border: 1px solid light-dark(var(--light-line), #3a4e68);
   border-radius: 14px;
   margin: 20px 0 28px;
 }
 .project-launch strong {
   display: block;
   font-size: 17px;
-  color: #e5eefb;
+  color: light-dark(var(--light-text), #e5eefb);
   margin-bottom: 8px;
 }
 .project-launch p {
   margin: 0;
   font-size: 14px;
-  color: #bdcbe0;
+  color: light-dark(var(--light-text), #bdcbe0);
   line-height: 1.8;
 }
 .project-launch > svg {
   flex-shrink: 0;
-  color: #a9ccf9;
+  color: light-dark(var(--light-blue), #a9ccf9);
 }
 .project-page :is(button, a, input, textarea):focus-visible {
   outline: 3px solid var(--action);
@@ -421,18 +431,18 @@
 .project-assessment-issue {
   margin: 20px 0;
   padding: 16px;
-  border: 1px solid #886b38;
+  border: 1px solid light-dark(var(--light-line), #886b38);
   border-radius: 10px;
-  background: #211d15;
+  background: light-dark(var(--light-canvas), #211d15);
   overflow-wrap: anywhere;
 }
 .project-assessment-issue strong {
-  color: #f3d297;
+  color: light-dark(var(--light-amber), #f3d297);
 }
 .project-assessment-issue blockquote {
   margin: 12px 0;
   padding-left: 12px;
-  border-left: 2px solid #bca06d;
+  border-left: 2px solid light-dark(var(--light-strong-line), #bca06d);
   white-space: pre-wrap;
 }
 
@@ -451,7 +461,7 @@
   gap: 16px;
   min-width: 0;
   padding: 20px;
-  background: #171e28;
+  background: light-dark(var(--light-canvas), #171e28);
   border-radius: 12px;
 }
 .project-example h3 {
@@ -488,24 +498,24 @@
 #project-follow-up select {
   width: 100%;
   min-height: 44px;
-  border: 1px solid #405069;
+  border: 1px solid light-dark(var(--light-line), #405069);
   border-radius: 10px;
   padding: 10px 12px;
-  background: #0a0d12;
-  color: #eef3fa;
+  background: light-dark(var(--light-panel), #0a0d12);
+  color: light-dark(var(--light-text), #eef3fa);
   font: inherit;
 }
 #project-follow-up hr {
   margin: 28px 0;
   border: 0;
-  border-top: 1px solid #303944;
+  border-top: 1px solid light-dark(var(--light-line), #303944);
 }
 .project-quota-notice {
   margin-top: 24px;
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--surface-hover, #182027);
+  background: var(--surface-hover, light-dark(var(--light-canvas), #182027));
 }
 .project-quota-notice p {
   margin-top: 12px;
@@ -612,8 +622,8 @@
 .repository-code {
   max-height: 380px;
   overflow: auto;
-  background: #0b1018;
-  color: #d6e2f2;
+  background: light-dark(var(--light-panel), #0b1018);
+  color: light-dark(var(--light-text), #d6e2f2);
   border-radius: 12px;
   padding: 16px;
   margin-block: 16px;
@@ -626,17 +636,17 @@
   white-space: pre;
 }
 .repository-code .is-focus {
-  background: #213554;
+  background: light-dark(var(--light-blue-soft), #213554);
 }
 .repository-line-number {
   display: inline-block;
   min-width: 4ch;
   margin-right: 16px;
-  color: #9aaac0;
+  color: light-dark(var(--light-muted), #9aaac0);
   user-select: none;
 }
 .repository-gap {
-  color: #9aaac0;
+  color: light-dark(var(--light-muted), #9aaac0);
 }
 .repository-evidence {
   margin-top: 16px;
@@ -775,13 +785,13 @@
 .project-page .project-history-state {
   border-radius: 6px;
   padding: 4px 8px;
-  background: #263b59;
-  color: #bed9ff;
+  background: light-dark(var(--light-blue-soft), #263b59);
+  color: light-dark(var(--light-blue), #bed9ff);
   white-space: nowrap;
 }
 .project-page .project-history-state[data-complete="true"] {
-  background: #263b36;
-  color: #bbdfcf;
+  background: light-dark(var(--light-raised), #263b36);
+  color: light-dark(var(--light-text), #bbdfcf);
 }
 .project-page .project-history time {
   color: var(--muted);

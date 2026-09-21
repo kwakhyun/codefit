@@ -44,10 +44,10 @@
   margin: 0;
   padding: 6px;
   box-sizing: border-box;
-  border: 1px solid #41464f;
+  border: 1px solid light-dark(var(--light-line), #41464f);
   border-radius: 12px;
-  background: #14171b;
-  color: #f4f4f5;
+  background: light-dark(var(--light-panel), #14171b);
+  color: light-dark(var(--light-text), #f4f4f5);
   box-shadow: 0 12px 36px #0008;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -70,7 +70,7 @@
 }
 .ui-select-options [role="option"]:hover,
 .ui-select-options [role="option"][data-active="true"] {
-  background: #30353d;
+  background: light-dark(var(--light-raised), #30353d);
 }
 .ui-select-options [aria-selected="true"] {
   font-weight: 600;

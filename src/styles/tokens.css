@@ -1,23 +1,47 @@
-/* Shared design tokens. Feature colors remain explicit to avoid accidental coupling. */
+/* Theme roles: light values are shared; light-dark pairs preserve the dark palette.
+   Use these roles for new UI. Keep intentional image colors and overlay shadows fixed. */
 :root {
-  color-scheme: dark;
-  --bg: #0e1219;
-  --sidebar: #121722;
-  --line: #343e4e;
-  --surface: #171d28;
-  --surface-raised: #202938;
-  --surface-hover: #283448;
+  --light-canvas: #f5f7fb;
+  --light-panel: #ffffff;
+  --light-raised: #eef2f7;
+  --light-hover: #e2e8f0;
+  --light-text: #182334;
+  --light-muted: #4b5c73;
+  --light-line: #bac6d5;
+  --light-strong-line: #738399;
+  --light-blue: #1d4f9e;
+  --light-green: #196347;
+  --light-amber: #805000;
+  --light-red: #ad292f;
+  --light-purple: #6540a4;
+  --light-cyan: #146176;
+  --light-blue-soft: #e8f0fc;
+  --light-green-soft: #e9f4ed;
+  --light-amber-soft: #fff3d9;
+  --light-red-soft: #fcecee;
+  --light-purple-soft: #f1ecfb;
+  --light-cyan-soft: #e7f4f7;
+  --light-on-accent: #ffffff;
+
+  --art-blend: normal;
+  color-scheme: light dark;
+  --bg: light-dark(var(--light-canvas), #0e1219);
+  --sidebar: light-dark(var(--light-panel), #121722);
+  --line: light-dark(var(--light-line), #343e4e);
+  --surface: light-dark(var(--light-panel), #171d28);
+  --surface-raised: light-dark(var(--light-raised), #202938);
+  --surface-hover: light-dark(var(--light-hover), #283448);
   --radius-control: 12px;
   --radius-panel: 22px;
   --radius-small: 8px;
-  --text: #f0f3f8;
-  --muted: #b3bdcc;
-  --accent: #99c5ff;
-  --warning: #f2c879;
-  --danger: #ff9a9a;
-  --action: #93c5fd;
-  --success: #7dd3ac;
-  --ai: #c4b5fd;
+  --text: light-dark(var(--light-text), #f0f3f8);
+  --muted: light-dark(var(--light-muted), #b3bdcc);
+  --accent: light-dark(var(--light-blue), #99c5ff);
+  --warning: light-dark(var(--light-amber), #f2c879);
+  --danger: light-dark(var(--light-red), #ff9a9a);
+  --action: light-dark(var(--light-blue), #93c5fd);
+  --success: light-dark(var(--light-green), #7dd3ac);
+  --ai: light-dark(var(--light-purple), #c4b5fd);
   --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   --sans: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
   /* Readable roles stay consistent across breakpoints; honor the browser text size. */
@@ -30,17 +54,53 @@
   --control-size: 44px;
   --motion-fast: 160ms;
   --motion-enter: 220ms;
-  --black: #000000;
-  --white: #ffffff;
-  --action-soft: #bfdbfe;
-  --handoff-border: #34373d;
-  --handoff-surface: #14161a;
-  --handoff-input: #0c0e12;
-  --handoff-card: #111318;
-  --handoff-accent: #b7dce4;
-  --handoff-muted: #b3b7c2;
-  --handoff-help: #a9adb7;
-  --handoff-placeholder: #858b97;
-  --handoff-outline: #45515b;
-  --handoff-focus: #87cfe0;
+  --black: light-dark(var(--light-panel), #000000);
+  --white: light-dark(var(--light-text), #ffffff);
+  --action-soft: light-dark(var(--light-blue), #bfdbfe);
+  --handoff-border: light-dark(var(--light-line), #34373d);
+  --handoff-surface: light-dark(var(--light-canvas), #14161a);
+  --handoff-input: light-dark(var(--light-panel), #0c0e12);
+  --handoff-card: light-dark(var(--light-panel), #111318);
+  --handoff-accent: light-dark(var(--light-cyan), #b7dce4);
+  --handoff-muted: light-dark(var(--light-muted), #b3b7c2);
+  --handoff-help: light-dark(var(--light-muted), #a9adb7);
+  --handoff-placeholder: light-dark(var(--light-muted), #858b97);
+  --handoff-outline: light-dark(var(--light-strong-line), #45515b);
+  --handoff-focus: light-dark(var(--light-cyan), #87cfe0);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --art-blend: lighten;
+  color-scheme: dark;
+}
+
+/* Native controls inherit the selected scheme, including portalled dialogs. */
+.theme-select {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-size: var(--text-small);
+}
+.theme-select select {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 8px 30px 8px 10px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+.sidebar-bottom .theme-select {
+  padding: 8px 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --art-blend: lighten;
+  }
 }

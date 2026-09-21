@@ -178,7 +178,7 @@
 .settings-content > .import-note {
   font-size: var(--text-caption);
   text-align: center;
-  color: #919191;
+  color: light-dark(var(--light-muted), #919191);
   margin: 10px 0 0;
   line-height: 1.8;
 }

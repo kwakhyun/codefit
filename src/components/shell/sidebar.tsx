@@ -1,4 +1,5 @@
 "use client";
+import { ThemeSelect } from "@/components/theme/theme-select";
 import { Button } from "@/components/ui/primitives";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { preferredDestinations } from "@/lib/learning-preference";
@@ -57,7 +58,9 @@ export function Sidebar({
       onKeyDown={(event) => {
         if (!mobileMenu || event.key !== "Tab") return;
         const controls = Array.from(
-          event.currentTarget.querySelectorAll<HTMLElement>("a, button:not(:disabled), summary"),
+          event.currentTarget.querySelectorAll<HTMLElement>(
+            "a, button:not(:disabled), select:not(:disabled), summary",
+          ),
         ).filter((element) => element.getClientRects().length > 0);
         const first = controls[0],
           last = controls[controls.length - 1];
@@ -167,6 +170,7 @@ export function Sidebar({
         </Link>
       </nav>
       <div className="sidebar-bottom">
+        <ThemeSelect />
         {data?.account.user && (
           <Link className="nav-item" href="/profile">
             <UserRound size={17} />

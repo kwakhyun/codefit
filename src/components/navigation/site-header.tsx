@@ -1,4 +1,5 @@
 "use client";
+import { ThemeSelect } from "@/components/theme/theme-select";
 import { PreferenceChangeButton } from "@/components/library/learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { preferredDestinations } from "@/lib/learning-preference";
@@ -49,6 +50,7 @@ export function SiteHeader() {
         <BrandIcon />
         CODE:FIT_
       </Link>
+      <ThemeSelect />
       <div className="site-preference">
         <PreferenceChangeButton />
       </div>

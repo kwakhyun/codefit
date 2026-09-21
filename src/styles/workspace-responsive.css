@@ -81,7 +81,7 @@
   }
   .problem-pane {
     border-right: 0;
-    border-bottom: 1px solid #494949;
+    border-bottom: 1px solid light-dark(var(--light-line), #494949);
   }
   .problem-content {
     max-height: 430px;
@@ -125,7 +125,7 @@
     max-height: calc(100vh - 220px);
   }
   .focus-mode .problem-pane {
-    border-right: 1px solid #494949;
+    border-right: 1px solid light-dark(var(--light-line), #494949);
     border-bottom: 0;
   }
   .focus-mode .problem-tabs button {

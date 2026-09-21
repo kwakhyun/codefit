@@ -126,7 +126,7 @@
   min-width: 0;
 }
 .handoff-fields strong {
-  color: #e4e6eb;
+  color: light-dark(var(--light-text), #e4e6eb);
   font-size: var(--text-body);
 }
 .handoff-fields label > span {
@@ -139,8 +139,8 @@
   width: 100%;
   min-height: 90px;
   background: var(--handoff-input);
-  color: #e5e7ed;
-  border: 1px solid #454a54;
+  color: light-dark(var(--light-text), #e5e7ed);
+  border: 1px solid light-dark(var(--light-line), #454a54);
   border-radius: 4px;
   padding: 12px;
   line-height: 1.7;
@@ -234,7 +234,7 @@
 }
 .handoff-readiness {
   padding: 18px 20px;
-  background: #151a20;
+  background: light-dark(var(--light-canvas), #151a20);
   border-top: 1px solid var(--handoff-border);
 }
 .handoff-readiness p {

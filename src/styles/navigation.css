@@ -29,12 +29,12 @@
   font-size: var(--text-ui);
 }
 .site-navigation a:hover {
-  background: #191b20;
+  background: light-dark(var(--light-canvas), #191b20);
   color: var(--text);
 }
 .site-navigation [aria-current] {
   color: var(--action-soft);
-  background: #18212f;
+  background: light-dark(var(--light-blue-soft), #18212f);
 }
 .home-heading {
   display: flex;
@@ -64,10 +64,10 @@
   gap: 20px;
   padding: 24px;
   margin: 0 0 20px;
-  border: 1px solid #3a4b64;
+  border: 1px solid light-dark(var(--light-line), #3a4b64);
   border-radius: var(--radius-panel);
-  background: #111c2b;
-  border-color: #3a506c;
+  background: light-dark(var(--light-blue-soft), #111c2b);
+  border-color: light-dark(var(--light-line), #3a506c);
 }
 .resume-card > div {
   min-width: 0;
@@ -263,10 +263,10 @@
 .handoff-card .primary-button {
   background: transparent;
   color: var(--action-soft);
-  border-color: #4c6079;
+  border-color: light-dark(var(--light-line), #4c6079);
 }
 .handoff-card .primary-button:hover {
-  background: #192334;
+  background: light-dark(var(--light-blue-soft), #192334);
 }
 @media (max-width: 760px) {
   .feature-slide p {
@@ -307,16 +307,16 @@
 
 /* Visual roles: the canvas stays black; panels and controls have distinct surface levels. */
 .training-path-foundation {
-  --path-color: #8fdfbb;
-  --path-surface: #183129;
+  --path-color: light-dark(var(--light-green), #8fdfbb);
+  --path-surface: light-dark(var(--light-green-soft), #183129);
 }
 .training-path-analysis {
-  --path-color: #c9baff;
-  --path-surface: #2a2340;
+  --path-color: light-dark(var(--light-blue), #c9baff);
+  --path-surface: light-dark(var(--light-blue-soft), #2a2340);
 }
 .training-path-practice {
-  --path-color: #a5ceff;
-  --path-surface: #182b43;
+  --path-color: light-dark(var(--light-blue), #a5ceff);
+  --path-surface: light-dark(var(--light-blue-soft), #182b43);
 }
 .training-paths > a:focus-visible,
 .learn-card:focus-visible,
@@ -327,7 +327,7 @@
   padding: 4px 8px;
   background: var(--surface-raised);
   border-radius: var(--radius-small);
-  color: #c6cfdb;
+  color: light-dark(var(--light-text), #c6cfdb);
 }
 .learn-steps button {
   border-radius: var(--radius-control);
@@ -352,7 +352,7 @@
 .workbench {
   border-radius: var(--radius-panel);
   background: var(--surface);
-  border-color: #3b4350;
+  border-color: light-dark(var(--light-line), #3b4350);
 }
 .problem-tabs button[aria-selected="true"]::after {
   background: var(--action);

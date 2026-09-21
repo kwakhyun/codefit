@@ -1,7 +1,7 @@
 .learning-lab {
   margin-bottom: 16px;
   border: 1px solid var(--line);
-  background: #0b0b0b;
+  background: light-dark(var(--light-panel), #0b0b0b);
 }
 .lab-intro {
   display: flex;
@@ -36,7 +36,7 @@
   border-right: 0;
 }
 .lab-steps button[aria-current] {
-  background: #191d24;
+  background: light-dark(var(--light-canvas), #191d24);
   color: var(--text);
   box-shadow: inset 0 -2px var(--action);
 }
@@ -45,7 +45,7 @@
   height: 26px;
   display: grid;
   place-items: center;
-  border: 1px solid #555;
+  border: 1px solid light-dark(var(--light-line), #555);
   flex-shrink: 0;
   font-size: var(--text-ui);
 }
@@ -88,7 +88,7 @@
 .lab-source {
   min-width: 0;
   border: 1px solid var(--line);
-  background: #070707;
+  background: light-dark(var(--light-panel), #070707);
 }
 .lab-source-title {
   padding: 12px 16px;
@@ -149,14 +149,14 @@
   padding: 13px;
   border: 1px solid var(--line);
   margin-bottom: 8px;
-  background: #131313;
+  background: light-dark(var(--light-panel), #131313);
   cursor: pointer;
   font-size: var(--text-body);
   line-height: 1.6;
 }
 .lab-choice.selected {
   border-color: var(--action);
-  background: #18222e;
+  background: light-dark(var(--light-blue-soft), #18222e);
 }
 .lab-choice input {
   accent-color: var(--action);
@@ -169,9 +169,9 @@
   margin-top: 4px;
 }
 .lab-prediction textarea {
-  background: #0b0b0b;
+  background: light-dark(var(--light-panel), #0b0b0b);
   color: var(--text);
-  border: 1px solid #555;
+  border: 1px solid light-dark(var(--light-line), #555);
   padding: 12px;
   font: inherit;
   font-size: var(--text-input);
@@ -181,7 +181,7 @@
   min-height: 95px;
 }
 .lab-prediction textarea::placeholder {
-  color: #929292;
+  color: light-dark(var(--light-muted), #929292);
 }
 .lab-prediction small,
 .lab-coach > small,
@@ -220,7 +220,7 @@
 }
 .lab-comparison > div + div {
   border-left: 1px solid var(--line);
-  background: #131b22;
+  background: light-dark(var(--light-blue-soft), #131b22);
 }
 .lab-comparison span {
   display: block;
@@ -256,7 +256,7 @@
 }
 .lab-coach {
   border-left: 2px solid var(--ai);
-  background: #14121a;
+  background: light-dark(var(--light-panel), #14121a);
   padding: 18px 20px;
   margin-bottom: 22px;
 }
@@ -267,7 +267,7 @@
   margin-top: 12px;
 }
 .lab-ai-question {
-  border-top: 1px solid #484150;
+  border-top: 1px solid light-dark(var(--light-line), #484150);
   padding: 18px 0;
 }
 .lab-ai-question small {
@@ -298,7 +298,7 @@
   min-height: 0;
 }
 .lab-workbench .editor-topbar {
-  background: #101010;
+  background: light-dark(var(--light-panel), #101010);
 }
 .lab-workbench.lab-stage-3 {
   max-width: 900px;
@@ -307,7 +307,7 @@
 .lab-tests {
   padding: 20px;
   border-top: 1px solid var(--line);
-  background: #101010;
+  background: light-dark(var(--light-panel), #101010);
 }
 .lab-tests-heading {
   display: flex;
@@ -362,13 +362,13 @@
   padding: 0 12px 12px;
 }
 .lab-test-detail pre {
-  background: #050505;
+  background: light-dark(var(--light-panel), #050505);
   padding: 10px;
 }
 .lab-transfer {
   padding: 24px 20px;
   border-top: 1px solid var(--line);
-  background: #111821;
+  background: light-dark(var(--light-blue-soft), #111821);
 }
 .lab-transfer .eyebrow {
   color: var(--action);
@@ -389,7 +389,7 @@
   overflow: auto;
   font-size: var(--text-ui);
   line-height: 1.8;
-  background: #050505;
+  background: light-dark(var(--light-panel), #050505);
   padding: 12px;
 }
 .learning-lab :is(button, textarea, input, pre, summary):focus-visible,

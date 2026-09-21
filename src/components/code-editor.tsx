@@ -1,4 +1,5 @@
 "use client";
+import { useTheme } from "@/components/theme/theme-provider";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { ToggleButton, Button, Card } from "@/components/ui/primitives";
 
@@ -28,6 +29,7 @@ export function CodeEditor({
   fontSize?: number;
   focusRequest?: number;
 }) {
+  const { resolved } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const onCheckRef = useRef(onCheck);
   const onSaveRef = useRef(onSave);
@@ -174,7 +176,7 @@ export function CodeEditor({
           path={"file:///practice/" + problemId + "." + LANGUAGES[language].ext}
           language={LANGUAGES[language].monaco}
           value={value}
-          theme="recode-terminal"
+          theme={resolved === "dark" ? "recode-terminal" : "vs"}
           beforeMount={configureMonaco}
           onMount={handleMount}
           onChange={(next) => onChange(next ?? "")}

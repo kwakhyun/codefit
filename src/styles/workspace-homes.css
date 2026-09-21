@@ -19,14 +19,14 @@
   margin-top: 40px;
 }
 .workspace-home {
-  --workspace-accent: #9cc9ff;
+  --workspace-accent: light-dark(var(--light-blue), #9cc9ff);
   animation: terminal-enter 260ms ease-out;
 }
 .workspace-ai {
-  --workspace-accent: #ccb5ff;
+  --workspace-accent: light-dark(var(--light-purple), #ccb5ff);
 }
 .workspace-code {
-  --workspace-accent: #f6cb88;
+  --workspace-accent: light-dark(var(--light-amber), #f6cb88);
 }
 .workspace-home h2 {
   font-size: 22px;
@@ -46,7 +46,7 @@
 .workspace-home .primary-button {
   background: var(--workspace-accent);
   border-color: var(--workspace-accent);
-  color: #101722;
+  color: light-dark(var(--light-on-accent), #101722);
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -82,7 +82,11 @@
   width: 100%;
   height: auto;
   object-fit: contain;
-  mask-image: radial-gradient(ellipse 68% 66% at 50% 50%, #000 50%, transparent 92%);
+  mask-image: radial-gradient(
+    ellipse 68% 66% at 50% 50%,
+    light-dark(var(--light-panel), #000) 50%,
+    transparent 92%
+  );
 }
 .service-home-hero {
   display: grid;
@@ -165,7 +169,7 @@
   align-items: center;
   padding: 32px;
   border-radius: 24px;
-  background: #211e32;
+  background: light-dark(var(--light-raised), #211e32);
   margin: 12px 0 28px;
 }
 .ai-home-grid {
@@ -176,7 +180,7 @@
 }
 .ai-home-resume {
   padding: 28px;
-  border: 1px solid #514763;
+  border: 1px solid light-dark(var(--light-line), #514763);
   border-radius: 22px;
   background: var(--surface);
 }
@@ -396,7 +400,7 @@
   }
   .service-check-path li {
     padding-left: 22px;
-    border-left: 2px solid #344d6c;
+    border-left: 2px solid light-dark(var(--light-line), #344d6c);
   }
   .ai-home-topics > div {
     grid-template-columns: 1fr;

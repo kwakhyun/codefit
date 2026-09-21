@@ -13,8 +13,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #131c29;
-  border: 1px solid #344b68;
+  background: light-dark(var(--light-blue-soft), #131c29);
+  border: 1px solid light-dark(var(--light-line), #344b68);
   color: var(--action-soft);
   padding: 12px 16px;
   font-size: var(--text-ui);
@@ -76,9 +76,9 @@
 }
 
 .reauth-field input {
-  background: #080808;
-  color: #eee;
-  border: 1px solid #606060;
+  background: light-dark(var(--light-panel), #080808);
+  color: light-dark(var(--light-text), #eee);
+  border: 1px solid light-dark(var(--light-line), #606060);
   padding: 12px;
 
   font-size: var(--text-input);
@@ -103,13 +103,13 @@
 
 .training-overview p {
   font-size: var(--text-ui);
-  color: #b0b0b0;
+  color: light-dark(var(--light-muted), #b0b0b0);
   margin: 8px 0;
 }
 
 .training-overview small {
   font-size: var(--text-caption);
-  color: #909090;
+  color: light-dark(var(--light-muted), #909090);
 }
 
 .training-week {
@@ -129,15 +129,15 @@
 .training-week svg {
   box-sizing: content-box;
   padding: 12px;
-  border: 1px solid #333;
-  background: #151515;
-  color: #454545;
+  border: 1px solid light-dark(var(--light-line), #333);
+  background: light-dark(var(--light-panel), #151515);
+  color: light-dark(var(--light-muted), #454545);
 }
 
 .training-week > .active svg {
   color: var(--success);
-  background: #101e18;
-  border-color: #2d5443;
+  background: light-dark(var(--light-panel), #101e18);
+  border-color: light-dark(var(--light-line), #2d5443);
 }
 
 .training-week small {

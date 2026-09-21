@@ -1,3 +1,5 @@
+import { ThemeProvider } from "@/components/theme/theme-provider";
+import { themeInitScript } from "@/lib/theme-init";
 import { RouteFeedback } from "@/components/ui/route-feedback";
 import { Suspense } from "react";
 import type { Metadata } from "next";
@@ -11,13 +13,18 @@ export const metadata: Metadata = {
 };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>
-        {children}
-        <GuideWidget />
-        <Suspense fallback={null}>
-          <RouteFeedback />
-        </Suspense>
+        <ThemeProvider>
+          {children}
+          <GuideWidget />
+          <Suspense fallback={null}>
+            <RouteFeedback />
+          </Suspense>
+        </ThemeProvider>
       </body>
     </html>
   );

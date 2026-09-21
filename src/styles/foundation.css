@@ -106,14 +106,14 @@ input,
 textarea,
 select {
   color: var(--text);
-  background: #141414;
+  background: light-dark(var(--light-panel), #141414);
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #a0a0a0;
+  color: light-dark(var(--light-muted), #a0a0a0);
 }
 
 select {
@@ -141,11 +141,11 @@ pre {
 
 kbd {
   font-size: var(--text-caption);
-  border: 1px solid #3e3e3e;
-  background: #212121;
+  border: 1px solid light-dark(var(--light-line), #3e3e3e);
+  background: light-dark(var(--light-canvas), #212121);
   border-radius: var(--radius-control);
   padding: 1px 5px;
-  color: #adadad;
+  color: light-dark(var(--light-muted), #adadad);
   white-space: nowrap;
 }
 
@@ -189,7 +189,7 @@ small {
   z-index: 100;
   padding: 12px 20px;
   background: var(--accent);
-  color: #111111;
+  color: light-dark(var(--light-on-accent), #111111);
 }
 
 .skip-link:focus {
@@ -208,7 +208,7 @@ small {
 }
 
 .icon-button:hover:not(:disabled) {
-  background: #2d2d2d;
+  background: light-dark(var(--light-raised), #2d2d2d);
   color: var(--text);
 }
 
@@ -240,7 +240,7 @@ small {
 }
 
 .secondary-button {
-  border: 1px solid #444444;
+  border: 1px solid light-dark(var(--light-line), #444444);
 }
 
 .primary-button.small {
@@ -255,7 +255,7 @@ small {
   gap: 6px;
   align-items: center;
   padding: 4px 0;
-  color: #b2b2b2;
+  color: light-dark(var(--light-muted), #b2b2b2);
   font-size: var(--text-small);
   font-weight: 500;
 }
@@ -276,7 +276,7 @@ small {
 .eyebrow {
   font: 500 var(--text-caption)/1.5 var(--mono);
   letter-spacing: 1.5px;
-  color: #b9b9b9;
+  color: light-dark(var(--light-muted), #b9b9b9);
   display: flex;
   gap: 9px;
   align-items: center;

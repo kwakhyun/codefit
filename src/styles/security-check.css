@@ -3,7 +3,7 @@
 .security-finding,
 .security-exercises details {
   border: 1px solid var(--line);
-  background: var(--surface, #11171c);
+  background: var(--surface, light-dark(var(--light-panel), #11171c));
   border-radius: 16px;
   padding: 24px;
 }
@@ -27,9 +27,9 @@
 .security-exercises textarea {
   width: 100%;
   min-width: 0;
-  background: #0b1015;
-  color: #e6edf3;
-  border: 1px solid #425165;
+  background: light-dark(var(--light-panel), #0b1015);
+  color: light-dark(var(--light-text), #e6edf3);
+  border: 1px solid light-dark(var(--light-line), #425165);
   border-radius: 8px;
   padding: 12px;
   font: inherit;
@@ -47,7 +47,7 @@
 .preference-next p,
 .security-workspace p {
   line-height: 1.7;
-  color: #b8c5d1;
+  color: light-dark(var(--light-muted), #b8c5d1);
 }
 .preference-next .primary-button {
   flex-shrink: 0;
@@ -90,13 +90,13 @@
   margin: 10px 0;
 }
 .security-review .eyebrow {
-  color: #ffd48a;
+  color: light-dark(var(--light-amber), #ffd48a);
 }
 .security-observed .eyebrow {
-  color: #67e6b1;
+  color: light-dark(var(--light-green), #67e6b1);
 }
 .security-unknown .eyebrow {
-  color: #aabcf4;
+  color: light-dark(var(--light-blue), #aabcf4);
 }
 .security-results .section-heading {
   flex-wrap: wrap;
@@ -116,7 +116,7 @@
   margin: 8px 0 16px;
 }
 .security-error {
-  color: #ff9f9f !important;
+  color: light-dark(var(--light-red), #ff9f9f) !important;
 }
 @media (max-width: 700px) {
   .preference-fields,
@@ -174,7 +174,7 @@
   appearance: none;
   min-height: 48px;
   padding: 10px 44px 10px 14px;
-  border-color: #425165;
+  border-color: light-dark(var(--light-line), #425165);
   border-radius: var(--radius-control);
   line-height: 1.5;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m3 6 5 5 5-5' stroke='%23b8c5d1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");

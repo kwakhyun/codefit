@@ -54,9 +54,9 @@
   border-color: var(--line);
 }
 .journey-options button[aria-pressed="true"] {
-  background: #19232b;
-  border-color: #68849b;
-  color: #deebf5;
+  background: light-dark(var(--light-canvas), #19232b);
+  border-color: light-dark(var(--light-strong-line), #68849b);
+  color: light-dark(var(--light-text), #deebf5);
 }
 .journey-options button > svg:last-child {
   display: none;
@@ -66,7 +66,7 @@
   margin-top: 12px;
   padding: 4px 0 4px 14px;
   background: none;
-  border-color: #68849b;
+  border-color: light-dark(var(--light-strong-line), #68849b);
 }
 .journey-detail strong {
   font-size: 14px;
@@ -273,8 +273,8 @@
 .verification-plan {
   margin: 20px 0;
   padding: 20px;
-  background: #131b23;
-  border-left: 2px solid #819eb5;
+  background: light-dark(var(--light-blue-soft), #131b23);
+  border-left: 2px solid light-dark(var(--light-strong-line), #819eb5);
 }
 .verification-plan h3 {
   line-height: 1.6;
@@ -348,7 +348,7 @@
   font-size: 14px;
 }
 .ownership-instructions {
-  border-left: 2px solid #819eb5;
+  border-left: 2px solid light-dark(var(--light-strong-line), #819eb5);
   padding-left: 20px;
 }
 .ownership-instructions > :is(h3, p, button, code) {

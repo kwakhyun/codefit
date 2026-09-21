@@ -1,4 +1,5 @@
 "use client";
+import { ThemeSelect } from "@/components/theme/theme-select";
 import { FieldLabel, Input, Button } from "@/components/ui/primitives";
 
 import type { RefObject } from "react";
@@ -39,6 +40,7 @@ export function SettingsDialog({
       <div className="settings-content">
         <span className="eyebrow">MAKE YOURSELF AT HOME</span>
         <h2>내게 맞는 연습 환경</h2>
+        <ThemeSelect />
         <FieldLabel className="font-setting">
           코드 글자 크기 <strong>{fontSize}px</strong>
           <Input

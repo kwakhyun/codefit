@@ -23,7 +23,7 @@
   max-width: 550px;
   margin: 0 auto;
   background: var(--surface);
-  border: 1px solid #303036;
+  border: 1px solid light-dark(var(--light-line), #303036);
   border-radius: var(--radius-panel);
   overflow: hidden;
   border-color: var(--line);
@@ -32,18 +32,18 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  border-bottom: 1px solid #2b2b30;
+  border-bottom: 1px solid light-dark(var(--light-line), #2b2b30);
   background: var(--surface-raised);
   padding: 14px 20px;
 }
 .account-terminal-bar > span {
   width: 7px;
   height: 7px;
-  border: 1px solid #666;
+  border: 1px solid light-dark(var(--light-line), #666);
   border-radius: 50%;
 }
 .account-terminal-bar small {
-  color: #a0a0aa;
+  color: light-dark(var(--light-muted), #a0a0aa);
   margin-left: auto;
   font-family: var(--mono);
   font-size: var(--text-caption);
@@ -60,7 +60,7 @@
 }
 .auth-card-content > p,
 .auth-public-note p {
-  color: #a8a8b2;
+  color: light-dark(var(--light-muted), #a8a8b2);
   font-size: var(--text-body);
   line-height: 1.85;
 }
@@ -73,7 +73,7 @@
   width: 100%;
   justify-content: flex-start;
   min-height: 49px;
-  background: #18181b;
+  background: light-dark(var(--light-canvas), #18181b);
 }
 .oauth-button > span {
   flex: 1;
@@ -85,11 +85,11 @@
 
 .auth-card-content .auth-privacy {
   font-size: var(--text-small);
-  color: #9999a5;
+  color: light-dark(var(--light-muted), #9999a5);
 }
 .auth-privacy a,
 .privacy-copy a {
-  color: #9abaff;
+  color: light-dark(var(--light-blue), #9abaff);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -107,7 +107,7 @@
   gap: 40px;
   padding: 25px 0;
   margin-bottom: 24px;
-  border-bottom: 1px solid #2b2b30;
+  border-bottom: 1px solid light-dark(var(--light-line), #2b2b30);
 }
 .profile-stats > div {
   display: grid;
@@ -118,7 +118,7 @@
 }
 .profile-stats span {
   font-size: var(--text-ui);
-  color: #a8a8b2;
+  color: light-dark(var(--light-muted), #a8a8b2);
 }
 .profile-grid {
   display: grid;
@@ -126,8 +126,8 @@
   gap: 22px;
 }
 .profile-panel {
-  background: #101012;
-  border: 1px solid #303036;
+  background: light-dark(var(--light-panel), #101012);
+  border: 1px solid light-dark(var(--light-line), #303036);
   border-radius: 8px;
   padding: 25px;
 }
@@ -144,25 +144,25 @@
 .profile-panel input,
 .profile-panel textarea {
   width: 100%;
-  background: #09090b;
-  border: 1px solid #393941;
+  background: light-dark(var(--light-panel), #09090b);
+  border: 1px solid light-dark(var(--light-line), #393941);
   border-radius: 5px;
   padding: 11px 12px;
-  color: #e7e7ee;
+  color: light-dark(var(--light-text), #e7e7ee);
   font: inherit;
   resize: vertical;
 
   font-size: var(--text-input);
 }
 .profile-panel label small {
-  color: #9696a1;
+  color: light-dark(var(--light-muted), #9696a1);
   text-align: right;
 }
 .profile-saved {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #8dd7a8;
+  color: light-dark(var(--light-green), #8dd7a8);
   font-size: var(--text-ui);
 }
 .profile-content .usage-panel {
@@ -186,7 +186,7 @@
   margin-top: 36px;
 }
 .privacy-copy p {
-  color: #b5b5bf;
+  color: light-dark(var(--light-muted), #b5b5bf);
   font-size: var(--text-body);
   line-height: 1.9;
 }
@@ -195,17 +195,17 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  border: 1px solid #353544;
+  border: 1px solid light-dark(var(--light-line), #353544);
   border-radius: 6px;
   padding: 12px 15px;
   margin: 18px 0;
   font-size: var(--text-ui);
 }
 .generation-allowance strong {
-  color: #b6caff;
+  color: light-dark(var(--light-blue), #b6caff);
 }
 .generation-allowance small {
-  color: #a8a8b2;
+  color: light-dark(var(--light-muted), #a8a8b2);
 }
 .generator-login {
   padding: 24px;
@@ -215,7 +215,7 @@
   line-height: 1.5;
 }
 .generator-login p {
-  color: #aaaab5;
+  color: light-dark(var(--light-muted), #aaaab5);
   font-size: var(--text-body);
   line-height: 1.8;
 }
@@ -259,7 +259,7 @@
   object-fit: contain;
 }
 .provider-google {
-  background: #fff;
+  background: light-dark(var(--light-hover), #fff);
   border-radius: 50%;
 }
 .guest-login {
@@ -271,13 +271,13 @@
   padding: 18px 22px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: #111418;
+  background: light-dark(var(--light-panel), #111418);
 }
 .guest-login-link {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  color: #f4f4f5;
+  color: light-dark(var(--light-text), #f4f4f5);
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
@@ -295,7 +295,7 @@
 .guest-login-providers {
   gap: 18px;
   font-size: 13px;
-  color: #b8bec8;
+  color: light-dark(var(--light-muted), #b8bec8);
 }
 .learn-progress + .guest-login {
   margin-bottom: 24px;

@@ -6,7 +6,7 @@
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 12px;
-  background: #101318;
+  background: light-dark(var(--light-panel), #101318);
   flex-shrink: 0;
 }
 .scenario-art img {
@@ -19,7 +19,7 @@
 .scenario-thumbnail {
   display: flex;
   justify-content: center;
-  background: #101318;
+  background: light-dark(var(--light-panel), #101318);
   border-radius: 12px;
   margin-bottom: 18px;
   overflow: hidden;
@@ -90,9 +90,9 @@
   cursor: pointer;
 }
 .scenario-controls button[aria-pressed="true"] {
-  background: #1c3048;
-  color: #c4dfff;
-  border-color: #6689b5;
+  background: light-dark(var(--light-blue-soft), #1c3048);
+  color: light-dark(var(--light-blue), #c4dfff);
+  border-color: light-dark(var(--light-strong-line), #6689b5);
 }
 @media (max-width: 760px) {
   .training-paths > a {

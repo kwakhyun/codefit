@@ -20,7 +20,7 @@
   align-items: center;
   font: 600 24px/1.1 var(--mono);
   letter-spacing: -1px;
-  color: #f3f3f3;
+  color: light-dark(var(--light-text), #f3f3f3);
   flex-shrink: 0;
 }
 
@@ -35,7 +35,7 @@
   display: block;
   margin-top: 7px;
   font-weight: 400;
-  color: #8c8c8c;
+  color: light-dark(var(--light-muted), #8c8c8c);
 }
 
 .brand-cursor {
@@ -69,15 +69,15 @@
   gap: 8px;
   min-height: 40px;
   margin-top: 4px;
-  border: 1px solid #42474e;
+  border: 1px solid light-dark(var(--light-line), #42474e);
   border-radius: 8px;
-  background: #20242a;
-  color: #f2f4f7;
+  background: light-dark(var(--light-raised), #20242a);
+  color: light-dark(var(--light-text), #f2f4f7);
   font: 550 var(--text-caption)/1.5 var(--sans);
 }
 .sidebar-workspace .workspace-login:hover {
-  background: #2c3139;
-  border-color: #737b87;
+  background: light-dark(var(--light-raised), #2c3139);
+  border-color: light-dark(var(--light-strong-line), #737b87);
 }
 
 .nav-caption {
@@ -85,7 +85,7 @@
   justify-content: space-between;
   font: 450 var(--text-caption) var(--mono);
   letter-spacing: 1.3px;
-  color: #818181;
+  color: light-dark(var(--light-muted), #818181);
   padding: 0 11px;
   margin-bottom: 11px;
 }
@@ -104,7 +104,7 @@
   padding: 11px 12px;
   min-height: 44px;
   border-radius: 6px;
-  color: #a1a1a1;
+  color: light-dark(var(--light-muted), #a1a1a1);
   font-size: var(--text-ui);
   font-weight: 450;
   text-align: left;
@@ -122,12 +122,12 @@
 
 .nav-item small {
   font: var(--text-caption) var(--mono);
-  color: #b2b2b2;
+  color: light-dark(var(--light-muted), #b2b2b2);
 }
 
 .nav-item:hover {
-  background: #222222;
-  color: #e1e1e1;
+  background: light-dark(var(--light-canvas), #222222);
+  color: light-dark(var(--light-text), #e1e1e1);
 }
 
 .nav-item.active svg {
@@ -157,24 +157,24 @@
 .sidebar-note {
   display: flex;
   gap: 10px;
-  border: 1px dashed #3d3d3d;
+  border: 1px dashed light-dark(var(--light-line), #3d3d3d);
   border-radius: 6px;
   padding: 13px 11px;
-  color: #a3a3a3;
+  color: light-dark(var(--light-muted), #a3a3a3);
   font-size: var(--text-caption);
   line-height: 1.9;
   margin-bottom: 16px;
-  background: #191919;
+  background: light-dark(var(--light-canvas), #191919);
 }
 
 .sidebar-note svg {
-  color: #929292;
+  color: light-dark(var(--light-muted), #929292);
   margin-top: 2px;
 }
 
 .sidebar-note strong {
   font-weight: 450;
-  color: #c2c2c2;
+  color: light-dark(var(--light-muted), #c2c2c2);
 }
 
 .sidebar-bottom > .nav-item {
@@ -187,7 +187,7 @@
   display: flex;
   justify-content: space-between;
   font: var(--text-caption) var(--mono);
-  color: #7b7b7b;
+  color: light-dark(var(--light-muted), #7b7b7b);
 }
 
 .sidebar-version > span:last-child {
@@ -200,7 +200,7 @@
 .sidebar-version i {
   width: 4px;
   height: 4px;
-  background: #929292;
+  background: light-dark(var(--light-hover), #929292);
   border-radius: 6px;
 }
 
@@ -222,20 +222,20 @@
   justify-content: space-between;
   padding: 0 35px;
   gap: 15px;
-  background: #151515dd;
+  background: light-dark(color-mix(in srgb, var(--light-panel) 86.67%, transparent), #151515dd);
 }
 
 .topbar-path {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #606060;
+  color: light-dark(var(--light-muted), #606060);
   font-size: var(--text-small);
   min-width: 0;
 }
 
 .path-root {
-  color: #8c8c8c;
+  color: light-dark(var(--light-muted), #8c8c8c);
   font-size: var(--text-caption);
 }
 
@@ -246,7 +246,7 @@
 .topbar-path strong {
   font-size: var(--text-small);
   font-weight: 500;
-  color: #c5c5c5;
+  color: light-dark(var(--light-muted), #c5c5c5);
   white-space: normal;
 }
 
@@ -260,14 +260,14 @@
   display: flex;
   gap: 7px;
   align-items: center;
-  color: #9c9c9c;
+  color: light-dark(var(--light-muted), #9c9c9c);
   font-size: var(--text-caption);
   white-space: normal;
 }
 
 .new-label {
   font: 600 var(--text-caption) var(--mono);
-  border-left: 1px solid #8c8c8c;
+  border-left: 1px solid light-dark(var(--light-strong-line), #8c8c8c);
   padding-left: 8px;
   margin-left: 2px;
 }
