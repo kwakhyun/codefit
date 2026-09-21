@@ -5,6 +5,7 @@ import { fixtureCheck } from "../project-check/fixtures";
 const { current, getStore } = vi.hoisted(() => ({ current: vi.fn(), getStore: vi.fn() }));
 vi.mock("./session", () => ({ session: current }));
 vi.mock("./database", () => ({ getStore }));
+import { GET as versions } from "../../app/api/projects/[id]/versions/route";
 import { GET, PATCH, DELETE } from "../../app/api/projects/[id]/route";
 let store: SqliteStore;
 const id = randomUUID(),
@@ -58,4 +59,13 @@ it("blocks changed sessions, other owners, malformed identifiers and unsafe edit
   });
   expect((await GET(other, context)).status).toBe(404);
   expect(await store.queries.projectChecks.get(owner, id)).not.toBeNull();
+});
+
+it("limits version history to an owned class", async () => {
+  expect((await versions(request(), context)).status).toBe(200);
+  current.mockResolvedValue({ owner: "user:other", scope: "user:other", user: { id: "other" } });
+  const other = new Request(`https://codefit.test/api/projects/${id}/versions`, {
+    headers: { "x-codefit-workspace": "user:other" },
+  });
+  expect((await versions(other, context)).status).toBe(404);
 });

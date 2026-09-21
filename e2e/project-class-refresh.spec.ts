@@ -8,6 +8,7 @@ test("focus preserves search and loaded pages while refreshing changed and delet
 }) => {
   let changed = false;
   let secondPageReads = 0;
+  let firstPageReads = 0;
   const first = checkListItem(publicCheck(fixtureCheck));
   const second = {
     ...first,
@@ -20,8 +21,9 @@ test("focus preserves search and loaded pages while refreshing changed and delet
       json: { scope: "visitor:refresh", checks: changed ? [] : [second], nextCursor: null },
     });
   });
-  await page.route("**/api/project-check", (route) =>
-    route.fulfill({
+  await page.route("**/api/project-check", (route) => {
+    firstPageReads++;
+    return route.fulfill({
       json: {
         scope: "visitor:refresh",
         signedIn: false,
@@ -36,11 +38,14 @@ test("focus preserves search and loaded pages while refreshing changed and delet
         ],
         nextCursor: "older",
       },
-    }),
-  );
+    });
+  });
   await page.goto("/projects");
+  await expect(page.getByRole("button", { name: "이전 프로젝트 더 보기" })).toBeEnabled();
+  const readsBeforeMore = firstPageReads;
   await page.getByRole("button", { name: "이전 프로젝트 더 보기" }).click();
   await expect(page.getByRole("heading", { name: "이전 예약 클래스" })).toBeVisible();
+  expect(firstPageReads).toBe(readsBeforeMore);
   const search = page.getByRole("searchbox", { name: "내 프로젝트 찾기" });
   await search.fill("예약");
   changed = true;

@@ -1,6 +1,6 @@
 import { projectMember } from "@/lib/server/project-member";
 import { z } from "zod";
-import { checkListItem, createCheckSchema, reviewCheckSchema } from "@/lib/project-check/types";
+import { createCheckSchema, reviewCheckSchema } from "@/lib/project-check/types";
 import { session } from "@/lib/server/session";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
 import { getStore } from "@/lib/server/database";
@@ -14,7 +14,10 @@ export async function GET(request: Request) {
     const store = await getStore();
     const [usage, page] = await Promise.all([
       store.queries.projectChecks.usage(owner),
-      store.queries.projectChecks.page(owner, new URL(request.url).searchParams.get("cursor")),
+      store.queries.projectChecks.summaryPage(
+        owner,
+        new URL(request.url).searchParams.get("cursor"),
+      ),
     ]);
     return json({
       scope,
@@ -22,7 +25,6 @@ export async function GET(request: Request) {
       aiReady: Boolean(process.env.OPENAI_API_KEY),
       usage,
       ...page,
-      checks: page.checks.map(checkListItem),
     });
   } catch (error) {
     return failure(error);

@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import type { ProblemStore } from "./store-contract";
+import { checkListItem } from "../project-check/types";
 import { fixtureCheck, fixtureAssessment } from "../project-check/fixtures";
 /** The same private-result SQL and fencing contract runs against either adapter. */
 export function projectContract(getStore: () => ProblemStore) {
@@ -64,6 +65,9 @@ export function projectContract(getStore: () => ProblemStore) {
     expect(detail?.page).not.toHaveProperty("text");
     expect(detail?.analysis.questions[0]).not.toHaveProperty("criteria");
     expect(detail?.review).not.toHaveProperty("training");
+    expect((await store.queries.projectChecks.summaryPage(owner)).checks[0]).toEqual(
+      checkListItem(detail!),
+    );
     expect(await store.queries.projectChecks.get("user:other", id)).toBeNull();
     await store.queries.projectChecks.remove(owner, id);
     expect(await store.queries.projectChecks.review(owner, id)).toBeUndefined();
@@ -85,6 +89,10 @@ export function projectContract(getStore: () => ProblemStore) {
       const first = await store.queries.projectChecks.page(owner);
       expect(first.checks.map((c) => c.id)).toEqual(ids.slice(0, 20));
       expect(first.nextCursor).toBeTruthy();
+      expect(await store.queries.projectChecks.summaryPage(owner)).toEqual({
+        checks: first.checks.map(checkListItem),
+        nextCursor: first.nextCursor,
+      });
       // A saved deep link does not depend on the first page.
       expect((await store.queries.projectChecks.detail(owner, ids[44]))?.id).toBe(ids[44]);
       expect(await store.queries.projectChecks.detail("other", ids[44])).toBeNull();

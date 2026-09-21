@@ -79,6 +79,20 @@ for (const width of [1280, 390]) {
         },
       }),
     );
+    await page.route(`**/api/projects/${id}/versions`, async (route) =>
+      route.fulfill({
+        json: {
+          checks: [
+            {
+              ...checkListItem((await store.queries.projectChecks.detail(owner, id))!),
+              id: "77777777-7777-4777-8777-777777777777",
+              analysis: { title: "이전 분석 클래스" },
+            },
+          ],
+          nextCursor: null,
+        },
+      }),
+    );
     await page.route(`**/api/projects/${id}`, async (route) => {
       if (route.request().method() === "PATCH") {
         edits++;
@@ -108,6 +122,10 @@ for (const width of [1280, 390]) {
     await expect(
       page.getByRole("heading", { name: fixtureCheck.analysis.title, exact: true }),
     ).toBeVisible();
+    await expect(page.getByRole("link", { name: /이전 분석 클래스/ })).toHaveAttribute(
+      "href",
+      "/projects?class=77777777-7777-4777-8777-777777777777",
+    );
     await page.getByRole("button", { name: "정보 수정" }).click();
     await page.getByRole("textbox", { name: "클래스 이름" }).fill("내 예약 서비스 클래스");
     await page
@@ -124,9 +142,17 @@ for (const width of [1280, 390]) {
     await page
       .getByRole("textbox", { name: "지금 떠오르는 설명" })
       .fill("서버에서 권한을 다시 확인합니다.");
+    await page.reload();
+    await page.getByRole("button", { name: "복습하기", exact: true }).click();
+    await expect(page.getByRole("textbox", { name: "지금 떠오르는 설명" })).toHaveValue(
+      "서버에서 권한을 다시 확인합니다.",
+    );
     await page.getByRole("button", { name: "이전 답변과 비교" }).click();
     await expect(page.getByText("아직 저장한 답변이 없습니다.", { exact: false })).toBeVisible();
     await page.getByRole("button", { name: "다음 복습" }).click();
+    await page.reload();
+    await page.getByRole("button", { name: "복습하기", exact: true }).click();
+    await expect(page.getByText("2 / 11", { exact: true })).toBeVisible();
     for (let i = 0; i < 4; i++) {
       await page.getByRole("button", { name: "이전 답변과 비교" }).click();
       await page.getByRole("button", { name: "다음 복습" }).click();

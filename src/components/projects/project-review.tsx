@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useProjectReview } from "@/hooks/use-project-review";
 import type { ProjectClassDetail } from "@/lib/project-check/project-class";
 import { Button, Card, FieldLabel, Textarea } from "@/components/ui/primitives";
 import { PracticeSources } from "@/components/project-practice/practice-sources";
-export function ProjectReview({ detail }: { detail: ProjectClassDetail }) {
+export function ProjectReview({ detail, scope }: { detail: ProjectClassDetail; scope: string }) {
   const items = [
     ...detail.check.analysis.questions.map((q, i) => ({
       title: q.question,
@@ -34,17 +34,25 @@ export function ProjectReview({ detail }: { detail: ProjectClassDetail }) {
       correct: t.answer,
     })),
   ];
-  const [index, setIndex] = useState(0),
-    [revealed, setRevealed] = useState(false),
-    [choice, setChoice] = useState<number | null>(null),
-    [note, setNote] = useState("");
+  // Content keys keep drafts attached to their question when new courses are added.
+  const keys = items.map((item) => JSON.stringify([item.title, item.prompt, item.choices]));
+  const { saved, update, reset, failed } = useProjectReview(scope, detail.check.id);
+  const index = Math.max(0, keys.indexOf(saved.active));
   const item = items[index];
+  const key = keys[index];
+  const draft = saved.entries[key];
+  const note = draft?.note ?? "";
+  const choice =
+    draft?.choice !== undefined &&
+    draft.choice !== null &&
+    item?.choices &&
+    draft.choice < item.choices.length
+      ? draft.choice
+      : null;
+  const revealed = !!draft?.revealed && (!item?.choices || choice !== null);
   if (!item) return null;
   function move(next: number) {
-    setIndex(next);
-    setRevealed(false);
-    setChoice(null);
-    setNote("");
+    update(keys[next]);
   }
   return (
     <Card className="class-review">
@@ -57,6 +65,11 @@ export function ProjectReview({ detail }: { detail: ProjectClassDetail }) {
           {index + 1} / {items.length}
         </span>
       </div>
+      <p className="muted" role="status">
+        {failed
+          ? "브라우저에 복습을 저장하지 못했습니다. 이 화면을 벗어나면 메모가 사라질 수 있어요."
+          : "복습 위치와 메모는 이 브라우저에 저장됩니다. 다른 기기에는 동기화되지 않아요."}
+      </p>
       <h3>{item.title}</h3>
       <p className="class-multiline">{item.prompt}</p>
       {detail.check.page.repository && (
@@ -75,7 +88,7 @@ export function ProjectReview({ detail }: { detail: ProjectClassDetail }) {
                 type="radio"
                 name="review-choice"
                 checked={choice === i}
-                onChange={() => setChoice(i)}
+                onChange={() => update(key, { choice: i })}
                 disabled={revealed}
               />
               {text}
@@ -88,9 +101,9 @@ export function ProjectReview({ detail }: { detail: ProjectClassDetail }) {
           <Textarea
             id="class-review-note"
             value={note}
-            onChange={(e) => setNote(e.target.value)}
+            onChange={(e) => update(key, { note: e.target.value })}
             maxLength={2000}
-            placeholder="이 메모는 복습을 마치면 사라집니다."
+            placeholder="기억나는 내용을 적어 보세요."
           />
         </>
       )}
@@ -98,7 +111,7 @@ export function ProjectReview({ detail }: { detail: ProjectClassDetail }) {
         <Button
           className="primary-button"
           disabled={!!item.choices && choice === null}
-          onClick={() => setRevealed(true)}
+          onClick={() => update(key, { revealed: true })}
         >
           {item.choices ? "정답과 해설 확인" : "이전 답변과 비교"}
         </Button>
@@ -122,8 +135,8 @@ export function ProjectReview({ detail }: { detail: ProjectClassDetail }) {
             다음 복습
           </Button>
         ) : (
-          <Button disabled={!revealed} onClick={() => move(0)}>
-            처음부터 다시 복습
+          <Button disabled={!revealed} onClick={() => reset(keys[0])}>
+            복습 기록을 비우고 다시 시작
           </Button>
         )}
       </div>

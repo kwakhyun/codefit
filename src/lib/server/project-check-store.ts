@@ -9,7 +9,7 @@ import type { ProjectDialogue } from "../project-check/dialogue";
 import { allowanceFor } from "../ai-access";
 import type { Query } from "./store-queries";
 import type { JobLease } from "./store-contract";
-import type { Assessment, Check, StoredCheck } from "../project-check/types";
+import type { Assessment, Check, CheckListItem, StoredCheck } from "../project-check/types";
 import { z } from "zod";
 import { HttpError } from "./http";
 import { StaleJob } from "./write-conflicts";
@@ -44,7 +44,10 @@ export function publicCheck(check: StoredCheck): Check {
   };
 }
 export class ProjectCheckStore {
-  constructor(private query: Query) {}
+  constructor(
+    private query: Query,
+    private dialect: "sqlite" | "postgres" = "sqlite",
+  ) {}
   async get(owner: string, id: string): Promise<StoredCheck | null> {
     const [row] = await this.query(
       "SELECT result FROM jobs WHERE id=? AND owner=? AND kind='project-analysis' AND state='done'",
@@ -115,6 +118,37 @@ export class ProjectCheckStore {
     return (await this.page(owner)).checks;
   }
   async page(owner: string, cursor?: string | null) {
+    const page = await this.pageRows(owner, cursor);
+    return { checks: page.rows.map((row) => this.readCheck(row)), nextCursor: page.nextCursor };
+  }
+  private field(column: string, path: string) {
+    return this.dialect === "sqlite"
+      ? `json_extract(${column}, '$.${path}')`
+      : `${column}::jsonb #>> '{${path.replaceAll(".", ",")}}'`;
+  }
+  async summaryPage(owner: string, cursor?: string | null, repositoryUrl?: string) {
+    const page = await this.pageRows(owner, cursor, true, repositoryUrl);
+    const checks: CheckListItem[] = page.rows.map((row) => ({
+      id: String(row.id),
+      createdAt: String(row.created_at),
+      page: {
+        url: String(row.url),
+        ...(row.source ? { source: row.source as CheckListItem["page"]["source"] } : {}),
+      },
+      analysis: { title: String(row.title) },
+      ...(row.metadata ? { classMetadata: JSON.parse(String(row.metadata)) } : {}),
+      ...(row.score !== null && row.score !== undefined
+        ? { review: { assessment: { score: Number(row.score) } } }
+        : {}),
+    }));
+    return { checks, nextCursor: page.nextCursor };
+  }
+  private async pageRows(
+    owner: string,
+    cursor?: string | null,
+    summary = false,
+    repositoryUrl?: string,
+  ) {
     let after: { expires: number; id: string } | undefined;
     if (cursor !== undefined && cursor !== null) {
       try {
@@ -132,14 +166,22 @@ export class ProjectCheckStore {
     }
     // Completed jobs keep their lease timestamp. Pair it with the unique ID so
     // insertions, deletions and equal timestamps do not shift the next page.
+    const columns = summary
+      ? `${this.field("j.result", "createdAt")} AS created_at, ${this.field("j.result", "page.url")} AS url, ${this.field("j.result", "page.source")} AS source, ${this.field("j.result", "analysis.title")} AS title, ${this.field("j.result", "classMetadata")} AS metadata, ${this.field("r.result", "assessment.score")} AS score`
+      : "j.result,r.result AS review";
+    const baseUrl = repositoryUrl?.replace(/\/+$/, "").replace(/\.git$/, "");
+    const urls = baseUrl ? [baseUrl, `${baseUrl}/`, `${baseUrl}.git`, `${baseUrl}.git/`] : [];
+    const filter = urls.length
+      ? ` AND ${this.field("j.result", "page.source")}='repository' AND ${this.field("j.result", "page.url")} IN (?,?,?,?)`
+      : "";
     const rows = await this.query(
-      `SELECT j.id,j.expires,j.result,r.result AS review FROM jobs j LEFT JOIN jobs r ON r.id='project-review-' || j.id AND r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.kind='project-analysis' AND j.state='done' ${after ? "AND (j.expires<? OR (j.expires=? AND j.id<?))" : ""} ORDER BY j.expires DESC,j.id DESC LIMIT 21`,
-      [owner, ...(after ? [after.expires, after.expires, after.id] : [])],
+      `SELECT j.id,j.expires,${columns} FROM jobs j LEFT JOIN jobs r ON r.id='project-review-' || j.id AND r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.kind='project-analysis' AND j.state='done' ${filter} ${after ? "AND (j.expires<? OR (j.expires=? AND j.id<?))" : ""} ORDER BY j.expires DESC,j.id DESC LIMIT 21`,
+      [owner, ...urls, ...(after ? [after.expires, after.expires, after.id] : [])],
     );
     const visible = rows.slice(0, 20);
     const last = visible.at(-1);
     return {
-      checks: visible.map((row) => this.readCheck(row)),
+      rows: visible,
       nextCursor:
         rows.length > 20 && last
           ? Buffer.from(

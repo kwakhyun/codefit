@@ -18,6 +18,8 @@ import {
 import { Modal } from "@/components/ui/modal";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { RenewProject } from "@/components/project-check/renew-project";
+import { reviewStorageKey } from "@/hooks/use-project-review";
+import { ProjectVersions } from "./project-versions";
 import { ProjectReview } from "./project-review";
 function nameOf(item: CheckListItem) {
   return item.classMetadata?.name || item.analysis.title;
@@ -27,17 +29,20 @@ export function ProjectClasses() {
   const [overview, setOverview] = useState<CheckOverview>();
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
-  const [pageCount, setPageCount] = useState(1);
+  const pageCount = useRef(1);
+  const moreRequest = useRef<AbortController | null>(null);
   const [loading, setLoading] = useState(true);
   const currentScope = useRef<string | undefined>(undefined);
   useEffect(() => {
+    moreRequest.current?.abort();
     const abort = new AbortController();
     async function load() {
       const first = await api<CheckOverview>("/api/project-check", {
         scope: null,
         signal: abort.signal,
       });
-      const count = currentScope.current && currentScope.current !== first.scope ? 1 : pageCount;
+      const count =
+        currentScope.current && currentScope.current !== first.scope ? 1 : pageCount.current;
       const checks = [...first.checks];
       let cursor = first.nextCursor;
       for (let page = 1; page < count && cursor; page++) {
@@ -55,7 +60,7 @@ export function ProjectClasses() {
     load()
       .then((value) => {
         if (!abort.signal.aborted) {
-          if (currentScope.current && currentScope.current !== value.scope) setPageCount(1);
+          if (currentScope.current && currentScope.current !== value.scope) pageCount.current = 1;
           currentScope.current = value.scope;
           setOverview(value);
           setError("");
@@ -67,8 +72,11 @@ export function ProjectClasses() {
       .finally(() => {
         if (!abort.signal.aborted) setLoading(false);
       });
-    return () => abort.abort();
-  }, [revision, pageCount]);
+    return () => {
+      abort.abort();
+      moreRequest.current?.abort();
+    };
+  }, [revision]);
   useEffect(() => {
     const refresh = () => {
       setLoading(true);
@@ -81,6 +89,42 @@ export function ProjectClasses() {
       window.removeEventListener("codefit:backup-imported", refresh);
     };
   }, []);
+  async function more() {
+    if (!overview?.nextCursor || loading) return;
+    const controller = new AbortController();
+    moreRequest.current = controller;
+    setLoading(true);
+    try {
+      const page = await api<CheckOverview>(
+        `/api/project-check?cursor=${encodeURIComponent(overview.nextCursor)}`,
+        { scope: overview.scope, signal: controller.signal },
+      );
+      if (controller.signal.aborted) return;
+      if (page.scope !== overview.scope) {
+        setRevision((v) => v + 1);
+        return;
+      }
+      pageCount.current += 1;
+      setOverview((current) =>
+        current && current.scope === page.scope
+          ? {
+              ...page,
+              checks: [
+                ...current.checks,
+                ...page.checks.filter(
+                  (item) => !current.checks.some((previous) => previous.id === item.id),
+                ),
+              ],
+            }
+          : current,
+      );
+      setError("");
+    } catch (e) {
+      if (!controller.signal.aborted) setError(errorMessage(e));
+    } finally {
+      if (!controller.signal.aborted) setLoading(false);
+    }
+  }
   return (
     <>
       {error && (
@@ -100,15 +144,7 @@ export function ProjectClasses() {
             onChanged={() => setRevision((v) => v + 1)}
           />
         ) : (
-          <ClassList
-            key={overview.scope}
-            overview={overview}
-            busy={loading}
-            more={() => {
-              setLoading(true);
-              setPageCount((count) => count + 1);
-            }}
-          />
+          <ClassList key={overview.scope} overview={overview} busy={loading} more={more} />
         ))}
     </>
   );
@@ -267,6 +303,9 @@ function ClassDetail({
     setError("");
     try {
       await api(`/api/projects/${id}`, { method: "DELETE", scope });
+      try {
+        localStorage.removeItem(reviewStorageKey(scope, id));
+      } catch {}
       onChanged();
       router.replace("/projects");
     } catch (e) {
@@ -379,7 +418,7 @@ function ClassDetail({
         </div>
       </Card>
       {review ? (
-        <ProjectReview detail={detail} />
+        <ProjectReview detail={detail} scope={scope} />
       ) : (
         <section aria-label="프로젝트 학습 과정" className="class-tracks">
           {tracks.map((track) => (
@@ -410,6 +449,7 @@ function ClassDetail({
           ))}
         </section>
       )}
+      {check.page.repository && <ProjectVersions key={`${scope}:${id}`} id={id} scope={scope} />}
       {!check.page.repository && (
         <p>
           서비스 화면 분석에는 코드 실습이 포함되지 않습니다. 소스 저장소를 새로 연결하면 코드와 AI

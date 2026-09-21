@@ -50,7 +50,7 @@ export class StoreQueries {
   }
 
   get projectChecks() {
-    return new ProjectCheckStore(this.query);
+    return new ProjectCheckStore(this.query, this.dialect);
   }
 
   get learning() {

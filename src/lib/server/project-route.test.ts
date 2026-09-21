@@ -17,7 +17,7 @@ it("rejects stale guest writes and reads only the current guest workspace", asyn
   expect(getStore).not.toHaveBeenCalled();
   const page = vi.fn().mockResolvedValue({ checks: [], nextCursor: null });
   getStore.mockResolvedValue({
-    queries: { projectChecks: { page, usage: vi.fn().mockResolvedValue({}) } },
+    queries: { projectChecks: { summaryPage: page, usage: vi.fn().mockResolvedValue({}) } },
   });
   const response = await GET(new Request("https://codefit.test/api/project-check"));
   expect(await response.json()).toMatchObject({ signedIn: false, checks: [] });
@@ -69,7 +69,7 @@ it("passes an opaque cursor to the owned page query and keeps the response uncac
   current.mockResolvedValue({ owner: "user:a", scope: "user:a", user: { id: "a" } });
   const page = vi.fn().mockResolvedValue({ checks: [], nextCursor: "next" });
   getStore.mockResolvedValue({
-    queries: { projectChecks: { page, usage: vi.fn().mockResolvedValue({}) } },
+    queries: { projectChecks: { summaryPage: page, usage: vi.fn().mockResolvedValue({}) } },
   });
   const response = await GET(new Request("https://codefit.test/api/project-check?cursor=previous"));
   expect(page).toHaveBeenCalledWith("user:a", "previous");

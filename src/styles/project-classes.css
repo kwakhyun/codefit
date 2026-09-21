@@ -177,3 +177,24 @@
     padding: 24px;
   }
 }
+
+.class-versions > p {
+  margin-block: 12px 20px;
+}
+.class-versions ul {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin-block: 20px;
+}
+.class-versions li {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.class-versions a {
+  display: block;
+}
