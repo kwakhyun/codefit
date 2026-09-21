@@ -1,4 +1,5 @@
 "use client";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/primitives";
 import { PreferenceChangeButton } from "@/components/library/learning-preference";
 import { AppLink as Link } from "@/components/ui/primitives";
@@ -58,6 +59,7 @@ export function AppHeader({
       </div>
       <div className="topbar-actions">
         <PreferenceChangeButton />
+        <ThemeToggle />
         <Button
           ref={quickTrigger}
           className="icon-button mobile-header-more"

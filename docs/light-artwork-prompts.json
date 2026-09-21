@@ -1,0 +1,46 @@
+{
+  "generator": "Built-in image_gen",
+  "date": "2026-09-21",
+  "assets": [
+    {
+      "file": "public/images/light/experience/project.webp",
+      "prompt": "Create a polished 3:2 landscape website illustration for the LIGHT THEME of a Korean software learning app. Subject: inspect a web project and ask architecture questions. An ivory ceramic browser panel, a clear magnifying lens, three small question cards, connected database and code blocks. Soft dimensional isometric illustration, matte porcelain white surfaces, restrained blue and mint accents, subtle pale gray contact shadows, bright diffuse daylight. Seamless pure white background, no dark background, no black objects, no enclosing dark rectangle, no text or typography, no logo, no watermark. Crisp legible shapes when shown at 320px. Generous 12% white breathing room around the centered object group. Brand tone calm, professional, friendly. Create a genuinely new light-theme artwork, not an inverted dark picture."
+    },
+    {
+      "file": "public/images/light/experience/principles.webp",
+      "prompt": "Create a polished 3:2 landscape website illustration for the LIGHT THEME of a Korean software learning app. Soft dimensional isometric illustration, matte porcelain white surfaces, subtle pale gray contact shadows, bright diffuse daylight. Seamless pure white background, no dark background, no black objects, no enclosing dark rectangle, no text or typography, no logo, no watermark. Crisp legible shapes when shown at 320px. Generous 12% white breathing room around the centered object group. Brand tone calm, professional, friendly. Subject: Learning how a web service works: three ivory ceramic modules showing a browser window, a small server, and stacked database cylinders, connected with mint pathways and a small gear. Mint and sky blue accents."
+    },
+    {
+      "file": "public/images/light/experience/code.webp",
+      "prompt": "Create a polished 3:2 landscape website illustration for the LIGHT THEME of a Korean software learning app. Soft dimensional isometric illustration, matte porcelain white surfaces, subtle pale gray contact shadows, bright diffuse daylight. Seamless pure white background, no dark background, no black objects, no enclosing dark rectangle, no text or typography, no logo, no watermark. Crisp legible shapes when shown at 320px. Generous 12% white breathing room around the centered object group. Brand tone calm, professional, friendly. Subject: Understand and test code: an ivory code-editor panel with abstract blue code bars and a tiny code bracket symbol, a magnifying lens, and three test tiles with blue and green check marks. Sky blue accents."
+    },
+    {
+      "file": "public/images/light/experience/security.webp",
+      "prompt": "Create a polished 3:2 landscape website illustration for the LIGHT THEME of a Korean software learning app. Soft dimensional isometric illustration, matte porcelain white surfaces, subtle pale gray contact shadows, bright diffuse daylight. Seamless pure white background, no dark background, no black objects, no enclosing dark rectangle, no text or typography, no logo, no watermark. Crisp legible shapes when shown at 320px. Generous 12% white breathing room around the centered object group. Brand tone calm, professional, friendly. Subject: Website security review: a large porcelain shield with a mint check mark standing before a white browser panel, a pale-blue padlock and small connected access key. Blue and mint accents."
+    },
+    {
+      "file": "public/images/light/experience/progress.webp",
+      "prompt": "Create a polished 3:2 landscape website illustration for the LIGHT THEME of a Korean software learning app. Soft dimensional isometric illustration, matte porcelain white surfaces, subtle pale gray contact shadows, bright diffuse daylight. Seamless pure white background, no dark background, no black objects, no enclosing dark rectangle, no text or typography, no logo, no watermark. Crisp legible shapes when shown at 320px. Generous 12% white breathing room around the centered object group. Brand tone calm, professional, friendly. Subject: Learning progress and practice history: an ivory checklist with three mint checkmarks, ascending small white stair-step blocks with blue tops, and a small progress chart. Calm green and blue accents."
+    },
+    {
+      "file": "public/images/light/features/debug-lab.webp",
+      "prompt": "Create a polished 3:2 landscape website illustration for the LIGHT THEME of a Korean software learning app. Soft dimensional isometric illustration, matte porcelain white surfaces, subtle pale gray contact shadows, bright diffuse daylight. Seamless pure white background, no dark background, no black objects, no enclosing dark rectangle, no text or typography, no logo, no watermark. Crisp legible shapes when shown at 320px. Generous 12% white breathing room around the centered object group. Brand tone calm, professional, friendly. Subject: Debug a web service: an ivory browser panel containing a small orange bug symbol, a porcelain wrench and two small result cards linked by an arrow, one amber exclamation and one mint checkmark. Restrained amber accents."
+    },
+    {
+      "file": "public/images/light/features/practice-builder.webp",
+      "prompt": "Create a polished 3:2 landscape website illustration for the LIGHT THEME of a Korean software learning app. Soft dimensional isometric illustration, matte porcelain white surfaces, subtle pale gray contact shadows, bright diffuse daylight. Seamless pure white background, no dark background, no black objects, no enclosing dark rectangle, no text or typography, no logo, no watermark. Crisp legible shapes when shown at 320px. Generous 12% white breathing room around the centered object group. Brand tone calm, professional, friendly. Subject: AI generates coding practice: a white ceramic code panel with blue bracket glyphs, three small modular exercise cards with abstract lines and check marks, and a subtle lavender four-point sparkle. Lavender and periwinkle accents."
+    },
+    {
+      "file": "public/images/light/personas/persona-code.webp",
+      "prompt": "Create a polished 3:2 landscape website illustration for the LIGHT THEME of a Korean software learning app. Soft dimensional isometric illustration, matte porcelain white surfaces, subtle pale gray contact shadows, bright diffuse daylight. Seamless pure white background, no dark background, no black objects, no enclosing dark rectangle, no text or typography, no logo, no watermark. Crisp legible shapes when shown at 320px. Generous 12% white breathing room around the centered object group. Brand tone calm, professional, friendly. Subject: Coding practice workspace: an elegant compact ivory keyboard and porcelain desktop screen with abstract amber code bars, beneath it three small white tiles with two checkmarks and a play symbol. Warm amber accent."
+    },
+    {
+      "file": "public/images/light/personas/persona-service.webp",
+      "prompt": "Create a polished 3:2 landscape website illustration for the LIGHT THEME of a Korean software learning app. Soft dimensional isometric illustration, matte porcelain white surfaces, subtle pale gray contact shadows, bright diffuse daylight. Seamless pure white background, no dark background, no black objects, no enclosing dark rectangle, no text or typography, no logo, no watermark. Crisp legible shapes when shown at 320px. Generous 12% white breathing room around the centered object group. Brand tone calm, professional, friendly. Subject: Project review workspace: a white browser window with a simple blue architecture diagram, a magnifying lens inspecting its connected nodes, and a small ivory clipboard with mint checkmarks. Blue and mint accents."
+    },
+    {
+      "file": "public/images/light/personas/persona-ai.webp",
+      "prompt": "Create a polished 3:2 landscape website illustration for the LIGHT THEME of a Korean software learning app. Soft dimensional isometric illustration, matte porcelain white surfaces, subtle pale gray contact shadows, bright diffuse daylight. Seamless pure white background, no dark background, no black objects, no enclosing dark rectangle, no text or typography, no logo, no watermark. Crisp legible shapes when shown at 320px. Generous 12% white breathing room around the centered object group. Brand tone calm, professional, friendly. Subject: AI learning workspace: a white ceramic central sparkle-shaped assistant hub connected to three ivory workflow cards for input, processing and output, a small white keyboard beneath. Gentle lavender and periwinkle accents."
+    }
+  ]
+}

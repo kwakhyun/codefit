@@ -58,7 +58,7 @@
   overflow: hidden;
   background: light-dark(var(--light-panel), #0d1013);
 }
-.persona-art > img {
+.persona-art img {
   width: 100%;
   height: 100%;
   object-fit: contain;

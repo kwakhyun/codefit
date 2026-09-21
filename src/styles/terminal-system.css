@@ -188,7 +188,7 @@ body {
 .section-artwork img,
 .feature-art img,
 .auth-artwork img,
-.persona-art > img,
+.persona-art img,
 .scenario-art,
 .service-card-art > img {
   border: 0;
@@ -1351,7 +1351,7 @@ html {
     .feature-art,
     .feature-art img,
     .auth-artwork img,
-    .persona-art > img,
+    .persona-art img,
     .scenario-art,
     .scenario-thumbnail
   ) {
@@ -1366,7 +1366,7 @@ html {
       .feature-art,
       .feature-art img,
       .auth-artwork img,
-      .persona-art > img,
+      .persona-art img,
       .scenario-art,
       .scenario-thumbnail
     ) {

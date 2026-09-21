@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ThemedImage } from "@/components/theme/themed-image";
 export type ArtworkTopic = "principles" | "code" | "project" | "security" | "progress";
 export function SectionArtwork({
   topic,
@@ -11,7 +11,7 @@ export function SectionArtwork({
 }) {
   return (
     <div className={`section-artwork ${className}`} aria-hidden="true">
-      <Image
+      <ThemedImage
         src={`/images/experience/${topic}.webp`}
         width={960}
         height={640}

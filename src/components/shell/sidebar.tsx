@@ -1,5 +1,4 @@
 "use client";
-import { ThemeSelect } from "@/components/theme/theme-select";
 import { Button } from "@/components/ui/primitives";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { preferredDestinations } from "@/lib/learning-preference";
@@ -174,7 +173,6 @@ export function Sidebar({
         </Link>
       </nav>
       <div className="sidebar-bottom">
-        <ThemeSelect />
         {data?.account.user && (
           <Link className="nav-item" href="/profile">
             <UserRound size={17} />

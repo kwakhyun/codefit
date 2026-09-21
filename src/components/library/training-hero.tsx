@@ -1,6 +1,6 @@
 "use client";
 import { ProjectAiEntry } from "@/components/ai-learning/project-ai-entry";
-import Image from "next/image";
+import { ThemedImage } from "@/components/theme/themed-image";
 import { ProjectQuickStart } from "@/components/project-practice/project-quick-start";
 import { useRef, useState } from "react";
 import { Modal } from "@/components/ui/modal";
@@ -213,13 +213,13 @@ export function TrainingHero({
 function WorkspaceArt({ image }: { image: string }) {
   return (
     <div className="workspace-art" aria-hidden="true">
-      <Image
+      <ThemedImage
         src={`/images/personas/${image}.webp`}
         width={1200}
         height={800}
         alt=""
         sizes="(max-width: 700px) 90vw, 480px"
-        priority
+        loading="eager"
       />
     </div>
   );

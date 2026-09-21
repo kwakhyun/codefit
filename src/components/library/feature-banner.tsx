@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/primitives";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import type { LearnerType } from "@/lib/learner-types";
 import { AppLink as Link } from "@/components/ui/primitives";
-import Image from "next/image";
+import { ThemedImage } from "@/components/theme/themed-image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 const SLIDE_DURATION = 8000;
@@ -213,7 +213,7 @@ function FeatureCarousel({ type, onGenerate }: { type: LearnerType; onGenerate: 
               )}
             </div>
             <div className="feature-art" aria-hidden="true">
-              <Image
+              <ThemedImage
                 src={slide.image}
                 alt=""
                 width={960}

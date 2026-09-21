@@ -1,6 +1,6 @@
 "use client";
 import { FieldLabel, Input, Status, Button } from "@/components/ui/primitives";
-import Image from "next/image";
+import { ThemedImage } from "@/components/theme/themed-image";
 import { useId, useRef, useState } from "react";
 import { Check, SlidersHorizontal } from "lucide-react";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
@@ -38,7 +38,7 @@ export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }
               aria-label={item.name}
             />
             <span className="persona-art" aria-hidden="true">
-              <Image
+              <ThemedImage
                 src={`/images/personas/${item.image}.webp`}
                 width={1200}
                 height={800}

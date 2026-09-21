@@ -95,9 +95,6 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-control);
 }
-.sidebar-bottom .theme-select {
-  padding: 8px 12px;
-}
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {

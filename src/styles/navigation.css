@@ -453,3 +453,77 @@
   background: transparent;
   padding: 0 0 16px;
 }
+
+/* One theme action in each header; the detailed preference stays in settings. */
+.site-header > .site-preference {
+  margin-left: auto;
+}
+.theme-picture {
+  display: contents;
+}
+.ui-button.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  flex: 0 0 44px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  border-radius: 50%;
+}
+.ui-button.theme-toggle:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.theme-toggle .theme-moon {
+  display: none;
+}
+:root[data-theme="dark"] .theme-toggle .theme-sun {
+  display: none;
+}
+:root[data-theme="dark"] .theme-toggle .theme-moon {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .theme-toggle .theme-sun {
+    display: none;
+  }
+  :root:not([data-theme]) .theme-toggle .theme-moon {
+    display: block;
+  }
+}
+@media (max-width: 760px) {
+  .site-header > .theme-toggle {
+    margin-left: auto;
+  }
+}
+@media (max-width: 400px) {
+  .site-menu-label {
+    display: none;
+  }
+  .site-menu-button.ui-button {
+    width: 44px;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar .topbar-actions {
+    width: auto;
+    flex-wrap: nowrap;
+  }
+  .topbar .topbar-actions > .persona-change {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    justify-content: center;
+    flex: 0 0 44px;
+  }
+  .topbar .topbar-actions > .persona-change > span {
+    display: none;
+  }
+}

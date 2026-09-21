@@ -237,6 +237,7 @@
 }
 .project-quick-start {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   padding: clamp(24px, 4vw, 40px);
   background: linear-gradient(
@@ -280,6 +281,8 @@
 }
 .project-quick-start form {
   display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 .quick-start-input {

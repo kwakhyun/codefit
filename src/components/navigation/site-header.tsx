@@ -1,5 +1,5 @@
 "use client";
-import { ThemeSelect } from "@/components/theme/theme-select";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { PreferenceChangeButton } from "@/components/library/learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { preferredDestinations } from "@/lib/learning-preference";
@@ -51,11 +51,12 @@ export function SiteHeader() {
         <BrandIcon />
         CODE:FIT_
       </Link>
-      <ThemeSelect />
       <div className="site-preference">
         <PreferenceChangeButton />
       </div>
+      <ThemeToggle />
       <Button
+        aria-label="메뉴"
         ref={trigger}
         className="site-menu-button secondary-button"
         aria-haspopup="dialog"
@@ -65,7 +66,7 @@ export function SiteHeader() {
           setOpen(true);
         }}
       >
-        <Menu size={20} aria-hidden="true" /> 메뉴
+        <Menu size={20} aria-hidden="true" /> <span className="site-menu-label">메뉴</span>
       </Button>
       <nav aria-label="서비스 메뉴" className="site-navigation">
         {links()}

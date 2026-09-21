@@ -60,23 +60,23 @@ test("preference persists, follows system changes, and syncs between tabs", asyn
 }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/project-check");
-  const select = page.getByRole("combobox", { name: "화면 테마" });
+  const toggle = page.getByRole("button", { name: "다크 모드", exact: true });
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.emulateMedia({ colorScheme: "light" });
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await select.selectOption("dark");
+  await toggle.click();
   await page.reload();
-  await expect(select).toHaveValue("dark");
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   const other = await context.newPage();
   await other.goto("/project-check");
-  await select.selectOption("light");
+  await toggle.click();
   await expect(other.locator("html")).toHaveAttribute("data-theme", "light");
-  await select.selectOption("system");
+  await other.evaluate(() => localStorage.removeItem("codefit-theme-v1"));
   await page.emulateMedia({ colorScheme: "dark" });
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await other.evaluate(() => localStorage.clear());
-  await expect(select).toHaveValue("system");
+  await expect(page.locator("html")).toHaveAttribute("data-theme-preference", "system");
 });
 
 test("storage failure still permits changing theme", async ({ page }) => {
@@ -89,7 +89,7 @@ test("storage failure still permits changing theme", async ({ page }) => {
     };
   });
   await page.goto("/project-check");
-  await page.getByRole("combobox", { name: "화면 테마" }).selectOption("dark");
+  await page.getByRole("button", { name: "다크 모드", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 });
 
@@ -98,9 +98,9 @@ test("editor follows theme without replacing the code", async ({ page }) => {
   const editor = page.locator(".monaco-editor").first();
   await expect(editor).toBeVisible();
   const text = await readCode(page);
-  await page.getByRole("combobox", { name: "화면 테마" }).first().selectOption("dark");
+  await page.getByRole("button", { name: "다크 모드", exact: true }).click();
   await expect(editor).toHaveClass(/vs-dark/);
-  await page.getByRole("combobox", { name: "화면 테마" }).first().selectOption("light");
+  await page.getByRole("button", { name: "다크 모드", exact: true }).click();
   await expect(editor).not.toHaveClass(/vs-dark/);
   expect(await readCode(page)).toBe(text);
 });
@@ -124,10 +124,11 @@ for (const theme of ["light", "dark"] as const) {
     ).toEqual([]);
     await page.keyboard.press("Escape");
     await page.setViewportSize({ width: 390, height: 844 });
+    const toggle = page.getByRole("button", { name: "다크 모드", exact: true });
+    await expect(toggle).toBeVisible();
+    await toggle.click();
     await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
-    const select = page.getByRole("combobox", { name: "화면 테마" });
-    await expect(select).toBeVisible();
-    await select.selectOption(theme === "light" ? "dark" : "light");
+    await expect(page.locator(".sidebar .theme-select")).toHaveCount(0);
     await waitForUiTransitions(page);
     expect(
       (await new AxeBuilder({ page }).withRules(["color-contrast"]).analyze()).violations,
