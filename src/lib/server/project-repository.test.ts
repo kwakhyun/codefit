@@ -235,3 +235,35 @@ it("reserves room for an imported implementation beyond the initial file selecti
   expect(page.repository?.files).toHaveLength(16);
   expect(page.repository?.files.some((f) => f.path === "src/lib/z-implementation.ts")).toBe(true);
 });
+
+it("reads a bounded large runtime file instead of dropping it at 100KB", async () => {
+  const base = apiMock();
+  const text = "def execute():\n    return 'ready'\n" + "# context\n".repeat(11000);
+  const request = vi.fn<typeof fetch>(async (url, options) => {
+    if (String(url).includes("/git/trees/"))
+      return Response.json({
+        truncated: false,
+        tree: [
+          {
+            path: "scripts/runner.py",
+            type: "blob",
+            mode: "100755",
+            sha: blobSha,
+            size: Buffer.byteLength(text),
+          },
+        ],
+      });
+    if (String(url).startsWith("https://raw.githubusercontent.com/")) return new Response(text);
+    return base(url, options);
+  });
+  const page = await readProjectRepository(
+    "https://github.com/owner/repo",
+    new AbortController().signal,
+    request,
+  );
+  expect(page.repository!.files.map((f) => f.path)).toContain("scripts/runner.py");
+  expect(page.repository!.files[0].partial).toBe(true);
+  expect(page.repository!.files[0].lines.map((l) => l.text).join("\n").length).toBeLessThanOrEqual(
+    6500,
+  );
+});

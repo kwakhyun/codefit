@@ -18,16 +18,39 @@ export function learningEvidence(repository: RepositorySnapshot) {
       );
       if (
         !group ||
-        group.length >= 16 ||
+        group.length >= 12 ||
         group.at(-1)!.number + 1 !== line.number ||
-        cost + sourceLine(file.path, line.number, line.text).length > 1100
+        cost + sourceLine(file.path, line.number, line.text).length > 800
       )
         groups.push([line]);
       else group.push(line);
     }
     // Preserve the entire cited block, not an arbitrary representative line.
     // Every collected branch remains available; do not sample away later blocks.
-    for (const lines of groups) {
+    for (const [index, group] of groups.entries()) {
+      const lines = [...group];
+      // Overlap adjacent blocks so a final guard and its return value stay visible.
+      for (const line of (groups[index + 1] ?? []).slice(0, 4)) {
+        const cost = [...lines, line]
+          .map((l) => sourceLine(file.path, l.number, l.text))
+          .join("\n").length;
+        if (line.number !== lines.at(-1)!.number + 1 || cost > 1100) break;
+        lines.push(line);
+      }
+      // If the boundary lands immediately before a return, keep that outcome
+      // with the guard. Trim leading context rather than the decisive tail.
+      const next = file.lines.findIndex((line) => line.number === lines.at(-1)!.number + 1);
+      if (next >= 0 && /^\s*return\b/.test(file.lines[next].text)) {
+        for (const line of file.lines.slice(next, next + 3)) {
+          if (line.number !== lines.at(-1)!.number + 1) break;
+          lines.push(line);
+        }
+        while (
+          lines.length > 1 &&
+          lines.map((l) => sourceLine(file.path, l.number, l.text)).join("\n").length > 1100
+        )
+          lines.shift();
+      }
       snippets.push({
         id: `E${snippets.length + 1}`,
         file: file.path,
@@ -38,6 +61,47 @@ export function learningEvidence(repository: RepositorySnapshot) {
   }
   if (!snippets.length) throw new HttpError(422, "학습에 사용할 코드 근거가 없습니다.");
   const byId = new Map(snippets.map((s) => [s.id, s.evidence]));
+  function cleanText<T>(value: T): T {
+    const visit = (item: unknown): unknown => {
+      if (typeof item === "string")
+        return item
+          .replace(/\((?:E\d+[ ,]*)+\)/g, (match) =>
+            [...match.matchAll(/E\d+/g)].every(([id]) => byId.has(id)) ? "" : match,
+          )
+          .replace(
+            /(?<![A-Za-z0-9_])E\d+(은|는|이|가|을|를|과|와)?(?![A-Za-z0-9_])/g,
+            (match, particle: string | undefined) => {
+              const id = /^E\d+/.exec(match)![0];
+              if (!byId.has(id)) return match;
+              const suffix = particle
+                ? (
+                    {
+                      은: "는",
+                      는: "는",
+                      이: "가",
+                      가: "가",
+                      을: "를",
+                      를: "를",
+                      과: "와",
+                      와: "와",
+                    } as Record<string, string>
+                  )[particle]
+                : "";
+              return `인용한 코드${suffix}`;
+            },
+          );
+      if (Array.isArray(item)) return item.map(visit);
+      if (item && typeof item === "object")
+        return Object.fromEntries(
+          Object.entries(item).map(([key, entry]) => [
+            key,
+            key === "evidence" || key === "codeEvidence" ? entry : visit(entry),
+          ]),
+        );
+      return item;
+    };
+    return visit(value) as T;
+  }
   const evidence = z
     .array(z.enum(snippets.map((s) => s.id)))
     .min(1)
@@ -60,7 +124,7 @@ export function learningEvidence(repository: RepositorySnapshot) {
       distractors: string[];
     },
   >(value: T) {
-    const { correctChoice, distractors, ...rest } = value;
+    const { correctChoice, distractors, ...rest } = cleanText(value);
     if (new Set([correctChoice, ...distractors]).size !== distractors.length + 1)
       throw new HttpError(502, "학습 문제의 선택지가 중복되었습니다. 다시 생성해 주세요.");
     // The server derives the index from the correct text, avoiding one/zero-based mistakes.
@@ -84,6 +148,7 @@ export function learningEvidence(repository: RepositorySnapshot) {
     };
   }
   return {
+    cleanText,
     evidenceIdSchema: z.enum([...snippets.map((s) => s.id), ""]),
     resolveEvidence: (id: string) => {
       const source = byId.get(id);

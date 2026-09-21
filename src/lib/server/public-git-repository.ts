@@ -49,7 +49,7 @@ const collectedSchema = z.object({
       z.object({
         path: z.string().max(500),
         mode: z.enum(["100644", "100755"]).optional(),
-        text: z.string().max(100000),
+        text: z.string().max(repositorySourcePolicy.maxFileBytes),
       }),
     )
     .max(16),
@@ -102,7 +102,8 @@ export async function readPublicGitRepository(
       { path: "/vercel/sandbox/result.json" },
       { signal },
     );
-    if (!output || output.length > 2_000_000) throw new Error("size");
+    if (!output || output.length > repositorySourcePolicy.maxFileBytes * 16 * 2)
+      throw new Error("size");
     const result = collectedSchema.parse(JSON.parse(output.toString()));
     const candidates = result.files.filter(
       (f) => eligibleSource(f.path, f.mode) && !f.text.includes("\0"),
@@ -169,6 +170,6 @@ const selected=[],counts=new Map();
 const group=p=>/^(apps|packages|services)\/[^/]+/.exec(p)?.[0]??p.split('/').slice(0,2).join('/');
 while(candidates.length&&selected.length<16){candidates.sort((a,b)=>(priority(a.path)+Math.min(2,(counts.get(group(a.path))??0)*0.35))-(priority(b.path)+Math.min(2,(counts.get(group(b.path))??0)*0.35))||a.path.localeCompare(b.path));const next=candidates.shift();selected.push(next);counts.set(group(next.path),(counts.get(group(next.path))??0)+1);}
 const files=[];
-for(const file of selected){const size=Number(git(['-C','repo','cat-file','-s',file.sha]));if(size>100000)continue;const text=git(['-C','repo','cat-file','blob',file.sha]);if(!text.includes('\0'))files.push({path:file.path,mode:file.mode,text});}
+for(const file of selected){const size=Number(git(['-C','repo','cat-file','-s',file.sha]));if(size>policy.maxFileBytes)continue;const text=git(['-C','repo','cat-file','blob',file.sha]);if(!text.includes('\0'))files.push({path:file.path,mode:file.mode,text});}
 writeFileSync('/vercel/sandbox/result.json',JSON.stringify({commit,total:entries.length,files}));
 `;

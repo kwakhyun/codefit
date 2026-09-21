@@ -252,3 +252,112 @@ it("includes a referenced literal constant outside the decision window without u
     [1, 30, 31],
   );
 });
+
+it("collects Dart business flows before evaluation, e2e and configuration files", () => {
+  const paths = [
+    "hosting/public/eval/spa/app.js",
+    "e2e/support/profile-worker.ts",
+    "contracts/worker-configuration.ts",
+    "lib/main.dart",
+    "lib/services/invitation_parser.dart",
+    "lib/repositories/event_repository.dart",
+  ];
+  expect(paths.slice(3).every((p) => eligibleSource(p))).toBe(true);
+  expect(
+    selectRepositoryFiles(
+      paths.map((path) => ({ path })),
+      3,
+    )
+      .map((f) => f.path)
+      .sort(),
+  ).toEqual(paths.slice(3).sort());
+});
+
+it("overlaps a guard and the return value across citation boundaries", () => {
+  const lines = Array.from({ length: 14 }, (_, i) => ({
+    number: i + 1,
+    text:
+      i === 11
+        ? "if invalid: return None"
+        : i === 12
+          ? "return {'translation_status': 'pending'}"
+          : "# context",
+  }));
+  const snapshot = { ...repo, files: [{ ...repo.files[0], lines, totalLines: 14 }] };
+  const contract = learningEvidence(snapshot);
+  const citation = contract.resolveEvidence("E1");
+  expect(citation).toContain("translation_status");
+  expect(repositoryCitation(snapshot, citation)).not.toBeNull();
+});
+
+it("cleans internal labels including Korean particles without changing evidence or code identifiers", () => {
+  const c = learningEvidence(repo);
+  const value = c.cleanText({
+    summary: "E1은 조건을 검사합니다(E1). E1에서 반환합니다.",
+    evidence: ["E1"],
+    other: "CODE1 E400",
+  });
+  expect(value.summary).toBe("인용한 코드는 조건을 검사합니다. 인용한 코드에서 반환합니다.");
+  expect(value.evidence).toEqual(["E1"]);
+  expect(value.other).toBe("CODE1 E400");
+});
+
+it("follows Dart relative and package imports to local runtime files", async () => {
+  const { dependencyCandidates } = await import("./project-repository");
+  const files = [
+    {
+      ...repo.files[0],
+      path: "lib/main.dart",
+      lines: [
+        { number: 1, text: "import 'services/parser.dart';" },
+        { number: 2, text: "import 'package:app/repositories/events.dart';" },
+      ],
+    },
+  ];
+  expect(
+    dependencyCandidates(files, [
+      { path: "lib/services/parser.dart" },
+      { path: "lib/repositories/events.dart" },
+      { path: "lib/unused.dart" },
+    ]),
+  ).toHaveLength(2);
+});
+
+it("prefers Dart use cases and persistence over analytics and generated models", () => {
+  const candidates = [
+    "lib/core/analytics/analytics_service.dart",
+    "lib/data/models/account/account_model.dart",
+    "lib/data/models/account/account.g.dart",
+    "lib/domain/usecases/analyze_link_usecase.dart",
+    "lib/data/repositories/schedule_repository.dart",
+    "lib/data/sources/remote/firebase_ai_logic_impl.dart",
+  ];
+  expect(
+    selectRepositoryFiles(
+      candidates.map((path) => ({ path })),
+      3,
+    )
+      .map((f) => f.path)
+      .sort(),
+  ).toEqual(candidates.slice(3).sort());
+});
+
+it("keeps a return visible when long leading context exhausts a citation budget", () => {
+  const lines = Array.from({ length: 18 }, (_, i) => ({
+    number: i + 1,
+    text:
+      i === 14
+        ? "if invalid: return None"
+        : i === 15
+          ? "return {'translation_status': 'pending'}"
+          : "# " + "context ".repeat(9),
+  }));
+  const c = learningEvidence({
+    ...repo,
+    files: [{ ...repo.files[0], lines, totalLines: lines.length }],
+  });
+  for (const s of c.snippets.filter((s) => s.code.includes("if invalid"))) {
+    expect(s.code).toContain("translation_status");
+    expect(c.resolveEvidence(s.id).length).toBeLessThanOrEqual(1100);
+  }
+});

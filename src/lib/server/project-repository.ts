@@ -35,37 +35,52 @@ const treeSchema = z.object({ tree: z.array(treeItem).max(50000), truncated: z.b
 const safePath = (value: string) =>
   !value.split("/").some((p) => !p || p === "." || p === "..") && !/[\x00-\x1f\\]/.test(value);
 export const repositorySourcePolicy = {
+  maxFileBytes: 500_000,
   excludedSegments:
     /(^|\/)(node_modules|vendor|dist|build|coverage|\.git|\.next|fixtures|__pycache__|\.agents|\.codex|artifacts|\.storybook)(\/|$)/
       .source,
   excludedNames: /(^|\/)(\.env[^/]*|[^/]*(?:secret|credential|private.key)[^/]*|[^/]+\.min\.[jt]s)$/
     .source,
   extensions:
-    /\.(py|tsx?|jsx?|mjs|go|java|rs|md|toml|ya?ml|cs|c|cpp|h|swift|kt|rb|php|vue|svelte|sql|sh|bash|zsh|fish)$/
+    /\.(py|tsx?|jsx?|mjs|go|java|rs|md|toml|ya?ml|cs|c|cpp|h|swift|kt|dart|rb|php|vue|svelte|sql|sh|bash|zsh|fish)$/
       .source,
   extensionless: /(?:^|\/)(?:bin|sbin)\/[^/.]+$/.source,
   priorities: [
-    { pattern: /(?:^|\/)(?:assets|evals|animations?)\//.source, rank: 10 },
+    { pattern: /(?:^|\/)(?:assets|evals?|animations?)\//.source, rank: 10 },
     {
       pattern:
-        /(^|\/)(tests?|__tests__|docs|examples|scripts|changes|infra|\.github)\/|(?:^|\/)test_[^/]+|(?:test|spec)\.[^.]+$/
+        /(^|\/)(tests?|__tests__|e2e|docs|examples|changes|infra|\.github)\/|(?:^|\/)test_[^/]+|(?:test|spec)\.[^.]+$/
           .source,
       rank: 8,
     },
     {
-      pattern: /(?:^|\/)(?:__init__\.py|setup\.py|conftest\.py|[^/]*config\.[^.]+)$/.source,
+      pattern:
+        /(?:^|\/)(?:__init__\.py|setup\.py|conftest\.py|[^/]*(?:config|configuration)\.[^.]+)$/
+          .source,
       rank: 12,
+    },
+    { pattern: /\.(?:g|freezed)\.dart$/.source, rank: 12 },
+    { pattern: /(?:^|\/)lib\/.*_impl\.dart$/.source, rank: 0.5 },
+    { pattern: /(?:^|\/)(?:analytics|telemetry|logging)\//.source, rank: 9 },
+    {
+      pattern: /(?:^|\/)lib\/(?:data\/(?:sources|repositories)|domain\/usecases)\/.*\.dart$/.source,
+      rank: 0.75,
+    },
+    { pattern: /(?:^|\/)(?:models|entities)\/.*\.dart$/.source, rank: 7 },
+    {
+      pattern: /(?:^|\/)lib\/(?:services|repositories|providers|controllers)\/.*\.dart$/.source,
+      rank: 1,
     },
     { pattern: /(?:^|\/)(?:bin|sbin)\//.source, rank: 1 },
     {
       pattern:
-        /(?:^|\/)(?:runner|pipeline|scheduler|orchestrator|service|main|app)\.(?:py|[jt]s|go|rs|sh)$/
+        /(?:^|\/)(?:runner|pipeline|scheduler|orchestrator|service|main|app)\.(?:py|[jt]s|go|rs|sh|dart)$/
           .source,
       rank: 0.75,
     },
     {
       pattern:
-        /^(?=.*\.(?:py|[cm]?[jt]sx?|go|rs|java|rb|php|sh|bash|zsh|fish)$).*(?:reliability|inference|transcri(?:b|p)[a-z]*|speech|conversation|pipeline|scheduler|orchestrat[a-z]*|executor|service|workflow|worker|session|payment|checkout|booking|handler|jobs?)(?:[-_.]|$)/
+        /^(?=.*\.(?:py|[cm]?[jt]sx?|dart|go|rs|java|rb|php|sh|bash|zsh|fish)$).*(?:reliability|inference|transcri(?:b|p)[a-z]*|speech|conversation|pipeline|scheduler|orchestrat[a-z]*|executor|service|workflow|worker|session|payment|checkout|booking|handler|jobs?)(?:[-_.]|$)/
           .source,
       rank: 1,
     },
@@ -87,8 +102,7 @@ export const repositorySourcePolicy = {
       rank: 15,
     },
     {
-      pattern: /(^|\/)(tests?|docs|examples|scripts|changes|infra|\.github)\/|(?:test|spec)\.[^.]+$/
-        .source,
+      pattern: /(^|\/)(tests?|docs|examples|changes|infra|\.github)\/|(?:test|spec)\.[^.]+$/.source,
       rank: 8,
     },
     { pattern: /(?:^|\/)(?:app\/)?api\/|(?:^|\/)route\.[jt]s$/.source, rank: 4 },
@@ -105,7 +119,8 @@ export const repositorySourcePolicy = {
       rank: 2,
     },
     {
-      pattern: /\.(py|[jt]sx?|mjs|go|java|rs|cs|c|cpp|h|swift|kt|rb|php|vue|svelte|sql)$/.source,
+      pattern: /\.(py|[jt]sx?|mjs|go|java|rs|cs|c|cpp|h|swift|kt|dart|rb|php|vue|svelte|sql)$/
+        .source,
       rank: 3,
     },
   ],
@@ -156,7 +171,9 @@ export function dependencyCandidates<T extends { path: string }>(
   const wanted = new Set<string>();
   for (const file of files)
     for (const line of file.lines) {
-      const match = /(?:from\s*|import\s*\(|require\s*\()(["'])([^"']+)\1/.exec(line.text);
+      const match = /(?:from\s*|import\s*(?:\(\s*)?|export\s*|require\s*\()(["'])([^"']+)\1/.exec(
+        line.text,
+      );
       const spec = match?.[2];
       const python = /^\s*from\s+([.\w]+)\s+import\s+(\w+)/.exec(line.text);
       if (python) {
@@ -190,11 +207,21 @@ export function dependencyCandidates<T extends { path: string }>(
             .replace(/\.(?:sh|bash|zsh|fish)$/, ""),
         );
       if (!spec) continue;
-      if (spec.startsWith("."))
+      if (spec.startsWith("package:") && file.path.endsWith(".dart")) {
+        const modulePath = spec
+          .slice("package:".length)
+          .split("/")
+          .slice(1)
+          .join("/")
+          .replace(/\.dart$/, "");
+        const root = file.path.includes("/lib/") ? file.path.split("/lib/")[0] + "/" : "";
+        wanted.add(`${root}lib/${modulePath}`);
+      }
+      if (spec.startsWith(".") || (file.path.endsWith(".dart") && !spec.includes(":")))
         wanted.add(
           path.posix
             .normalize(path.posix.join(path.posix.dirname(file.path), spec))
-            .replace(/\.[cm]?[jt]sx?$/, ""),
+            .replace(/\.(?:[cm]?[jt]sx?|dart)$/, ""),
         );
       if (spec.startsWith("@/")) {
         const prefix = /^(.*?)(?:src|app)\//.exec(file.path)?.[1] ?? "";
@@ -206,7 +233,7 @@ export function dependencyCandidates<T extends { path: string }>(
     (f) =>
       wanted.has(
         f.path
-          .replace(/\.(?:[cm]?[jt]sx?|py|sh|bash|zsh|fish)$/, "")
+          .replace(/\.(?:[cm]?[jt]sx?|dart|py|sh|bash|zsh|fish)$/, "")
           .replace(/\/(?:index|__init__)$/, ""),
       ) && sourcePriority(f.path) < 7,
   );
@@ -413,7 +440,7 @@ export async function readProjectRepository(
   const eligible = blobs.filter(
     (f) =>
       eligibleSource(f.path, f.mode) &&
-      (f.size || 0) <= 100_000 &&
+      (f.size || 0) <= repositorySourcePolicy.maxFileBytes &&
       (!changed || (changed.get(f.path)?.size || 0) > 0),
   );
   const selected = selectRepositoryFiles(eligible, target.pullRequest ? 16 : 12);
@@ -427,8 +454,8 @@ export async function readProjectRepository(
             `git/blobs/${f.sha}`,
             z.object({
               encoding: z.literal("base64"),
-              content: z.string().max(150000),
-              size: z.number().max(100000),
+              content: z.string().max(Math.ceil(repositorySourcePolicy.maxFileBytes * 1.5)),
+              size: z.number().max(repositorySourcePolicy.maxFileBytes),
             }),
           );
           text = Buffer.from(blob.content, "base64").toString("utf8");
@@ -452,7 +479,7 @@ export async function readProjectRepository(
               const { value, done } = await reader.read();
               if (done) break;
               size += value.byteLength;
-              if (size > 100000)
+              if (size > repositorySourcePolicy.maxFileBytes)
                 throw new HttpError(422, "코드 파일이 수집 크기 제한을 넘었습니다.");
               parts.push(value);
             }
