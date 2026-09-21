@@ -1,58 +1,69 @@
 "use client";
-import { useState } from "react";
-import { z } from "zod";
-const entry = z.object({
-  note: z.string().max(2000),
-  choice: z.number().int().min(0).max(20).nullable(),
-  revealed: z.boolean(),
-});
-const schema = z.object({
-  version: z.literal(1),
-  active: z.string().max(12000),
-  entries: z.record(z.string().max(12000), entry),
-});
-type Review = z.infer<typeof schema>;
+import { useRef, useState } from "react";
+import {
+  emptyReview,
+  mergeReviewDraft,
+  reviewDraftSchema,
+  type ReviewDraft,
+  type ReviewEntry,
+} from "@/lib/project-check/review-draft";
 export const reviewStorageKey = (scope: string, id: string) =>
   `codefit-project-review:${scope}:${id}`;
+function read(key: string) {
+  const parsed = reviewDraftSchema.safeParse(JSON.parse(localStorage.getItem(key) || "null"));
+  return parsed.success ? parsed.data : emptyReview();
+}
 export function useProjectReview(scope: string, id: string) {
   const key = reviewStorageKey(scope, id);
   const [initial] = useState(() => {
     try {
-      const parsed = schema.safeParse(JSON.parse(localStorage.getItem(key) || "null"));
-      return {
-        value: parsed.success ? parsed.data : { version: 1 as const, active: "", entries: {} },
-        failed: false,
-      };
+      return { value: read(key), failed: false };
     } catch {
-      return { value: { version: 1 as const, active: "", entries: {} }, failed: true };
+      return { value: emptyReview(), failed: true };
     }
   });
-  const [saved, setSaved] = useState<Review>(initial.value);
+  const [saved, setSaved] = useState(initial.value);
+  const latest = useRef(saved);
+  const sequence = useRef(0);
   const [failed, setFailed] = useState(initial.failed);
-  function save(value: Review) {
-    setSaved(value);
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-      setFailed(false);
-    } catch {
-      setFailed(true);
-    }
+  const [saving, setSaving] = useState(false);
+  function persist(base: ReviewDraft, active: string, patch: Partial<ReviewEntry>, reset = false) {
+    const ticket = ++sequence.current;
+    const optimistic = reset
+      ? { ...emptyReview(), active }
+      : mergeReviewDraft(latest.current, base, active, patch);
+    latest.current = optimistic;
+    setSaved(optimistic);
+    setSaving(true);
+    // An exclusive browser lock makes the read/merge/write atomic across tabs.
+    const operation = navigator.locks
+      ? navigator.locks.request(key, () => {
+          const remote = read(key);
+          const next = reset ? optimistic : mergeReviewDraft(remote, base, active, patch);
+          localStorage.setItem(key, JSON.stringify(next));
+          return next;
+        })
+      : Promise.reject(new Error("Browser locks unavailable"));
+    void operation
+      .then((next) => {
+        if (ticket === sequence.current) {
+          latest.current = next;
+          setSaved(next);
+          setFailed(false);
+        }
+      })
+      .catch(() => {
+        if (ticket === sequence.current) setFailed(true);
+      })
+      .finally(() => {
+        if (ticket === sequence.current) setSaving(false);
+      });
   }
-  function update(active: string, patch: Partial<z.infer<typeof entry>> = {}) {
-    save({
-      version: 1,
-      active,
-      entries: {
-        ...saved.entries,
-        [active]: {
-          ...(saved.entries[active] ?? { note: "", choice: null, revealed: false }),
-          ...patch,
-        },
-      },
-    });
+  function update(active: string, patch: Partial<ReviewEntry> = {}) {
+    persist(latest.current, active, patch);
   }
   function reset(active: string) {
-    save({ version: 1, active, entries: {} });
+    persist(latest.current, active, {}, true);
   }
-  return { saved, update, reset, failed };
+  return { saved, update, reset, failed, saving };
 }

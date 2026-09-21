@@ -36,7 +36,7 @@ export function ProjectReview({ detail, scope }: { detail: ProjectClassDetail; s
   ];
   // Content keys keep drafts attached to their question when new courses are added.
   const keys = items.map((item) => JSON.stringify([item.title, item.prompt, item.choices]));
-  const { saved, update, reset, failed } = useProjectReview(scope, detail.check.id);
+  const { saved, update, reset, failed, saving } = useProjectReview(scope, detail.check.id);
   const index = Math.max(0, keys.indexOf(saved.active));
   const item = items[index];
   const key = keys[index];
@@ -66,9 +66,11 @@ export function ProjectReview({ detail, scope }: { detail: ProjectClassDetail; s
         </span>
       </div>
       <p className="muted" role="status">
-        {failed
-          ? "브라우저에 복습을 저장하지 못했습니다. 이 화면을 벗어나면 메모가 사라질 수 있어요."
-          : "복습 위치와 메모는 이 브라우저에 저장됩니다. 다른 기기에는 동기화되지 않아요."}
+        {saving
+          ? "복습 내용을 저장하고 있어요."
+          : failed
+            ? "브라우저에 복습을 저장하지 못했습니다. 이 화면을 벗어나면 메모가 사라질 수 있어요."
+            : "복습 위치와 메모는 이 브라우저에 저장됩니다. 다른 기기에는 동기화되지 않아요."}
       </p>
       <h3>{item.title}</h3>
       <p className="class-multiline">{item.prompt}</p>
@@ -106,6 +108,17 @@ export function ProjectReview({ detail, scope }: { detail: ProjectClassDetail; s
             placeholder="기억나는 내용을 적어 보세요."
           />
         </>
+      )}
+      {!!draft?.alternatives?.length && (
+        <details className="class-review-answer">
+          <summary>다른 탭에서 작성한 메모 {draft.alternatives.length}개</summary>
+          <p>동시에 작성된 메모를 덮어쓰지 않고 함께 보관했습니다.</p>
+          {draft.alternatives.map((text, i) => (
+            <p className="class-multiline" key={i}>
+              {text}
+            </p>
+          ))}
+        </details>
       )}
       {!revealed ? (
         <Button

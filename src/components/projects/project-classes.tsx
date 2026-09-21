@@ -158,7 +158,14 @@ function ClassList({
   busy: boolean;
   more: () => void;
 }) {
-  const [query, setQuery] = useState("");
+  const searchKey = `codefit-project-search:${overview.scope}`;
+  const [query, setQuery] = useState(() => {
+    try {
+      return sessionStorage.getItem(searchKey) ?? "";
+    } catch {
+      return "";
+    }
+  });
   const items = overview.checks;
   const cursor = overview.nextCursor;
   const visible = items.filter((item) =>
@@ -175,7 +182,14 @@ function ClassList({
             id="class-search"
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              try {
+                sessionStorage.setItem(searchKey, e.target.value);
+              } catch {
+                /* Search still works without browser storage. */
+              }
+            }}
             placeholder="클래스 이름, 학습 목표 또는 주소"
           />
         </div>
