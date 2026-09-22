@@ -21,6 +21,17 @@ export const reviewCheckSchema = z
   .strict();
 export const analysisSchema = z
   .object({
+    codeGuide: z
+      .array(
+        z
+          .object({
+            title: z.string().min(1).max(80),
+            evidence: z.string().min(1).max(1100),
+          })
+          .strict(),
+      )
+      .max(4)
+      .optional(),
     title: z.string().min(1).max(80),
     summary: z.string().min(1).max(700),
     questions: z

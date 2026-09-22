@@ -1,3 +1,4 @@
+import { buildCodeGuide } from "./jev-code-guide";
 import { learningEvidence } from "./project-learning-contract";
 import { workshopPlanSchema, validWorkshop } from "../ai-learning/project-workshop";
 import { AI_LESSONS } from "../ai-learning/catalog";
@@ -121,8 +122,9 @@ export async function analyzeProject(
   record?: RunRecorder,
 ) {
   const contract = page.repository ? learningEvidence(page.repository) : undefined;
+  const modelSchema = analysisSchema.omit({ codeGuide: true });
   const schema = contract
-    ? analysisSchema.extend({
+    ? modelSchema.extend({
         questions: analysisSchema.shape.questions.element
           .extend({
             evidence: description.trim()
@@ -132,7 +134,7 @@ export async function analyzeProject(
           .array()
           .length(5),
       })
-    : analysisSchema;
+    : modelSchema;
   const result = await call(
     schema,
     "analysis",
@@ -170,7 +172,14 @@ export async function analyzeProject(
     record,
     (page.captures ?? []).flatMap((p) => (p.screenshot ? [p.screenshot] : [])),
   );
-  return result;
+  const codeGuide = contract
+    ? await buildCodeGuide(
+        contract.snippets.map((s) => ({ ...s, evidence: contract.resolveEvidence(s.id) })),
+        result.summary,
+        signal,
+      )
+    : [];
+  return codeGuide.length ? { ...result, codeGuide } : result;
 }
 export async function assessProject(
   check: StoredCheck,

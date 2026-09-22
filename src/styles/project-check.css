@@ -915,3 +915,23 @@
   width: 100%;
   max-width: 100%;
 }
+
+.repository-reading-guide {
+  display: grid;
+  gap: 20px;
+  padding: clamp(16px, 3vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  min-width: 0;
+}
+.repository-reading-guide h3,
+.repository-reading-guide h4 {
+  margin: 0 0 12px;
+}
+.repository-reading-guide > div {
+  min-width: 0;
+}
+.repository-reading-guide summary {
+  overflow-wrap: anywhere;
+}

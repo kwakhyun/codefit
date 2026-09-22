@@ -17,7 +17,7 @@ import {
   Anchor,
 } from "@/components/ui/primitives";
 import { ProjectPracticeLinks } from "@/components/project-practice/practice-entry";
-import { ProjectRepository } from "./project-repository";
+import { ProjectRepository, SourceEvidence } from "./project-repository";
 import { ProjectCaptures } from "./project-captures";
 import { ProjectFollowUp } from "./project-follow-up";
 
@@ -574,8 +574,9 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 </div>
               )}
               <p className="project-help">
-                공개 화면 또는 코드 발췌와 입력한 내용을 OpenAI로 보내 분석합니다. 분석할 권한이
-                있는 프로젝트만 입력하고, 비밀키와 사용자 데이터는 제외해 주세요.
+                공개 화면 또는 코드 발췌와 입력한 내용을 OpenAI로 보내 분석합니다. 공개 코드 기반
+                분석은 TypeSafe AI로 먼저 읽을 코드 구간을 추천할 수 있습니다. 분석할 권한이 있는
+                프로젝트만 입력하고, 비밀키와 사용자 데이터는 제외해 주세요.
               </p>
               <Button
                 className="primary-button"
@@ -654,6 +655,26 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                 <ProjectCaptures check={check} scope={data.scope} />
                 {check.page.repository && (
                   <>
+                    {Boolean(check.analysis.codeGuide?.length) && (
+                      <section className="repository-reading-guide" aria-label="먼저 살펴볼 코드">
+                        <h3>먼저 살펴볼 코드</h3>
+                        <p className="project-help">
+                          파일을 처음부터 읽기 막막하다면 여기서 시작해 보세요. 수집한 코드에서 AI가
+                          고른 읽기 후보이며, 동작이나 안전성을 검증한 결과는 아닙니다.
+                        </p>
+                        {check.analysis.codeGuide?.map((item, index) => (
+                          <div key={item.evidence}>
+                            <h4>
+                              {index + 1}. {item.title}
+                            </h4>
+                            <SourceEvidence
+                              repository={check.page.repository!}
+                              evidence={item.evidence}
+                            />
+                          </div>
+                        ))}
+                      </section>
+                    )}
                     <ProjectRepository repository={check.page.repository} />
                     <ProjectPracticeLinks id={check.id} />
                   </>
