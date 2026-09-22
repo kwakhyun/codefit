@@ -10,7 +10,7 @@ export const dialogueReplySchema = z
   .object({
     alignment: z.enum(["supported", "uncertain", "conflict"]),
     explanation: z.string().min(1).max(700),
-    codeEvidence: z.string().max(200),
+    codeEvidence: z.string().max(1100),
     nextQuestion: z.string().max(350).nullable(),
     nextAction: z.string().min(1).max(350),
   })

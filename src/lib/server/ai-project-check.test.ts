@@ -7,6 +7,7 @@ vi.mock("openai", () => ({
   },
 }));
 import { analyzeProject, assessProject, discussProjectCode } from "./ai-project-check";
+import { projectDialogueSchema } from "../project-check/dialogue";
 beforeEach(() => {
   parse.mockReset();
   vi.stubEnv("OPENAI_PROJECT_MODEL", "");
@@ -204,7 +205,7 @@ it("rejects invented dialogue citations and requires code for a claimed conflict
   const reply = {
     alignment: "conflict",
     explanation: "코드와 다릅니다.",
-    codeEvidence: "main.py:L2 invented()",
+    evidenceId: "FAKE",
     nextQuestion: "왜 그럴까요?",
     nextAction: "로컬에서 확인하세요.",
   };
@@ -212,12 +213,90 @@ it("rejects invented dialogue citations and requires code for a claimed conflict
   await expect(
     discussProjectCode(check, 0, "설명", null, AbortSignal.timeout(5000)),
   ).rejects.toMatchObject({ status: 502 });
-  parse.mockResolvedValue({ output_parsed: { ...reply, codeEvidence: "" } });
+  parse.mockResolvedValue({ output_parsed: { ...reply, evidenceId: "NONE" } });
   await expect(
     discussProjectCode(check, 0, "설명", null, AbortSignal.timeout(5000)),
   ).rejects.toMatchObject({ status: 502 });
-  parse.mockResolvedValue({ output_parsed: { ...reply, codeEvidence: "main.py:L1 return True" } });
+  parse.mockResolvedValue({ output_parsed: { ...reply, evidenceId: "CFREF_1" } });
+  const result = await discussProjectCode(check, 0, "설명", null, AbortSignal.timeout(5000));
+  expect(result.alignment).toBe("conflict");
+  expect(result.codeEvidence).toBe("main.py:L1 return True");
+});
+
+it("abstains without a model call when code is absent and preserves the three-turn limit", async () => {
+  const check = { ...fixtureCheck, page: { ...fixtureCheck.page, repository: undefined } };
+  const first = await discussProjectCode(check, 0, "설명", null, AbortSignal.timeout(5000));
+  expect(first.alignment).toBe("uncertain");
+  expect(first.codeEvidence).toBe("");
+  const previous = {
+    id: "dialogue",
+    questionIndex: 0,
+    turns: Array.from({ length: 2 }, () => ({ answer: "설명", reply: first })),
+  };
+  const last = await discussProjectCode(check, 0, "설명", previous, AbortSignal.timeout(5000));
+  expect(last.nextQuestion).toBeNull();
+  expect(parse).not.toHaveBeenCalled();
+});
+
+it("restores a complete source block longer than 200 characters and keeps it serializable", async () => {
+  const lines = [
+    { number: 20, text: "export function authorize(currentAccount, storedRecord) {" },
+    {
+      number: 21,
+      text: '  if (storedRecord.owner !== currentAccount.id) throw new Error("forbidden");',
+    },
+    {
+      number: 22,
+      text: "  return { id: storedRecord.id, value: storedRecord.value, owner: storedRecord.owner };",
+    },
+    { number: 23, text: "}" },
+  ];
+  const check = {
+    ...fixtureCheck,
+    page: {
+      ...fixtureCheck.page,
+      text: "",
+      repository: {
+        name: "owner/repo",
+        commit: "a".repeat(40),
+        files: [{ path: "authorize.ts", lines, totalLines: 23, partial: true }],
+        links: [],
+        totalFiles: 1,
+        eligibleFiles: 1,
+        omittedFiles: 0,
+        truncatedTree: false,
+      },
+    },
+  };
+  const output = {
+    alignment: "supported",
+    explanation: "소유자를 확인합니다.",
+    evidenceId: "CFREF_1",
+    nextQuestion: null,
+    nextAction: "다른 계정의 접근 거부를 확인하세요.",
+  };
+  parse.mockResolvedValue({ output_parsed: output });
+  const reply = await discussProjectCode(
+    check,
+    0,
+    "소유자를 확인합니다.",
+    null,
+    AbortSignal.timeout(5000),
+  );
+  expect(reply.alignment).toBe("supported");
+  expect(reply.codeEvidence).toBe(
+    lines.map((l) => `authorize.ts:L${l.number} ${l.text}`).join("\n"),
+  );
+  expect(reply.codeEvidence.length).toBeGreaterThan(200);
   expect(
-    (await discussProjectCode(check, 0, "설명", null, AbortSignal.timeout(5000))).alignment,
-  ).toBe("conflict");
+    projectDialogueSchema.safeParse({
+      id: "dialogue",
+      questionIndex: 0,
+      turns: [{ answer: "설명", reply }],
+    }).success,
+  ).toBe(true);
+  parse.mockResolvedValue({ output_parsed: { ...output, evidenceId: "NONE" } });
+  await expect(
+    discussProjectCode(check, 0, "설명", null, AbortSignal.timeout(5000)),
+  ).rejects.toMatchObject({ status: 502 });
 });

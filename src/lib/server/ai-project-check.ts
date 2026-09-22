@@ -44,10 +44,10 @@ async function call<T, R>(
       : aiModel("project");
   return withAiTelemetry(
     "project",
-    phase === "assessment" || phase === "dialogue"
+    phase === "assessment"
       ? "2026-09-21.project.assessment.plan-v1"
       : phase === "dialogue"
-        ? "2026-09-21.project.dialogue.1"
+        ? "2026-09-22.project.dialogue.evidence-id.2"
         : "2026-09-21.project.analysis.repository.1",
     async (capture) => {
       const response = await new OpenAI({
@@ -227,30 +227,48 @@ export async function discussProjectCode(
   signal: AbortSignal,
   record?: RunRecorder,
 ) {
+  const turn = (previous?.turns.length ?? 0) + 1;
+  if (!check.page.repository?.files.some((f) => f.lines.length))
+    return {
+      alignment: "uncertain" as const,
+      explanation:
+        "이번 질문에 답할 코드 근거를 확보하지 못했습니다. 구현 여부나 실행 결과를 단정할 수 없습니다.",
+      codeEvidence: "",
+      nextQuestion: turn >= 3 ? null : "관련된 파일과 조건문을 확인한 뒤 설명해 주시겠어요?",
+      nextAction: "분석 범위를 확인하고 관련 코드를 포함해 다시 점검해 주세요.",
+    };
+  const evidence = learningEvidence(check.page.repository);
+  const modelSchema = dialogueReplySchema.omit({ codeEvidence: true }).extend({
+    evidenceId: z.enum(["NONE", ...evidence.snippets.map((snippet) => snippet.id)]),
+  });
   return call(
-    dialogueReplySchema,
+    modelSchema,
     "dialogue",
-    "Discuss this one code decision with its author in Korean. Compare their latest answer and prior turns to the supplied static code excerpts. alignment=supported means the explanation fits those excerpts, NOT that the product is safe. Use uncertain if omitted code or runtime evidence is needed, and conflict only for a concrete contradiction. Use at most 3 short sentences in explanation. Explain the supported part first if any, then the exact gap, without scolding language such as 현재 설명은 코드와 반대입니다. Use conversational, respectful Korean. codeEvidence must be a single exact substring of code beginning with path:Lnumber and a space; use empty string if no concrete source supports the assessment. A conflict MUST have codeEvidence. Never infer missing guards from partial excerpts. Ask one focused nextQuestion that adapts to the answer, without supplying the answer. Use null when enough is explained or this is turn 3. nextAction should name a small check or correction and observable regression test in a disposable local environment. Do not execute code or claim tests passed. Never generate or push a PR.",
+    "Discuss this one code decision with its author in Korean. Compare their latest answer and prior turns to the supplied static code excerpts. alignment=supported means the explanation fits those excerpts, NOT that the product is safe. Use uncertain if omitted code or runtime evidence is needed, and conflict only for a concrete contradiction. Use at most 3 short sentences in explanation. Explain the supported part first if any, then the exact gap, without scolding language such as 현재 설명은 코드와 반대입니다. Use conversational, respectful Korean. Choose evidenceId ONLY from the provided snippets, selecting the block with the actual decisive condition or operation. Use NONE only when no concrete source supports the assessment. supported and conflict MUST cite a snippet. Do not write file paths, code quotations or line numbers yourself. Never infer missing guards from partial excerpts. Ask one focused nextQuestion that adapts to the answer, without supplying the answer. Use null when enough is explained or this is turn 3. nextAction should name a small check or correction and observable regression test in a disposable local environment. Do not execute code or claim tests passed. Never generate or push a PR.",
     {
       question: check.analysis.questions[questionIndex],
       scope: check.page.collectionNote,
-      code: check.page.text,
+      snippets: evidence.snippets,
       priorTurns: previous?.turns ?? [],
       answer,
-      turn: (previous?.turns.length ?? 0) + 1,
+      turn,
     },
     2000,
     signal,
-    (reply) => {
+    ({ evidenceId, ...result }) => {
+      const reply = {
+        ...result,
+        codeEvidence: evidenceId === "NONE" ? "" : evidence.resolveEvidence(evidenceId),
+      };
       if (
         (reply.codeEvidence && !repositoryCitation(check.page.repository, reply.codeEvidence)) ||
-        (reply.alignment === "conflict" && !reply.codeEvidence)
+        (reply.alignment !== "uncertain" && !reply.codeEvidence)
       )
         throw new HttpError(
           502,
           "대화가 참조한 코드 줄을 확인하지 못했습니다. 다시 시도해 주세요.",
         );
-      if ((previous?.turns.length ?? 0) >= 2) reply.nextQuestion = null;
+      if (turn >= 3) reply.nextQuestion = null;
       return reply;
     },
     record,
