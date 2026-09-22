@@ -15,3 +15,6 @@ CLAUDE.md
 
 # Machine-generated measurement outputs retain their generator formatting.
 /reports/**/*.json
+
+# Third-party installed skills retain upstream formatting and lock hashes.
+/.agents/skills/
