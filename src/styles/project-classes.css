@@ -106,6 +106,26 @@
   flex-wrap: wrap;
   gap: 12px;
 }
+.class-hero > .class-actions > .ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  white-space: nowrap;
+}
+.class-hero > .class-actions > .ui-button > svg {
+  flex-shrink: 0;
+}
+@media (max-width: 480px) {
+  .class-hero > .class-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .class-hero > .class-actions > .ui-button {
+    width: 100%;
+  }
+}
 .class-section-heading {
   justify-content: space-between;
   gap: 20px;
