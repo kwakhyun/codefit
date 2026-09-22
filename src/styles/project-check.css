@@ -652,6 +652,24 @@
 .repository-evidence {
   margin-top: 16px;
 }
+.repository-evidence > summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  list-style: none;
+  overflow-wrap: anywhere;
+}
+.repository-evidence > summary::-webkit-details-marker {
+  display: none;
+}
+.repository-evidence > summary > svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.repository-evidence[open] > summary > svg {
+  transform: rotate(90deg);
+}
 .repository-evidence a {
   overflow-wrap: anywhere;
 }

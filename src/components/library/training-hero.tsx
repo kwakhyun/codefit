@@ -78,8 +78,7 @@ export function TrainingHero({
               <span className="eyebrow">{profile.name}</span>
               <h1 tabIndex={-1}>{profile.title}</h1>
               <p>
-                공개 저장소 링크를 입력하면 코드에 맞는 질문과 연습을 준비해 드려요.
-                <br />
+                공개 저장소 링크를 입력하면 코드에 맞는 질문과 연습을 준비해 드려요. <br />
                 설계 질문에 답하고, 코드를 읽으며 서비스 동작 원리를 익혀보세요.
               </p>
               <ProjectQuickStart key={scope} scope={scope} embedded />
@@ -158,8 +157,7 @@ export function TrainingHero({
               <span className="eyebrow">{profile.name}</span>
               <h1 tabIndex={-1}>{profile.title}</h1>
               <p>
-                연습하고 싶은 분야의 문제를 골라 풀어보세요.
-                <br />
+                연습하고 싶은 분야의 문제를 골라 풀어보세요. <br />
                 AI로 원하는 주제의 문제를 만들 수도 있어요.
               </p>
               <div className="workspace-inline-links">

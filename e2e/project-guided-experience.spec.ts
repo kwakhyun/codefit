@@ -159,6 +159,21 @@ for (const width of [1440, 390]) {
     await page.goto(`/project-practice?check=${check.id}&mode=service`);
     await expect(page.getByRole("region", { name: "서비스 실습 조건" })).toBeVisible();
     await expect(page.locator(".practice-sources .repository-code")).not.toBeVisible();
+    const sourceSummary = page.locator(".practice-sources summary").first();
+    await expect(sourceSummary.locator("svg")).toBeVisible();
+    const gutters = await sourceSummary.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft].map(
+        parseFloat,
+      );
+    });
+    expect(gutters.every((value) => value >= 12)).toBe(true);
+    expect(
+      await page
+        .locator(".practice-stages > button")
+        .first()
+        .evaluate((element) => getComputedStyle(element).justifyContent),
+    ).toBe("flex-start");
     for (const theme of ["light", "dark"]) {
       await page.evaluate((value) => {
         document.documentElement.dataset.theme = value;

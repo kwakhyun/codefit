@@ -522,6 +522,7 @@
 .practice-stages > button {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 12px;
   min-width: 0;
   padding: 16px;
@@ -549,8 +550,21 @@
   line-height: 1.6;
 }
 .practice-stage-number {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   flex-shrink: 0;
   font: 700 1rem var(--mono);
+}
+.practice-stages > button:disabled {
+  opacity: 1;
+  color: var(--muted);
+}
+.practice-stages > button[aria-current] .practice-stage-number {
+  border-color: currentColor;
 }
 .practice-stage-heading,
 .practice-study-work,

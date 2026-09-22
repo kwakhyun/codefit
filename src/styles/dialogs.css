@@ -135,6 +135,11 @@
 }
 
 .difficulty-options > button {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  justify-content: stretch;
+  align-content: stretch;
+  gap: 8px;
   padding: 12px 10px;
   border: 1px solid light-dark(var(--light-line), #444444);
   background: light-dark(var(--light-canvas), #1a1a1a);
@@ -343,6 +348,11 @@
   gap: 17px;
   font-size: var(--text-ui);
   color: light-dark(var(--light-muted), #cccccc);
+}
+.settings-content > .theme-select {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
 }
 
 .font-setting > strong {

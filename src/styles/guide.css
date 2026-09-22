@@ -536,6 +536,7 @@ body:has(.guide-panel[open]) {
   padding: 10px 34px 10px 12px;
 }
 .guide-intro-hint > .ui-button:first-child {
+  display: block;
   min-height: 44px;
   padding: 0;
   border: 0;

@@ -4,6 +4,8 @@ for (const width of [1024, 1440]) {
   test(`desktop navigation stays consistent at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
+    await expect(page.getByRole("button", { name: "메뉴 열기", exact: true })).toBeHidden();
+    await expect(page.locator(".sidebar-close")).toBeHidden();
     const nav = page.getByRole("navigation", { name: "작업 공간 메뉴", exact: true });
     for (const name of [
       "내 프로젝트",

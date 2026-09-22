@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { GitBranch, FileCode2, ArrowRight, ExternalLink } from "lucide-react";
+import { GitBranch, FileCode2, ArrowRight, ExternalLink, ChevronRight } from "lucide-react";
 import {
   Button,
   Disclosure,
@@ -64,8 +64,11 @@ export function SourceEvidence({
   return (
     <Disclosure className="repository-evidence" open={defaultOpen || undefined}>
       <DisclosureSummary>
-        근거 코드: {citation.file.path} ({citation.line}
-        {citation.endLine > citation.line ? `–${citation.endLine}` : ""}줄)
+        <ChevronRight size={18} aria-hidden="true" />
+        <span>
+          근거 코드: {citation.file.path} ({citation.line}
+          {citation.endLine > citation.line ? `–${citation.endLine}` : ""}줄)
+        </span>
       </DisclosureSummary>
       <CodeExcerpt file={citation.file} focus={citation.line} end={citation.endLine} />
       <Anchor href={citation.url} target="_blank" rel="noreferrer">

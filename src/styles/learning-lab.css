@@ -23,6 +23,7 @@
 .lab-steps button {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 12px;
   padding: 20px 18px;
   background: transparent;

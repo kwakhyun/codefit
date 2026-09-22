@@ -17,11 +17,14 @@ body {
     box-shadow var(--motion-fast),
     opacity var(--motion-fast);
 }
-.ui-button {
+/* Defaults must not override component grids or responsive display: none rules. */
+:where(.ui-button) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   vertical-align: middle;
+}
+.ui-button {
   min-height: var(--control-size);
   padding: 10px 16px;
   border: 1px solid var(--line);
@@ -45,7 +48,6 @@ body {
   opacity: 0.48;
 }
 .ui-button.icon-button {
-  display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
@@ -121,7 +123,7 @@ body {
   font-size: var(--text-small);
   letter-spacing: 0.02em;
 }
-.ui-input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.ui-input:where(:not([type="checkbox"]):not([type="radio"]):not([type="range"])),
 .ui-textarea,
 .ui-native-select,
 .ui-select-trigger {
@@ -146,9 +148,9 @@ body {
 .ui-label {
   line-height: 1.7;
 }
-.ui-disclosure-summary {
+:where(.ui-disclosure-summary) {
   cursor: pointer;
-  padding-block: 10px;
+  padding: 12px 16px;
   line-height: 1.7;
 }
 .ui-disclosure[open] > :not(summary) {

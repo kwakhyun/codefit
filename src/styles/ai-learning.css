@@ -356,6 +356,7 @@
 }
 .ai-breadcrumb {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 10px;
   margin: 28px 0;
@@ -397,6 +398,7 @@
 .ai-lesson-sidebar button {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 9px;
   width: 100%;
   text-align: left;
@@ -406,6 +408,9 @@
   border-radius: 8px;
   color: var(--muted);
   background: var(--surface);
+}
+.ai-learning-page .ai-lesson-sidebar button:disabled {
+  opacity: 1;
 }
 .ai-lesson-sidebar button[aria-current="step"] {
   border-color: light-dark(var(--light-strong-line), #9e8ac5);

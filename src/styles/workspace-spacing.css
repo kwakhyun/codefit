@@ -75,6 +75,11 @@
   margin-top: 0;
 }
 @media (max-width: 650px) {
+  .type-filters .ui-button.ui-toggle:not(.icon-button),
+  .segmented .ui-button.ui-toggle:not(.icon-button),
+  .difficulty-options .ui-button.ui-toggle:not(.icon-button) {
+    padding-inline: 8px;
+  }
   .project-page .project-panel,
   .practice-exercise,
   .practice-complete,

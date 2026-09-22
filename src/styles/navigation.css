@@ -21,6 +21,7 @@
 }
 .site-navigation a {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   min-height: 44px;
   padding: 8px 14px;

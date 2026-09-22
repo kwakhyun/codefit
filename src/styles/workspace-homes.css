@@ -440,10 +440,12 @@
 .header-quick-actions {
   display: grid;
   gap: 12px;
+  padding: 20px;
 }
 .header-quick-actions > button {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 14px;
   min-height: 52px;
   padding: 14px 18px;

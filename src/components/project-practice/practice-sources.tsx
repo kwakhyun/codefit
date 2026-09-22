@@ -1,4 +1,5 @@
 import { Anchor, Disclosure, DisclosureSummary } from "@/components/ui/primitives";
+import { ChevronRight } from "lucide-react";
 import { CodeExcerpt } from "@/components/project-check/project-repository";
 import {
   repositoryCitation,
@@ -32,7 +33,10 @@ export function PracticeSources({
             className="repository-evidence"
             open={(expanded && index === 0) || undefined}
           >
-            <DisclosureSummary>근거 코드: {path}</DisclosureSummary>
+            <DisclosureSummary>
+              <ChevronRight size={18} aria-hidden="true" />
+              <span>근거 코드: {path}</span>
+            </DisclosureSummary>
             <CodeExcerpt file={{ ...file, lines }} />
             <div className="practice-origin">
               {[...new Set(refs.map((c) => c.url))].map((url) => (

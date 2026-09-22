@@ -8,11 +8,12 @@
   display: grid;
   gap: 12px;
 }
-.project-ai-entry .ui-label {
+.learn-page .project-ai-entry .ui-label {
   flex-direction: row;
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 0;
 }
 .project-ai-entry p {
   font-size: 14px;
@@ -65,6 +66,20 @@
   gap: 14px;
   padding-top: 16px;
   border-top: 1px solid var(--line);
+}
+.project-ai-connect > :is(h2, p),
+.project-ai-connect form > p,
+.learn-page .project-ai-connect .ui-label {
+  margin-block: 0;
+}
+.learn-page .project-ai-connect .ui-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+.project-ai-connect .ui-label + :is(input, select, textarea) {
+  margin-top: -6px;
 }
 .project-ai-source {
   display: flex;
