@@ -6,6 +6,7 @@ const { current, getStore } = vi.hoisted(() => ({ current: vi.fn(), getStore: vi
 vi.mock("./session", () => ({ session: current }));
 vi.mock("./database", () => ({ getStore }));
 import { GET as versions } from "../../app/api/projects/[id]/versions/route";
+import { DELETE as cancelAnalysis } from "../../app/api/project-check/[id]/status/route";
 import { GET, PATCH, DELETE } from "../../app/api/projects/[id]/route";
 let store: SqliteStore;
 const id = randomUUID(),
@@ -68,4 +69,25 @@ it("limits version history to an owned class", async () => {
     headers: { "x-codefit-workspace": "user:other" },
   });
   expect((await versions(other, context)).status).toBe(404);
+});
+
+it("cancellation endpoint enforces workspace ownership and does not delete completed classes", async () => {
+  expect((await cancelAnalysis(request("DELETE"), context)).status).toBe(200);
+  expect(await store.queries.projectChecks.get(owner, id)).not.toBeNull();
+  const pendingId = randomUUID();
+  store.startJob(owner, pendingId, "project-analysis", "pending");
+  const pendingContext = { params: Promise.resolve({ id: pendingId }) };
+  current.mockResolvedValue({ owner: "user:other", scope: "user:other", user: { id: "other" } });
+  expect((await cancelAnalysis(request("DELETE"), pendingContext)).status).toBe(409);
+  const otherRequest = new Request("https://codefit.test/api/project-check/status", {
+    method: "DELETE",
+    headers: { "x-codefit-workspace": "user:other" },
+  });
+  expect((await cancelAnalysis(otherRequest, pendingContext)).status).toBe(404);
+  expect(await store.queries.projectChecks.analysisStatus(owner, pendingId)).toEqual({
+    status: "pending",
+  });
+  current.mockResolvedValue({ owner, scope: owner, user: { id: "classes" } });
+  const response = await cancelAnalysis(request("DELETE"), pendingContext);
+  expect(await response.json()).toEqual({ status: "cancelled" });
 });

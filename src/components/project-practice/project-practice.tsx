@@ -1,4 +1,5 @@
 "use client";
+import { useGenerationRevision } from "@/hooks/use-generation-revision";
 import { startProjectAnalysis } from "@/lib/project-analysis-tasks";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -93,6 +94,7 @@ function PracticeWorkspace({
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [reload, setReload] = useState(0);
+  const generationRevision = useGenerationRevision();
   const [checks, setChecks] = useState(data.checks);
   const [cursor, setCursor] = useState(data.nextCursor);
   const [paging, setPaging] = useState(false);
@@ -128,7 +130,7 @@ function PracticeWorkspace({
         if (!controller.signal.aborted) setError(errorMessage(e));
       });
     return () => controller.abort();
-  }, [id, data.scope, endpoint, reload]);
+  }, [id, data.scope, endpoint, reload, generationRevision]);
   function select(value: string) {
     const target = new URL(window.location.href);
     if (value) target.searchParams.set("check", value);

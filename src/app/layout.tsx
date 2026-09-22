@@ -23,7 +23,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ThemeProvider>
           <DesktopFrame>{children}</DesktopFrame>
           <GuideWidget />
-          <AnalysisActivity />
+          <Suspense fallback={null}>
+            <AnalysisActivity />
+          </Suspense>
           <Suspense fallback={null}>
             <RouteFeedback />
           </Suspense>

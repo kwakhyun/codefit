@@ -80,6 +80,13 @@ export function Generator({
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [busy]);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
   async function generate(e: FormEvent) {
     e.preventDefault();
     if (busy) return;
@@ -94,7 +101,7 @@ export function Generator({
         body: { domain, language, difficulty, kind, topic, requestId: requestRef.current.id },
       });
       requestRef.current = null;
-      onCreated(problem);
+      if (alive.current) onCreated(problem);
     } catch (e) {
       setError(errorMessage(e));
     } finally {

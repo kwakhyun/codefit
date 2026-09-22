@@ -367,3 +367,27 @@ it("executes a pre-reserved background analysis once and exposes its completed s
   expect(ai.analyze).toHaveBeenCalledTimes(1);
   expect((await store.queries.projectChecks.usage("user:a")).analysis.remaining).toBe(4);
 });
+
+it("aborts the provider after cancellation and never saves its result", async () => {
+  const i = input();
+  let started!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  ai.analyze.mockImplementation(
+    (_page, _description, signal: AbortSignal) =>
+      new Promise((_resolve, reject) => {
+        signal.addEventListener("abort", () => reject(new Error("cancelled")), { once: true });
+        started();
+      }),
+  );
+  const result = new ProjectCheckService(store, ai).create("user:a", "network", i, signal());
+  const rejected = expect(result).rejects.toThrow("cancelled");
+  await ready;
+  await store.queries.projectChecks.cancelAnalysis("user:a", i.requestId);
+  await rejected;
+  expect(await store.queries.projectChecks.get("user:a", i.requestId)).toBeNull();
+  expect(await store.queries.projectChecks.analysisStatus("user:a", i.requestId)).toEqual({
+    status: "cancelled",
+  });
+});

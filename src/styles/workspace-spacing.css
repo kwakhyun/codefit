@@ -101,3 +101,170 @@
     gap: 20px;
   }
 }
+
+/* Keep text rhythm explicit inside project cards and disclosure content. */
+.class-card-link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+.class-delete-button {
+  align-self: flex-end;
+}
+.class-loading-card:hover {
+  transform: none;
+  border-color: var(--line);
+}
+.class-loading-lines {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+.class-loading-lines span {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--line);
+}
+.class-loading-lines span:last-child {
+  width: 65%;
+}
+.class-toolbar label {
+  display: block;
+  margin-bottom: 10px;
+}
+.class-empty > :is(h2, p),
+.class-edit > :is(p, label) {
+  margin-block: 0;
+}
+.class-edit .class-actions {
+  margin-top: 4px;
+}
+.practice-reading-guide > strong,
+.practice-glossary > strong {
+  display: block;
+  margin-bottom: 10px;
+}
+.practice-reading-guide > ol,
+.practice-glossary > dl {
+  margin-block: 10px 0;
+}
+.question-context section + section {
+  margin-top: 20px;
+}
+@media (max-width: 650px) {
+  .class-list-card {
+    padding: 20px;
+  }
+  .class-card-link {
+    gap: 16px;
+  }
+}
+
+.analysis-activity-item {
+  padding: 18px 54px 18px 18px;
+}
+.ui-button.analysis-activity-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+}
+.ui-button.analysis-activity-dismiss:hover {
+  background: var(--line);
+  color: var(--text);
+}
+.ui-button.analysis-activity-dismiss:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.generation-activity {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.class-thumbnail,
+.class-track-preview {
+  width: 100%;
+  aspect-ratio: 1.9;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--line);
+}
+.class-thumbnail img,
+.class-track-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.class-thumbnail .theme-picture,
+.class-track-preview .theme-picture {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.class-tracks > .ui-card {
+  gap: 16px;
+}
+.class-tracks .class-track-preview {
+  margin-bottom: 4px;
+}
+@media (pointer: coarse) {
+  .ui-button.analysis-activity-dismiss {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
+/* Modal headers and content own their gutters; avoid doubled margins between them. */
+.modal-heading {
+  gap: 16px;
+  margin-bottom: 0;
+  padding: 14px 20px;
+}
+.modal-heading > .mono {
+  min-width: 0;
+  line-height: 1.6;
+}
+.modal > .class-edit {
+  padding: 24px;
+}
+.ui-button.ui-toggle:not(.icon-button) {
+  padding-block: 10px;
+  line-height: 1.5;
+}
+.class-versions > :is(h2, h3) + p {
+  margin-top: 12px;
+}
+.class-versions > p + ul {
+  margin-top: 20px;
+}
+.analysis-activity-item > .ui-button:not(.analysis-activity-dismiss) {
+  margin-top: 8px;
+}
+@media (max-width: 650px) {
+  .modal-heading {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  .modal > .class-edit {
+    padding: 20px;
+  }
+}

@@ -55,12 +55,22 @@ export class ProjectCheckStore {
     );
     if (!row) return null;
     if (row.state === "done") return { status: "done" as const };
+    if (row.state === "cancelled") return { status: "cancelled" as const };
     return {
       status:
         row.state === "pending" && Number(row.expires) > Date.now()
           ? ("pending" as const)
           : ("failed" as const),
     };
+  }
+  async cancelAnalysis(owner: string, id: string) {
+    await this.query(
+      "UPDATE jobs SET state='cancelled',expires=0 WHERE owner=? AND id=? AND kind='project-analysis' AND state='pending' RETURNING id",
+      [owner, id],
+    );
+    const status = await this.analysisStatus(owner, id);
+    if (!status) throw new HttpError(404, "이 계정에서 분석 요청을 찾지 못했습니다.");
+    return status;
   }
   async get(owner: string, id: string): Promise<StoredCheck | null> {
     const [row] = await this.query(

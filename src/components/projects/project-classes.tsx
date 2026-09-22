@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BookOpen, ArrowRight, FolderOpen, Pencil, Trash2, RotateCcw } from "lucide-react";
+import { ArrowRight, FolderOpen, Pencil, Trash2, RotateCcw, LoaderCircle } from "lucide-react";
 import { ApiError, api, dateLabel, errorMessage } from "@/lib/client-api";
 import type { CheckListItem, CheckOverview } from "@/lib/project-check/types";
 import type { ClassMetadata, ProjectClassDetail } from "@/lib/project-check/project-class";
@@ -21,7 +21,16 @@ import { RenewProject } from "@/components/project-check/renew-project";
 import { useProjectSearch } from "@/hooks/use-project-search";
 import { reviewStorageKey } from "@/hooks/use-project-review";
 import { ProjectVersions } from "./project-versions";
+import { ProjectThumbnail } from "./project-thumbnail";
+import { ThemedImage } from "@/components/theme/themed-image";
 import { ProjectReview } from "./project-review";
+import {
+  analysisSnapshot,
+  analysisServerSnapshot,
+  subscribeAnalysis,
+  dismissAnalysis,
+} from "@/lib/project-analysis-tasks";
+import { CancelAnalysis } from "@/components/project-check/cancel-analysis";
 function nameOf(item: CheckListItem) {
   return item.classMetadata?.name || item.analysis.title;
 }
@@ -85,9 +94,11 @@ export function ProjectClasses() {
     };
     window.addEventListener("focus", refresh);
     window.addEventListener("codefit:backup-imported", refresh);
+    window.addEventListener("codefit:analysis-changed", refresh);
     return () => {
       window.removeEventListener("focus", refresh);
       window.removeEventListener("codefit:backup-imported", refresh);
+      window.removeEventListener("codefit:analysis-changed", refresh);
     };
   }, []);
   async function more() {
@@ -145,7 +156,13 @@ export function ProjectClasses() {
             onChanged={() => setRevision((v) => v + 1)}
           />
         ) : (
-          <ClassList key={overview.scope} overview={overview} busy={loading} more={more} />
+          <ClassList
+            key={overview.scope}
+            overview={overview}
+            busy={loading}
+            more={more}
+            onChanged={() => setRevision((v) => v + 1)}
+          />
         ))}
     </>
   );
@@ -154,11 +171,36 @@ function ClassList({
   overview,
   busy,
   more,
+  onChanged,
 }: {
   overview: CheckOverview;
   busy: boolean;
   more: () => void;
+  onChanged: () => void;
 }) {
+  const tasks = useSyncExternalStore(subscribeAnalysis, analysisSnapshot, analysisServerSnapshot);
+  const [deleting, setDeleting] = useState<CheckListItem | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  async function remove() {
+    if (!deleting || removing) return;
+    setRemoving(true);
+    setDeleteError("");
+    try {
+      await api(`/api/projects/${deleting.id}`, { method: "DELETE", scope: overview.scope });
+      dismissAnalysis(deleting.id);
+      try {
+        localStorage.removeItem(reviewStorageKey(overview.scope, deleting.id));
+      } catch {}
+      setDeleting(null);
+      setQuery("");
+      onChanged();
+    } catch (e) {
+      setDeleteError(errorMessage(e));
+    } finally {
+      setRemoving(false);
+    }
+  }
   const searchKey = `codefit-project-search:${overview.scope}`;
   const [query, setQuery] = useState(() => {
     try {
@@ -172,6 +214,13 @@ function ClassList({
   const items = searching ? (search.page?.checks ?? []) : overview.checks;
   const cursor = searching ? search.page?.nextCursor : overview.nextCursor;
   const visible = items;
+  const active = tasks.filter(
+    (task) =>
+      task.scope === overview.scope &&
+      ["pending", "disconnected"].includes(task.status) &&
+      !overview.checks.some((item) => item.id === task.id) &&
+      (!searching || task.label.toLowerCase().includes(query.trim().toLowerCase())),
+  );
   const pending = searching ? search.busy : busy;
   return (
     <>
@@ -213,10 +262,10 @@ function ClassList({
           <Button onClick={search.retry}>검색 다시 시도</Button>
         </Card>
       )}
-      {searching && !search.busy && !search.error && !items.length && (
+      {searching && !search.busy && !search.error && !items.length && !active.length && (
         <p role="status">검색 결과가 없습니다. 다른 이름이나 주소로 검색해 보세요.</p>
       )}
-      {!items.length && !searching ? (
+      {!items.length && !active.length && !searching ? (
         <Card className="class-empty">
           <FolderOpen size={36} />
           <h2>내 프로젝트가 나만의 수업이 됩니다</h2>
@@ -230,28 +279,78 @@ function ClassList({
         </Card>
       ) : (
         <div className="class-grid">
-          {visible.map((item) => (
-            <AppLink className="class-list-card" href={`/projects?class=${item.id}`} key={item.id}>
+          {active.map((task) => (
+            <Card className="class-list-card class-loading-card" key={task.id}>
               <span className="class-card-icon">
-                <BookOpen size={24} />
+                <LoaderCircle className="analysis-spinner" size={24} aria-hidden="true" />
               </span>
-              <div>
-                <Badge>
-                  {item.page.source === "repository" ? "코드 기반 클래스" : "서비스 점검 클래스"}
-                </Badge>
-                <h2>{nameOf(item)}</h2>
-                <p>{item.classMetadata?.goal || "저장한 질문과 학습을 한곳에서 이어가세요."}</p>
-                <small>
-                  {new URL(item.page.url).hostname} · {dateLabel(item.createdAt)}
-                </small>
+              <div role="status">
+                <Badge>{task.status === "pending" ? "분석 중" : "연결 확인 중"}</Badge>
+                <h2>{task.label}</h2>
+                <p>프로젝트를 읽고 학습 클래스를 준비하고 있습니다. 완료되면 이곳에 표시됩니다.</p>
               </div>
-              <span className="class-open">
-                클래스 열기 <ArrowRight size={18} />
-              </span>
-            </AppLink>
+              <div className="class-loading-lines" aria-hidden="true">
+                <span />
+                <span />
+              </div>
+              <CancelAnalysis task={task} />
+            </Card>
+          ))}
+          {visible.map((item) => (
+            <article className="class-list-card" key={item.id}>
+              <AppLink className="class-card-link" href={`/projects?class=${item.id}`}>
+                <ProjectThumbnail id={item.id} url={item.page.url} scope={overview.scope} />
+                <div>
+                  <Badge>
+                    {item.page.source === "repository" ? "코드 기반 클래스" : "서비스 점검 클래스"}
+                  </Badge>
+                  <h2>{nameOf(item)}</h2>
+                  <p>{item.classMetadata?.goal || "저장한 질문과 학습을 한곳에서 이어가세요."}</p>
+                  <small>
+                    {new URL(item.page.url).hostname} · {dateLabel(item.createdAt)}
+                  </small>
+                </div>
+                <span className="class-open">
+                  클래스 열기 <ArrowRight size={18} />
+                </span>
+              </AppLink>
+              <Button
+                className="class-delete-button"
+                aria-label={`${nameOf(item)} 클래스 삭제`}
+                onClick={() => {
+                  setDeleting(item);
+                  setDeleteError("");
+                }}
+              >
+                <Trash2 size={17} /> 클래스 삭제
+              </Button>
+            </article>
           ))}
         </div>
       )}
+      <Modal
+        open={!!deleting}
+        busy={removing}
+        onClose={() => setDeleting(null)}
+        title="프로젝트 클래스를 삭제할까요?"
+      >
+        <div className="class-edit">
+          <p>
+            <strong>{deleting && nameOf(deleting)}</strong>의 점검, 답변, 실습과 학습 기록이 함께
+            삭제됩니다. 삭제한 기록은 복구할 수 없습니다.
+          </p>
+          <p>원본 저장소와 서비스는 삭제되지 않습니다.</p>
+          {deleteError && <p role="alert">{deleteError}</p>}
+          <div className="class-actions">
+            <Button disabled={removing} onClick={() => setDeleting(null)}>
+              취소
+            </Button>
+            <Button disabled={removing} onClick={() => void remove()}>
+              {removing ? "삭제 중…" : "클래스 삭제하기"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
       {cursor && (
         <Button disabled={pending} onClick={searching ? search.more : more}>
           {pending ? "불러오는 중…" : searching ? "검색 결과 더 보기" : "이전 프로젝트 더 보기"}
@@ -327,6 +426,7 @@ function ClassDetail({
       try {
         localStorage.removeItem(reviewStorageKey(scope, id));
       } catch {}
+      dismissAnalysis(id);
       onChanged();
       router.replace("/projects");
     } catch (e) {
@@ -356,6 +456,7 @@ function ClassDetail({
     aiDone = workshop?.responses.filter(Boolean).length ?? 0;
   const tracks = [
     {
+      image: "/images/experience/project.webp",
       title: "프로젝트 점검",
       description: check.review
         ? "내 설명과 피드백을 다시 확인하세요."
@@ -368,6 +469,7 @@ function ClassDetail({
     ...(check.page.repository
       ? [
           {
+            image: "/images/experience/code.webp",
             title: "코드 이해 훈련",
             description: practice
               ? "실제 코드의 조건과 결과를 따라갑니다."
@@ -378,6 +480,7 @@ function ClassDetail({
             ready: !!practice,
           },
           {
+            image: "/images/experience/principles.webp",
             title: "서비스 동작 실습",
             description: "사용자 행동이 데이터와 서비스에 미치는 영향을 확인합니다.",
             href: `/project-practice?check=${id}&mode=service`,
@@ -386,6 +489,7 @@ function ClassDetail({
             ready: !!practice,
           },
           {
+            image: "/images/personas/persona-ai.webp",
             title: "AI 활용 학습",
             description:
               workshop && !workshop.plan.topics.length
@@ -444,6 +548,9 @@ function ClassDetail({
         <section aria-label="프로젝트 학습 과정" className="class-tracks">
           {tracks.map((track) => (
             <Card key={track.title}>
+              <div className="class-track-preview" aria-hidden="true">
+                <ThemedImage src={track.image} alt="" width={800} height={420} />
+              </div>
               <h3>{track.title}</h3>
               <p>{track.description}</p>
               {track.ready && track.total > 0 && (

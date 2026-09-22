@@ -13,3 +13,13 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     return failure(error);
   }
 }
+
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const { owner } = await projectMember(request);
+    const id = z.uuid().parse((await context.params).id);
+    return json(await (await getStore()).queries.projectChecks.cancelAnalysis(owner, id));
+  } catch (error) {
+    return failure(error);
+  }
+}

@@ -316,7 +316,18 @@ export class ProjectCheckService {
     if (claim.state === "done") return publicCheck(JSON.parse(claim.result));
     if (claim.state === "pending")
       throw new HttpError(409, "같은 분석이 진행 중입니다. 잠시 후 기록을 새로고침해 주세요.");
+    const cancellation = new AbortController();
+    signal = AbortSignal.any([signal, cancellation.signal]);
+    const checkCancellation = async () => {
+      const status = await this.store.queries.projectChecks.analysisStatus(owner, input.requestId);
+      if (status?.status !== "pending") cancellation.abort();
+      signal.throwIfAborted();
+    };
+    const timer = setInterval(() => {
+      void checkCancellation().catch(() => cancellation.abort());
+    }, 1000);
     try {
+      await checkCancellation();
       if ((await this.store.queries.projectChecks.usage(owner)).analysis.remaining === 0)
         throw new HttpError(429, "새 분석 이용 한도에 도달했습니다. 초기화 시간을 확인해 주세요.");
       if (
@@ -341,11 +352,12 @@ export class ProjectCheckService {
           422,
           "로그인 문제로 판단한 것은 아닙니다. 이 페이지는 자바스크립트 실행 후 내용을 보여주거나 공개 소개 정보가 부족해, 현재 수집 방식으로 서비스 내용을 충분히 읽지 못했습니다. 아래에 주요 기능과 구현 방식을 120자 이상 적고 다시 분석해 주세요. AI 분석 횟수는 차감되지 않았습니다.",
         );
-      signal.throwIfAborted();
+      await checkCancellation();
       await this.consume(owner, network, "analysis");
       const analysis = await this.ai.analyze(page, input.description, signal, (run) =>
         this.store.queries.recordAiRun(owner, run),
       );
+      await checkCancellation();
       const result: StoredCheck = {
         id: input.requestId,
         page,
@@ -358,6 +370,8 @@ export class ProjectCheckService {
     } catch (error) {
       await this.store.failJob(claim.lease);
       throw error;
+    } finally {
+      clearInterval(timer);
     }
   }
   async revise(owner: string, id: string, requestId: string) {

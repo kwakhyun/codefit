@@ -31,3 +31,34 @@ it("reports only the owner's analysis state, including failure, expiry and compl
     store.db.close();
   }
 });
+
+it("cancels only owned pending work and rejects late completion without changing finished classes", async () => {
+  const store = new SqliteStore(":memory:");
+  try {
+    const id = fixtureCheck.id;
+    const claim = store.startJob("user:a", id, "project-analysis", "input");
+    if (claim.state !== "new") throw new Error();
+    await expect(store.queries.projectChecks.cancelAnalysis("user:b", id)).rejects.toThrow();
+    expect(await store.queries.projectChecks.analysisStatus("user:a", id)).toEqual({
+      status: "pending",
+    });
+    expect(await store.queries.projectChecks.cancelAnalysis("user:a", id)).toEqual({
+      status: "cancelled",
+    });
+    expect(store.failJob(claim.lease)).toBe(false);
+    await expect(store.queries.projectChecks.complete(claim.lease, fixtureCheck)).rejects.toThrow();
+    expect(await store.queries.projectChecks.cancelAnalysis("user:a", id)).toEqual({
+      status: "cancelled",
+    });
+    expect(await store.queries.projectChecks.get("user:a", id)).toBeNull();
+    const retry = store.startJob("user:a", id, "project-analysis", "input");
+    if (retry.state !== "new") throw new Error();
+    await store.queries.projectChecks.complete(retry.lease, fixtureCheck);
+    expect(await store.queries.projectChecks.cancelAnalysis("user:a", id)).toEqual({
+      status: "done",
+    });
+    expect(await store.queries.projectChecks.get("user:a", id)).not.toBeNull();
+  } finally {
+    store.db.close();
+  }
+});

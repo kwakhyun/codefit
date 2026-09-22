@@ -1,4 +1,5 @@
 "use client";
+import { useGenerationRevision } from "@/hooks/use-generation-revision";
 import { startProjectAnalysis } from "@/lib/project-analysis-tasks";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -80,6 +81,7 @@ function Workspace({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState("");
   const [reload, setReload] = useState(0);
+  const generationRevision = useGenerationRevision();
   const [checks, setChecks] = useState(overview.checks);
   const [cursor, setCursor] = useState(overview.nextCursor);
   const lock = useRef(false);
@@ -111,7 +113,7 @@ function Workspace({
         if (!abort.signal.aborted) setError(errorMessage(e));
       });
     return () => abort.abort();
-  }, [id, overview.scope, reload]);
+  }, [id, overview.scope, reload, generationRevision]);
   async function analyze(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     if (lock.current) return;

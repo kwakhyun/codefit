@@ -18,6 +18,10 @@ body {
     opacity var(--motion-fast);
 }
 .ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
   min-height: var(--control-size);
   padding: 10px 16px;
   border: 1px solid var(--line);
@@ -40,11 +44,13 @@ body {
   cursor: not-allowed;
   opacity: 0.48;
 }
-:where(.ui-button.icon-button) {
+.ui-button.icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px;
+  padding: 0;
+  min-width: var(--control-size);
+  flex-shrink: 0;
 }
 .ui-button.primary-button,
 .ui-link.primary-button {

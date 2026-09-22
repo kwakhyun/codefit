@@ -12,7 +12,7 @@ const taskSchema = z.object({
     .max(300)
     .regex(/^\/(projects|project-check|project-practice|learn\/ai\/project)\?/),
   startedAt: z.number(),
-  status: z.enum(["pending", "done", "failed", "disconnected"]),
+  status: z.enum(["pending", "done", "failed", "disconnected", "cancelled"]),
   message: z.string().max(500).optional(),
 });
 export type AnalysisTask = z.infer<typeof taskSchema>;
@@ -57,8 +57,14 @@ export function dismissAnalysis(id: string) {
 async function poll(task: AnalysisTask): Promise<Check> {
   const deadline = Date.now() + 150_000;
   while (Date.now() < deadline) {
+    if (
+      tasks.some(
+        (item) => item.id === task.id && item.scope === task.scope && item.status === "cancelled",
+      )
+    )
+      throw new ApiError("분석을 중단했습니다.", 410);
     try {
-      const result = await api<{ status: "pending" | "done" | "failed" }>(
+      const result = await api<{ status: "pending" | "done" | "failed" | "cancelled" }>(
         `/api/project-check/${task.id}/status`,
         { scope: task.scope, signal: AbortSignal.timeout(10_000) },
       );
@@ -67,13 +73,14 @@ async function poll(task: AnalysisTask): Promise<Check> {
           scope: task.scope,
           signal: AbortSignal.timeout(10_000),
         });
+      if (result.status === "cancelled") throw new ApiError("분석을 중단했습니다.", 410);
       if (result.status === "failed")
         throw new ApiError(
           "분석을 완료하지 못했습니다. 입력한 주소와 이용 한도를 확인한 뒤 다시 시도해 주세요.",
           422,
         );
     } catch (error) {
-      if (error instanceof ApiError && [401, 403, 404, 409, 422].includes(error.status))
+      if (error instanceof ApiError && [401, 403, 404, 409, 410, 422].includes(error.status))
         throw error;
       // A temporary network failure does not mean the server stopped its analysis.
     }
@@ -88,6 +95,7 @@ function track(task: AnalysisTask, operation: () => Promise<Check>) {
   const promise = operation()
     .then((result) => {
       update(task.id, task.scope, { status: "done", message: undefined });
+      window.dispatchEvent(new Event("codefit:analysis-changed"));
       return result;
     })
     .catch((error) => {
@@ -95,7 +103,12 @@ function track(task: AnalysisTask, operation: () => Promise<Check>) {
         currentScope = null;
       }
       update(task.id, task.scope, {
-        status: error instanceof ApiError ? "failed" : "disconnected",
+        status:
+          error instanceof ApiError
+            ? error.status === 410
+              ? "cancelled"
+              : "failed"
+            : "disconnected",
         message: errorMessage(error),
       });
       throw error;
@@ -181,4 +194,16 @@ export function startProjectAnalysis(
     }
     return poll(task);
   });
+}
+
+export async function cancelAnalysis(task: AnalysisTask) {
+  const result = await api<{ status: "pending" | "done" | "failed" | "cancelled" }>(
+    `/api/project-check/${task.id}/status`,
+    { method: "DELETE", scope: task.scope, signal: AbortSignal.timeout(10_000) },
+  );
+  update(task.id, task.scope, {
+    status: result.status,
+    message: result.status === "cancelled" ? "분석을 중단했습니다." : undefined,
+  });
+  window.dispatchEvent(new Event("codefit:analysis-changed"));
 }

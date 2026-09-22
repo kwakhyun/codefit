@@ -1,3 +1,5 @@
+import { problemUrl } from "./library-state";
+import { generationRequest, runGeneration, setGenerationScope } from "./generation-activity";
 import { trackRequest } from "./request-progress";
 export class ApiError extends Error {
   constructor(
@@ -11,6 +13,7 @@ export class ApiError extends Error {
 let workspaceScope: string | undefined;
 export function setWorkspaceScope(scope: string) {
   workspaceScope = scope;
+  setGenerationScope(scope);
 }
 export async function api<T>(
   url: string,
@@ -20,11 +23,27 @@ export async function api<T>(
     signal?: AbortSignal;
     keepalive?: boolean;
     background?: boolean;
+    quietGeneration?: boolean;
     // null explicitly discovers the current session without a stale workspace header.
     scope?: string | null;
   },
 ): Promise<T> {
   const scope = options?.scope === null ? undefined : options?.scope || workspaceScope;
+  const task =
+    !options?.quietGeneration && generationRequest(url, options?.method || "GET", options?.body);
+  if (task && scope && typeof window !== "undefined") {
+    return runGeneration(
+      { ...task, id: `${url}:${JSON.stringify(options?.body)}`, scope },
+      () => api<T>(url, { ...options, scope, quietGeneration: true }),
+      (value) => {
+        const result = value as { id?: string; problem?: { id?: string } };
+        if (url === "/api/generate" && typeof result?.problem?.id === "string")
+          return problemUrl(result.problem.id, "/?view=browse");
+        if (url.endsWith("/follow-up") && typeof result?.id === "string")
+          return `/project-check?check=${encodeURIComponent(result.id)}`;
+      },
+    );
+  }
   const finish = trackRequest();
   try {
     const response = await fetch(url, {
@@ -49,8 +68,15 @@ export async function api<T>(
         response.status,
       );
     }
+    if (
+      [401, 403].includes(response.status) ||
+      (response.status === 409 &&
+        (data?.kind === "workspace_changed" || String(data?.error).includes("계정 정보를")))
+    )
+      setGenerationScope(undefined);
     if (!response.ok)
       throw new ApiError(data.error || "요청에 실패했습니다.", response.status, data);
+    if (typeof data?.scope === "string") setGenerationScope(data.scope);
     return data as T;
   } finally {
     finish();
