@@ -104,13 +104,21 @@ it("generates both tracks once, replays without quota and requires owner/source"
 });
 it("persists progress and notes, rejects invalid sequence/options and stale updates", async () => {
   await generate();
-  const progress = [{ choice: 0, note: "확인 예정", completed: false }];
+  const progress = [
+    {
+      choice: 0,
+      note: "확인 예정",
+      predictionReason: "첫 조건에서 반환할 것 같습니다.",
+      completed: false,
+    },
+  ];
   const saved = await store.queries.projectChecks.saveGeneratedPractice(owner, id, {
     mode: "code",
     revision: 0,
     progress,
   });
   expect(saved.revision).toBe(1);
+  expect(saved.progress.code[0].predictionReason).toBe("첫 조건에서 반환할 것 같습니다.");
   expect(
     await store.queries.projectChecks.saveGeneratedPractice(owner, id, {
       mode: "code",

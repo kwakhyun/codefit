@@ -3,10 +3,30 @@ import { repositoryCitation, type RepositorySnapshot } from "./repository";
 const practiceModeSchema = z.enum(["code", "service"]);
 export type PracticeMode = z.infer<typeof practiceModeSchema>;
 const text = (max: number) => z.string().trim().min(1).max(max);
+export const practiceGuidanceSchema = z
+  .object({
+    goal: text(180),
+    terms: z.array(z.object({ term: text(80), meaning: text(180) }).strict()).max(4),
+    readingSteps: z.array(text(180)).min(2).max(3),
+    takeaway: text(240),
+  })
+  .strict();
+export const serviceScenarioSchema = z
+  .object({
+    actor: text(100),
+    action: text(180),
+    before: text(180),
+    changed: text(180),
+    observe: text(180),
+  })
+  .strict();
 const projectExerciseSchema = z
   .object({
     title: text(80),
     purpose: text(220),
+    // Older saved exercises remain readable without regenerating or resetting progress.
+    guidance: practiceGuidanceSchema.optional(),
+    serviceScenario: serviceScenarioSchema.optional(),
     situation: text(400),
     assumptions: text(300),
     evidence: z.array(text(1100)).min(1).max(3),
@@ -33,6 +53,7 @@ const responseSchema = z
   .object({
     choice: z.number().int().min(0).max(3),
     note: z.string().max(2000),
+    predictionReason: z.string().max(800).optional(),
     completed: z.boolean(),
   })
   .strict();

@@ -50,6 +50,7 @@ for (const width of [390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(`/project-check?check=${check.id}`);
     const guide = page.getByRole("region", { name: "먼저 살펴볼 코드" });
+    await page.getByText("분석 자료와 코드 지도 자세히 보기", { exact: true }).click();
     await expect(guide).toBeVisible();
     await guide.locator("summary").click();
     await expect(guide.locator("pre")).toContainText("await store.save(order);");
@@ -59,6 +60,7 @@ for (const width of [390, 1280]) {
     );
     await page.screenshot({ path: `artifacts/jev-live/guide-${width}.png`, fullPage: true });
     await page.reload();
+    await page.getByText("분석 자료와 코드 지도 자세히 보기", { exact: true }).click();
     await expect(guide).toBeVisible();
   });
 }

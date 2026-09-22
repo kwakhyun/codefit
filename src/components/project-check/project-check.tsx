@@ -1,4 +1,5 @@
 "use client";
+import { startProjectAnalysis } from "@/lib/project-analysis-tasks";
 import { useFadeTransition } from "@/components/ui/use-fade-transition";
 import { useConfirmation } from "@/components/ui/use-confirmation";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -21,6 +22,7 @@ import { ProjectRepository, SourceEvidence } from "./project-repository";
 import { ProjectCaptures } from "./project-captures";
 import { ProjectFollowUp } from "./project-follow-up";
 
+import { AnalysisOverview } from "./analysis-overview";
 import { ProjectExample } from "./project-example";
 import { ProjectLearning } from "@/components/project-learning/project-learning";
 import { GuestLogin } from "@/components/account/guest-login";
@@ -251,16 +253,10 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
     const id = requestId || crypto.randomUUID();
     saveDraft((value) => ({ ...value, requestId: id }));
     try {
-      const result = await api<Check>("/api/project-check", {
-        method: "POST",
-        scope: data.scope,
-        body: {
-          requestId: id,
-          url,
-          description,
-          ...(draft.source ? { source: draft.source } : {}),
-        },
-      });
+      const result = await startProjectAnalysis(
+        { requestId: id, url, description, ...(draft.source ? { source: draft.source } : {}) },
+        data.scope,
+      );
       if (!alive.current) return;
       showCheck(result);
       await refreshUsage();
@@ -605,7 +601,11 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
             </form>
           ) : (
             <>
-              <Card as="section" className="project-panel project-summary">
+              <Card
+                as="section"
+                id="project-analysis-overview"
+                className="project-panel project-summary"
+              >
                 <span className="eyebrow">내 프로젝트 이해도 점검</span>
                 <h2 ref={resultHeading} tabIndex={-1}>
                   {projectName(check)}
@@ -614,15 +614,11 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   {new URL(check.page.url).hostname}
                   <ExternalLink size={14} />
                 </Anchor>
+                <AnalysisOverview check={check} />
                 {check.page.repository ? (
                   <>
-                    <p>
-                      코드에서 찾은 설계 질문 5개입니다. 내 생각을 적고, 코드와 다른 부분이나 더
-                      확인할 일을 찾아보세요.
-                    </p>
                     <Disclosure className="repository-evidence">
                       <DisclosureSummary>어떤 자료로 질문을 만들었나요?</DisclosureSummary>
-                      <p>{check.analysis.summary}</p>
                       <p className="project-help">
                         {dateLabel(check.page.fetchedAt)} 기준. 커밋{" "}
                         {check.page.repository.commit.slice(0, 7)}에서{" "}
@@ -633,10 +629,8 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   </>
                 ) : (
                   <>
-                    <p>서비스에서 찾은 설계 질문에 답하고, 직접 확인할 일을 정리해 보세요.</p>
                     <Disclosure className="repository-evidence">
                       <DisclosureSummary>어떤 자료로 질문을 만들었나요?</DisclosureSummary>
-                      <p>{check.analysis.summary}</p>
                       <p className="project-help">
                         {dateLabel(check.page.fetchedAt)} 수집.{" "}
                         {check.page.collectionNote || "공개 HTML 한 곳의 정보를 참고했습니다."}{" "}
@@ -652,32 +646,43 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                     </Disclosure>
                   </>
                 )}
-                <ProjectCaptures check={check} scope={data.scope} />
-                {check.page.repository && (
-                  <>
-                    {Boolean(check.analysis.codeGuide?.length) && (
-                      <section className="repository-reading-guide" aria-label="먼저 살펴볼 코드">
-                        <h3>먼저 살펴볼 코드</h3>
-                        <p className="project-help">
-                          파일을 처음부터 읽기 막막하다면 여기서 시작해 보세요. 수집한 코드에서 AI가
-                          고른 읽기 후보이며, 동작이나 안전성을 검증한 결과는 아닙니다.
-                        </p>
-                        {check.analysis.codeGuide?.map((item, index) => (
-                          <div key={item.evidence}>
-                            <h4>
-                              {index + 1}. {item.title}
-                            </h4>
-                            <SourceEvidence
-                              repository={check.page.repository!}
-                              evidence={item.evidence}
-                            />
-                          </div>
-                        ))}
-                      </section>
+                {(check.page.repository || !!check.page.captures?.length) && (
+                  <Disclosure className="analysis-source-library">
+                    <DisclosureSummary>
+                      {check.page.repository
+                        ? "분석 자료와 코드 지도 자세히 보기"
+                        : "수집한 화면 자세히 보기"}
+                    </DisclosureSummary>
+                    <ProjectCaptures check={check} scope={data.scope} />
+                    {check.page.repository && (
+                      <>
+                        {Boolean(check.analysis.codeGuide?.length) && (
+                          <section
+                            className="repository-reading-guide"
+                            aria-label="먼저 살펴볼 코드"
+                          >
+                            <h3>먼저 살펴볼 코드</h3>
+                            <p className="project-help">
+                              파일을 처음부터 읽기 막막하다면 여기서 시작해 보세요. 수집한 코드에서
+                              AI가 고른 읽기 후보이며, 동작이나 안전성을 검증한 결과는 아닙니다.
+                            </p>
+                            {check.analysis.codeGuide?.map((item, index) => (
+                              <div key={item.evidence}>
+                                <h4>
+                                  {index + 1}. {item.title}
+                                </h4>
+                                <SourceEvidence
+                                  repository={check.page.repository!}
+                                  evidence={item.evidence}
+                                />
+                              </div>
+                            ))}
+                          </section>
+                        )}
+                        <ProjectRepository repository={check.page.repository} />
+                      </>
                     )}
-                    <ProjectRepository repository={check.page.repository} />
-                    <ProjectPracticeLinks id={check.id} />
-                  </>
+                  </Disclosure>
                 )}
                 <Button
                   className="text-button"
@@ -706,6 +711,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   await refreshUsage();
                 }}
               />
+              {check.page.repository && <ProjectPracticeLinks id={check.id} />}
               {check.review && (
                 <>
                   <ProjectFollowUp

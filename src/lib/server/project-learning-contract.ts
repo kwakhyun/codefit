@@ -2,7 +2,11 @@ import { HttpError } from "./http";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { sourceLine, type RepositorySnapshot } from "../project-check/repository";
-import { projectExercisesSchema } from "../project-check/generated-practice";
+import {
+  practiceGuidanceSchema,
+  serviceScenarioSchema,
+  projectExercisesSchema,
+} from "../project-check/generated-practice";
 import { workshopPlanSchema } from "../ai-learning/project-workshop";
 
 /** Only server-issued IDs can be cited; the model never writes paths or line numbers. */
@@ -123,8 +127,8 @@ export function learningEvidence(repository: RepositorySnapshot) {
     distractors: z.array(z.string().trim().min(1).max(160)).min(1).max(3),
   };
   const task = projectExercisesSchema.shape.code.element
-    .omit({ choices: true, answer: true })
-    .extend({ evidence, ...quiz });
+    .omit({ choices: true, answer: true, serviceScenario: true })
+    .extend({ evidence, guidance: practiceGuidanceSchema, ...quiz });
   const topic = workshopPlanSchema.shape.topics.element
     .omit({ choices: true, answer: true })
     .extend({ evidence, ...quiz });
@@ -173,7 +177,10 @@ export function learningEvidence(repository: RepositorySnapshot) {
     },
     snippets: snippets.map(({ id, file, code }) => ({ id, file, code })),
     practiceSchema: z
-      .object({ code: z.array(task).length(3), service: z.array(task).length(3) })
+      .object({
+        code: z.array(task).length(3),
+        service: z.array(task.extend({ serviceScenario: serviceScenarioSchema })).length(3),
+      })
       .strict(),
     workshopSchema: workshopPlanSchema.extend({ topics: z.array(topic).max(6) }),
     resolve,

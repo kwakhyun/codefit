@@ -19,6 +19,18 @@ export const reviewCheckSchema = z
     answers: z.array(z.string().trim().max(1500)).length(5),
   })
   .strict();
+export const questionLearningSchema = z
+  .object({
+    goal: z.string().trim().min(1).max(180),
+    situation: z.string().trim().min(1).max(260),
+    terms: z
+      .array(
+        z.object({ term: z.string().min(1).max(60), meaning: z.string().min(1).max(160) }).strict(),
+      )
+      .max(3),
+    prompts: z.array(z.string().trim().min(1).max(160)).min(2).max(3),
+  })
+  .strict();
 export const analysisSchema = z
   .object({
     codeGuide: z
@@ -39,6 +51,7 @@ export const analysisSchema = z
         z
           .object({
             area: z.enum(AREAS),
+            learning: questionLearningSchema.optional(),
             question: z.string().min(10).max(450),
             basis: z.enum(["page", "description", "unknown"]),
             evidence: z.string().max(1100),

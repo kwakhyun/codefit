@@ -5,6 +5,7 @@ vi.mock("openai", () => ({
     responses = { parse: mocked.parse };
   },
 }));
+import { fixtureAnalysis } from "../project-check/fixtures";
 import { analyzeProject } from "./ai-project-check";
 import { analysisSchema, AREAS, type PageSnapshot } from "../project-check/types";
 import { extractSource } from "./project-repository";
@@ -34,6 +35,7 @@ const response = (evidence: string) => ({
     summary: "공개 코드 검토",
     questions: AREAS.map((area) => ({
       area,
+      learning: fixtureAnalysis.questions[0].learning,
       question: "이 처리 흐름을 어떻게 확인하나요?",
       basis: "page",
       evidence,
@@ -74,4 +76,20 @@ it("preserves owner-reported design separately from repository evidence", async 
   expect(
     result.questions.every((q) => q.basis === "description" && q.evidence === description),
   ).toBe(true);
+});
+
+it("requires contextual question guidance for new analyses but preserves legacy records", async () => {
+  const output = response("CFREF_1");
+  for (const q of output.output_parsed.questions) q.learning = undefined;
+  expect(
+    analysisSchema.safeParse({
+      ...output.output_parsed,
+      questions: output.output_parsed.questions.map(({ learning, ...q }) => {
+        void learning;
+        return q;
+      }),
+    }).success,
+  ).toBe(true);
+  mocked.parse.mockResolvedValue(output);
+  await expect(analyzeProject(page, "", AbortSignal.timeout(1000))).rejects.toThrow("형식");
 });

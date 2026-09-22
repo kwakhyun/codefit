@@ -19,6 +19,7 @@ export async function api<T>(
     body?: unknown;
     signal?: AbortSignal;
     keepalive?: boolean;
+    background?: boolean;
     // null explicitly discovers the current session without a stale workspace header.
     scope?: string | null;
   },
@@ -33,6 +34,7 @@ export async function api<T>(
       headers: {
         ...(options?.body !== undefined && { "Content-Type": "application/json" }),
         ...(scope && { "X-Codefit-Workspace": scope }),
+        ...(options?.background && { Prefer: "respond-async" }),
       },
       body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
       signal: options?.signal || AbortSignal.timeout(115_000),

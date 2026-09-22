@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { publicCheck } from "@/lib/server/project-check-store";
 import { projectMember } from "@/lib/server/project-member";
 import { z } from "zod";
 import { createCheckSchema, reviewCheckSchema } from "@/lib/project-check/types";
@@ -39,14 +41,23 @@ export async function POST(request: Request) {
     const input = await readBody(request, createCheckSchema, 16_000);
     if (!process.env.OPENAI_API_KEY)
       throw new HttpError(503, "AI 연결을 준비 중입니다. 저장된 기록은 계속 볼 수 있습니다.");
-    return json(
-      await new ProjectCheckService(await getStore()).create(
-        owner,
-        networkIdentity(request),
-        input,
-        request.signal,
-      ),
-    );
+    const service = new ProjectCheckService(await getStore());
+    if (request.headers.get("prefer") === "respond-async") {
+      const claim = await service.beginAnalysis(owner, input);
+      if (claim.state === "done") return json(publicCheck(JSON.parse(claim.result)));
+      if (claim.state === "new") {
+        const network = networkIdentity(request);
+        after(async () => {
+          try {
+            await service.create(owner, network, input, AbortSignal.timeout(110_000), claim.lease);
+          } catch {
+            // create marks the leased job failed; status polling reports it to its owner.
+          }
+        });
+      }
+      return json({ status: "pending", id: input.requestId }, 202);
+    }
+    return json(await service.create(owner, networkIdentity(request), input, request.signal));
   } catch (error) {
     return failure(error);
   }

@@ -1,0 +1,103 @@
+/* Grid gaps own spacing on the guided workspace; block-flow articles keep their rhythm. */
+.project-page .project-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+.project-page .project-summary > :is(h2, p, div, a, details, button) {
+  margin-block: 0;
+}
+.project-summary > a,
+.project-summary > .text-button {
+  justify-self: start;
+}
+.analysis-overview p,
+.question-learning-goal p,
+.question-context section > p {
+  margin-block: 0;
+}
+.question-learning-goal {
+  gap: 8px;
+}
+.question-writing {
+  gap: 14px;
+}
+.question-writing > :is(p, label, textarea, details) {
+  margin-block: 0;
+}
+.question-writing-guide {
+  padding-bottom: 6px;
+}
+.question-context section > h3 {
+  margin-bottom: 10px;
+}
+.question-context .project-evidence > strong {
+  display: block;
+  margin-bottom: 12px;
+}
+.question-context .project-evidence > .repository-evidence {
+  margin-top: 0;
+}
+.analysis-next-action {
+  align-items: flex-start;
+}
+.analysis-next-action > a {
+  align-self: center;
+}
+.analysis-next-action p {
+  margin-top: 8px;
+}
+.practice-prediction fieldset {
+  margin-block: 0;
+}
+.practice-prediction fieldset > .muted {
+  margin-bottom: 4px;
+}
+.practice-reading-guide li + li,
+.question-writing-guide li + li {
+  margin-top: 6px;
+}
+.practice-study-source .practice-glossary,
+.practice-study-source .practice-reading-guide {
+  gap: 10px;
+}
+.practice-stepbar + .practice-origin {
+  align-items: stretch;
+}
+.practice-stepbar + .practice-origin > button {
+  text-align: left;
+  line-height: 1.6;
+}
+.practice-page-intro > p {
+  margin-block: 0;
+}
+.desktop-content .practice-page-intro p {
+  margin-top: 0;
+}
+@media (max-width: 650px) {
+  .project-page .project-panel,
+  .practice-exercise,
+  .practice-complete,
+  .project-renew {
+    padding: 20px;
+  }
+  .question-context,
+  .practice-service-scene,
+  .practice-learning-goal {
+    padding: 16px;
+  }
+  .analysis-next-action > a {
+    align-self: stretch;
+    justify-content: center;
+    text-align: center;
+  }
+  .practice-stages > button {
+    min-height: 68px;
+  }
+  .practice-origin > :is(a, button) {
+    padding: 10px 14px;
+  }
+  .question-study-layout {
+    gap: 20px;
+  }
+}

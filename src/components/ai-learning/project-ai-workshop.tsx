@@ -1,4 +1,5 @@
 "use client";
+import { startProjectAnalysis } from "@/lib/project-analysis-tasks";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { LearningStatus } from "@/lib/project-check/learning-generation";
@@ -82,6 +83,13 @@ function Workspace({
   const [checks, setChecks] = useState(overview.checks);
   const [cursor, setCursor] = useState(overview.nextCursor);
   const lock = useRef(false);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
   useEffect(() => {
     if (!id) return;
     const abort = new AbortController();
@@ -125,12 +133,13 @@ function Workspace({
           throw new Error(
             "새 저장소 분석과 AI 학습 준비에는 분석 2회가 필요합니다. 기존 프로젝트를 선택하거나 한도 초기화 후 이용해 주세요.",
           );
-        record = await api<Check>("/api/project-check", {
-          method: "POST",
-          scope: overview.scope,
-          body: { requestId, url: draft.url, description: draft.description, source: "repository" },
-        });
+        record = await startProjectAnalysis(
+          { requestId, url: draft.url, description: draft.description, source: "repository" },
+          overview.scope,
+          `/learn/ai/project?check=${requestId}`,
+        );
       }
+      if (!alive.current) return;
       router.replace(`/learn/ai/project?check=${record.id}`);
       refresh();
     } catch (e) {

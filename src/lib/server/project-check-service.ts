@@ -291,14 +291,9 @@ export class ProjectCheckService {
       throw error;
     }
   }
-  async create(
-    owner: string,
-    network: string,
-    input: z.infer<typeof createCheckSchema>,
-    signal: AbortSignal,
-  ) {
+  beginAnalysis(owner: string, input: z.infer<typeof createCheckSchema>) {
     const url = publicUrl(input.url).href;
-    const claim = await this.store.startJob(
+    return this.store.startJob(
       owner,
       input.requestId,
       "project-analysis",
@@ -306,6 +301,18 @@ export class ProjectCheckService {
         ? requestFingerprint(url, input.description, input.source)
         : requestFingerprint(url, input.description),
     );
+  }
+  async create(
+    owner: string,
+    network: string,
+    input: z.infer<typeof createCheckSchema>,
+    signal: AbortSignal,
+    reserved?: JobLease,
+  ) {
+    const url = publicUrl(input.url).href;
+    const claim = reserved
+      ? { state: "new" as const, lease: reserved }
+      : await this.beginAnalysis(owner, input);
     if (claim.state === "done") return publicCheck(JSON.parse(claim.result));
     if (claim.state === "pending")
       throw new HttpError(409, "같은 분석이 진행 중입니다. 잠시 후 기록을 새로고침해 주세요.");

@@ -14,8 +14,25 @@ vi.mock("./ai-telemetry", () => ({
 for (const mode of ["code", "service"] as const) {
   it(`validates the ${mode} stage with an empty unrequested track`, async () => {
     const task = {
+      ...(mode === "service"
+        ? {
+            serviceScenario: {
+              actor: "같은 작업을 다시 요청한 사용자",
+              action: "완료한 요청을 다시 보냅니다.",
+              before: "기존 결과가 저장되어 있습니다.",
+              changed: "요청이 한 번 더 도착합니다.",
+              observe: "기존 결과와 새 결과 중 어떤 것을 받는지 비교합니다.",
+            },
+          }
+        : {}),
       title: "기존 결과 확인",
       purpose: "중복 실행 확인",
+      guidance: {
+        goal: "기존 결과를 돌려주는 조건을 찾을 수 있어요.",
+        terms: [{ term: "previous", meaning: "이전에 저장한 처리 결과" }],
+        readingSteps: ["if 안의 조건을 찾으세요.", "return이 돌려주는 값을 찾으세요."],
+        takeaway: "조건에 따라 일찍 반환하면 이후 처리는 실행되지 않아요.",
+      },
       situation: "기존 값이 있음",
       assumptions: "previous는 참",
       evidence: ["CFREF_1"],
@@ -63,8 +80,10 @@ for (const mode of ["code", "service"] as const) {
       mode,
     );
     expect(result[mode]).toHaveLength(3);
+    expect(result[mode][0].guidance).toEqual(task.guidance);
     expect(result[mode === "code" ? "service" : "code"]).toEqual([]);
     const schema = parse.mock.calls.at(-1)![0].text.format.schema;
+    expect(schema.properties[mode].items.required).toContain("guidance");
     expect(schema.properties[mode === "code" ? "service" : "code"]).toMatchObject({
       minItems: 0,
       maxItems: 0,

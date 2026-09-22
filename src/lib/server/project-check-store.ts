@@ -48,6 +48,20 @@ export class ProjectCheckStore {
     private query: Query,
     private dialect: "sqlite" | "postgres" = "sqlite",
   ) {}
+  async analysisStatus(owner: string, id: string) {
+    const [row] = await this.query(
+      "SELECT state,expires FROM jobs WHERE owner=? AND id=? AND kind='project-analysis'",
+      [owner, id],
+    );
+    if (!row) return null;
+    if (row.state === "done") return { status: "done" as const };
+    return {
+      status:
+        row.state === "pending" && Number(row.expires) > Date.now()
+          ? ("pending" as const)
+          : ("failed" as const),
+    };
+  }
   async get(owner: string, id: string): Promise<StoredCheck | null> {
     const [row] = await this.query(
       "SELECT result FROM jobs WHERE id=? AND owner=? AND kind='project-analysis' AND state='done'",

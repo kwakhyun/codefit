@@ -388,3 +388,22 @@ it("preserves real error values and skips internal IDs already present in source
   expect(resolved.choices).toContain("CFREF_1");
   expect(c.cleanText(resolved)).toEqual(resolved);
 });
+
+it("requires teaching guidance for new generations while accepting legacy saved exercises", async () => {
+  const { projectExercisesSchema } = await import("../project-check/generated-practice");
+  const stored = projectExercisesSchema.shape.code.element.shape.guidance;
+  const generated = learningEvidence(repo).practiceSchema.shape.code.element.shape.guidance;
+  expect(stored.safeParse(undefined).success).toBe(true);
+  expect(generated.safeParse(undefined).success).toBe(false);
+  expect(
+    generated.safeParse({ goal: "목표", terms: [], readingSteps: [], takeaway: "정리" }).success,
+  ).toBe(false);
+  expect(
+    generated.safeParse({
+      goal: "조건에 따라 반환값을 찾을 수 있어요.",
+      terms: [{ term: "previous", meaning: "기존 결과" }],
+      readingSteps: ["조건 찾기", "반환 찾기"],
+      takeaway: "일찍 반환하면 다음 처리는 실행되지 않아요.",
+    }).success,
+  ).toBe(true);
+});

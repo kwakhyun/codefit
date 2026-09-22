@@ -1,7 +1,8 @@
 "use client";
+import { startProjectAnalysis } from "@/lib/project-analysis-tasks";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { api, errorMessage } from "@/lib/client-api";
+import { errorMessage } from "@/lib/client-api";
 import type { Check } from "@/lib/project-check/types";
 import { useProjectDraft } from "@/hooks/use-project-draft";
 import { Button, Card } from "@/components/ui/primitives";
@@ -44,17 +45,11 @@ export function RenewProject({
       source: "repository",
     }));
     try {
-      const next = await api<Check>("/api/project-check", {
-        method: "POST",
+      const next = await startProjectAnalysis(
+        { requestId, url: check.page.url, description: check.description, source: "repository" },
         scope,
-        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(115_000)]),
-        body: {
-          requestId,
-          url: check.page.url,
-          description: check.description,
-          source: "repository",
-        },
-      });
+        `${destination}${destination.includes("?") ? "&" : "?"}${queryKey}=${requestId}`,
+      );
       if (!controller.signal.aborted) {
         clearSavedDraft();
         router.push(`${destination}${destination.includes("?") ? "&" : "?"}${queryKey}=${next.id}`);
@@ -67,7 +62,7 @@ export function RenewProject({
     }
   }
   return (
-    <Card>
+    <Card className="project-renew">
       <h3>최신 코드로 새 학습 만들기</h3>
       <p>
         저장소를 다시 읽어 별도 점검 기록을 만듭니다. 지금의 질문, 답변과 학습 진도는 그대로

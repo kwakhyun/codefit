@@ -1,3 +1,5 @@
+import { AnalysisActivity } from "@/components/project-check/analysis-activity";
+import { DesktopFrame } from "@/components/navigation/desktop-frame";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { themeInitScript } from "@/lib/theme-init";
 import { RouteFeedback } from "@/components/ui/route-feedback";
@@ -19,8 +21,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <ThemeProvider>
-          {children}
+          <DesktopFrame>{children}</DesktopFrame>
           <GuideWidget />
+          <AnalysisActivity />
           <Suspense fallback={null}>
             <RouteFeedback />
           </Suspense>

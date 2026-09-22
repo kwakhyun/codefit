@@ -1,4 +1,5 @@
 "use client";
+import { startProjectAnalysis } from "@/lib/project-analysis-tasks";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { LearningStatus } from "@/lib/project-check/learning-generation";
@@ -96,6 +97,13 @@ function PracticeWorkspace({
   const [cursor, setCursor] = useState(data.nextCursor);
   const [paging, setPaging] = useState(false);
   const active = useRef(false);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
   const requestId = useRef<string | null>(null);
   const endpoint = `/api/project-check/${id}/practice`;
   useEffect(() => {
@@ -160,11 +168,12 @@ function PracticeWorkspace({
         setSaved(await generateLearning<GeneratedPractice>(endpoint, data.scope, setBusy));
       } else {
         requestId.current ??= crypto.randomUUID();
-        const record = await api<Check>("/api/project-check", {
-          method: "POST",
-          scope: data.scope,
-          body: { url, description, requestId: requestId.current, source: "repository" },
-        });
+        const record = await startProjectAnalysis(
+          { url, description, requestId: requestId.current, source: "repository" },
+          data.scope,
+          `/project-practice?mode=${mode}&check=${requestId.current}`,
+        );
+        if (!alive.current) return;
         select(record.id);
       }
     } catch (e) {

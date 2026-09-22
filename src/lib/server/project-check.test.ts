@@ -351,3 +351,19 @@ it("accepts a bounded repository snapshot without a user description and keeps i
     ),
   ).toThrow();
 });
+
+it("executes a pre-reserved background analysis once and exposes its completed status", async () => {
+  const service = new ProjectCheckService(store, ai);
+  const request = input();
+  const claim = await service.beginAnalysis("user:a", request);
+  if (claim.state !== "new") throw new Error("lease");
+  expect(await service.beginAnalysis("user:a", request)).toEqual({ state: "pending" });
+  expect(ai.analyze).not.toHaveBeenCalled();
+  await service.create("user:a", "network", request, signal(), claim.lease);
+  expect(await store.queries.projectChecks.analysisStatus("user:a", request.requestId)).toEqual({
+    status: "done",
+  });
+  expect((await service.beginAnalysis("user:a", request)).state).toBe("done");
+  expect(ai.analyze).toHaveBeenCalledTimes(1);
+  expect((await store.queries.projectChecks.usage("user:a")).analysis.remaining).toBe(4);
+});

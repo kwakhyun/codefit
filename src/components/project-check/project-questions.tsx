@@ -149,13 +149,37 @@ export function ProjectQuestions({
   }
   if (check.review)
     return (
-      <Card ref={fade} as="section" className="project-panel project-results">
+      <Card
+        ref={fade}
+        as="section"
+        id="project-question-workspace"
+        className="project-panel project-results"
+      >
         <span className="eyebrow">이번 답변에서 확인한 이해도</span>
         <h2 ref={result} tabIndex={-1}>
           설계 설명 점수 <strong>{check.review.assessment.score}</strong>
           <small> / 100</small>
         </h2>
-        <p>{check.review.assessment.summary}</p>
+        <p className="analysis-lead">{check.review.assessment.summary}</p>
+        <div className="review-area-grid" aria-label="영역별 설명 수준">
+          {check.review.assessment.feedback.map((item) => (
+            <div key={item.questionIndex}>
+              <span>{check.analysis.questions[item.questionIndex].area}</span>
+              <strong>
+                {
+                  [
+                    "설명 시작하기",
+                    "기능 짚어보기",
+                    "흐름 연결하기",
+                    "이유와 예외 설명",
+                    "확인 방법과 대안 비교",
+                  ][item.level]
+                }
+              </strong>
+              <small>{item.level} / 4단계</small>
+            </div>
+          ))}
+        </div>
         {check.previousReview && (
           <div className="project-next-step">
             <strong>
@@ -175,10 +199,14 @@ export function ProjectQuestions({
         <Anchor className="primary-button" href="#project-follow-up">
           내 프로젝트에서 확인하고 보완하기 →
         </Anchor>
-        <Disclosure className="project-feedback-list">
+        <Disclosure className="project-feedback-list" open>
           <DisclosureSummary>질문별 AI 피드백 5개 보기</DisclosureSummary>
           {check.review.assessment.feedback.map((f) => (
-            <Disclosure key={f.questionIndex} className="project-feedback project-feedback-item">
+            <Disclosure
+              key={f.questionIndex}
+              className="project-feedback project-feedback-item"
+              open={f.level < 3}
+            >
               <DisclosureSummary>
                 <strong>{check.analysis.questions[f.questionIndex].area}</strong>
                 <span>{f.level} / 4단계</span>
@@ -307,7 +335,12 @@ export function ProjectQuestions({
       </Card>
     );
   return (
-    <Card ref={fade} as="section" className="project-panel project-questions">
+    <Card
+      ref={fade}
+      as="section"
+      id="project-question-workspace"
+      className="project-panel project-questions"
+    >
       {check.previousReview && (
         <p className="project-next-step">
           보완 답변 {check.revisionNumber}차입니다. 이전 답변을 불러왔습니다. 확인한 내용과 아직
@@ -333,70 +366,115 @@ export function ProjectQuestions({
       <h2 ref={heading} tabIndex={-1}>
         {q.question}
       </h2>
-      <div className="project-evidence">
-        <strong>
-          {q.basis === "page"
-            ? check.page.source === "repository"
-              ? "수집한 코드에서 확인한 근거"
-              : check.page.source === "rendered"
-                ? "로그인 없이 렌더링한 화면 본문"
-                : check.page.source === "metadata"
-                  ? "사이트가 등록한 공개 소개 정보"
-                  : "HTML에서 추출한 문구 (화면 표시 여부 미확인)"
-            : q.basis === "description"
-              ? "작성한 설명에서 참고한 내용"
-              : "직접 설명이 필요한 내용"}
-        </strong>
-        {!(check.page.repository && q.basis === "page") && <p>{q.evidence}</p>}
-        {check.page.repository && q.basis === "page" && (
-          <SourceEvidence repository={check.page.repository} evidence={q.evidence} />
-        )}
-      </div>
-      <FieldLabel htmlFor="project-answer">내 설계 설명</FieldLabel>
-      <Textarea
-        id="project-answer"
-        rows={7}
-        maxLength={1500}
-        value={answers[step]}
-        readOnly={draft.submitted}
-        onChange={(e) =>
-          saveDraft((value) => ({
-            ...value,
-            answers: value.answers.map((a, i) => (i === step ? e.target.value : a)),
-          }))
-        }
-        placeholder="사용자가 행동하면 어떤 일이 순서대로 일어나나요? 그렇게 만든 이유와 확인 방법을 내 말로 적어보세요. 모르는 부분은 모른다고 적어도 괜찮습니다."
-        aria-describedby="answer-help"
-      />
-      <VoiceInput
-        key={`${check.id}:${step}`}
-        targetId="project-answer"
-        disabled={draft.submitted || busy || recovering}
-        onTranscript={(text) =>
-          saveDraft((value) => ({
-            ...value,
-            answers: value.answers.map((answer, i) =>
-              i === step ? `${answer}${answer ? " " : ""}${text}`.slice(0, 1500) : answer,
-            ),
-          }))
-        }
-      />
-      <p id="answer-help" className="project-help">
-        {answers[step].length} / 1500자 · 모르는 질문은 비워 두고 넘어갈 수 있습니다. 제출 전 답변은
-        현재 탭에 보관됩니다.
-      </p>
-      {check.page.repository && (
-        <ProjectCodeDialogue
-          key={`dialogue:${check.id}:${step}`}
-          check={check}
-          index={step}
-          answer={answers[step]}
-          scope={scope}
-          enabled={enabled}
-          onUsage={onUsage}
-          remaining={reviewRemaining}
-        />
+      {q.learning && (
+        <div className="question-learning-goal">
+          <strong>이 질문으로 확인할 것</strong>
+          <p>{q.learning.goal}</p>
+        </div>
       )}
+      <div className="question-study-layout">
+        <aside className="question-context" aria-label="질문을 이해하는 자료">
+          {q.learning && (
+            <section>
+              <h3>생각해 볼 상황</h3>
+              <p>{q.learning.situation}</p>
+            </section>
+          )}
+          <div className="project-evidence">
+            <strong>
+              {q.basis === "page"
+                ? check.page.source === "repository"
+                  ? "수집한 코드에서 확인한 근거"
+                  : check.page.source === "rendered"
+                    ? "로그인 없이 렌더링한 화면 본문"
+                    : check.page.source === "metadata"
+                      ? "사이트가 등록한 공개 소개 정보"
+                      : "HTML에서 추출한 문구 (화면 표시 여부 미확인)"
+                : q.basis === "description"
+                  ? "작성한 설명에서 참고한 내용"
+                  : "직접 설명이 필요한 내용"}
+            </strong>
+            {!(check.page.repository && q.basis === "page") && <p>{q.evidence}</p>}
+            {check.page.repository && q.basis === "page" && (
+              <SourceEvidence repository={check.page.repository} evidence={q.evidence} />
+            )}
+          </div>
+          {!!q.learning?.terms.length && (
+            <section className="question-terms">
+              <h3>먼저 알아둘 말</h3>
+              <dl>
+                {q.learning.terms.map(({ term, meaning }) => (
+                  <div key={term}>
+                    <dt>{term}</dt>
+                    <dd>{meaning}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+        </aside>
+        <div className="question-writing">
+          <section className="question-writing-guide">
+            <h3>이 순서로 정리해 보세요</h3>
+            <ol>
+              {(
+                q.learning?.prompts ?? [
+                  "사용자의 행동 뒤에 어떤 처리가 이어지는지 적어보세요.",
+                  "그렇게 동작한다고 생각한 근거와 아직 확인하지 못한 내용을 나누어 적어보세요.",
+                  "어떤 결과를 관찰하면 내 설명을 확인할 수 있을지 적어보세요.",
+                ]
+              ).map((prompt, i) => (
+                <li key={i}>{prompt}</li>
+              ))}
+            </ol>
+          </section>
+          <FieldLabel htmlFor="project-answer">내 설계 설명</FieldLabel>
+          <Textarea
+            id="project-answer"
+            rows={7}
+            maxLength={1500}
+            value={answers[step]}
+            readOnly={draft.submitted}
+            onChange={(e) =>
+              saveDraft((value) => ({
+                ...value,
+                answers: value.answers.map((a, i) => (i === step ? e.target.value : a)),
+              }))
+            }
+            placeholder="사용자가 행동하면 어떤 일이 순서대로 일어나나요? 그렇게 만든 이유와 확인 방법을 내 말로 적어보세요. 모르는 부분은 모른다고 적어도 괜찮습니다."
+            aria-describedby="answer-help"
+          />
+          <VoiceInput
+            key={`${check.id}:${step}`}
+            targetId="project-answer"
+            disabled={draft.submitted || busy || recovering}
+            onTranscript={(text) =>
+              saveDraft((value) => ({
+                ...value,
+                answers: value.answers.map((answer, i) =>
+                  i === step ? `${answer}${answer ? " " : ""}${text}`.slice(0, 1500) : answer,
+                ),
+              }))
+            }
+          />
+          <p id="answer-help" className="project-help">
+            {answers[step].length} / 1500자 · 모르는 질문은 비워 두고 넘어갈 수 있습니다. 제출 전
+            답변은 현재 탭에 보관됩니다.
+          </p>
+          {check.page.repository && (
+            <ProjectCodeDialogue
+              key={`dialogue:${check.id}:${step}`}
+              check={check}
+              index={step}
+              answer={answers[step]}
+              scope={scope}
+              enabled={enabled}
+              onUsage={onUsage}
+              remaining={reviewRemaining}
+            />
+          )}
+        </div>
+      </div>
       {storageError && (
         <Status role="alert">
           브라우저 보관 공간을 사용할 수 없습니다. 화면을 닫기 전에 답변을 복사해 주세요.

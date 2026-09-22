@@ -51,6 +51,18 @@ export function SiteHeader() {
         <BrandIcon />
         CODE:FIT_
       </Link>
+      <div className="desktop-location" aria-label="현재 위치">
+        <span>작업 공간</span>
+        <span aria-hidden="true">/</span>
+        <strong>
+          {items.find(
+            (item) =>
+              item.href !== "/" &&
+              !item.href.includes("?") &&
+              (pathname === item.href || pathname.startsWith(item.href + "/")),
+          )?.label || "프로젝트 실습"}
+        </strong>
+      </div>
       <div className="site-preference">
         <PreferenceChangeButton />
       </div>

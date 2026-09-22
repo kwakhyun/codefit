@@ -6,6 +6,15 @@ export const fixtureAnalysis: Analysis = {
     "공개 페이지에서 회의실 예약과 예약 취소 안내를 확인했습니다. 실제 저장 방식과 접근 권한은 화면만으로 알 수 없습니다.",
   questions: AREAS.map((area) => ({
     area,
+    learning: {
+      goal: `${area} 관점에서 예약 처리의 근거와 확인 방법을 설명할 수 있어요.`,
+      situation: "테스트 사용자가 회의실 예약을 요청한다고 가정해 보세요.",
+      terms: [{ term: "예약 요청", meaning: "사용자가 선택한 시간대를 서비스에 전달하는 행동" }],
+      prompts: [
+        "예약 요청부터 결과까지의 흐름을 찾아보세요.",
+        "어떤 결과를 관찰하면 설명을 확인할 수 있을까요?",
+      ],
+    },
     question: `${area} 관점에서 회의실을 예약할 때 어떤 처리가 필요한가요? 이유와 확인 방법을 설명해 주세요.`,
     basis: "page",
     evidence: "회의실 예약",
