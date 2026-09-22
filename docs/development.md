@@ -24,10 +24,15 @@ npm run dev
 | `OPENAI_GUIDE_MODEL`          | 핏 시작 가이드 기본 `gpt-5.6-luna`                                                                 |
 | `OPENAI_PROJECT_MODEL`        | 내 프로젝트 분석과 질문 생성 기본 `gpt-5.6-sol`, `medium` 추론                                     |
 | `OPENAI_PROJECT_REVIEW_MODEL` | 내 프로젝트 답변 평가 기본 `gpt-5.6-luna`, `medium` 추론                                           |
+| `TYPESAFE_API_KEY`            | 선택적 코드 읽기 추천용 서버 전용 키. 미설정 시 추천 없이 기존 분석 제공                           |
+| `TYPESAFE_MODEL`              | 코드 읽기 추천 기본 `jev-1.13.0`                                                                   |
+| `TYPESAFE_ENABLED`            | `false`이면 새 Jev 호출 중단. 이미 저장된 추천은 유지                                              |
 | `DATABASE_URL`                | PostgreSQL 연결 주소. Vercel에서 필수                                                              |
 | `DATABASE_PATH`               | SQLite 절대 경로. 기본 `data/recode.sqlite`                                                        |
 | `RATE_LIMIT_SALT`             | Vercel에서 접속 IP를 HMAC으로 변환할 비밀 값. 32바이트 이상 난수 권장                              |
 | `APP_ORIGIN`                  | 프록시 운영 시 실제 HTTPS origin. 끝의 `/` 제외                                                    |
+
+TypeSafe 설정은 [코드 읽기 추천](jev-quality.md)을 참고하세요. Vercel에서는 사용할 배포 환경에 키를 민감 환경변수로 등록하고 새로 배포해야 적용됩니다. `TYPESAFE_ENABLED=false`도 다음 배포부터 적용되며 기존 질문 생성과 평가는 계속 사용할 수 있습니다.
 
 비밀 값은 `NEXT_PUBLIC_*`나 Git에 넣지 않습니다. `.env.local`, `.vercel`, 데이터베이스, 테스트 임시 데이터는 Git에서 제외됩니다.
 
