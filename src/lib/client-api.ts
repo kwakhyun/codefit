@@ -56,7 +56,9 @@ export async function api<T>(
         ...(options?.background && { Prefer: "respond-async" }),
       },
       body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
-      signal: options?.signal || AbortSignal.timeout(115_000),
+      signal: options?.signal
+        ? AbortSignal.any([options.signal, AbortSignal.timeout(115_000)])
+        : AbortSignal.timeout(115_000),
       keepalive: options?.keepalive,
     });
     let data;

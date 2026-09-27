@@ -141,7 +141,14 @@ export function learningEvidence(repository: RepositorySnapshot) {
     },
   >(value: T) {
     const { correctChoice, distractors, ...rest } = cleanText(value);
-    if (new Set([correctChoice, ...distractors]).size !== distractors.length + 1)
+    if (
+      new Set(
+        [correctChoice, ...distractors].map((choice) =>
+          choice.normalize("NFKC").replace(/\s+/g, " ").trim(),
+        ),
+      ).size !==
+      distractors.length + 1
+    )
       throw new HttpError(502, "학습 문제의 선택지가 중복되었습니다. 다시 생성해 주세요.");
     // The server derives the index from the correct text, avoiding one/zero-based mistakes.
     const answer =

@@ -55,7 +55,7 @@ export function ProblemTable({ library, initialView, bookmarking, bookmark }: Pr
               필터 초기화
             </Button>
           ) : (
-            <Link href="/" className="secondary-button">
+            <Link href="/?view=browse" className="secondary-button">
               전체 문제 보기
             </Link>
           )}

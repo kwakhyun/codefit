@@ -4,6 +4,17 @@ import { experimentSteps } from "../src/lib/learn/simulation-guide";
 import { verification } from "../src/lib/learn/simulation";
 import { LEARNING_STAGES } from "../src/lib/learn/overview";
 
+test("empty bookmarks lead directly to the problem catalog in the service workspace", async ({
+  page,
+}) => {
+  await page.goto("/?view=bookmarks");
+  const browse = page.getByRole("link", { name: "전체 문제 보기", exact: true });
+  await expect(browse).toBeVisible();
+  await browse.click();
+  await expect(page).toHaveURL(/view=browse/);
+  await expect(page.locator(".problem-row").first()).toBeVisible();
+});
+
 test("search typing preserves focus without fading the entire screen", async ({ page }) => {
   await page.addInitScript(() => {
     const original = Element.prototype.animate;

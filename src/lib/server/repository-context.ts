@@ -15,7 +15,21 @@ export function boundRepositoryContext(files: RepositoryFile[], budget = 90000) 
           1,
           Math.min(8, Math.floor(allowance / ((cost(lines) / lines.length) * 4))),
         );
-        for (let i = 0; i < lines.length; i += width) groups.push(lines.slice(i, i + width));
+        // Prefer contiguous paragraphs to arbitrary offsets. A short method's
+        // first return and later guard must not be sampled independently.
+        const sections: RepositoryFile["lines"][] = [];
+        for (const line of lines) {
+          const last = sections.at(-1);
+          if (!last || last.at(-1)!.number + 1 !== line.number || !last.at(-1)!.text.trim())
+            sections.push([line]);
+          else last.push(line);
+        }
+        for (const section of sections) {
+          if (cost(section) <= allowance / 2) groups.push(section);
+          else
+            for (let i = 0; i < section.length; i += width)
+              groups.push(section.slice(i, i + width));
+        }
         const chosen: RepositoryFile["lines"] = [];
         let spent = 0;
         // Visit the start, end, and progressively smaller interior intervals.

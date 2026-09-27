@@ -46,6 +46,12 @@ export const repositorySourcePolicy = {
       .source,
   extensionless: /(?:^|\/)(?:bin|sbin)\/[^/.]+$/.source,
   priorities: [
+    {
+      pattern:
+        /(?:^|\/)(?:landing|marketing)\/|(?:^|\/)scripts\/(?:portfolio\/|run[-_].*(?:smoke|test|eval)|audit[-_]|check[-_]|verify[-_]|build[-_]|clean[-_]|prepare[-_]|copy[-_]|capture[-_]|benchmark[-_]|evaluate[-_]|backup[-_]|create[-_].*snapshot)/
+          .source,
+      rank: 10,
+    },
     { pattern: /(?:^|\/)(?:assets|evals?|animations?)\//.source, rank: 10 },
     {
       pattern:
@@ -67,9 +73,25 @@ export const repositorySourcePolicy = {
       rank: 0.75,
     },
     { pattern: /(?:^|\/)(?:models|entities)\/.*\.dart$/.source, rank: 7 },
+    { pattern: /\.d\.ts$|(?:^|\/)[^/]*[-.]generated\.[^.]+$/.source, rank: 12 },
+    // Classify supporting surfaces before matching domain words such as "service".
+    // Otherwise service-thumbnail.tsx can outrank the service implementation.
+    {
+      pattern:
+        /(?:^|\/)(?:components|pages|presentation|presentations)\/|(?:^|\/)(?:loading|not-found|layout|error|page)\.tsx$|(?:thumbnail|domain-icon)\.[jt]sx$/
+          .source,
+      rank: 7,
+    },
     {
       pattern: /(?:^|\/)lib\/(?:services|repositories|providers|controllers)\/.*\.dart$/.source,
       rank: 1,
+    },
+    {
+      // Business boundaries should not lose every slot to alphabetically earlier services.
+      pattern:
+        /(?:^|\/)(?:[^/]*(?:signer|signing|wallet|vault|capture|recorder|ingestion|approv(?:al|e))[^/]*\.[cm]?[jt]s|capture\/[^/]+\.[jt]s)$/
+          .source,
+      rank: 0.8,
     },
     { pattern: /(?:^|\/)(?:bin|sbin)\//.source, rank: 1 },
     {
@@ -94,6 +116,12 @@ export const repositorySourcePolicy = {
         /(?:^|\/)(?:ai|server)\/[^/]*(?:service|client|orchestrator|executor|provider)\.[cm]?[jt]s$/
           .source,
       rank: 1,
+    },
+    {
+      pattern:
+        /(?=.*\.(?:py|[cm]?[jt]sx?|go|rs|java|cs|swift|kt|dart|rb|php|sql)$)(?:^|\/)(?:server|services|domain|usecases|repositories|controllers)\//
+          .source,
+      rank: 2,
     },
     {
       pattern:
@@ -148,7 +176,11 @@ export function selectRepositoryFiles<T extends { path: string }>(
   const selected: T[] = [];
   const counts = new Map<string, number>();
   const group = (p: string) =>
-    /^(apps|packages|services)\/[^/]+/.exec(p)?.[0] ?? p.split("/").slice(0, 2).join("/");
+    /^(apps|packages|services)\/[^/]+/.exec(p)?.[0] ??
+    p
+      .split("/")
+      .slice(0, p.startsWith("src/") ? 3 : 2)
+      .join("/");
   while (remaining.length && selected.length < limit) {
     remaining.sort(
       (a, b) =>
@@ -242,6 +274,32 @@ export function dependencyCandidates<T extends { path: string }>(
 // These are review locations, not vulnerability findings. No target code is executed.
 const decisionLine =
   /\b(if |raise |except |catch\b|throw |return |verify|authorize|permission|transaction|commit\(|write|sign\(|exec\(|eval\(|pickle\.|subprocess\.|InferenceSession|session\.run|predict\(|case |then\b|exit |trap |flock|wait\b)/;
+
+/** Keep short functions intact: a later guard can be bypassed by an earlier return. */
+function sourceWindow(all: string[], at: number, radius: number): [number, number] {
+  const fallback: [number, number] = [
+    Math.max(0, at - radius),
+    Math.min(all.length - 1, at + radius),
+  ];
+  for (let start = at; start >= Math.max(0, at - 40); start--) {
+    const line = all[start];
+    if (/^\s*(?:if|for|while|switch|catch|with)\s*\(/.test(line)) continue;
+    const declaration =
+      /^\s*(?:(?:export|default|async|private|public|protected|static|override)\s+)*(?:function\s+)?[\w$]+\s*(?:<[^>]+>)?\(.*\)\s*(?::[^{}]+)?\s*\{\s*$/.test(
+        line,
+      ) || /^\s*(?:export\s+)?(?:const|let)\s+[\w$]+\s*=.*=>\s*\{\s*$/.test(line);
+    if (!declaration) continue;
+    const indent = /^\s*/.exec(line)![0];
+    for (let end = start + 1; end < Math.min(all.length, start + 41); end++) {
+      if (all[end].trim() !== "}" && all[end].trim() !== "};") continue;
+      if (/^\s*/.exec(all[end])![0] !== indent) continue;
+      if (end < at) break;
+      if (all.slice(start, end + 1).join("\n").length <= 4000) return [start, end];
+      break;
+    }
+  }
+  return fallback;
+}
 export function extractSource(
   filePath: string,
   text: string,
@@ -259,8 +317,26 @@ export function extractSource(
     for (let i = 0; i < Math.min(all.length, 25); i++) selected.add(i);
     // Spread evidence throughout large files instead of reading only their header.
     const candidates = all.flatMap((line, i) => (decisionLine.test(line) ? [i] : []));
-    for (let n = 0; n < Math.min(candidates.length, 14); n++)
-      add(candidates[Math.floor((n * candidates.length) / Math.min(candidates.length, 14))], 3);
+    let spent = [...selected].reduce((sum, i) => sum + Math.min(all[i].length, 400), 0);
+    const count = Math.min(candidates.length, 14);
+    // Alternate early and late decisions; never truncate a chosen function at the budget edge.
+    const order = Array.from({ length: count }, (_, i) =>
+      i % 2 === 0 ? i / 2 : count - 1 - Math.floor(i / 2),
+    );
+    for (const n of order) {
+      const [start, end] = sourceWindow(
+        all,
+        candidates[Math.floor((n * candidates.length) / count)],
+        3,
+      );
+      const indices = Array.from({ length: end - start + 1 }, (_, i) => start + i).filter(
+        (i) => !selected.has(i),
+      );
+      const cost = indices.reduce((sum, i) => sum + Math.min(all[i].length, 400), 0);
+      if (spent + cost > 6500) continue;
+      indices.forEach((i) => selected.add(i));
+      spent += cost;
+    }
   }
   let length = 0;
   let inKey = false;
@@ -443,7 +519,7 @@ export async function readProjectRepository(
       (f.size || 0) <= repositorySourcePolicy.maxFileBytes &&
       (!changed || (changed.get(f.path)?.size || 0) > 0),
   );
-  const selected = selectRepositoryFiles(eligible, target.pullRequest ? 16 : 12);
+  const selected = selectRepositoryFiles(eligible, target.pullRequest ? 16 : 8);
   const files: RepositoryFile[] = [];
   for (let i = 0; i < selected.length; i += 4) {
     const batch = await Promise.all(
@@ -492,7 +568,9 @@ export async function readProjectRepository(
       }),
     );
     files.push(...batch.filter((f): f is RepositoryFile => !!f && f.lines.length > 0));
-    if (!target.pullRequest && i === 8) {
+    // Two import-following rounds reach implementations behind thin adapters,
+    // while retaining the same 16-file cap and pinned-commit requests.
+    if (!target.pullRequest && (i === 4 || i === 8)) {
       const remaining = eligible.filter((f) => !selected.some((s) => s.path === f.path));
       const linked = selectRepositoryFiles(dependencyCandidates(files, remaining), 4);
       selected.push(

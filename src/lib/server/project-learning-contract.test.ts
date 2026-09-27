@@ -58,6 +58,14 @@ it("derives the correct index from text for both learning tracks, never model nu
     }),
   ).toThrow();
   expect(() =>
+    c.resolve({
+      question: "q",
+      evidence: ["CFREF_1"],
+      correctChoice: "기존 결과",
+      distractors: ["기존  결과"],
+    }),
+  ).toThrow("중복");
+  expect(() =>
     c.resolve({ question: "q", evidence: ["bad"], correctChoice: "yes", distractors: ["no"] }),
   ).toThrow();
 });
@@ -135,6 +143,29 @@ it("keeps later modules and later branches within a shared context budget", asyn
     .flatMap((f) => f.lines.map((l) => `${f.path}:L${l.number} ${l.text}\n`))
     .join("").length;
   expect(cost).toBeLessThanOrEqual(16000);
+});
+
+it("does not separate a short method's early return from its later busy guard when budgeting", async () => {
+  const { boundRepositoryContext } = await import("./repository-context");
+  const blocks = Array.from({ length: 40 }, (_, i) => [
+    `async function finish${i}(job) {`,
+    `  if (job.result) return job.result; // reuse-${i}`,
+    `  if (job.busy) throw new Error('busy'); // guard-${i}`,
+    "  job.busy = true;",
+    "  job.result = save(job);",
+    "  return job.result;",
+    "}",
+    "",
+  ]).flat();
+  const file = {
+    ...repo.files[0],
+    totalLines: blocks.length,
+    lines: blocks.map((text, i) => ({ number: i + 1, text })),
+  };
+  const bounded = boundRepositoryContext([file], 4000);
+  const text = bounded[0].lines.map((line) => line.text).join("\n");
+  expect(text).toMatch(/guard-\d+/);
+  for (const [, index] of text.matchAll(/guard-(\d+)/g)) expect(text).toContain(`reuse-${index}`);
 });
 
 it("selects runtime Python modules before package initializers, setup and tests", () => {

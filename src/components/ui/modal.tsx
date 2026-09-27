@@ -22,6 +22,7 @@ export function Modal({
   dismissible?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const backdropPress = useRef(false);
   useEffect(() => {
     const dialog = ref.current;
     if (open && dialog && !dialog.open) dialog.showModal();
@@ -32,12 +33,30 @@ export function Modal({
       ref={ref}
       className={`modal ${className}`}
       aria-label={title}
+      aria-busy={busy}
+      onPointerDown={(e) => {
+        const bounds = e.currentTarget.getBoundingClientRect();
+        backdropPress.current =
+          e.target === e.currentTarget &&
+          (e.clientX < bounds.left ||
+            e.clientX > bounds.right ||
+            e.clientY < bounds.top ||
+            e.clientY > bounds.bottom);
+      }}
       onCancel={(e) => {
         e.preventDefault();
         if (!busy && dismissible) onClose();
       }}
       onClick={(e) => {
-        if (e.target === ref.current && !busy && dismissible) onClose();
+        const bounds = e.currentTarget.getBoundingClientRect();
+        const outside =
+          e.clientX < bounds.left ||
+          e.clientX > bounds.right ||
+          e.clientY < bounds.top ||
+          e.clientY > bounds.bottom;
+        if (backdropPress.current && outside && e.target === ref.current && !busy && dismissible)
+          onClose();
+        backdropPress.current = false;
       }}
     >
       <div className="modal-heading">

@@ -19,6 +19,31 @@
 .class-toolbar input {
   width: 100%;
 }
+.class-search-status,
+.class-next-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.class-search-status p {
+  margin: 0;
+  color: var(--muted);
+}
+.class-next-step {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.class-next-step > div {
+  min-width: 0;
+  flex: 1 1 220px;
+}
+.class-next-step strong {
+  overflow-wrap: anywhere;
+}
 .class-grid,
 .class-tracks {
   display: grid;

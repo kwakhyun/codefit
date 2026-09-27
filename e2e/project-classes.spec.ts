@@ -122,10 +122,26 @@ for (const width of [1280, 390]) {
     await expect(
       page.getByRole("heading", { name: fixtureCheck.analysis.title, exact: true }),
     ).toBeVisible();
+    await expect(page.locator(".class-next-step")).toContainText("다음 학습:");
+    await expect(page.getByRole("link", { name: "다음 학습 시작하기" })).toHaveAttribute(
+      "href",
+      `/project-check?check=${id}`,
+    );
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.screenshot({ path: `artifacts/project-next-step-${width}.png`, fullPage: true });
     await expect(page.getByRole("link", { name: /이전 분석 클래스/ })).toHaveAttribute(
       "href",
       "/projects?class=77777777-7777-4777-8777-777777777777",
     );
+    await page.getByRole("button", { name: "정보 수정" }).click();
+    const editDialog = page.getByRole("dialog", { name: "클래스 정보 수정" });
+    await editDialog.click({ position: { x: 3, y: 3 } });
+    await expect(editDialog).toBeVisible();
+    await page.mouse.click(1, 1);
+    await expect(editDialog).not.toBeVisible();
+    await expect(page.getByRole("button", { name: "정보 수정" })).toBeFocused();
     await page.getByRole("button", { name: "정보 수정" }).click();
     await page.getByRole("textbox", { name: "클래스 이름" }).fill("내 예약 서비스 클래스");
     await page

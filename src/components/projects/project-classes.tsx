@@ -193,7 +193,6 @@ function ClassList({
         localStorage.removeItem(reviewStorageKey(overview.scope, deleting.id));
       } catch {}
       setDeleting(null);
-      setQuery("");
       onChanged();
     } catch (e) {
       setDeleteError(errorMessage(e));
@@ -202,6 +201,7 @@ function ClassList({
     }
   }
   const searchKey = `codefit-project-search:${overview.scope}`;
+  const searchInput = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(() => {
     try {
       return sessionStorage.getItem(searchKey) ?? "";
@@ -209,6 +209,14 @@ function ClassList({
       return "";
     }
   });
+  function changeQuery(value: string) {
+    setQuery(value);
+    try {
+      sessionStorage.setItem(searchKey, value);
+    } catch {
+      /* Search remains usable without browser storage. */
+    }
+  }
   const search = useProjectSearch(query, overview);
   const searching = !!query.trim();
   const items = searching ? (search.page?.checks ?? []) : overview.checks;
@@ -228,18 +236,12 @@ function ClassList({
         <div>
           <FieldLabel htmlFor="class-search">내 프로젝트 찾기</FieldLabel>
           <Input
+            ref={searchInput}
             id="class-search"
             type="search"
             maxLength={200}
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              try {
-                sessionStorage.setItem(searchKey, e.target.value);
-              } catch {
-                /* Search still works without browser storage. */
-              }
-            }}
+            onChange={(e) => changeQuery(e.target.value)}
             placeholder="클래스 이름, 학습 목표 또는 주소"
           />
         </div>
@@ -247,6 +249,25 @@ function ClassList({
           새 프로젝트 분석 <ArrowRight size={18} />
         </AppLink>
       </div>
+      {searching && (
+        <div className="class-search-status">
+          <p role="status" aria-live="polite">
+            {search.busy
+              ? "프로젝트 검색 중…"
+              : search.error
+                ? "검색을 완료하지 못했습니다. 다시 시도해 주세요."
+                : `검색 결과 ${items.length}개${cursor ? " 이상" : ""}`}
+          </p>
+          <Button
+            onClick={() => {
+              changeQuery("");
+              searchInput.current?.focus();
+            }}
+          >
+            검색 초기화
+          </Button>
+        </div>
+      )}
       {!overview.signedIn && (
         <p className="muted">
           이 브라우저의 방문자 기록입니다. 쿠키를 지우면 접근할 수 없으니 필요한 기록은 환경
@@ -463,7 +484,7 @@ function ClassDetail({
         : "설계 질문에 답하며 내가 아는 부분을 확인하세요.",
       href: `/project-check?check=${id}`,
       done: check.review?.answers.filter((a) => a.trim()).length ?? 0,
-      total: 5,
+      total: check.analysis.questions.length,
       ready: true,
     },
     ...(check.page.repository
@@ -476,7 +497,7 @@ function ClassDetail({
               : "이 프로젝트 코드로 맞춤 실습을 준비합니다.",
             href: `/project-practice?check=${id}&mode=code`,
             done: codeDone,
-            total: 3,
+            total: practice?.exercises.code.length ?? 0,
             ready: !!practice,
           },
           {
@@ -485,7 +506,7 @@ function ClassDetail({
             description: "사용자 행동이 데이터와 서비스에 미치는 영향을 확인합니다.",
             href: `/project-practice?check=${id}&mode=service`,
             done: serviceDone,
-            total: 3,
+            total: practice?.exercises.service.length ?? 0,
             ready: !!practice,
           },
           {
@@ -503,6 +524,9 @@ function ClassDetail({
         ]
       : []),
   ];
+  const nextTrack = tracks.find((track) => track.ready && track.total > track.done);
+  const readyTracks = tracks.filter((track) => track.ready && track.total > 0);
+  const completedTracks = readyTracks.filter((track) => track.done >= track.total).length;
   return (
     <>
       <AppLink href="/projects">← 내 프로젝트 목록</AppLink>
@@ -514,6 +538,22 @@ function ClassDetail({
           분석 기준 {check.page.repository?.commit.slice(0, 7) || dateLabel(check.createdAt)} ·{" "}
           {new URL(check.page.url).hostname}
         </small>
+        <div className="class-next-step">
+          <div>
+            <strong>
+              {nextTrack ? `다음 학습: ${nextTrack.title}` : "저장된 학습을 다시 살펴보세요"}
+            </strong>
+            <p>
+              준비된 학습 {readyTracks.length}개 중 {completedTracks}개 완료
+            </p>
+          </div>
+          {nextTrack && (
+            <AppLink href={nextTrack.href} className="primary-button">
+              {nextTrack.done > 0 ? "다음 학습 이어가기" : "다음 학습 시작하기"}
+              <ArrowRight size={18} aria-hidden="true" />
+            </AppLink>
+          )}
+        </div>
         <div className="class-actions">
           <Button
             onClick={() => {
@@ -567,9 +607,13 @@ function ClassDetail({
               )}
               <AppLink href={track.href} className="primary-button">
                 {track.ready
-                  ? track.total > 0 && track.done === track.total
-                    ? "학습 다시 보기"
-                    : "이어서 학습"
+                  ? track.total === 0
+                    ? "학습 결과 확인"
+                    : track.done >= track.total
+                      ? "학습 다시 보기"
+                      : track.done > 0
+                        ? "이어서 학습"
+                        : "학습 시작하기"
                   : "학습 준비하기"}
                 <ArrowRight size={18} />
               </AppLink>

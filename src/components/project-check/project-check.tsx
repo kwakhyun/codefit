@@ -124,8 +124,9 @@ export function ProjectCheckApp() {
             <Card as="aside" className="guest-trial-notice">
               <strong>로그인 없이 실제 프로젝트를 점검해 보세요</strong>
               <p>
-                24시간에 분석 2회와 답변 평가 2회를 체험할 수 있습니다. 기록은 이 브라우저의 쿠키로
-                찾습니다. 로그인하면 분석 5회, 평가 12회를 사용할 수 있습니다.
+                24시간에 분석 {data.usage.analysis.limit}회와 답변 평가 {data.usage.review.limit}
+                회를 체험할 수 있습니다. 기록은 이 브라우저의 쿠키로 찾습니다. 로그인하면 분석 5회,
+                평가 12회를 사용할 수 있습니다.
               </p>
               <GuestLogin returnTo="/project-check" compact />
             </Card>

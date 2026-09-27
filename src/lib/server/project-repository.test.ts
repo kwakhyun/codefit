@@ -7,6 +7,7 @@ import {
   addedLines,
   importLinks,
   readProjectRepository,
+  selectRepositoryFiles,
 } from "./project-repository";
 import { repositoryCitation, sourceLine } from "../project-check/repository";
 const sha = "a".repeat(40),
@@ -70,6 +71,78 @@ it("recognizes repositories and PRs without treating arbitrary GitHub paths as r
     "https://github.com/owner/%2e%2e",
   ])
     expect(() => githubTarget(url)).toThrow();
+});
+it("keeps short method preconditions with a sampled later guard", () => {
+  const text = Array.from({ length: 60 }, (_, i) =>
+    [
+      `  async finish${i}(job: Job): Promise<Result> {`,
+      `    if (job.result) return job.result; // reuse-${i}`,
+      `    if (job.closing) throw new Error('busy'); // guard-${i}`,
+      "    job.closing = true;",
+      "    job.result = this.save(job);",
+      "    return job.result;",
+      "  }",
+      "",
+    ].join("\n"),
+  ).join("\n");
+  const file = extractSource("src/jobs.ts", text);
+  const excerpt = file.lines.map((line) => line.text).join("\n");
+  expect(file.partial).toBe(true);
+  expect(excerpt).toMatch(/guard-\d+/);
+  for (const [, index] of excerpt.matchAll(/guard-(\d+)/g))
+    expect(excerpt).toContain(`reuse-${index}`);
+  expect(file.lines.reduce((sum, line) => sum + line.text.length, 0)).toBeLessThanOrEqual(6500);
+});
+it("prioritizes product boundaries over marketing and verification scripts", () => {
+  const paths = [
+    "scripts/capture-product-screenshots.mjs",
+    "scripts/run-worker-smoke.ts",
+    "scripts/check-ai-workflow.mjs",
+    "landing/src/App.jsx",
+    "scripts/portfolio/build-demo-video.ts",
+    "src/services/addressBookService.ts",
+    "src/services/signingService.ts",
+    "src/renderer/capture/ReplayEngine.ts",
+    "scripts/approve-proposal.mjs",
+  ];
+  expect(
+    selectRepositoryFiles(
+      paths.map((path) => ({ path })),
+      3,
+    )
+      .map((f) => f.path)
+      .sort(),
+  ).toEqual(paths.slice(6).sort());
+  expect(
+    selectRepositoryFiles(
+      [{ path: "src/services/addressBookService.ts" }, { path: "src/portfolio/approval.ts" }],
+      1,
+    )[0].path,
+  ).toBe("src/portfolio/approval.ts");
+});
+it("does not let AI or service words promote loading screens and decorative components", () => {
+  const candidates = [
+    "src/app/learn/ai/[slug]/loading.tsx",
+    "src/components/learn/service-thumbnail.tsx",
+    "src/components/learn/mission-session.tsx",
+    "src/lib/server/project-check-service.ts",
+    "src/lib/server/ai-project-check.ts",
+    "src/domain/rules.ts",
+  ];
+  expect(
+    selectRepositoryFiles(
+      candidates.map((path) => ({ path })),
+      3,
+    )
+      .map((f) => f.path)
+      .sort(),
+  ).toEqual(candidates.slice(3).sort());
+  // Frontend-only implementations remain eligible when there is no backend.
+  expect(selectRepositoryFiles([{ path: candidates[2] }], 1)[0].path).toBe(candidates[2]);
+  expect(
+    selectRepositoryFiles([{ path: "server/architecture.md" }, { path: "src/runtime.ts" }], 1)[0]
+      .path,
+  ).toBe("src/runtime.ts");
 });
 it("excludes credentials, dependencies, traversal, binary files and redacts likely secrets keeping line numbers", () => {
   for (const name of [
@@ -205,6 +278,7 @@ it("reserves room for an imported implementation beyond the initial file selecti
   const paths = [
     ...Array.from({ length: 20 }, (_, i) => `src/lib/a${String(i).padStart(2, "0")}.ts`),
     "src/lib/z-implementation.ts",
+    "src/lib/z-storage.ts",
   ];
   const request = vi.fn<typeof fetch>(async (url, options) => {
     const value = String(url);
@@ -223,7 +297,9 @@ it("reserves room for an imported implementation beyond the initial file selecti
       return new Response(
         value.endsWith("/a00.ts")
           ? 'import { save } from "@/lib/z-implementation";\nexport const run = () => save();'
-          : "export const save = () => 1;",
+          : value.endsWith("/z-implementation.ts")
+            ? 'import { save } from "./z-storage";\nexport { save };'
+            : "export const save = () => 1;",
       );
     return fallback(url, options);
   });
@@ -234,6 +310,7 @@ it("reserves room for an imported implementation beyond the initial file selecti
   );
   expect(page.repository?.files).toHaveLength(16);
   expect(page.repository?.files.some((f) => f.path === "src/lib/z-implementation.ts")).toBe(true);
+  expect(page.repository?.files.some((f) => f.path === "src/lib/z-storage.ts")).toBe(true);
 });
 
 it("reads a bounded large runtime file instead of dropping it at 100KB", async () => {
