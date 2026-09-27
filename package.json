@@ -28,6 +28,7 @@
     "measure:typing-pair": "node scripts/measure-typing-pair.mjs",
     "eval:handoff": "node --import tsx scripts/evaluate-handoff.ts",
     "eval:project": "node --import tsx scripts/evaluate-project-questions.ts",
+    "eval:project-content": "node --import tsx scripts/evaluate-project-content.ts",
     "eval:project-assessment": "node --import tsx scripts/evaluate-project-assessment.ts",
     "eval:prepare-review": "node --import tsx scripts/prepare-assessment-review.ts"
   },
