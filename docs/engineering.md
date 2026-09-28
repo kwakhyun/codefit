@@ -284,7 +284,7 @@ SQLite와 PostgreSQL은 동일 계약을 구현합니다. PostgreSQL은 같은 I
 
 ## 모델 선택: 검토 Luna, 생성 Sol 유지 — 2026-09-14
 
-풀이 검토 기본값을 **`gpt-5.6-luna`, medium 추론**으로 변경했습니다. 문제 생성은 **`gpt-5.6-sol`**을 유지합니다. [설정 코드](../src/lib/server/ai-models.ts), [판단 요약](../reports/ai-model-decision.json), [현재 검토 결과](../reports/ai-review-luna.json)를 연결했습니다. 환경 변수 우선순위는 유지하며, 생성 모델과 검토 모델을 서로 덮어쓰지 않습니다. `/quality`도 현재 Luna 결과를 보여줍니다.
+풀이 검토 기본값을 **`gpt-5.6-luna`, medium 추론**으로 변경했습니다. 문제 생성은 **`gpt-5.6-sol`**을 유지합니다. [설정 코드](../src/lib/server/ai-models.ts), [판단 요약](../reports/ai-model-decision.json), [현재 검토 결과](../reports/ai-review-luna.json)를 연결했습니다. 환경 변수 우선순위는 유지하며, 생성 모델과 검토 모델을 서로 덮어쓰지 않습니다.
 
 ### 검토: 같은 코드, 같은 기준으로 32회
 

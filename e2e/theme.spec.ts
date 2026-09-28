@@ -22,7 +22,6 @@ const routes = [
   "/login",
   "/profile",
   "/privacy",
-  "/quality",
 ];
 for (const theme of ["light", "dark"] as const) {
   for (const path of routes) {

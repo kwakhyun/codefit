@@ -240,7 +240,6 @@ body {
 }
 .learn-page,
 .handoff-page,
-.quality-page,
 .profile-content {
   --surface: light-dark(var(--light-canvas), #171d28);
 }
@@ -755,7 +754,6 @@ html {
     .handoff-quality,
     .handoff-measurement,
     .auth-public-note,
-    .quality-page > section,
     .privacy-copy,
     .privacy-copy > section
   )
@@ -768,7 +766,6 @@ html {
     .handoff-quality,
     .handoff-measurement,
     .auth-public-note,
-    .quality-page > section,
     .privacy-copy,
     .privacy-copy > section
   )

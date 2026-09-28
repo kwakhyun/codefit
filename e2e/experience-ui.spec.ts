@@ -25,7 +25,6 @@ test("illustrated menus work on narrow screens and expose keyboard step previews
     "/handoff",
     "/project-check",
     "/security-check",
-    "/quality",
     "/privacy",
     "/login",
     "/?view=history",

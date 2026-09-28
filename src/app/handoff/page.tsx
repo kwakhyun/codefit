@@ -2,7 +2,6 @@ import { PracticeEntry } from "@/components/project-practice/practice-entry";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { ExperienceJourney } from "@/components/experience/experience-journey";
 import { SiteHeader } from "@/components/navigation/site-header";
-import { AppLink as Link } from "@/components/ui/primitives";
 import type { Metadata } from "next";
 
 import { HandoffDashboard } from "@/components/handoff/handoff-dashboard";
@@ -41,7 +40,6 @@ export default async function HandoffPage({
             정답이나 실력 인증이 아니며, 실제 제품에 적용하기 전에는 해당 환경에서도 검증해야
             합니다.
           </p>
-          <Link href="/quality">AI 검토 방식과 검증 결과 →</Link>
         </aside>
       </PracticeEntry>
     </main>

@@ -1,0 +1,32 @@
+.usage-panel {
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  margin: 20px 0;
+  border-radius: 12px;
+}
+.usage-panel h3 {
+  margin: 0 0 15px;
+  font-size: var(--text-body);
+}
+.usage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.usage-grid > div {
+  display: grid;
+  gap: 8px;
+}
+.usage-grid strong {
+  font-size: 22px;
+}
+.usage-grid small {
+  font-size: var(--text-small);
+  color: var(--muted);
+  font-weight: 400;
+}
+.usage-panel p {
+  font-size: var(--text-small);
+  line-height: 1.8;
+}

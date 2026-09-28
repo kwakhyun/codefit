@@ -143,6 +143,6 @@ AI 워크숍 홈과 AI 실무 배우기 상단에서 저장소를 연결하거�
 
 **[CODE:FIT 시작하기 →](https://codefit-five.vercel.app)**
 
-[기능별 상세 문서](docs/README.md) · [AI 검토 방식과 검증 범위](https://codefit-five.vercel.app/quality) · [개인정보 안내](https://codefit-five.vercel.app/privacy)
+[기능별 상세 문서](docs/README.md) · [개인정보 안내](https://codefit-five.vercel.app/privacy)
 
 프로젝트 클래스의 저장 범위와 복습 방식은 [내 프로젝트 관리 문서](docs/project-classes.md)에서 확인할 수 있습니다.

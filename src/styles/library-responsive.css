@@ -711,3 +711,10 @@
     text-align: left;
   }
 }
+
+@media (max-width: 640px) {
+  .app-footer {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+}

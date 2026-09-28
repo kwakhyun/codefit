@@ -1,7 +1,6 @@
 "use client";
 import { Card, Status, Button } from "@/components/ui/primitives";
 import { useEffect, useState } from "react";
-import { AppLink as Link } from "@/components/ui/primitives";
 import { api, errorMessage } from "@/lib/client-api";
 import type { AiUsage as Usage } from "@/lib/ai-telemetry";
 import { dateLabel } from "@/lib/client-api";
@@ -64,9 +63,6 @@ export function AiUsage() {
         전체의 이용 한도에 도달하면 AI 요청이 일시적으로 제한될 수 있습니다. 기존 문제와 힌트는 계속
         이용할 수 있습니다.
       </p>
-      <Link className="text-button" href="/quality">
-        AI 검토 방식과 검증 결과 보기 →
-      </Link>
     </Card>
   );
 }

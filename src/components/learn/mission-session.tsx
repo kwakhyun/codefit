@@ -285,8 +285,7 @@ export function MissionSession({
         </Disclosure>
       </aside>
       <footer className="learn-fineprint">
-        예제 서비스는 실제 네트워크나 계정에 영향을 주지 않는 모의 실습입니다.{" "}
-        <Link href="/quality">AI 검토 안내</Link>
+        예제 서비스는 실제 네트워크나 계정에 영향을 주지 않는 모의 실습입니다.
       </footer>
     </main>
   );

@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+test("retired quality page returns 404", async ({ request }) => {
+  const response = await request.get("/quality");
+  expect(response.status()).toBe(404);
+});
+
 test("a partial beginner draft resumes from course, home and history without leaking to another browser", async ({
   page,
   browser,
@@ -101,7 +106,6 @@ test("all public page families remain readable on mobile and have accessible nav
     ["login", "/login"],
     ["project-check", "/project-check"],
     ["privacy", "/privacy"],
-    ["quality", "/quality"],
     ["history", "/?view=history"],
     ["bookmarks", "/?view=bookmarks"],
     ["mission", "/learn/where-data-lives"],

@@ -12,7 +12,6 @@ const screens = [
   ["login", "/login"],
   ["profile", "/profile"],
   ["privacy", "/privacy"],
-  ["quality", "/quality"],
   ["browse", "/?view=browse"],
 ] as const;
 for (const [name, path] of screens) {
@@ -22,6 +21,7 @@ for (const [name, path] of screens) {
       await page.setViewportSize({ width, height: 1000 });
       await page.goto(path);
       await expect(page.locator("main").first()).toBeVisible();
+      await expect(page.locator('a[href="/quality"]')).toHaveCount(0);
       await page.evaluate(() => document.fonts.ready);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,

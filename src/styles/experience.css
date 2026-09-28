@@ -229,7 +229,6 @@
   background: light-dark(var(--light-blue-soft), #141e2a);
   line-height: 1.6;
 }
-.quality-page [id],
 .privacy-copy [id] {
   scroll-margin-top: 24px;
 }
