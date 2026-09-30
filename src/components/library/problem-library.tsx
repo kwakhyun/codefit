@@ -89,7 +89,7 @@ export function ProblemLibrary({
       ) : (
         <div className="page-title">
           <span className="eyebrow">
-            {initialView === "bookmarks" ? "SAVED FOR LATER" : "EXPLORE YOUR DOMAIN"}
+            {initialView === "bookmarks" ? "나중에 풀 문제" : "분야별 코딩 연습"}
           </span>
           <h1>
             {initialView === "bookmarks"
@@ -163,7 +163,7 @@ export function ProblemLibrary({
               <div className="section-heading">
                 <div>
                   <h2>
-                    {title}
+                    {isHome ? title : "문제 목록"}
                     <span>{total}</span>
                   </h2>
                   <p>연습할 분야와 난이도에 맞는 문제를 골라보세요.</p>

@@ -153,7 +153,7 @@ export function Generator({
           <div className="terminal-icon">
             <Sparkles size={25} />
           </div>
-          <span className="eyebrow">MAKE YOUR NEXT CHALLENGE</span>
+          <span className="eyebrow">AI 문제 생성</span>
           <h2>지금 필요한 문제를 만드세요.</h2>
           <p>분야, 난이도와 주제를 고르면 AI가 문제와 힌트, 참고 정답을 만듭니다.</p>
         </div>

@@ -8,9 +8,9 @@ interface HelpDialogProps {
 }
 export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
   return (
-    <Modal open={helpOpen} onClose={() => setHelpOpen(false)} title="QUICK START">
+    <Modal open={helpOpen} onClose={() => setHelpOpen(false)} title="사용 안내">
       <div className="help-content">
-        <span className="eyebrow">WELCOME TO CODE:FIT</span>
+        <span className="eyebrow">CODE:FIT</span>
         <h2>코드핏 시작하기</h2>
         <ol>
           <li>

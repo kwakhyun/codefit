@@ -13,6 +13,9 @@ const workspaceRoutes = [
   "/security-check",
   "/learn",
   "/handoff",
+  "/login",
+  "/profile",
+  "/privacy",
 ];
 
 /** Keep product navigation stable while each page owns its content and mobile menu. */
