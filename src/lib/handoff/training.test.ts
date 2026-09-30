@@ -11,6 +11,7 @@ import {
   trainingSchema,
   observationSourceText,
   coachingEvidenceText,
+  resumeStage,
 } from "./training";
 import { readHandoffDraft, writeHandoffDraft, formatHandoffDraft } from "./draft";
 import { handoffDocument } from "./document";
@@ -123,6 +124,16 @@ it("keeps V1 backwards compatible and protects training with the same code revis
 });
 
 describe("saved observation provenance", () => {
+  it("resumes a saved lab on the first step still missing its evidence", () => {
+    const locked = { choice: "shared", reason: "", locked: true };
+    const observation = { id: "prediction", status: "ok" as const, actual: "[3,3]" };
+    const run = { codeHash: "hash", suiteVersion: "v", results: [] };
+    expect(resumeStage(undefined)).toBe(0);
+    expect(resumeStage(emptyTraining())).toBe(0);
+    expect(resumeStage({ ...emptyTraining(), prediction: locked })).toBe(0);
+    expect(resumeStage({ ...emptyTraining(), prediction: locked, observation })).toBe(2);
+    expect(resumeStage({ ...emptyTraining(), prediction: locked, observation, run })).toBe(3);
+  });
   it("invalidates evidence when its original source, probe, or runner changes", async () => {
     const problem = handoffProblems.find((p) => p.id === "handoff-cart")!;
     const lab = learningLab(problem);

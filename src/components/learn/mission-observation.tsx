@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { Check, ArrowRight } from "lucide-react";
-import { Button, Card, Disclosure, DisclosureSummary } from "@/components/ui/primitives";
+import { Button, Card, Disclosure, DisclosureSummary, Status } from "@/components/ui/primitives";
 import { actionLabel, type Action, type Mission } from "@/lib/learn/catalog";
 import type { LearningRecord, LearningRecordUpdate } from "@/lib/learn/progress";
 import { simulate } from "@/lib/learn/simulation";
@@ -73,6 +73,13 @@ export function MissionObservation({
           </span>
           <span>실험을 마치면 결과 요약과 다음 단계 버튼이 나타납니다.</span>
         </p>
+      )}
+      {record.actions.length >= 80 && (
+        <Status role="status" className="learn-warning">
+          관찰 기록은 80개까지 보관합니다. 지금부터 누르는 버튼은 기록되지 않습니다.{" "}
+          {evidence ? "다음 단계로 이동하거나 " : ""}‘기록 내려받고 관찰 다시 시작’을 누르면
+          지금까지의 기록을 내려받고 처음부터 다시 실험할 수 있습니다.
+        </Status>
       )}
       <div className="mission-columns">
         <SimulationView
