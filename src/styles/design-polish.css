@@ -1,0 +1,153 @@
+/* Surface polish: quieter containers, clear choices and tactile controls.
+   Loaded after design-consistency.css. Colors reuse the existing theme roles. */
+
+/* Containers separate content with a softer hairline in light mode; inputs keep their own
+   stronger border so editable fields still read as fields. Dark mode is unchanged. */
+:root {
+  --line: light-dark(#d5dde8, #343e4e);
+}
+/* Buttons keep the previous crisper outline so they do not fade into cards. */
+.ui-button {
+  border-color: light-dark(var(--light-line), #343e4e);
+}
+.ui-card {
+  box-shadow: 0 1px 2px light-dark(rgb(15 23 42 / 5%), transparent);
+}
+
+/* Press feedback: a slight shrink reads as a physical press on touch and pointer alike. */
+.ui-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Disabled primary actions turn neutral instead of a faded brand color, so they are not
+   mistaken for an active button that is still loading. */
+.ui-button.primary-button:disabled {
+  opacity: 1;
+  background: light-dark(var(--light-hover), #283448);
+  border-color: transparent;
+  color: light-dark(#6b7a8f, #8d99ab);
+}
+
+/* Segmented choices: one track with a raised thumb for the selected option. */
+.type-filters,
+.segmented {
+  gap: 2px;
+  padding: 3px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: light-dark(var(--light-raised), #0b0f15);
+}
+.type-filters > .ui-button,
+.segmented > .ui-button {
+  border-color: transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+}
+.type-filters > .ui-button:hover:not(.selected),
+.segmented > .ui-button:hover:not(.selected) {
+  border-color: transparent;
+  color: var(--text);
+}
+.type-filters > .ui-button.selected,
+.segmented > .ui-button.selected {
+  border-color: transparent;
+  background: light-dark(var(--light-panel), #283448);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow:
+    0 1px 3px light-dark(rgb(15 23 42 / 12%), rgb(0 0 0 / 40%)),
+    0 0 0 1px light-dark(rgb(15 23 42 / 4%), rgb(255 255 255 / 6%));
+}
+
+/* Problem rows: tags become quiet filled chips and the bookmark is a plain icon target. */
+.row-tags > span {
+  border: 0;
+  border-radius: 6px;
+  padding: 2px 7px;
+  background: light-dark(var(--light-raised), #202938);
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 12px;
+}
+.bookmark-button.icon-button,
+.topbar-actions > .icon-button.desktop-header-action {
+  border-color: transparent;
+  background: transparent;
+}
+.bookmark-button.icon-button:hover:not(:disabled),
+.topbar-actions > .icon-button.desktop-header-action:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--surface-hover);
+}
+
+/* Counts line up as they change. */
+.stats-row strong,
+.table-footer,
+.pagination,
+.row-time,
+.notes-progress {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Expandable cards: a trailing chevron replaces the small native triangle and the whole
+   title row, not just the text, is the target. */
+details.audit-method,
+.security-exercises details.ui-disclosure,
+details.project-example-disclosure {
+  padding: 20px 24px;
+}
+:is(.audit-method, .security-exercises details, .project-example-disclosure)
+  > .ui-disclosure-summary {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 36px 0 0;
+  list-style: none;
+}
+:is(.audit-method, .security-exercises details, .project-example-disclosure)
+  > .ui-disclosure-summary::-webkit-details-marker {
+  display: none;
+}
+:is(.audit-method, .security-exercises details, .project-example-disclosure)
+  > .ui-disclosure-summary::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  background: var(--muted);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transition: transform var(--motion-fast);
+}
+:is(.audit-method, .security-exercises details, .project-example-disclosure)[open]
+  > .ui-disclosure-summary::after {
+  transform: rotate(180deg);
+}
+.audit-method > .ui-disclosure-summary > span {
+  margin-left: 0;
+}
+@media (max-width: 650px) {
+  details.audit-method,
+  .security-exercises details.ui-disclosure,
+  details.project-example-disclosure {
+    padding: 16px 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.audit-method, .security-exercises details, .project-example-disclosure)
+    > .ui-disclosure-summary::after {
+    transition: none;
+  }
+}
