@@ -300,7 +300,7 @@ export class PostgresStore implements ProblemStore {
         const own =
           await store.sql`SELECT 1 FROM jobs WHERE id=${project.check.id} AND owner=${owner}`;
         const id = own.length ? project.check.id : restoredProjectId(owner, project.check.id);
-        const [analysis, review] = restoredProjectJobs(project, id);
+        const [analysis, review] = restoredProjectJobs(project, id, owner);
         const rows =
           await store.sql`INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES(${id},${owner},${analysis.kind},'done',${analysis.result},${analysis.expires},'',${analysis.fingerprint}) ON CONFLICT(id) DO NOTHING RETURNING id`;
         if (!rows.length) continue;

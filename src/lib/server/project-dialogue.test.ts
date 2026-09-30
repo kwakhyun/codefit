@@ -121,3 +121,35 @@ it("does not resurrect a dialogue if its project is deleted during generation", 
   ).rejects.toThrow();
   expect(await store.queries.projectChecks.dialogue("user:a", checkId, 0)).toBeNull();
 });
+it("lets a failed turn run again with different text instead of pinning its first input", async () => {
+  const service = new ProjectCheckService(store),
+    signal = AbortSignal.timeout(5000);
+  vi.mocked(discussProjectCode).mockRejectedValueOnce(new Error("provider failed"));
+  await expect(
+    service.discuss(
+      "user:a",
+      "network",
+      checkId,
+      { questionIndex: 0, answer: "처음 설명" },
+      signal,
+    ),
+  ).rejects.toThrow("provider failed");
+  const retried = await service.discuss(
+    "user:a",
+    "network",
+    checkId,
+    { questionIndex: 0, answer: "고쳐 쓴 설명" },
+    signal,
+  );
+  expect(retried.turns[0].answer).toBe("고쳐 쓴 설명");
+  // A completed turn still keeps its identity.
+  await expect(
+    service.discuss(
+      "user:a",
+      "network",
+      checkId,
+      { questionIndex: 0, answer: "또 다른 설명" },
+      signal,
+    ),
+  ).rejects.toThrow();
+});

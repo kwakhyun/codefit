@@ -163,6 +163,7 @@ const savedCheck = z
       .strict()
       .optional(),
     revisionNumber: z.number().int().min(1).max(3).optional(),
+    revisionOf: z.uuid().optional(),
   })
   .strict();
 const submission = trainingInput
@@ -350,8 +351,17 @@ export function restoredProjectId(owner: string, sourceId: string) {
 export function restoredProjectJobs(
   project: ReturnType<typeof prepareBackup>["projects"][number],
   id: string,
+  owner: string,
 ) {
-  const check = { ...project.check, id };
+  const { revisionOf } = project.check;
+  // A copied revision follows its root, which is remapped the same way.
+  const check = {
+    ...project.check,
+    id,
+    ...(revisionOf && id !== project.check.id
+      ? { revisionOf: restoredProjectId(owner, revisionOf) }
+      : {}),
+  };
   const jobs = [
     {
       id,

@@ -391,3 +391,100 @@ it("aborts the provider after cancellation and never saves its result", async ()
     status: "cancelled",
   });
 });
+it("accepts edited answers after a failed review instead of rejecting the reused review ID", async () => {
+  const service = new ProjectCheckService(store, ai);
+  const i = input();
+  await service.create("user:a", "network", i, signal());
+  ai.assess.mockRejectedValueOnce(new Error("provider failed"));
+  await expect(
+    service.review(
+      "user:a",
+      "network",
+      { id: i.requestId, answers: Array(5).fill("처음") },
+      signal(),
+    ),
+  ).rejects.toThrow("provider failed");
+  const answers = Array(5).fill("고쳐 쓴 설명입니다.");
+  const review = await service.review("user:a", "network", { id: i.requestId, answers }, signal());
+  expect(review.answers).toEqual(answers);
+  // A completed review still keeps its identity.
+  await expect(
+    service.review(
+      "user:a",
+      "network",
+      { id: i.requestId, answers: Array(5).fill("다른 답") },
+      signal(),
+    ),
+  ).rejects.toThrow();
+});
+it("keeps a user-safe failure reason for background status and hides unknown errors", async () => {
+  const service = new ProjectCheckService(store, ai);
+  const guided = input();
+  ai.readPage.mockResolvedValueOnce({ ...fixtureCheck.page, limited: true, source: "html" });
+  await expect(service.create("user:a", "network", guided, signal())).rejects.toMatchObject({
+    status: 422,
+  });
+  expect(await store.queries.projectChecks.analysisStatus("user:a", guided.requestId)).toEqual({
+    status: "failed",
+    code: 422,
+    error: expect.stringContaining("120자 이상"),
+  });
+  const unknown = input();
+  ai.analyze.mockRejectedValueOnce(new Error("secret provider detail"));
+  await expect(service.create("user:a", "network", unknown, signal())).rejects.toThrow();
+  expect(await store.queries.projectChecks.analysisStatus("user:a", unknown.requestId)).toEqual({
+    status: "failed",
+  });
+});
+it("groups revisions under their root class and caps the total revisions of a root", async () => {
+  const service = new ProjectCheckService(store, ai);
+  const i = input();
+  await service.create("user:a", "network", i, signal());
+  await store.queries.projectChecks.editClass("user:a", i.requestId, {
+    name: "예약 서비스",
+    goal: "",
+    revision: 0,
+  });
+  await service.review(
+    "user:a",
+    "network",
+    { id: i.requestId, answers: Array(5).fill("최초 설명입니다.") },
+    signal(),
+  );
+  const first = await service.revise("user:a", i.requestId, randomUUID());
+  expect(first.revisionOf).toBe(i.requestId);
+  expect(first.classMetadata).toBeUndefined();
+  await service.review(
+    "user:a",
+    "network",
+    { id: first.id, answers: Array(5).fill("보완한 설명입니다.") },
+    signal(),
+  );
+  const second = await service.revise("user:a", first.id, randomUUID());
+  expect(second.revisionOf).toBe(i.requestId);
+  expect(second.revisionNumber).toBe(2);
+  const third = await service.revise("user:a", i.requestId, randomUUID());
+  expect(third.revisionNumber).toBe(3);
+  await expect(service.revise("user:a", i.requestId, randomUUID())).rejects.toMatchObject({
+    status: 422,
+  });
+  const summary = await store.queries.projectChecks.summaryPage("user:a");
+  expect(summary.checks.map((c) => c.id)).toEqual([i.requestId]);
+  const detail = await store.queries.projectChecks.detail("user:a", i.requestId);
+  expect(detail?.revisions?.map((r) => r.id)).toEqual([first.id, second.id, third.id]);
+  expect(await store.queries.projectChecks.rootId("user:a", second.id)).toBe(i.requestId);
+  const backup = store.exportBackup("user:a");
+  store.importBackup("user:restored", backup);
+  const restored = await store.queries.projectChecks.list("user:restored");
+  expect(restored).toHaveLength(1);
+  expect(
+    (await store.queries.projectChecks.detail("user:restored", restored[0].id))?.revisions,
+  ).toHaveLength(3);
+  expect(await store.queries.projectChecks.remove("user:a", i.requestId)).toEqual([
+    i.requestId,
+    first.id,
+    second.id,
+    third.id,
+  ]);
+  expect(await store.queries.projectChecks.get("user:a", first.id)).toBeNull();
+});
