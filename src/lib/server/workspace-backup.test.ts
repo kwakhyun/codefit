@@ -10,7 +10,7 @@ beforeEach(() => {
 afterEach(() => store.db.close());
 workspaceBackupContract(() => store);
 it("backup excludes over 2500 unrelated public problems instead of creating an unimportable file", () => {
-  const insert = store.db.prepare("INSERT INTO problems VALUES (?,?,?)");
+  const insert = store.db.prepare("INSERT INTO problems (id,content,created_at) VALUES (?,?,?)");
   store.db.exec("BEGIN");
   for (let i = 0; i < 2501; i++) {
     const p = { ...seedProblems[0], id: `unrelated-${i}` };

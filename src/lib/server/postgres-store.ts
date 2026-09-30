@@ -12,12 +12,14 @@ import {
   backupReads,
   backupParameters,
   buildBackup,
+  BackupMismatch,
   prepareBackup,
+  restoredProblem,
+  restoredReview,
   restoredProjectId,
   restoredProjectJobs,
 } from "./workspace-backup";
 import {
-  validateReview,
   type Attempt,
   type Problem,
   type ProblemSummary,
@@ -43,12 +45,13 @@ export class PostgresStore implements ProblemStore {
       );
     }, "postgres");
   }
-  private async addCatalog(problem: Problem) {
+  private async addCatalog(problem: Problem, owner: string | null = null) {
+    const values = catalogValues(problem, owner);
     await this.sql.unsafe(
-      `INSERT INTO problem_catalog (${catalogColumns}) VALUES (${catalogValues(problem)
+      `INSERT INTO problem_catalog (${catalogColumns}) VALUES (${values
         .map((_, i) => `$${i + 1}`)
         .join(",")}) ON CONFLICT(id) DO NOTHING`,
-      catalogValues(problem),
+      values,
     );
   }
   private async transaction<T>(fn: (store: PostgresStore) => Promise<T>): Promise<T> {
@@ -69,14 +72,18 @@ export class PostgresStore implements ProblemStore {
         await store.sql`INSERT INTO problems(id,content,created_at) VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt}) ON CONFLICT(id) DO NOTHING`;
       while (true) {
         const rows =
-          await store.sql`SELECT content FROM problems p WHERE NOT EXISTS (SELECT 1 FROM problem_catalog c WHERE c.id=p.id) LIMIT 100`;
+          await store.sql`SELECT content,owner FROM problems p WHERE NOT EXISTS (SELECT 1 FROM problem_catalog c WHERE c.id=p.id) LIMIT 100`;
         if (!rows.length) break;
-        for (const row of rows) await store.addCatalog(JSON.parse(row.content));
+        for (const row of rows) await store.addCatalog(JSON.parse(row.content), row.owner);
       }
     });
   }
-  async problem(id: string): Promise<Problem | null> {
-    const [row] = await this.sql`SELECT content FROM problems WHERE id=${id}`;
+  /** With an owner, problems restored privately by other owners are hidden. */
+  async problem(id: string, owner?: string): Promise<Problem | null> {
+    const [row] = owner
+      ? await this
+          .sql`SELECT content FROM problems WHERE id=${id} AND (owner IS NULL OR owner=${owner})`
+      : await this.sql`SELECT content FROM problems WHERE id=${id}`;
     return row ? JSON.parse(row.content) : null;
   }
   async problems() {
@@ -89,10 +96,10 @@ export class PostgresStore implements ProblemStore {
       .sql`SELECT content::jsonb - ARRAY['solution','hints','explanation','scenario','requirements','starterCode','examples'] AS summary, jsonb_array_length(content::jsonb->'hints') AS hint_count FROM problems ORDER BY created_at DESC`;
     return rows.map((row) => ({ ...row.summary, hintCount: Number(row.hint_count) }));
   }
-  async addProblem(problem: Problem) {
+  async addProblem(problem: Problem, owner: string | null = null) {
     await this.transaction(async (store) => {
-      await store.sql`INSERT INTO problems(id,content,created_at) VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt})`;
-      await store.addCatalog(problem);
+      await store.sql`INSERT INTO problems(id,content,created_at,owner) VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt},${owner})`;
+      await store.addCatalog(problem, owner);
     });
   }
   async progressFor(owner: string, id: string): Promise<Progress | null> {
@@ -265,21 +272,22 @@ export class PostgresStore implements ProblemStore {
       let problems = 0,
         attempts = 0;
       for (const problem of backup.problems) {
-        const rows =
-          await store.sql`INSERT INTO problems VALUES(${problem.id},${JSON.stringify(problem)},${problem.createdAt}) ON CONFLICT(id) DO NOTHING RETURNING id`;
-        if (rows.length) await store.addCatalog(problem);
-        problems += rows.length;
+        const [existing] = await store.sql`SELECT owner FROM problems WHERE id=${problem.id}`;
+        if (!existing) {
+          await store.addProblem(restoredProblem(problem), owner);
+          problems++;
+        } else if (existing.owner !== null && existing.owner !== owner) continue;
         await store.sql`INSERT INTO restored_problems(owner,problem_id) VALUES(${owner},${problem.id}) ON CONFLICT(owner,problem_id) DO NOTHING`;
       }
       for (const p of Object.values(backup.progress)) {
-        if (!(await store.problem(p.problemId)))
-          throw new Error("Backup references an unknown problem");
+        if (!(await store.problem(p.problemId, owner)))
+          throw new BackupMismatch("Backup references an unknown problem");
         await store.sql`INSERT INTO progress(owner,problem_id,code,bookmarked,hints_viewed,solution_viewed,status,updated_at,code_revision) VALUES(${owner},${p.problemId},${p.code},${Number(p.bookmarked)},${p.hintsViewed},${Number(p.solutionViewed)},${p.status},${p.updatedAt},${p.code === null ? 0 : 1}) ON CONFLICT(owner,problem_id) DO NOTHING`;
       }
       for (const attempt of backup.attempts) {
-        const problem = await store.problem(attempt.problemId);
-        if (!problem) throw new Error("Backup references an unknown problem");
-        const review = validateReview(attempt.review, problem);
+        const problem = await store.problem(attempt.problemId, owner);
+        if (!problem) throw new BackupMismatch("Backup references an unknown problem");
+        const review = restoredReview(attempt.review, problem);
         if (
           (await store.sql`SELECT 1 FROM attempts WHERE owner=${owner} AND id=${attempt.id}`).length
         )
@@ -300,12 +308,10 @@ export class PostgresStore implements ProblemStore {
         const own =
           await store.sql`SELECT 1 FROM jobs WHERE id=${project.check.id} AND owner=${owner}`;
         const id = own.length ? project.check.id : restoredProjectId(owner, project.check.id);
-        const [analysis, review] = restoredProjectJobs(project, id, owner);
-        const rows =
-          await store.sql`INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES(${id},${owner},${analysis.kind},'done',${analysis.result},${analysis.expires},'',${analysis.fingerprint}) ON CONFLICT(id) DO NOTHING RETURNING id`;
-        if (!rows.length) continue;
-        if (review)
-          await store.sql`INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES(${review.id},${owner},${review.kind},'done',${review.result},${review.expires},'',${review.fingerprint})`;
+        // Preserve an existing whole project, including a pending analysis or newer training.
+        if ((await store.sql`SELECT 1 FROM jobs WHERE id=${id}`).length) continue;
+        for (const job of restoredProjectJobs(project, id, owner))
+          await store.sql`INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES(${job.id},${owner},${job.kind},'done',${job.result},${job.expires},'',${job.fingerprint})`;
         projects++;
       }
       if (backup.legacy) await store.archiveLegacy(owner, backup.legacy);

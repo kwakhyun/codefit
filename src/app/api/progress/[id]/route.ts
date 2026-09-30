@@ -8,7 +8,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   try {
     const { owner } = await session(request);
     const { id } = await context.params;
-    await requireProblem(id);
+    await requireProblem(id, owner);
     const patch = await readBody(
       request,
       z

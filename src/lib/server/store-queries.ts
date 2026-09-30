@@ -38,6 +38,9 @@ export function decodeCursor(value?: string | null) {
   }
 }
 
+// Catalog rows restored privately from another owner's backup are not part of this library.
+const visible = "(c.owner IS NULL OR c.owner=?)";
+
 /** Parameterized read models shared by both adapters. UI requests never load drafts or the entire bank. */
 export class StoreQueries {
   constructor(
@@ -74,8 +77,8 @@ export class StoreQueries {
 
   async library(owner: string, params: URLSearchParams): Promise<LibraryPage> {
     const f = readFilters(params);
-    const values: (string | number)[] = [owner];
-    const where: string[] = [];
+    const values: (string | number)[] = [owner, owner];
+    const where = [visible];
     const domain = params.get("domain");
     if (DOMAIN_IDS.includes(domain as (typeof DOMAIN_IDS)[number])) {
       where.push("c.domain=?");
@@ -101,7 +104,7 @@ export class StoreQueries {
       where.push("c.search_text LIKE ? ESCAPE '!'");
       values.push(`%${f.search.trim().toLowerCase().replace(/[!%_]/g, "!$&")}%`);
     }
-    const from = `FROM problem_catalog c LEFT JOIN progress g ON g.problem_id=c.id AND g.owner=? ${where.length ? "WHERE " + where.join(" AND ") : ""}`;
+    const from = `FROM problem_catalog c LEFT JOIN progress g ON g.problem_id=c.id AND g.owner=? WHERE ${where.join(" AND ")}`;
     const [count] = await this.query(`SELECT COUNT(*) AS total ${from}`, values);
     const total = Number(count.total),
       pageSize = 8;
@@ -151,15 +154,16 @@ export class StoreQueries {
     ).toISOString();
     const [counts, progressCounts, recommendation, days, independent, active] = await Promise.all([
       this.query(
-        "SELECT COUNT(*) AS total, SUM(CASE WHEN source='ai' THEN 1 ELSE 0 END) AS ai FROM problem_catalog",
+        `SELECT COUNT(*) AS total, SUM(CASE WHEN source='ai' THEN 1 ELSE 0 END) AS ai FROM problem_catalog c WHERE ${visible}`,
+        [owner],
       ),
       this.query(
         "SELECT SUM(CASE WHEN status='solved' THEN 1 ELSE 0 END) AS solved,SUM(CASE WHEN status='in-progress' THEN 1 ELSE 0 END) AS in_progress,SUM(bookmarked) AS bookmarked FROM progress WHERE owner=?",
         [owner],
       ),
       this.query(
-        `SELECT c.summary,${progressColumns} FROM problem_catalog c LEFT JOIN progress g ON g.problem_id=c.id AND g.owner=? ORDER BY CASE COALESCE(g.status,'new') WHEN 'in-progress' THEN 0 WHEN 'new' THEN 1 ELSE 2 END,CASE WHEN g.status='in-progress' THEN g.updated_at ELSE '' END DESC,c.minutes,c.id LIMIT 1`,
-        [owner],
+        `SELECT c.summary,${progressColumns} FROM problem_catalog c LEFT JOIN progress g ON g.problem_id=c.id AND g.owner=? WHERE ${visible} ORDER BY CASE COALESCE(g.status,'new') WHEN 'in-progress' THEN 0 WHEN 'new' THEN 1 ELSE 2 END,CASE WHEN g.status='in-progress' THEN g.updated_at ELSE '' END DESC,c.minutes,c.id LIMIT 1`,
+        [owner, owner],
       ),
       this.query(
         `SELECT ${day} AS day,COUNT(*) AS count FROM attempts WHERE owner=? GROUP BY ${day}`,
@@ -170,7 +174,10 @@ export class StoreQueries {
         [owner, todayEnd],
       ),
       activeId
-        ? this.query("SELECT summary FROM problem_catalog WHERE id=?", [activeId])
+        ? this.query(`SELECT summary FROM problem_catalog c WHERE id=? AND ${visible}`, [
+            activeId,
+            owner,
+          ])
         : Promise.resolve([]),
     ]);
     const rec = recommendation[0];
@@ -240,7 +247,7 @@ export class StoreQueries {
   async titles(domain: string) {
     return (
       await this.query(
-        "SELECT title FROM problem_catalog WHERE domain=? ORDER BY created_at DESC,id DESC LIMIT 50",
+        "SELECT title FROM problem_catalog WHERE domain=? AND owner IS NULL ORDER BY created_at DESC,id DESC LIMIT 50",
         [domain],
       )
     ).map((r) => String(r.title));
@@ -277,6 +284,14 @@ export class StoreQueries {
       assisted: Boolean(row.assisted),
       createdAt: String(row.created_at),
     }));
+  }
+
+  async releaseLimits(keys: string[], now = Date.now()) {
+    for (const key of keys)
+      await this.query("UPDATE limits SET count=count-1 WHERE key=? AND count>0 AND expires>?", [
+        key,
+        now,
+      ]);
   }
 
   async recordAiRun(owner: string, run: AiRun) {

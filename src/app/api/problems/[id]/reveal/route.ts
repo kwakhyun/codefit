@@ -13,7 +13,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       z.object({ kind: z.enum(["hint", "solution"]) }),
       1000,
     );
-    const problem = await requireProblem(id);
+    const problem = await requireProblem(id, owner);
     const progress = await (await getStore()).reveal(owner, problem, kind);
     return json({
       progress,

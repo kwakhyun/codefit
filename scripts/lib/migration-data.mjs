@@ -16,7 +16,7 @@ const tables = {
     "updatedAt",
   ],
   generation_usage: ["request_id", "owner", "day", "state", "expires"],
-  problems: ["id", "content", "created_at"],
+  problems: ["id", "content", "created_at", "owner"],
   restored_problems: ["owner", "problem_id"],
   progress: [
     "owner",
@@ -50,7 +50,9 @@ export function* readMigrationData(source) {
       .map((key) =>
         key === "code_revision" && !available.has(key)
           ? "CASE WHEN code IS NULL THEN 0 ELSE 1 END AS code_revision"
-          : `"${key}"`,
+          : key === "owner" && !available.has(key)
+            ? "NULL AS owner"
+            : `"${key}"`,
       )
       .join(",");
     const rows = source

@@ -200,6 +200,53 @@ describe("durable isolated learning state", () => {
     expect(() => s.importBackup("a", invalid)).toThrow();
     expect(s.problem("new-import")).toBeNull();
   });
+  it("keeps problems first restored from a backup private to the importing owner", async () => {
+    const s = store();
+    const forged = {
+      ...p,
+      id: "forged-import",
+      source: "curated" as const,
+      createdAt: "2999-01-01T00:00:00.000Z",
+    };
+    const result = s.importBackup("a", {
+      version: 2,
+      problems: [forged, p],
+      progress: {},
+      attempts: [],
+    });
+    expect(result.problems).toBe(1);
+    const restored = s.problem("forged-import", "a")!;
+    expect(restored.source).toBe("ai");
+    expect(Date.parse(restored.createdAt)).toBeLessThanOrEqual(Date.now());
+    const total = async (owner: string) =>
+      (await s.queries.library(owner, new URLSearchParams())).total;
+    expect(await total("a")).toBe(seedProblems.length + 1);
+    expect(await total("b")).toBe(seedProblems.length);
+    expect((await s.queries.workspace("b", "forged-import")).stats.total).toBe(seedProblems.length);
+    expect((await s.queries.workspace("b", "forged-import")).activeProblem).toBeNull();
+    expect(s.problem("forged-import", "b")).toBeNull();
+    expect(s.problem(p.id, "b")).not.toBeNull();
+    // Another owner cannot claim or read the private problem through a colliding backup.
+    expect(() =>
+      s.importBackup("b", {
+        version: 2,
+        problems: [forged],
+        progress: {
+          [forged.id]: {
+            problemId: forged.id,
+            code: null,
+            bookmarked: true,
+            hintsViewed: 0,
+            solutionViewed: false,
+            status: "new",
+            updatedAt: new Date().toISOString(),
+          },
+        },
+        attempts: [],
+      }),
+    ).toThrow();
+    expect(s.exportBackup("b").problems).toEqual([]);
+  });
   it("archives legacy data without overwriting the original", () => {
     const s = store();
     s.archiveLegacy("a", { generatedLessons: [{ id: "old" }] });

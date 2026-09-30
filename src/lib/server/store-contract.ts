@@ -13,7 +13,7 @@ export type JobClaim =
 export interface ProblemStore {
   readonly queries: StoreQueries;
   progressFor(owner: string, id: string): Stored<Progress | null>;
-  problem(id: string): Stored<Problem | null>;
+  problem(id: string, owner?: string): Stored<Problem | null>;
   problems(): Stored<Problem[]>;
   summaries(): Stored<ProblemSummary[]>;
   completeGeneration(problem: Problem, lease: JobLease): Stored<void>;
