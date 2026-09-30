@@ -16,6 +16,30 @@ import {
   Textarea,
 } from "@/components/ui/primitives";
 import { PracticeSources } from "@/components/project-practice/practice-sources";
+type TopicDraft = { choice: number | null; note: string };
+// Unsaved answers survive visiting the linked lessons; the server record stays authoritative.
+const draftKey = (checkId: string, index: number) =>
+  `codefit.ai-workshop-draft:${checkId}:${index}`;
+function readTopicDraft(key: string, choices: number): TopicDraft | null {
+  try {
+    const value: unknown = JSON.parse(localStorage.getItem(key) || "null");
+    if (!value || typeof value !== "object") return null;
+    const { choice, note } = value as Record<string, unknown>;
+    if (typeof note !== "string" || note.length > 2000) return null;
+    if (choice === null) return { choice, note };
+    if (typeof choice !== "number" || !Number.isInteger(choice) || choice < 0 || choice >= choices)
+      return null;
+    return { choice, note };
+  } catch {
+    return null;
+  }
+}
+function writeTopicDraft(key: string, draft: TopicDraft | null) {
+  try {
+    if (draft) localStorage.setItem(key, JSON.stringify(draft));
+    else localStorage.removeItem(key);
+  } catch {}
+}
 export function WorkshopTopics({
   check,
   saved,
@@ -142,11 +166,26 @@ function TopicDetail({
   onSaved: (v: ProjectWorkshop) => void;
 }) {
   const response = saved.responses[index];
-  const [choice, setChoice] = useState<number | null>(response?.choice ?? null);
-  const [note, setNote] = useState(response?.note || "");
+  const key = draftKey(check.id, index);
+  const [restored] = useState(() => readTopicDraft(key, topic.choices.length));
+  const [choice, setChoice] = useState<number | null>(
+    restored ? restored.choice : (response?.choice ?? null),
+  );
+  const [note, setNote] = useState(restored ? restored.note : response?.note || "");
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState(
+    restored &&
+      (restored.choice !== (response?.choice ?? null) || restored.note !== (response?.note || ""))
+      ? "저장하지 않은 작성 내용을 불러왔어요. 확인 후 저장해 주세요."
+      : "",
+  );
+  function edit(next: TopicDraft) {
+    setChoice(next.choice);
+    setNote(next.note);
+    setNotice("");
+    writeTopicDraft(key, next);
+  }
   async function save() {
     if (busy || choice === null) return;
     setBusy(true);
@@ -159,6 +198,7 @@ function TopicDetail({
           body: { index, revision: saved.revision, response: { choice, note } },
         }),
       );
+      writeTopicDraft(key, null);
       setNotice("답변과 적용 기록을 저장했습니다.");
     } catch (e) {
       setError(errorMessage(e));
@@ -242,10 +282,7 @@ function TopicDetail({
                 type="radio"
                 name={`workshop-${index}`}
                 checked={choice === i}
-                onChange={() => {
-                  setChoice(i);
-                  setNotice("");
-                }}
+                onChange={() => edit({ choice: i, note })}
               />
               {v}
             </label>
@@ -271,10 +308,7 @@ function TopicDetail({
           maxLength={2000}
           value={note}
           disabled={busy}
-          onChange={(e) => {
-            setNote(e.target.value);
-            setNotice("");
-          }}
+          onChange={(e) => edit({ choice, note: e.target.value })}
           placeholder="무엇을 바꾸고 어떤 결과를 확인할지 적어보세요. 실행 전이라면 ‘확인 예정’으로 남겨주세요."
         />
         <p className="muted">
