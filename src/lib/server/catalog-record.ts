@@ -2,8 +2,8 @@ import { domainLabel, LANGUAGES } from "../catalog";
 import { publicProblem, type Problem } from "../problem";
 
 export const catalogColumns =
-  "id,title,summary,domain,language,difficulty,kind,source,minutes,created_at,search_text";
-export function catalogValues(problem: Problem): (string | number)[] {
+  "id,title,summary,domain,language,difficulty,kind,source,minutes,created_at,search_text,owner";
+export function catalogValues(problem: Problem, owner: string | null = null) {
   const { scenario, requirements, starterCode, examples, ...summary } = publicProblem(problem);
   void scenario;
   void requirements;
@@ -30,5 +30,6 @@ export function catalogValues(problem: Problem): (string | number)[] {
     problem.minutes,
     problem.createdAt,
     search,
+    owner,
   ];
 }

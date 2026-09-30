@@ -149,9 +149,18 @@ it("preserves restored problem ownership when moving databases", () => {
     db.exec(storageSchema);
     db.prepare("INSERT INTO problems VALUES (?,?,?)").run("saved", "{}", "2026-09-19");
     db.prepare("INSERT INTO restored_problems VALUES (?,?)").run("alice", "saved");
-    expect(
-      [...readMigrationData(db)].find((entry) => entry.table === "restored_problems").rows,
-    ).toEqual([["alice", "saved"]]);
+    const data = [...readMigrationData(db)];
+    expect(data.find((entry) => entry.table === "restored_problems").rows).toEqual([
+      ["alice", "saved"],
+    ]);
+    expect(data.find((entry) => entry.table === "problems").rows).toEqual([
+      ["saved", "{}", "2026-09-19", null],
+    ]);
+    db.exec("ALTER TABLE problems ADD COLUMN owner TEXT");
+    db.prepare("UPDATE problems SET owner='alice'").run();
+    expect([...readMigrationData(db)].find((entry) => entry.table === "problems").rows[0][3]).toBe(
+      "alice",
+    );
   } finally {
     db.close();
   }

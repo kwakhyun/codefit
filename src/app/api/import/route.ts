@@ -1,12 +1,21 @@
 import { importLimits, networkIdentity } from "@/lib/server/usage-policy";
 import { backupSchema } from "@/lib/backup";
 import { BACKUP_MAX_BYTES } from "@/lib/backup-limits";
-import { prepareBackup } from "@/lib/server/workspace-backup";
+import {
+  BackupMismatch,
+  checkBackupReferences,
+  prepareBackup,
+} from "@/lib/server/workspace-backup";
 import { getStore } from "@/lib/server/database";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
 import { session } from "@/lib/server/session";
 export const runtime = "nodejs";
 export const maxDuration = 120;
+const mismatch = () =>
+  new HttpError(
+    400,
+    "백업의 문제와 풀이 기록이 일치하지 않습니다. 원본 백업 파일을 확인해 주세요.",
+  );
 export async function POST(request: Request) {
   try {
     const { owner } = await session(request);
@@ -20,6 +29,17 @@ export async function POST(request: Request) {
       );
     }
     const store = await getStore();
+    // A file that cannot be restored must not spend the import allowance.
+    try {
+      await checkBackupReferences(
+        backup,
+        async (id) => store.problem(id, owner),
+        async (id) => Boolean(await store.problem(id)),
+      );
+    } catch (error) {
+      if (error instanceof BackupMismatch) throw mismatch();
+      throw error;
+    }
     const existing = await store.queries.countExistingProblems(backup.problems.map((p) => p.id));
     const newProblems = backup.problems.length - existing;
     if (
@@ -34,11 +54,9 @@ export async function POST(request: Request) {
       );
     try {
       return json(await store.importBackup(owner, backup));
-    } catch {
-      throw new HttpError(
-        400,
-        "백업의 문제와 풀이 기록이 일치하지 않습니다. 원본 백업 파일을 확인해 주세요.",
-      );
+    } catch (error) {
+      if (error instanceof BackupMismatch) throw mismatch();
+      throw error;
     }
   } catch (error) {
     return failure(error);

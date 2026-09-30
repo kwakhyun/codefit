@@ -16,9 +16,10 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   let lease: JobLease | undefined;
+  let refund: (() => Promise<void>) | undefined;
   try {
     const { owner } = await session(request);
-    const problem = await requireProblem((await context.params).id);
+    const problem = await requireProblem((await context.params).id, owner);
     const lab = learningLab(problem);
     const input = await readBody(
       request,
@@ -70,7 +71,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (job.state === "pending")
       throw new HttpError(409, "AI 질문을 준비하고 있습니다. 잠시 후 다시 확인해 주세요.");
     lease = job.lease;
-    await aiLimit(request, owner, "coach");
+    refund = await aiLimit(request, owner, "coach");
     const reply = await coachUnderstanding(
       {
         originalCode: problem.starterCode,
@@ -82,8 +83,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       (run) => store.queries.recordAiRun(owner, run),
     );
     await store.completeCoaching(lease, problem.id, JSON.stringify(reply));
+    refund = undefined;
     return json(reply);
   } catch (error) {
+    // A failed provider call or rejected model output does not use today's allowance.
+    await refund?.();
     if (lease) {
       try {
         await (await getStore()).failJob(lease);

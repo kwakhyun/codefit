@@ -9,13 +9,15 @@ export function aiAllowance(owner: string) {
   return { generate: a.generate, review: a.review };
 }
 const day = 86_400_000;
+// Without a trusted client IP every visitor would share one network bucket.
+const UNTRUSTED_NETWORK = "local";
 
 /** Vercel supplies this header at its edge. Never trust client IP headers on other hosts. */
 export function networkIdentity(
   request: Request,
   env: Record<string, string | undefined> = process.env,
 ) {
-  if (!env.VERCEL) return "local";
+  if (!env.VERCEL) return UNTRUSTED_NETWORK;
   if (!env.RATE_LIMIT_SALT) throw new Error("RATE_LIMIT_SALT is required on Vercel");
   const ip = request.headers.get("x-vercel-forwarded-for")?.trim();
   // Unknown clients share a bucket; malformed or absent headers cannot bypass the limit.
@@ -29,14 +31,23 @@ export function aiLimits(
   network: string,
   kind: Extract<AiFeature, "generate" | "review" | "coach" | "learnCoach">,
 ): UsageLimit[] {
+  const trusted = network !== UNTRUSTED_NETWORK;
   return [
-    ...(!owner.startsWith("user:")
+    ...(trusted && !owner.startsWith("user:")
       ? [{ key: `ai:guest-network:${kind}:${network}`, max: 2, windowMs: day }]
       : []),
     ...(kind !== "generate"
       ? [{ key: `ai:${kind}:${owner}`, max: allowanceFor(owner)[kind], windowMs: day }]
       : []),
-    { key: `ai:network:${kind}:${network}`, max: kind === "generate" ? 30 : 40, windowMs: day },
+    ...(trusted
+      ? [
+          {
+            key: `ai:network:${kind}:${network}`,
+            max: kind === "generate" ? 30 : 40,
+            windowMs: day,
+          },
+        ]
+      : []),
     { key: "ai:global:hour", max: 40, windowMs: 3_600_000 },
     { key: "ai:global:day", max: 100, windowMs: day },
   ];
@@ -48,12 +59,15 @@ export function importLimits(
   newProblems: number,
   attempts: number,
 ): UsageLimit[] {
+  // Per-owner and per-network caps are the guard; global pools only bound runaway totals.
   return [
     { key: `import:${owner}`, max: 5, windowMs: day },
-    { key: `import:network:${network}`, max: 10, windowMs: day },
-    { key: "import:global", max: 20, windowMs: day },
-    { key: "import:problems", max: BACKUP_MAX_PROBLEMS, cost: newProblems, windowMs: day },
-    { key: "import:attempts", max: 10_000, cost: attempts, windowMs: day },
+    ...(network !== UNTRUSTED_NETWORK
+      ? [{ key: `import:network:${network}`, max: 10, windowMs: day }]
+      : []),
+    { key: "import:global", max: 1_000, windowMs: day },
+    { key: "import:problems", max: 100 * BACKUP_MAX_PROBLEMS, cost: newProblems, windowMs: day },
+    { key: "import:attempts", max: 1_000_000, cost: attempts, windowMs: day },
   ];
 }
 

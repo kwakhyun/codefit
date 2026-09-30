@@ -30,6 +30,7 @@ import { trainingInput } from "../project-learning/types";
 import { readCurriculumSnapshot, createCurriculumSnapshot } from "./project-curriculum";
 import { validateGroundedAssessment } from "./project-assessment";
 import { toAttempt, toProgress } from "./store-records";
+import { validateReview, type Problem, type Review } from "../problem";
 import { HttpError } from "./http";
 import { requestFingerprint } from "./write-conflicts";
 
@@ -340,6 +341,45 @@ export function prepareBackup(backup: Backup) {
   )
     throw new Error("Duplicate learning records");
   return { learning, projects };
+}
+/** A backup whose records do not match the problems the importing owner can see. */
+export class BackupMismatch extends Error {}
+
+/** A problem first created by an import is private and never poses as a curated or future record. */
+export function restoredProblem(problem: Problem, now = Date.now()): Problem {
+  const createdAt =
+    Date.parse(problem.createdAt) > now ? new Date(now).toISOString() : problem.createdAt;
+  return { ...problem, source: "ai", createdAt };
+}
+
+export function restoredReview(review: Review, problem: Problem) {
+  try {
+    return validateReview(review, problem);
+  } catch {
+    throw new BackupMismatch("Backup review does not match its problem");
+  }
+}
+
+/** Check references before any quota is spent; stores repeat the checks inside their transaction. */
+export async function checkBackupReferences(
+  backup: Backup,
+  visible: (id: string) => Promise<Problem | null>,
+  exists: (id: string) => Promise<boolean>,
+) {
+  const provided = new Map(backup.problems.map((p) => [p.id, p]));
+  const resolved = new Map<string, Problem>();
+  const resolve = async (id: string) => {
+    let problem = resolved.get(id);
+    if (!problem) {
+      problem = (await visible(id)) ?? ((await exists(id)) ? undefined : provided.get(id));
+      if (!problem) throw new BackupMismatch("Backup references an unknown problem");
+      resolved.set(id, problem);
+    }
+    return problem;
+  };
+  for (const p of Object.values(backup.progress)) await resolve(p.problemId);
+  for (const attempt of backup.attempts)
+    restoredReview(attempt.review, await resolve(attempt.problemId));
 }
 export function restoredProjectId(owner: string, sourceId: string) {
   const h = createHash("sha256")
