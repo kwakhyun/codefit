@@ -84,6 +84,15 @@ describe("bounded, isolated execution", () => {
     expect(check("", "new Promise(() => {})").status).toBe("error");
     expect(check("", "(async()=>{while(true) await Promise.resolve()})()").status).toBe("error");
     expect(check("", "'x'.repeat(5000)").status).toBe("error");
+    // Synchronous loops and unsettled asynchronous chains get distinct guidance.
+    for (const [code, expression] of [
+      ["while (true) {}", "42"],
+      ["function spin() { while (true) {} }", "spin()"],
+    ])
+      expect(check(code, expression).actual).toContain("반복문이 끝나는 조건");
+    expect(check("", "(async()=>{while(true) await Promise.resolve()})()").actual).toContain(
+      "비동기 작업의 종료 조건",
+    );
     expect(check("", "({a:1})").actual).toBe('{"a":1}');
   });
   it("reports syntax and rejected promise errors without fabricating a pass", () => {
@@ -92,6 +101,15 @@ describe("bounded, isolated execution", () => {
       status: "error",
       actual: "expected failure",
     });
+    for (const [code, expression] of [
+      ["throw 'x'", "42"],
+      ["", "Promise.reject('x')"],
+      ["", "(() => { throw 'x' })()"],
+    ])
+      expect(check(code, expression).actual).toBe('오류로 전달된 값: "x"');
+    expect(check("", "(async () => { throw { code: 1 } })()").actual).toBe(
+      '오류로 전달된 값: {"code":1}',
+    );
     expect(sameOutput('{"b":2,"a":1}', { a: 1, b: 2 })).toBe(true);
     expect(sameOutput("undefined", undefined)).toBe(false);
   });

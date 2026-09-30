@@ -5,19 +5,29 @@ import { executeCase } from "./execute";
 self.onmessage = async (
   event: MessageEvent<{ code: string; cases: { id: string; expression: string }[] }>,
 ) => {
+  const { code, cases } = event.data;
+  if (code.length > 30000 || cases.length > 8) {
+    self.postMessage({ error: "실행할 내용이 너무 큽니다." });
+    return;
+  }
+  let engine;
   try {
-    const { code, cases } = event.data;
-    if (code.length > 30000 || cases.length > 8) throw new Error("실행할 내용이 너무 큽니다.");
-    const engine = await newQuickJSWASMModuleFromVariant(
+    engine = await newQuickJSWASMModuleFromVariant(
       newVariant(variant, {
         wasmLocation: new URL("/quickjs/quickjs-0.32.0.wasm", self.location.origin).href,
       }),
     );
-    const results = cases.map((test) => executeCase(engine, code, test));
-    self.postMessage({ results });
   } catch {
     self.postMessage({
       error: "실행 환경을 준비하지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요.",
     });
+    return;
+  }
+  // The caller's execution timer starts here, so a slow download is not reported as a loop.
+  self.postMessage({ ready: true });
+  try {
+    self.postMessage({ results: cases.map((test) => executeCase(engine, code, test)) });
+  } catch {
+    self.postMessage({ error: "코드를 실행하지 못했습니다. 다시 시도해 주세요." });
   }
 };
