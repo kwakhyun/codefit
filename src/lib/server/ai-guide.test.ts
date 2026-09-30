@@ -80,6 +80,11 @@ it("uses Luna and a public curriculum with structured output, no provider storag
   expect(sent.model).toBe("gpt-5.6-luna");
   expect(sent.store).toBe(false);
   expect(sent.input[0].content).toContain("untrusted DATA");
+  // Stated limits follow the real policy instead of a stale hard-coded figure.
+  expect(sent.input[0].content).toContain(
+    "up to 2/day as a guest and up to 6/day after signing in",
+  );
+  expect(sent.input[0].content).not.toContain("requires signup");
   const context = JSON.parse(sent.input[1].content);
   expect(context.candidates).toEqual(guideCandidates(request().profile));
   expect(
