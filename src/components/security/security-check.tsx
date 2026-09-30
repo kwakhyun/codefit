@@ -21,6 +21,7 @@ import { useSecurityDraft } from "@/hooks/use-security-draft";
 import {
   securityExercises,
   securityNotesText,
+  securityReportRoute,
   securityStatus,
   type SecurityReport,
 } from "@/lib/security-check";
@@ -37,7 +38,8 @@ export function SecurityCheck() {
       setChecking(true);
       setError("");
       try {
-        const value = await api<{ scope: string }>("/api/workspace", {
+        // The guide status endpoint only resolves the session; the workspace read model is heavy.
+        const value = await api<{ scope: string }>("/api/guide", {
           scope: null,
           signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
         });
@@ -81,6 +83,15 @@ export function SecurityCheck() {
       )}
     </>
   );
+}
+
+/** Ownership challenges belong to an origin, so path or trailing-slash edits keep the same one. */
+function auditOrigin(url: string) {
+  try {
+    return new URL(url.trim()).origin;
+  } catch {
+    return "";
+  }
 }
 
 function SecurityWorkspace({ scope }: { scope: string }) {
@@ -178,6 +189,9 @@ function SecurityWorkspace({ scope }: { scope: string }) {
             <div>
               <h2>관찰한 설정과 다음 행동</h2>
               <p>{report.url}</p>
+              {securityReportRoute(report).map((line) => (
+                <p key={line}>{line}</p>
+              ))}
               <p>{new Date(report.checkedAt).toLocaleString("ko-KR")} 기준</p>
             </div>
             <Button className="secondary-button" onClick={download}>
@@ -229,7 +243,7 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           </div>
         </section>
       )}
-      <SecurityAudit key={url} scope={scope} url={url} />
+      <SecurityAudit key={auditOrigin(url)} scope={scope} url={url} />
       <section className="security-exercises">
         <h2>내 테스트 환경에서 이어가는 모의해킹 준비</h2>
         <div className="notes-progress">

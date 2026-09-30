@@ -54,3 +54,29 @@ it("observes headers without exporting cookie secrets or claiming policy effecti
   expect(JSON.stringify(report)).not.toContain("secret");
   expect(report.findings.find((f) => f.id === "mime")?.status).toBe("observed");
 });
+it("accepts the RFC 6797 quoted max-age form but not unbalanced quotes", () => {
+  const hsts = (value: string) =>
+    inspectSecurity({ ...document, headers: { "strict-transport-security": value } }).findings.find(
+      (f) => f.id === "hsts",
+    )?.status;
+  expect(hsts('max-age="31536000"; includeSubDomains')).toBe("observed");
+  expect(hsts('includeSubDomains; MAX-AGE = "300"')).toBe("observed");
+  expect(hsts('max-age="0"')).toBe("review");
+  expect(hsts('max-age="31536000')).toBe("review");
+});
+it("reports the final status and redirect route without site-chosen query strings", () => {
+  const report = inspectSecurity({
+    ...document,
+    url: "https://www.example.com/?lang=ko&session=abc",
+    status: 403,
+    redirects: ["https://example.com/"],
+  });
+  expect(report.url).toBe("https://www.example.com/");
+  expect(report.status).toBe(403);
+  expect(report.redirects).toEqual(["https://example.com/"]);
+  const text = securityReportText(report);
+  expect(text).toContain("이동 경로: https://example.com/ → https://www.example.com/");
+  expect(text).toContain("최종 응답 코드 403");
+  expect(text).not.toContain("session=abc");
+  expect(inspectSecurity(document)).not.toHaveProperty("redirects");
+});
