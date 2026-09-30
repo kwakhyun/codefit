@@ -11,6 +11,8 @@ type Spec = {
   solution: string;
   diagnosis: string;
   cases: Case[];
+  /** Extra checks for the "다시 도전" variant, set in its own service situation. */
+  variantCases: Case[];
   kind?: Problem["kind"];
 };
 
@@ -50,6 +52,14 @@ export const handoffSpecs: Record<string, Spec> = {
         note: "실패는 호출자에게 전달합니다.",
       },
     ],
+    variantCases: [
+      {
+        expression:
+          "(async () => { const pending = []; const out = []; const c = createLatest(q => new Promise(r => pending.push(() => r(q + ' 추천'))), v => out.push(v)); const a = c.run('서울 강'), b = c.run('서울 강남'), d = c.run('서울 강'); pending[2](); await d; pending[1](); pending[0](); await Promise.all([a, b]); return out; })()",
+        expected: ["서울 강 추천"],
+        note: "입력을 지웠다가 이전 주소로 돌아와도 마지막 입력의 추천만 한 번 표시합니다.",
+      },
+    ],
   },
   cart: {
     contract:
@@ -80,6 +90,14 @@ export const handoffSpecs: Record<string, Spec> = {
         expression: "changeQuantity([{id:'a',quantity:0}], 'missing', 3)",
         expected: [{ id: "a", quantity: 0 }],
         note: "관계없는 0개 항목은 제거하지 않습니다.",
+      },
+    ],
+    variantCases: [
+      {
+        expression:
+          "changeQuantity([{id:'adult',quantity:2,price:30000},{id:'child',quantity:1,price:15000}], 'child', -1)",
+        expected: [{ id: "adult", quantity: 2, price: 30000 }],
+        note: "어린이 인원을 0명으로 줄이면 예약에서 빼고 성인 인원과 요금은 그대로 둡니다.",
       },
     ],
   },
@@ -118,6 +136,13 @@ export const handoffSpecs: Record<string, Spec> = {
         expression: "paginate([1], NaN, 1.5)",
         expected: { items: [1], page: 1, totalPages: 1 },
         note: "비정상 숫자도 기본값으로 처리합니다.",
+      },
+    ],
+    variantCases: [
+      {
+        expression: "paginate(['log-1','log-2','log-3','log-4','log-5','log-6','log-7'], 1.5, 5)",
+        expected: { items: ["log-1", "log-2", "log-3", "log-4", "log-5"], page: 1, totalPages: 2 },
+        note: "소수 페이지 번호가 들어와도 활동 내역의 첫 페이지를 보여 줍니다.",
       },
     ],
   },
@@ -160,6 +185,18 @@ export const handoffSpecs: Record<string, Spec> = {
         note: "허용하지 않은 DEBUG 값은 거부합니다.",
       },
     ],
+    variantCases: [
+      {
+        expression:
+          "(() => { const env = {DEBUG:'true', PORT:'9000'}; const result = parseConfig(env); let hex = false; try { parseConfig({DEBUG:'false', PORT:'0x1F'}); } catch { hex = true; } return { result, env, hex }; })()",
+        expected: {
+          result: { debug: true, port: 9000 },
+          env: { DEBUG: "true", PORT: "9000" },
+          hex: true,
+        },
+        note: "작업자 포트에 16진수 표기를 넣으면 거부하고 입력 설정은 바꾸지 않습니다.",
+      },
+    ],
   },
   dedupe: {
     contract:
@@ -195,6 +232,14 @@ export const handoffSpecs: Record<string, Spec> = {
         note: "다른 id는 별도로 실행합니다.",
       },
     ],
+    variantCases: [
+      {
+        expression:
+          "(async () => { const sent = []; const run = createOnce(async id => { sent.push(id); if (sent.length === 1) throw Error('push failed'); return 'sent:' + id; }); const first = await Promise.allSettled([run('n1'), run('n1')]); const retry = await run('n1'); return { first: first.map(r => r.status), retry, sent }; })()",
+        expected: { first: ["rejected", "rejected"], retry: "sent:n1", sent: ["n1", "n1"] },
+        note: "동시에 들어온 같은 알림은 한 번만 보내고, 발송에 실패한 알림은 다시 보낼 수 있습니다.",
+      },
+    ],
   },
   total: {
     kind: "refactoring",
@@ -228,6 +273,14 @@ export const handoffSpecs: Record<string, Spec> = {
           "(() => { const orders = [{status:'paid',amount:0}]; const before = JSON.stringify(orders); summarize(orders); return JSON.stringify(orders) === before; })()",
         expected: true,
         note: "입력을 수정하지 않습니다.",
+      },
+    ],
+    variantCases: [
+      {
+        expression:
+          "summarize([{status:'cancelled',amount:5000},{status:'paid',amount:12000},{status:'cancelled',amount:3000}])",
+        expected: { paid: 12000, pending: 0, cancelled: 8000 },
+        note: "취소된 청구 금액은 결제 합계와 분리해 따로 집계합니다.",
       },
     ],
   },

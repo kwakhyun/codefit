@@ -29,6 +29,18 @@ const situations: Record<string, string> = {
     "같은 작업이 동시에 들어오거나 실패 후 다시 요청될 수 있습니다. 중복 실행은 줄이면서 필요한 재시도는 허용하는지 확인합니다.",
   total:
     "이미 쓰는 주문 집계에 새 기능을 추가합니다. 기존 결과를 먼저 확인하고, 정상 동작을 유지하면서 계산을 확장하는 연습입니다.",
+  "latest-transfer":
+    "주소 입력창은 글자를 칠 때마다 추천을 요청합니다. 입력을 지웠다가 다시 쓰면 같은 주소 요청이 여러 번 생기는데, 늦게 도착한 응답이 마지막 입력의 추천을 덮지 않는지 확인합니다.",
+  "cart-transfer":
+    "예약 화면에서 성인·어린이 인원을 바꿀 때 변경 전 예약까지 함께 바뀌면 요금 비교나 변경 취소가 깨집니다. 인원이 0명이 된 구분이 예약에서 빠지는지도 확인합니다.",
+  "page-transfer":
+    "활동 내역 화면은 주소의 page 값을 그대로 받아 목록을 나눕니다. 기록이 없거나 소수·문자열 페이지가 들어와도 알맞은 페이지를 보여 주는지 확인합니다.",
+  "config-transfer":
+    "백그라운드 작업자는 환경 변수로 디버그 모드와 포트를 받습니다. 'false'나 16진수 포트처럼 잘못 넣기 쉬운 값을 어떻게 해석하는지 확인합니다.",
+  "dedupe-transfer":
+    "알림 작업은 같은 알림 ID로 동시에 여러 번 호출될 수 있습니다. 사용자가 알림을 두 번 받지 않으면서도, 발송에 실패한 알림은 다시 보낼 수 있는지 확인합니다.",
+  "total-transfer":
+    "청구 내역 화면의 결제·대기 합계는 이미 쓰이고 있습니다. 기존 합계를 바꾸지 않고 취소된 청구 금액을 따로 보여 주도록 확장합니다.",
 };
 const steps = [
   { title: "예측하기", description: "실행 전에 내 생각 남기기" },
@@ -101,7 +113,10 @@ export function LearningLab({
       {stage === 0 && (
         <div className="lab-purpose">
           <strong>내 서비스에서는 언제 필요할까요?</strong>
-          <p>{situations[problemId.replace(/^handoff-/, "").replace(/-transfer$/, "")]}</p>
+          <p>
+            {situations[problemId.replace(/^handoff-/, "")] ??
+              situations[problemId.replace(/^handoff-/, "").replace(/-transfer$/, "")]}
+          </p>
           <small>
             문법 퀴즈가 아닙니다. 현재 동작을 확인하고, 요구사항에 맞게 바꾼 뒤 그 근거를 남깁니다.
             정상인 부분은 유지해도 됩니다.
