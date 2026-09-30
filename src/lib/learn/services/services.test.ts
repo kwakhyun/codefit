@@ -3,8 +3,9 @@ import { MISSIONS } from "../catalog";
 import { SERVICE_CASES } from "./cases";
 import { SERVICE_DOMAINS, domainFor } from "./domains";
 import { applyAction, initialSimulation, simulate, verification, reproduced } from "../simulation";
-import { evaluateService, matchesServicePolicy } from "./rules";
+import { describeResult, evaluateService, matchesServicePolicy } from "./rules";
 import { missionContext } from "../context";
+import { choiceOrder } from "./missions";
 
 describe("domain curriculum contract", () => {
   it("separates successful processing from compliance, including archived cases", () => {
@@ -66,5 +67,24 @@ describe("domain curriculum contract", () => {
       expect(simulate(m, m.reproduce).service).toEqual(processed.service);
       expect(verification(m, "rule").every((c) => c.passed)).toBe(true);
     }
+  });
+  it("varies where the correct option appears while keeping saved indices stable", () => {
+    const missions = MISSIONS.filter((m) => m.service);
+    const positions = (pick: (m: (typeof missions)[number]) => number) =>
+      new Set(missions.map(pick));
+    for (const m of missions) {
+      for (const part of ["prediction", "transfer"] as const) {
+        const order = choiceOrder(m, part);
+        expect([...order].sort(), `${m.id}/${part}`).toEqual([0, 1, 2]);
+        expect(choiceOrder(m, part), `${m.id}/${part}`).toEqual(order);
+      }
+      // Stored answers are indices into the source arrays, so existing records stay valid.
+      expect(m.choices[m.answer]).toBe(describeResult(m.service!, m.service!.samples[1].expected));
+      expect(m.transfer.choices[m.transfer.answer]).toBe(m.service!.transfer.choices[0]);
+      expect(m.fixes.map((f) => f.id).sort()).toEqual(["block", "label", "rule"]);
+    }
+    expect(positions((m) => choiceOrder(m, "prediction").indexOf(m.answer)).size).toBe(3);
+    expect(positions((m) => choiceOrder(m, "transfer").indexOf(m.transfer.answer)).size).toBe(3);
+    expect(positions((m) => m.fixes.findIndex((f) => f.id === "rule")).size).toBe(3);
   });
 });

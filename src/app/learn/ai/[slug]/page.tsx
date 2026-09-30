@@ -50,6 +50,7 @@ export default async function AiLessonPage({
         id={lesson.id}
         content={AI_CONTENT[lesson.id]}
         returnTo={catalogReturn(query.returnTo)}
+        projectQuery={project.success ? `project=${project.data}${topic}` : undefined}
       />
       {project.success && (
         <AppLink

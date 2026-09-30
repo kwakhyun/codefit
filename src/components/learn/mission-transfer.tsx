@@ -6,6 +6,7 @@ import { VoiceInput } from "@/components/ui/voice-input";
 import type { Mission } from "@/lib/learn/catalog";
 import type { LearningRecord, LearningRecordUpdate } from "@/lib/learn/progress";
 import { canComplete } from "@/lib/learn/progress";
+import { choiceOrder } from "@/lib/learn/services/missions";
 
 export function MissionTransfer({
   mission,
@@ -25,15 +26,15 @@ export function MissionTransfer({
       <div className="learn-transfer">
         <fieldset>
           <legend>{mission.transfer.question}</legend>
-          {mission.transfer.choices.map((choice, i) => (
-            <FieldLabel className="learn-option" key={choice}>
+          {choiceOrder(mission, "transfer").map((i) => (
+            <FieldLabel className="learn-option" key={mission.transfer.choices[i]}>
               <Input
                 type="radio"
                 name="transfer"
                 checked={record.transfer === i}
                 onChange={() => update((x) => ({ ...x, transfer: i, completed: false }))}
               />
-              <span>{choice}</span>
+              <span>{mission.transfer.choices[i]}</span>
             </FieldLabel>
           ))}
         </fieldset>
