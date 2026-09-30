@@ -230,25 +230,29 @@ function ClassList({
       (!searching || task.label.toLowerCase().includes(query.trim().toLowerCase())),
   );
   const pending = searching ? search.busy : busy;
+  // Search and a second "new analysis" button add nothing before the first project exists.
+  const empty = !overview.checks.length && !active.length && !searching;
   return (
     <>
-      <div className="class-toolbar">
-        <div>
-          <FieldLabel htmlFor="class-search">내 프로젝트 찾기</FieldLabel>
-          <Input
-            ref={searchInput}
-            id="class-search"
-            type="search"
-            maxLength={200}
-            value={query}
-            onChange={(e) => changeQuery(e.target.value)}
-            placeholder="클래스 이름, 학습 목표 또는 주소"
-          />
+      {!empty && (
+        <div className="class-toolbar">
+          <div>
+            <FieldLabel htmlFor="class-search">내 프로젝트 찾기</FieldLabel>
+            <Input
+              ref={searchInput}
+              id="class-search"
+              type="search"
+              maxLength={200}
+              value={query}
+              onChange={(e) => changeQuery(e.target.value)}
+              placeholder="클래스 이름, 학습 목표 또는 주소"
+            />
+          </div>
+          <AppLink className="primary-button" href="/project-check">
+            새 프로젝트 분석 <ArrowRight size={18} />
+          </AppLink>
         </div>
-        <AppLink className="primary-button" href="/project-check">
-          새 프로젝트 분석 <ArrowRight size={18} />
-        </AppLink>
-      </div>
+      )}
       {searching && (
         <div className="class-search-status">
           <p role="status" aria-live="polite">

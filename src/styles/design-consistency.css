@@ -1,0 +1,111 @@
+/* Cross-page consistency: one header rhythm, closed intro cards and visible artwork.
+   Loaded last so page files keep their own layout while these shared corrections apply. */
+
+/* Banner artwork: the themed <picture> wraps the absolutely positioned image, so it needs the
+   frame's size. Without it the image collapsed to 0px and every slide showed an empty panel. */
+.feature-art .theme-picture {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+/* Page intros read as one card instead of a floating bottom border with rounded ends. */
+.visual-intro.visual-intro {
+  border: 1px solid var(--line);
+  background: light-dark(var(--light-panel), #171d28);
+}
+
+/* Workspace pages share the home header: full-width divider and a "CODE:FIT / page" path. */
+.desktop-location a {
+  color: var(--muted);
+}
+.desktop-location a:hover {
+  color: var(--text);
+}
+@media (min-width: 1024px) {
+  .desktop-content .site-header {
+    margin-inline: calc(var(--desktop-content-gutter) * -1);
+    padding-inline: var(--desktop-content-gutter);
+  }
+  /* Account pages now sit inside the desktop frame; keep their centered cards. */
+  .desktop-content > .account-page {
+    max-width: 1320px;
+  }
+}
+@media (max-width: 760px) {
+  /* Match the editor header: menu first, then the logo. */
+  .site-header > .site-menu-button.ui-button {
+    order: -1;
+  }
+}
+
+/* First-visit home: one heading for the workspace choice, with room after the project card. */
+.workspace-welcome > .persona-picker {
+  margin-top: 48px;
+}
+.persona-cards .persona-selected {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+.persona-cards .persona-selected svg {
+  visibility: visible;
+}
+.persona-cards .is-selected .persona-selected {
+  color: light-dark(var(--light-green), #a0edc9);
+}
+
+/* Project form: optional marker stays on the label line; helper text sits close to its field. */
+.project-form .ui-label:has(> span) {
+  display: block;
+}
+.project-form .ui-label > span {
+  display: inline;
+  color: var(--muted);
+  font-weight: 400;
+}
+.project-form > p.project-help {
+  margin: 0;
+}
+
+/* Native consent checkbox gets a visible, on-brand target next to its label. */
+.security-consent input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--action);
+}
+
+/* Help dialog entry to the start guide on the editor screen, where no floating launcher shows. */
+.help-content .help-guide-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Korean source labels read better in the UI font than in spaced monospace. */
+.workspace-breadcrumb .workspace-id {
+  font-family: var(--sans);
+  letter-spacing: 0;
+}
+
+/* Phones: a smaller guide button covers less of forms and cards; its name stays in aria-label. */
+@media (max-width: 700px) {
+  .guide-launcher .guide-launch-button {
+    width: 56px;
+    height: 56px;
+    min-height: 56px;
+    padding: 6px;
+    border-radius: 18px;
+  }
+  .guide-launcher .guide-launch-button > span,
+  .guide-launcher .guide-collapse {
+    display: none;
+  }
+  .guide-launcher .guide-launch-button .fit-mascot {
+    width: 40px;
+    height: 40px;
+  }
+}

@@ -49,8 +49,8 @@ export function TrainingHero({
         <span className="eyebrow">나의 CODE:FIT</span>
         <h1>내 프로젝트로 배우고, 직접 확인하세요</h1>
         <ProjectQuickStart key={scope} scope={scope} />
-        <h2>관심 있는 학습 공간도 골라보세요</h2>
         <LearningPreferencePicker
+          heading="관심 있는 학습 공간도 골라보세요"
           onSelect={() =>
             requestAnimationFrame(() => home.current?.querySelector<HTMLElement>("h1")?.focus())
           }

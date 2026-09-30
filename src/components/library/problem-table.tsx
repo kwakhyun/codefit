@@ -109,7 +109,7 @@ export function ProblemTable({ library, initialView, bookmarking, bookmark }: Pr
               <DifficultyBadge level={p.difficulty} />
               <span className="row-time mono">
                 {p.minutes}
-                <small> min</small>
+                <small>분</small>
               </span>
               <Button
                 className={`bookmark-button icon-button ${progress?.bookmarked ? "active" : ""}`}

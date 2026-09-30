@@ -11,6 +11,12 @@ import { Modal } from "@/components/ui/modal";
 import { Menu, ArrowUpRight } from "lucide-react";
 import { useRef, useState } from "react";
 
+const pageLabels: Record<string, string> = {
+  "/login": "로그인",
+  "/profile": "내 계정과 기록",
+  "/privacy": "개인정보 안내",
+};
+
 /** Shared destinations outside the editor; learning stages keep their own local navigation. */
 export function SiteHeader() {
   const pathname = usePathname();
@@ -52,7 +58,7 @@ export function SiteHeader() {
         CODE:FIT_
       </Link>
       <div className="desktop-location" aria-label="현재 위치">
-        <span>작업 공간</span>
+        <Link href="/">CODE:FIT</Link>
         <span aria-hidden="true">/</span>
         <strong>
           {items.find(
@@ -60,7 +66,9 @@ export function SiteHeader() {
               item.href !== "/" &&
               !item.href.includes("?") &&
               (pathname === item.href || pathname.startsWith(item.href + "/")),
-          )?.label || "프로젝트 실습"}
+          )?.label ||
+            pageLabels[pathname] ||
+            "프로젝트 실습"}
         </strong>
       </div>
       <div className="site-preference">

@@ -2,17 +2,23 @@
 import { FieldLabel, Input, Status, Button } from "@/components/ui/primitives";
 import { ThemedImage } from "@/components/theme/themed-image";
 import { useId, useRef, useState } from "react";
-import { Check, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, Check, SlidersHorizontal } from "lucide-react";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { learnerTypes } from "@/lib/learner-types";
 import { Modal } from "@/components/ui/modal";
 
-export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }) {
+export function LearningPreferencePicker({
+  heading = "오늘은 무엇을 해볼까요?",
+  onSelect,
+}: {
+  heading?: string;
+  onSelect?: () => void;
+}) {
   const { type, setType, storageError, hasChosen } = useLearningPreference();
   const group = useId();
   return (
     <section className="persona-picker" aria-label="나에게 맞는 시작점">
-      <h2>오늘은 무엇을 해볼까요?</h2>
+      <h2>{heading}</h2>
       <p className="persona-intro">
         서비스 점검, AI 활용, 코딩 연습. 고른 작업에 맞춰 홈과 메뉴가 달라집니다.
       </p>
@@ -52,8 +58,15 @@ export function LearningPreferencePicker({ onSelect }: { onSelect?: () => void }
               <span>{item.description}</span>
             </span>
             <span className="persona-selected">
-              <Check size={14} aria-hidden="true" />
-              {hasChosen && type === item.id ? "선택됨" : "이 공간으로 시작"}
+              {hasChosen && type === item.id ? (
+                <>
+                  <Check size={14} aria-hidden="true" /> 선택됨
+                </>
+              ) : (
+                <>
+                  이 공간으로 시작 <ArrowRight size={14} aria-hidden="true" />
+                </>
+              )}
             </span>
           </FieldLabel>
         ))}

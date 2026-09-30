@@ -186,7 +186,7 @@ export function ProblemWorkspace({
         <ChevronRight size={13} />
         <span>{domainLabel(problem.domain)}</span>
         <span className="workspace-id mono">
-          {problem.id.startsWith("ai-") ? "AI CHALLENGE" : "CURATED CHALLENGE"}
+          {problem.id.startsWith("ai-") ? "AI 생성 문제" : "기본 문제"}
         </span>
       </div>
       <div className="workspace-heading">

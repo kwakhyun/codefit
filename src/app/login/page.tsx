@@ -28,7 +28,7 @@ export default async function LoginPage({
         </div>
         <Card as="div" className="auth-card-content">
           <SectionArtwork topic="progress" className="auth-artwork" eager />
-          <span className="eyebrow">YOUR NEXT REP</span>
+          <span className="eyebrow">계정 연결</span>
           <h1>
             로그인하고
             <br />

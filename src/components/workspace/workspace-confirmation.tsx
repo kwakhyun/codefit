@@ -30,10 +30,10 @@ export function WorkspaceConfirmation({
       onClose={() => setConfirm(null)}
       title={
         confirm === "solution"
-          ? "VIEW SOLUTION"
+          ? "참고 정답 보기"
           : confirm === "restore"
-            ? "RESTORE SUBMISSION"
-            : "RESET CODE"
+            ? "제출본 복원"
+            : "코드 초기화"
       }
       className="confirm-modal"
     >

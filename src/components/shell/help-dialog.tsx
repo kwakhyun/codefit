@@ -2,15 +2,18 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import { Modal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/primitives";
+import { FitMascot } from "@/components/guide/fit-mascot";
+import { openStartGuide } from "@/components/guide/open-guide";
 interface HelpDialogProps {
   helpOpen: boolean;
   setHelpOpen: Dispatch<SetStateAction<boolean>>;
 }
 export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
   return (
-    <Modal open={helpOpen} onClose={() => setHelpOpen(false)} title="QUICK START">
+    <Modal open={helpOpen} onClose={() => setHelpOpen(false)} title="사용 안내">
       <div className="help-content">
-        <span className="eyebrow">WELCOME TO CODE:FIT</span>
+        <span className="eyebrow">CODE:FIT</span>
         <h2>코드핏 시작하기</h2>
         <ol>
           <li>
@@ -52,6 +55,15 @@ export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
             <kbd>⌘ / Ctrl + Enter</kbd> AI 풀이 검토
           </span>
         </div>
+        <Button
+          className="secondary-button help-guide-button"
+          onClick={() => {
+            setHelpOpen(false);
+            requestAnimationFrame(openStartGuide);
+          }}
+        >
+          <FitMascot size={28} /> 핏에게 다음 학습 추천받기
+        </Button>
       </div>
     </Modal>
   );
