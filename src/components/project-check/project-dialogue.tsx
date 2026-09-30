@@ -188,7 +188,9 @@ export function ProjectCodeDialogue({
           onClick={() => (remaining === 1 ? setLastUseOpen(true) : void send())}
           disabled={loading || busy || !enabled || !(dialogue ? reply : answer).trim()}
         >
-          {busy ? "코드와 비교하는 중…" : dialogue ? "이어서 답하기" : "코드와 비교해 피드백 받기"}
+          {busy
+            ? "코드와 비교하는 중…"
+            : `${dialogue ? "이어서 답하기" : "코드와 비교해 피드백 받기"} · 평가 1회`}
         </Button>
       )}
       {!readOnly && !dialogue && !answer.trim() && (
