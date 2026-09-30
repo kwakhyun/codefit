@@ -77,35 +77,8 @@
   accent-color: var(--action);
 }
 
-/* Help dialog entry to the start guide on the editor screen, where no floating launcher shows. */
-.help-content .help-guide-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 20px;
-}
-
 /* Korean source labels read better in the UI font than in spaced monospace. */
 .workspace-breadcrumb .workspace-id {
   font-family: var(--sans);
   letter-spacing: 0;
-}
-
-/* Phones: a smaller guide button covers less of forms and cards; its name stays in aria-label. */
-@media (max-width: 700px) {
-  .guide-launcher .guide-launch-button {
-    width: 56px;
-    height: 56px;
-    min-height: 56px;
-    padding: 6px;
-    border-radius: 18px;
-  }
-  .guide-launcher .guide-launch-button > span,
-  .guide-launcher .guide-collapse {
-    display: none;
-  }
-  .guide-launcher .guide-launch-button .fit-mascot {
-    width: 40px;
-    height: 40px;
-  }
 }

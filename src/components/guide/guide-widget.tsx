@@ -2,10 +2,9 @@
 import { Button } from "@/components/ui/primitives";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { X, Minimize2 } from "lucide-react";
 import { FitMascot } from "./fit-mascot";
-import { onStartGuideRequest } from "./open-guide";
 
 const GuidePanel = dynamic(() => import("./guide-panel"), { ssr: false });
 const dismissedKey = "codefit:guide-intro-dismissed:v1";
@@ -27,8 +26,6 @@ export function GuideWidget() {
     pathname.startsWith("/problems/") ||
     pathname.startsWith("/learn/") ||
     ["/project-check", "/security-check", "/learn", "/handoff"].includes(pathname);
-  // The code editor keeps its review actions clear; its help dialog opens the guide instead.
-  const editing = pathname.startsWith("/problems/");
   const showInvitation = pathname === "/";
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -37,7 +34,6 @@ export function GuideWidget() {
   const compactMode = compact || practicing;
   const storedDismissal = useSyncExternalStore(subscribe, isDismissed, () => true);
   const launcher = useRef<HTMLButtonElement>(null);
-  const returnFocus = useRef<HTMLElement | null>(null);
   function dismissIntro() {
     setDismissed(true);
     try {
@@ -48,78 +44,66 @@ export function GuideWidget() {
   }
   function close() {
     setOpen(false);
-    requestAnimationFrame(() => (launcher.current ?? returnFocus.current)?.focus());
+    requestAnimationFrame(() => launcher.current?.focus());
   }
-  useEffect(
-    () =>
-      onStartGuideRequest(() => {
-        returnFocus.current =
-          document.activeElement instanceof HTMLElement ? document.activeElement : null;
-        setLoaded(true);
-        setOpen(true);
-      }),
-    [],
-  );
   return (
     <>
-      {!editing && (
-        <aside
-          className={`guide-launcher ${compactMode ? "is-compact" : ""}`}
-          aria-label="시작 가이드"
-        >
-          {showInvitation && !dismissed && !storedDismissal && !open && !compactMode && (
-            <div className="guide-intro-hint">
-              <Button
-                onClick={() => {
-                  dismissIntro();
-                  setLoaded(true);
-                  setOpen(true);
-                }}
-              >
-                처음이라면?
-                <br />
-                <strong>시작할 곳을 찾아드려요</strong>
-              </Button>
-              <Button
-                className="guide-dismiss"
-                aria-label="첫 방문 안내 숨기기"
-                onClick={dismissIntro}
-              >
-                <X size={14} />
-              </Button>
-            </div>
-          )}
-          <Button
-            ref={launcher}
-            className="guide-launch-button"
-            aria-label="핏 시작 가이드 열기"
-            aria-haspopup="dialog"
-            aria-expanded={open}
-            onClick={() => {
-              setCompact(false);
-              dismissIntro();
-              setLoaded(true);
-              setOpen(true);
-            }}
-          >
-            <FitMascot size={compactMode ? 32 : 64} />
-            {!compactMode && <span>시작 가이드</span>}
-          </Button>
-          {!compactMode && !open && (
+      <aside
+        className={`guide-launcher ${compactMode ? "is-compact" : ""}`}
+        aria-label="시작 가이드"
+      >
+        {showInvitation && !dismissed && !storedDismissal && !open && !compactMode && (
+          <div className="guide-intro-hint">
             <Button
-              className="guide-collapse"
-              aria-label="시작 가이드 작게 보기"
               onClick={() => {
                 dismissIntro();
-                setCompact(true);
-                requestAnimationFrame(() => launcher.current?.focus());
+                setLoaded(true);
+                setOpen(true);
               }}
             >
-              <Minimize2 size={15} />
+              처음이라면?
+              <br />
+              <strong>시작할 곳을 찾아드려요</strong>
             </Button>
-          )}
-        </aside>
-      )}
+            <Button
+              className="guide-dismiss"
+              aria-label="첫 방문 안내 숨기기"
+              onClick={dismissIntro}
+            >
+              <X size={14} />
+            </Button>
+          </div>
+        )}
+        <Button
+          ref={launcher}
+          className="guide-launch-button"
+          aria-label="핏 시작 가이드 열기"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={() => {
+            setCompact(false);
+            dismissIntro();
+            setLoaded(true);
+            setOpen(true);
+          }}
+        >
+          <FitMascot size={compactMode ? 32 : 64} />
+          {!compactMode && <span>시작 가이드</span>}
+        </Button>
+        {!compactMode && !open && (
+          <Button
+            className="guide-collapse"
+            aria-label="시작 가이드 작게 보기"
+            onClick={() => {
+              dismissIntro();
+              setCompact(true);
+              requestAnimationFrame(() => launcher.current?.focus());
+            }}
+          >
+            <Minimize2 size={15} />
+          </Button>
+        )}
+      </aside>
       {loaded && <GuidePanel open={open} onClose={close} />}
     </>
   );

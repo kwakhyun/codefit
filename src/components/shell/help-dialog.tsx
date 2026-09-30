@@ -2,9 +2,6 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import { Modal } from "@/components/ui/modal";
-import { Button } from "@/components/ui/primitives";
-import { FitMascot } from "@/components/guide/fit-mascot";
-import { openStartGuide } from "@/components/guide/open-guide";
 interface HelpDialogProps {
   helpOpen: boolean;
   setHelpOpen: Dispatch<SetStateAction<boolean>>;
@@ -55,15 +52,6 @@ export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
             <kbd>⌘ / Ctrl + Enter</kbd> AI 풀이 검토
           </span>
         </div>
-        <Button
-          className="secondary-button help-guide-button"
-          onClick={() => {
-            setHelpOpen(false);
-            requestAnimationFrame(openStartGuide);
-          }}
-        >
-          <FitMascot size={28} /> 핏에게 다음 학습 추천받기
-        </Button>
       </div>
     </Modal>
   );
