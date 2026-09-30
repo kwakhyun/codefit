@@ -179,7 +179,9 @@ export function PracticeApp({
               library={library}
               onGenerate={() => setGeneratorOpen(true)}
               bookmarking={bookmarking}
-              bookmark={bookmark}
+              bookmark={(problem, bookmarked) =>
+                bookmark(problem, bookmarked, (value) => library.setBookmarked(problem.id, value))
+              }
               exportData={exportData}
               exporting={exporting}
             />

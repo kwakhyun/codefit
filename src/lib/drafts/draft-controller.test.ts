@@ -14,14 +14,20 @@ const progress = (code: string, codeRevision: number): Progress => ({
 function fixture() {
   let online = true,
     saved: DraftRecord | null = null;
-  const requests: { code: string; revision: number; resolve: (value: SaveResult) => void }[] = [];
+  const requests: {
+    code: string;
+    revision: number;
+    resolve: (value: SaveResult) => void;
+    reject: (error: Error) => void;
+  }[] = [];
   const machine = new DraftController({
     online: () => online,
     onSaved: () => {},
     persist: (value) => {
       saved = value;
     },
-    save: (code, revision) => new Promise((resolve) => requests.push({ code, revision, resolve })),
+    save: (code, revision) =>
+      new Promise((resolve, reject) => requests.push({ code, revision, resolve, reject })),
   });
   machine.initialize(progress("original", 1), "", null);
   return {
@@ -89,6 +95,30 @@ describe("draft concurrency state machine", () => {
     f.machine.change("legacy edited");
     expect(f.saved()?.baseRevision).toBeNull();
     f.machine.initialize(progress("server", 9), "", f.saved());
+    expect(f.machine.getSnapshot().status.kind).toBe("conflict");
+  });
+  it("continues from its own write when a save acknowledgement was lost", async () => {
+    const f = fixture();
+    f.machine.change("A");
+    const lost = f.machine.flush();
+    // The server stored "A" as revision 2, but the response never arrived.
+    f.requests[0].reject(new Error("timeout"));
+    expect(await lost).toBe(false);
+    f.machine.change("A then B");
+    const next = f.machine.flush();
+    expect(f.requests[1]).toMatchObject({ code: "A then B", revision: 1 });
+    f.requests[1].resolve({ conflict: progress("A", 2) });
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(f.requests[2]).toMatchObject({ code: "A then B", revision: 2 });
+    expect(f.machine.getSnapshot().status.kind).toBe("saving");
+    f.requests[2].resolve({ saved: progress("A then B", 3) });
+    expect(await next).toBe(true);
+    expect(f.machine.getSnapshot().status.kind).toBe("saved");
+    // Someone else's different code is still a real conflict.
+    f.machine.change("C");
+    const other = f.machine.flush();
+    f.requests[3].resolve({ conflict: progress("from another device", 4) });
+    expect(await other).toBe(false);
     expect(f.machine.getSnapshot().status.kind).toBe("conflict");
   });
   it("coalesces repeated flushes and saves the most recent edit after an acknowledgement", async () => {

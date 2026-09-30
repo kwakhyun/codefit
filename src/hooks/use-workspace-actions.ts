@@ -20,16 +20,25 @@ export function useWorkspaceActions({
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const importFile = useRef<HTMLInputElement>(null);
-  const [bookmarking, setBookmarking] = useState<string | null>(null);
+  const [bookmarking, setBookmarking] = useState<ReadonlySet<string>>(new Set());
+  const bookmarkRequests = useRef(new Set<string>());
   useEffect(() => {
     if (toast) {
       const id = setTimeout(() => setToast(""), 4500);
       return () => clearTimeout(id);
     }
   }, [toast]);
-  async function bookmark(problem: ProblemSummary, bookmarked: boolean) {
-    if (bookmarking) return;
-    setBookmarking(problem.id);
+  async function bookmark(
+    problem: ProblemSummary,
+    bookmarked: boolean,
+    show?: (bookmarked: boolean) => void,
+  ) {
+    // Rows are independent; only a repeated click on the same row waits for its request.
+    const requests = bookmarkRequests.current;
+    if (requests.has(problem.id)) return;
+    requests.add(problem.id);
+    setBookmarking(new Set(requests));
+    show?.(!bookmarked);
     try {
       const { progress } = await api<{ progress: Progress }>(`/api/progress/${problem.id}`, {
         method: "PUT",
@@ -37,10 +46,12 @@ export function useWorkspaceActions({
       });
       onProgress(progress);
     } catch (e) {
+      show?.(bookmarked);
       setToastError(true);
       setToast(errorMessage(e));
     } finally {
-      setBookmarking(null);
+      requests.delete(problem.id);
+      setBookmarking(new Set(requests));
     }
   }
   async function exportData() {

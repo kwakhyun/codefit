@@ -1,7 +1,7 @@
 "use client";
 
 import { api, ApiError } from "@/lib/client-api";
-import { browserDraft } from "@/lib/drafts/browser-draft";
+import { browserDraft, type StoredDraft } from "@/lib/drafts/browser-draft";
 import { DraftController } from "@/lib/drafts/draft-controller";
 import type { Progress } from "@/lib/problem";
 import {
@@ -80,25 +80,56 @@ export function useCodeDraft({
     storage.setErrorHandler(handleError);
     machine.setSavedHandler(handleSaved);
   }, [storage, machine, handleError, handleSaved]);
+  useEffect(() => {
+    storage.claim();
+    return () => storage.release();
+  }, [storage]);
   const { code, status, localSaved } = useSyncExternalStore(
     machine.subscribe,
     machine.getSnapshot,
     machine.getSnapshot,
   );
-  const [recoverable, setRecoverable] = useState<ReturnType<typeof storage.remaining>>([]);
+  const [recoverable, setRecoverable] = useState<StoredDraft[]>([]);
+  // A closed tab's unsaved draft built on the current server code, offered for loading.
+  const [orphan, setOrphan] = useState<StoredDraft | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const server = useRef<{ progress: Progress | null; starter: string }>({
     progress: null,
     starter: "",
   });
+  const refreshRecoverable = useCallback(async () => {
+    const drafts = await storage.others();
+    if (!mounted.current) return;
+    const { progress, starter } = server.current;
+    setRecoverable(drafts);
+    setOrphan(
+      machine.hasUnsaved()
+        ? null
+        : (drafts.find(
+            (d) =>
+              d.live === false &&
+              !storage.isRecovered(d.key) &&
+              d.record.code !== (progress?.code ?? starter) &&
+              d.record.baseRevision === (progress?.codeRevision ?? 0),
+          ) ?? null),
+    );
+  }, [machine, storage, mounted]);
   const initialize = useCallback(
     (progress: Progress | null, starter: string) => {
       server.current = { progress, starter };
       const restored = machine.initialize(progress, starter, storage.read());
-      setRecoverable(storage.remaining());
+      void refreshRecoverable();
       return restored;
     },
-    [machine, storage],
+    [machine, storage, refreshRecoverable],
+  );
+  const discardDraft = useCallback(
+    (key: string) => {
+      storage.discard(key);
+      setOrphan((current) => (current?.key === key ? null : current));
+      void refreshRecoverable();
+    },
+    [storage, refreshRecoverable],
   );
   const flush = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
@@ -157,6 +188,8 @@ export function useCodeDraft({
     saveState: status.kind,
     draftStatus: status,
     recoverable,
+    orphan,
+    discardDraft,
     // Recovery copies into the editor; the existing text can be restored with the usual undo action.
     initialize,
     changeCode,

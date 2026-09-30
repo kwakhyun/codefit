@@ -94,6 +94,7 @@ export function ProblemWorkspace({
     setError,
     loadError,
     setLoadError,
+    missing,
     loading,
     setLoading,
     saveState,
@@ -101,7 +102,11 @@ export function ProblemWorkspace({
     localSaved,
     resolveConflict,
     recoverable,
+    orphan,
+    loadOrphan,
+    discardDraft,
     busy,
+    reviewsLeft,
     revealing,
     confirm,
     setConfirm,
@@ -136,6 +141,18 @@ export function ProblemWorkspace({
     initialStage: initialAttemptId ? 3 : 0,
   });
   if (loading) return <ScreenSkeleton variant="editor" label="문제와 저장된 풀이를 불러오는 중" />;
+  if (missing)
+    return (
+      <div className="empty-state">
+        <AlertCircle size={32} />
+        <h2>문제를 찾을 수 없습니다.</h2>
+        <p>주소가 잘못되었거나 더 이상 제공하지 않는 문제입니다.</p>
+        <Link className="secondary-button" href={returnTo}>
+          <ArrowLeft size={16} />
+          {returnTo.startsWith("/handoff") ? "AI 코드 이해 훈련으로" : "문제 보관함으로"}
+        </Link>
+      </div>
+    );
   if (loadError || !detail)
     return (
       <div className="empty-state">
@@ -156,6 +173,7 @@ export function ProblemWorkspace({
       </div>
     );
   const { problem, hints, solution, attempts, progress } = detail;
+  const archived = recoverable.filter((draft) => draft.key !== orphan?.key);
   const handoffDraft = problem.handoff ? readHandoffDraft(code) : null;
   const inputError =
     missingField && handoffDraft && missingHandoffFields(handoffDraft.notes).includes(missingField)
@@ -237,6 +255,21 @@ export function ProblemWorkspace({
           )}
           <Button className="icon-button" aria-label="안내 닫기" onClick={() => setNotice("")}>
             ×
+          </Button>
+        </Card>
+      )}
+      {orphan && (
+        <Card as="div" className="draft-notice" role="status">
+          <Save size={15} />
+          <span>
+            닫은 창에 저장하지 않은 초안이 남아 있습니다. 불러오면 편집기의 코드를 바꾸며, 변경
+            취소로 되돌릴 수 있습니다.
+          </span>
+          <Button className="text-button" onClick={loadOrphan}>
+            불러오기
+          </Button>
+          <Button className="text-button" onClick={() => discardDraft(orphan.key)}>
+            버리기
           </Button>
         </Card>
       )}
@@ -331,21 +364,36 @@ export function ProblemWorkspace({
                 : undefined
             }
           />
-          {recoverable.length > 0 && (
+          {archived.length > 0 && (
             <Disclosure className="draft-recovery">
-              <DisclosureSummary>다른 창에서 보관한 초안 {recoverable.length}개</DisclosureSummary>
-              <p>필요한 코드를 복사해 현재 초안에 합칠 수 있습니다. 원본은 계속 보관됩니다.</p>
-              {recoverable.map((draft, index) => (
-                <FieldLabel key={draft.key}>
-                  보관한 초안 {index + 1}
-                  <Textarea
-                    aria-label={`보관한 초안 ${index + 1}`}
-                    value={
-                      problem.handoff ? formatHandoffDraft(draft.record.code) : draft.record.code
-                    }
-                    readOnly
-                  />
-                </FieldLabel>
+              <DisclosureSummary>다른 창에서 보관한 초안 {archived.length}개</DisclosureSummary>
+              <p>
+                필요한 코드를 복사해 현재 초안에 합칠 수 있습니다. 원본은 삭제하기 전까지
+                보관됩니다.
+              </p>
+              {archived.map((draft, index) => (
+                <div key={draft.key}>
+                  <FieldLabel>
+                    보관한 초안 {index + 1}
+                    {draft.live && " · 다른 창에서 편집 중"}
+                    <Textarea
+                      aria-label={`보관한 초안 ${index + 1}`}
+                      value={
+                        problem.handoff ? formatHandoffDraft(draft.record.code) : draft.record.code
+                      }
+                      readOnly
+                    />
+                  </FieldLabel>
+                  {!draft.live && (
+                    <Button
+                      className="text-button"
+                      aria-label={`보관한 초안 ${index + 1} 삭제`}
+                      onClick={() => discardDraft(draft.key)}
+                    >
+                      삭제
+                    </Button>
+                  )}
+                </div>
               ))}
             </Disclosure>
           )}
@@ -410,7 +458,10 @@ export function ProblemWorkspace({
             <div className="review-action">
               <span>
                 <kbd>⌘ / Ctrl</kbd> + <kbd>Enter</kbd>
-                <small>AI가 요구사항을 검토합니다.</small>
+                <small>
+                  AI가 요구사항을 검토합니다.
+                  {aiReady && reviewsLeft !== null && ` · 오늘 ${reviewsLeft}회 남음`}
+                </small>
               </span>
               <Button
                 className="primary-button"
