@@ -285,6 +285,14 @@ export class StoreQueries {
       [run.id, owner, run.operation, run.createdAt, JSON.stringify(run)],
     );
   }
+  /** Return one unit to each live window, e.g. after a failure the visitor should not pay for. */
+  async refundLimits(keys: string[], now = Date.now()) {
+    for (const key of keys)
+      await this.query("UPDATE limits SET count=count-1 WHERE key=? AND count>0 AND expires>?", [
+        key,
+        now,
+      ]);
+  }
   async usage(owner: string, now = Date.now()): Promise<AiUsage> {
     const numeric = (field: string) =>
       this.dialect === "sqlite"

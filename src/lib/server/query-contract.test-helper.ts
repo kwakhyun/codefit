@@ -251,6 +251,16 @@ export function queryContract(getStore: () => ProblemStore & { addProblem(p: Pro
       true,
     );
   });
+  it("refunds one unit of a live limit window without going below zero", async () => {
+    const store = getStore(),
+      key = randomUUID();
+    const now = Date.now();
+    expect(await store.consumeLimits([{ key, max: 1, windowMs: 60_000 }], now)).toBe(true);
+    expect(await store.consumeLimits([{ key, max: 1, windowMs: 60_000 }], now)).toBe(false);
+    await store.queries.refundLimits([key, key, `${key}-missing`], now);
+    expect(await store.consumeLimits([{ key, max: 1, windowMs: 60_000 }], now)).toBe(true);
+    expect(await store.consumeLimits([{ key, max: 1, windowMs: 60_000 }], now)).toBe(false);
+  });
   it("records measured AI usage without exposing another owner's metrics", async () => {
     const store = getStore(),
       owner = randomUUID();

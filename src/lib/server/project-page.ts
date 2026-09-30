@@ -25,7 +25,8 @@ for (const [ip, prefix] of [
 export function isPublicIPv4(ip: string) {
   return isIP(ip) === 4 && !blocked.check(ip);
 }
-export function publicUrl(raw: string) {
+/** `allowQuery` is only for redirect targets chosen by the site, never for user input. */
+export function publicUrl(raw: string, { allowQuery = false } = {}) {
   let url: URL;
   try {
     url = new URL(raw);
@@ -37,7 +38,7 @@ export function publicUrl(raw: string) {
     url.port ||
     url.username ||
     url.password ||
-    url.search ||
+    (url.search && !allowQuery) ||
     url.hash ||
     isIP(url.hostname.replace(/[\[\]]/g, "")) ||
     !url.hostname.includes(".") ||
@@ -129,13 +130,36 @@ export type PublicDocument = {
   html: string;
   headers: IncomingHttpHeaders;
   fetchedAt: string;
+  status?: number;
+  /** URLs answered with a redirect before `url`, in request order. */
+  redirects?: string[];
 };
+function redirectTarget(location: string, base: URL, allowQuery: boolean) {
+  const next = new URL(location, base);
+  next.hash = "";
+  try {
+    return publicUrl(next.href, { allowQuery });
+  } catch {
+    // The site chose this target, so do not blame the address the user entered.
+    throw new HttpError(
+      422,
+      "페이지가 분석할 수 없는 주소로 이동합니다. 이동하지 않고 바로 열리는 공개 HTTPS 페이지 주소를 입력해 주세요.",
+    );
+  }
+}
+/**
+ * `anyResponse` (security check only) keeps the final response's headers for any status and
+ * content type and follows redirects to URLs with query strings. The HTML body is read only
+ * when the response is uncompressed HTML. Project checks keep the strict 200 + HTML contract.
+ */
 export async function readPublicDocument(
   raw: string,
   parentSignal: AbortSignal,
+  { anyResponse = false } = {},
 ): Promise<PublicDocument> {
   const signal = AbortSignal.any([parentSignal, AbortSignal.timeout(12_000)]);
   let url = publicUrl(raw);
+  const redirects: string[] = [];
   try {
     for (let redirect = 0; redirect <= 2; redirect++) {
       const address = await resolvePublic(url.hostname, signal);
@@ -144,6 +168,7 @@ export async function readPublicDocument(
         location?: string;
         html: string;
         headers?: IncomingHttpHeaders;
+        status?: number;
       }>((resolve, reject) => {
         const request = get(
           url,
@@ -167,11 +192,16 @@ export async function readPublicDocument(
               else resolve({ location, html: "" });
               return;
             }
-            if (
-              res.statusCode !== 200 ||
-              !res.headers["content-type"]?.includes("text/html") ||
-              (res.headers["content-encoding"] && res.headers["content-encoding"] !== "identity")
-            ) {
+            const html =
+              res.headers["content-type"]?.includes("text/html") &&
+              (!res.headers["content-encoding"] || res.headers["content-encoding"] === "identity");
+            if (anyResponse && (!html || res.statusCode !== 200)) {
+              // Headers are the evidence; skip bodies of challenge, error and non-HTML responses.
+              res.destroy();
+              resolve({ html: "", headers: res.headers, status: res.statusCode });
+              return;
+            }
+            if (res.statusCode !== 200 || !html) {
               res.destroy();
               reject(
                 new HttpError(
@@ -187,16 +217,28 @@ export async function readPublicDocument(
               size += chunk.length;
               if (size > 600_000) {
                 res.destroy();
-                reject(
-                  new HttpError(
-                    422,
-                    "페이지가 너무 큽니다. 더 간단한 서비스 소개 페이지를 사용해 주세요.",
-                  ),
-                );
+                // The security check only needs the headers and meta tags read so far.
+                if (anyResponse)
+                  resolve({
+                    html: Buffer.concat(chunks).toString("utf8"),
+                    headers: res.headers,
+                    status: res.statusCode,
+                  });
+                else
+                  reject(
+                    new HttpError(
+                      422,
+                      "페이지가 너무 큽니다. 더 간단한 서비스 소개 페이지를 사용해 주세요.",
+                    ),
+                  );
               } else chunks.push(chunk);
             });
             res.on("end", () =>
-              resolve({ html: Buffer.concat(chunks).toString("utf8"), headers: res.headers }),
+              resolve({
+                html: Buffer.concat(chunks).toString("utf8"),
+                headers: res.headers,
+                status: res.statusCode,
+              }),
             );
             res.on("error", reject);
             res.on("aborted", () => reject(new HttpError(422, "페이지 읽기가 중단됐습니다.")));
@@ -205,7 +247,8 @@ export async function readPublicDocument(
         request.on("error", reject);
       });
       if (response.location) {
-        url = publicUrl(new URL(response.location, url).href);
+        redirects.push(url.href);
+        url = redirectTarget(response.location, url, anyResponse);
         continue;
       }
       return {
@@ -213,6 +256,8 @@ export async function readPublicDocument(
         html: response.html,
         headers: response.headers || {},
         fetchedAt: new Date().toISOString(),
+        status: response.status,
+        redirects,
       };
     }
     throw new HttpError(422, "페이지 이동이 너무 많습니다. 최종 서비스 주소를 입력해 주세요.");

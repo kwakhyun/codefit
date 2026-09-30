@@ -82,7 +82,11 @@ test("security drafts stay with their account across focus refresh and sign-out"
   page,
 }) => {
   let scope = "user:security-a";
-  await page.route("**/api/workspace", (route) => route.fulfill({ json: { scope } }));
+  await page.route("**/api/guide", (route) =>
+    route.request().method() === "GET"
+      ? route.fulfill({ json: { scope, aiReady: false } })
+      : route.fallback(),
+  );
   await page.goto("/security-check");
   await page.locator(".security-exercises summary").first().click();
   const note = page.locator(".security-exercises textarea").first();

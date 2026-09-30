@@ -21,8 +21,41 @@ function download(name: string, text: string) {
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+/** Keep the issued file per account and origin so a refresh after deploying it can still verify. */
+function challengeKey(scope: string, url: string) {
+  try {
+    return `codefit-security-challenge:${scope}:${new URL(url.trim()).origin}`;
+  } catch {
+    return null;
+  }
+}
+function loadChallenge(key: string | null): OwnershipChallenge | null {
+  try {
+    const saved = key && JSON.parse(sessionStorage.getItem(key) || "null");
+    if (
+      typeof saved?.token === "string" &&
+      typeof saved.fileUrl === "string" &&
+      Date.parse(saved.expiresAt) > Date.now()
+    )
+      return { token: saved.token, fileUrl: saved.fileUrl, expiresAt: saved.expiresAt };
+  } catch {}
+  return null;
+}
+function saveChallenge(key: string | null, value: OwnershipChallenge | null) {
+  if (!key) return;
+  try {
+    if (value) sessionStorage.setItem(key, JSON.stringify(value));
+    else sessionStorage.removeItem(key);
+  } catch {}
+}
 export function SecurityAudit({ scope, url }: { scope: string; url: string }) {
-  const [challenge, setChallenge] = useState<OwnershipChallenge | null>(null);
+  // The parent remounts this component when the origin changes.
+  const [storageKey] = useState(() => challengeKey(scope, url));
+  const [challenge, setStoredChallenge] = useState(() => loadChallenge(storageKey));
+  function setChallenge(value: OwnershipChallenge | null) {
+    setStoredChallenge(value);
+    saveChallenge(storageKey, value);
+  }
   const [result, setResult] = useState<CorsAudit | null>(null);
   const [busy, setBusy] = useState(false);
   const [approved, setApproved] = useState(false);
@@ -30,6 +63,14 @@ export function SecurityAudit({ scope, url }: { scope: string; url: string }) {
   const [needsLogin, setNeedsLogin] = useState(false);
   const [findings, setFindings] = useState<ZapFinding[] | null>(null);
   const [importError, setImportError] = useState("");
+  const [checkedUrl, setCheckedUrl] = useState(url);
+  if (checkedUrl !== url) {
+    // A path edit keeps the origin's challenge but not the consent or results for the old page.
+    setCheckedUrl(url);
+    setResult(null);
+    setApproved(false);
+    setError("");
+  }
   const request = useRef<AbortController | null>(null);
   const uploadRevision = useRef(0);
   useEffect(

@@ -98,6 +98,13 @@ test("owned CORS workflow separates proof from execution and invalidates target 
   await panel.getByRole("button", { name: "소유권 확인 파일 발급" }).click();
   await expect(panel.getByText("1. 파일을 배포하세요")).toBeVisible();
   expect(runs).toBe(0);
+  // Fixing the path or refreshing after deploying the file keeps the issued challenge.
+  await page.getByLabel("점검할 공개 서비스 링크").fill("https://example.com");
+  await expect(panel.getByText("1. 파일을 배포하세요")).toBeVisible();
+  await page.reload();
+  await page.getByText("소유권 확인 후 CORS 테스트", { exact: true }).click();
+  await expect(panel.getByText("1. 파일을 배포하세요")).toBeVisible();
+  await panel.getByRole("checkbox").check();
   await panel.getByRole("button", { name: "소유권 확인하고 CORS 테스트" }).click();
   await expect(panel.getByRole("region", { name: "CORS 테스트 결과" })).toContainText(
     "credentials=true",
