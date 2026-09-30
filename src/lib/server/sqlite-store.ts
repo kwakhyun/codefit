@@ -403,7 +403,7 @@ export class SqliteStore implements ProblemStore {
         const id = own ? project.check.id : restoredProjectId(owner, project.check.id);
         // Preserve an existing whole project, including a pending analysis or newer training.
         if (this.db.prepare("SELECT 1 FROM jobs WHERE id=?").get(id)) continue;
-        for (const job of restoredProjectJobs(project, id)) {
+        for (const job of restoredProjectJobs(project, id, owner)) {
           this.db
             .prepare(
               "INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES (?,?,?,'done',?,?,'',?)",

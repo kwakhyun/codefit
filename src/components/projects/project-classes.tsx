@@ -19,7 +19,7 @@ import { Modal } from "@/components/ui/modal";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { RenewProject } from "@/components/project-check/renew-project";
 import { useProjectSearch } from "@/hooks/use-project-search";
-import { reviewStorageKey } from "@/hooks/use-project-review";
+import { forgetProjects } from "@/lib/project-cleanup";
 import { ProjectVersions } from "./project-versions";
 import { ProjectThumbnail } from "./project-thumbnail";
 import { ThemedImage } from "@/components/theme/themed-image";
@@ -28,7 +28,6 @@ import {
   analysisSnapshot,
   analysisServerSnapshot,
   subscribeAnalysis,
-  dismissAnalysis,
 } from "@/lib/project-analysis-tasks";
 import { CancelAnalysis } from "@/components/project-check/cancel-analysis";
 function nameOf(item: CheckListItem) {
@@ -187,11 +186,11 @@ function ClassList({
     setRemoving(true);
     setDeleteError("");
     try {
-      await api(`/api/projects/${deleting.id}`, { method: "DELETE", scope: overview.scope });
-      dismissAnalysis(deleting.id);
-      try {
-        localStorage.removeItem(reviewStorageKey(overview.scope, deleting.id));
-      } catch {}
+      const { ids } = await api<{ ids?: string[] }>(`/api/projects/${deleting.id}`, {
+        method: "DELETE",
+        scope: overview.scope,
+      });
+      forgetProjects(overview.scope, ids ?? [deleting.id]);
       setDeleting(null);
       onChanged();
     } catch (e) {
@@ -447,11 +446,11 @@ function ClassDetail({
     setBusy(true);
     setError("");
     try {
-      await api(`/api/projects/${id}`, { method: "DELETE", scope });
-      try {
-        localStorage.removeItem(reviewStorageKey(scope, id));
-      } catch {}
-      dismissAnalysis(id);
+      const { ids } = await api<{ ids?: string[] }>(`/api/projects/${id}`, {
+        method: "DELETE",
+        scope,
+      });
+      forgetProjects(scope, ids ?? [id]);
       onChanged();
       router.replace("/projects");
     } catch (e) {
@@ -624,6 +623,16 @@ function ClassDetail({
             </Card>
           ))}
         </section>
+      )}
+      {!!check.revisions?.length && (
+        <p className="class-revisions">
+          보완 답변 기록:{" "}
+          {check.revisions.map((revision) => (
+            <AppLink key={revision.id} href={`/project-check?check=${revision.id}`}>
+              {revision.revisionNumber}차 보완 답변 →{" "}
+            </AppLink>
+          ))}
+        </p>
       )}
       {check.page.repository && <ProjectVersions key={`${scope}:${id}`} id={id} scope={scope} />}
       {!check.page.repository && (

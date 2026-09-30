@@ -28,6 +28,7 @@ for (const [kind, post] of [
       queries: {
         projectChecks: {
           get: vi.fn().mockResolvedValue({ id }),
+          rootId: vi.fn().mockResolvedValue(id),
           generatedPractice: vi.fn().mockResolvedValue(null),
           workshop: vi.fn().mockResolvedValue(null),
           learningStatus: status,

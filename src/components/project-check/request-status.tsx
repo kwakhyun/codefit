@@ -4,16 +4,15 @@ import { Status } from "@/components/ui/primitives";
 import { Progress } from "@/components/ui/primitives";
 import { useEffect, useState } from "react";
 
-export function RequestStatus({ label }: { label: string }) {
+/** `startedAt` continues the elapsed time of a request started before this screen opened. */
+export function RequestStatus({ label, startedAt }: { label: string; startedAt?: number }) {
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
-    const started = Date.now();
-    const timer = window.setInterval(
-      () => setSeconds(Math.floor((Date.now() - started) / 1000)),
-      1000,
-    );
+    const started = startedAt ?? Date.now();
+    const tick = () => setSeconds(Math.max(0, Math.floor((Date.now() - started) / 1000)));
+    const timer = window.setInterval(tick, 1000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [startedAt]);
   return (
     <aside className="project-request-status" aria-label="AI 요청 상태">
       <strong>{label}</strong>

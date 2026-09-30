@@ -17,10 +17,11 @@ async function contextFor(request: Request, context: Context) {
 }
 export async function GET(request: Request, context: Context) {
   try {
-    const { owner, id, check, q } = await contextFor(request, context);
+    const { owner, check, q } = await contextFor(request, context);
+    const root = check.revisionOf ?? check.id;
     const [practice, workshop] = await Promise.all([
-      q.generatedPractice(owner, id),
-      q.workshop(owner, id),
+      q.generatedPractice(owner, root),
+      q.workshop(owner, root),
     ]);
     return json({ check, practice, workshop });
   } catch (e) {
@@ -38,8 +39,7 @@ export async function PATCH(request: Request, context: Context) {
 export async function DELETE(request: Request, context: Context) {
   try {
     const { owner, id, q } = await contextFor(request, context);
-    await q.remove(owner, id);
-    return json({ removed: true });
+    return json({ removed: true, ids: await q.remove(owner, id) });
   } catch (e) {
     return failure(e);
   }
