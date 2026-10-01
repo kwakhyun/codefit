@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { api, errorMessage } from "@/lib/client-api";
+import { api, ApiError, errorMessage } from "@/lib/client-api";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import { z } from "zod";
 export type UpdateOverview = (update: (current: CheckOverview) => CheckOverview) => void;
@@ -10,6 +10,7 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
   const selectionKey = `codefit-project-selection:${data.scope}`;
   const initialized = useRef(false);
   const [detail, setDetail] = useState<{ id: string; check?: Check; error?: string }>();
+  const [missing, setMissing] = useState(false);
   const [retry, setRetry] = useState(0);
   const [paging, setPaging] = useState(false);
   const [pageError, setPageError] = useState("");
@@ -57,11 +58,30 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
         }
       })
       .catch((e) => {
-        if (!controller.signal.aborted) setDetail({ id: selected, error: errorMessage(e) });
+        if (controller.signal.aborted) return;
+        if (e instanceof ApiError && e.status === 404) {
+          // A deleted record must not leave a dead end or be restored on the next visit.
+          setMissing(true);
+          try {
+            sessionStorage.removeItem(selectionKey);
+          } catch {}
+          const url = new URL(window.location.href);
+          url.searchParams.delete("check");
+          url.hash = "";
+          window.history.replaceState(null, "", url);
+          return;
+        }
+        // Keep the last good record on a failed refresh so unsaved panels stay mounted.
+        setDetail((current) =>
+          current?.id === selected && current.check
+            ? current
+            : { id: selected, error: errorMessage(e) },
+        );
       });
     return () => controller.abort();
-  }, [selected, data.scope, retry, data.checks]);
+  }, [selected, selectionKey, data.scope, retry, data.checks]);
   function select(id: string | null, replace = false) {
+    setMissing(false);
     try {
       if (id) sessionStorage.setItem(selectionKey, id);
       else sessionStorage.removeItem(selectionKey);
@@ -107,6 +127,7 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
     selected,
     check: detail?.id === selected ? detail.check : undefined,
     detailError: detail?.id === selected ? detail.error : undefined,
+    missing,
     select,
     reloadDetail: () => {
       setDetail(undefined);

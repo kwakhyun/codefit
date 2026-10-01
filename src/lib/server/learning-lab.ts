@@ -139,14 +139,20 @@ export function learningLab(problem: Problem): LearningLab {
   const track = problem.handoff?.track;
   if (!track || !probes[track] || problem.id !== handoffId(track, problem.handoff!.variant))
     throw new HttpError(404, "이 문제에는 실행 훈련이 준비되지 않았습니다.");
+  const variant = problem.handoff!.variant;
+  const cases = [
+    ...handoffSpecs[track].cases,
+    ...(variant ? handoffSpecs[track].variantCases : []),
+  ];
   return {
     ...probes[track],
-    version: LAB_VERSION,
+    // The variant suite differs, so its saved runs and observations follow its own version.
+    version: variant ? `${LAB_VERSION}.transfer` : LAB_VERSION,
     contract: [
       handoffSpecs[track].contract,
       handoffSpecs[track].core,
       handoffSpecs[track].extension,
     ].join("\n"),
-    checkpoints: handoffSpecs[track].cases.map((c, index) => ({ ...c, id: `case-${index + 1}` })),
+    checkpoints: cases.map((c, index) => ({ ...c, id: `case-${index + 1}` })),
   };
 }

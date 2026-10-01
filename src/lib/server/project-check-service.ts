@@ -368,21 +368,18 @@ export class ProjectCheckService {
       await this.store.queries.projectChecks.complete(claim.lease, result);
       return publicCheck(result);
     } catch (error) {
-      await this.store.failJob(claim.lease);
+      if (await this.store.failJob(claim.lease))
+        await this.store.queries.projectChecks.recordFailure(claim.lease, error).catch(() => {});
       throw error;
     } finally {
       clearInterval(timer);
     }
   }
   async revise(owner: string, id: string, requestId: string) {
-    const check = await this.store.queries.projectChecks.get(owner, id);
-    const review = await this.store.queries.projectChecks.review(owner, id);
+    const q = this.store.queries.projectChecks;
+    const check = await q.get(owner, id);
+    const review = await q.review(owner, id);
     if (!check || !review) throw new HttpError(404, "보완할 평가 기록을 찾지 못했습니다.");
-    if ((check.revisionNumber ?? 0) >= 3)
-      throw new HttpError(
-        422,
-        "같은 질문은 3번까지 보완할 수 있습니다. 최신 화면으로 새 점검을 시작해 주세요.",
-      );
     const claim = await this.store.startJob(
       owner,
       requestId,
@@ -393,6 +390,14 @@ export class ProjectCheckService {
     if (claim.state === "pending")
       throw new HttpError(409, "보완 답변을 준비하고 있습니다. 잠시 후 다시 시도해 주세요.");
     try {
+      // Revisions belong to the root class; older records without a root count their own depth.
+      const root = (check.revisionOf && (await q.get(owner, check.revisionOf))) || check;
+      const used = (root.revisionNumber ?? 0) + (await q.revisionCount(owner, root.id));
+      if (used >= 3)
+        throw new HttpError(
+          422,
+          "같은 질문은 3번까지 보완할 수 있습니다. 최신 화면으로 새 점검을 시작해 주세요.",
+        );
       if (
         !(await this.store.consumeLimits([
           { key: `project:revision:${owner}`, max: 5, windowMs: 60_000 },
@@ -400,14 +405,17 @@ export class ProjectCheckService {
         ]))
       )
         throw new HttpError(429, "잠시 후 다시 시도해 주세요.");
+      const { classMetadata: _classMetadata, ...source } = check;
+      void _classMetadata;
       const result: StoredCheck = {
-        ...check,
+        ...source,
         id: requestId,
         createdAt: new Date().toISOString(),
-        revisionNumber: (check.revisionNumber ?? 0) + 1,
+        revisionNumber: used + 1,
+        revisionOf: root.id,
         previousReview: { answers: review.answers, assessment: review.assessment },
       };
-      await this.store.queries.projectChecks.complete(claim.lease, result, id);
+      await q.complete(claim.lease, result, root.id);
       return publicCheck(result);
     } catch (error) {
       await this.store.failJob(claim.lease);
@@ -439,10 +447,13 @@ export class ProjectCheckService {
         "이 질문의 대화를 마쳤습니다. 확인한 내용을 설계 답변에 반영해 주세요.",
       );
     const id = `${checkId}:dialogue:${input.questionIndex}:${previous?.turns.length ?? 0}`;
+    const kind = `project-dialogue:${checkId}:${input.questionIndex}`;
+    // The turn ID is fixed by position; a failed turn must not pin the text of the next attempt.
+    await this.store.queries.projectChecks.releaseFailed(owner, id, kind);
     const claim = await this.store.startJob(
       owner,
       id,
-      `project-dialogue:${checkId}:${input.questionIndex}`,
+      kind,
       requestFingerprint(input.answer, input.previousId ?? ""),
     );
     if (claim.state === "done") return JSON.parse(claim.result) as ProjectDialogue;
@@ -483,6 +494,12 @@ export class ProjectCheckService {
     if (!check) throw new HttpError(404, "이 계정의 분석 기록을 찾지 못했습니다.");
     if (!input.answers.some((answer) => answer.trim()))
       throw new HttpError(400, "한 질문 이상 답변하거나 모르는 이유를 적어 주세요.");
+    // One review per analysis: after a failed attempt, edited answers may use the same ID.
+    await this.store.queries.projectChecks.releaseFailed(
+      owner,
+      `project-review-${input.id}`,
+      `project-review:${input.id}`,
+    );
     const claim = await this.store.startJob(
       owner,
       `project-review-${input.id}`,

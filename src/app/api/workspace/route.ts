@@ -1,6 +1,6 @@
 import { problemDetail } from "@/lib/server/problem-detail";
 import { getStore } from "@/lib/server/database";
-import { failure, json, readBody } from "@/lib/server/http";
+import { failure, HttpError, json, readBody } from "@/lib/server/http";
 import { session } from "@/lib/server/session";
 import { z } from "zod";
 import { configuredProviders } from "@/lib/server/auth-config";
@@ -17,7 +17,14 @@ export async function GET(request: Request) {
       store.queries.workspace(owner, id),
       params.get("include") === "initial"
         ? id
-          ? problemDetail(store, owner, id, params.get("attempt")).then((detail) => ({ detail }))
+          ? problemDetail(store, owner, id, params.get("attempt")).then(
+              (detail) => ({ detail }),
+              (error) => {
+                // The workspace shows its own not-found state; the rest of the page still loads.
+                if (error instanceof HttpError && error.status === 404) return undefined;
+                throw error;
+              },
+            )
           : libraryHref?.startsWith("/")
             ? store.queries
                 .library(owner, new URLSearchParams(libraryHref.split("?")[1] || ""))

@@ -4,7 +4,7 @@ import { useCodeReview } from "./use-code-review";
 import type { ConfirmationAction, WorkspaceTab } from "@/components/workspace/types";
 
 import { useCodeDraft } from "@/hooks/use-code-draft";
-import { api, errorMessage } from "@/lib/client-api";
+import { api, ApiError, errorMessage } from "@/lib/client-api";
 import type { Attempt, Progress, ProblemDetail } from "@/lib/problem";
 import { latestProgress } from "@/lib/progress";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -30,6 +30,8 @@ export function useProblemController({
   const [tab, setTab] = useState<WorkspaceTab>(initialAttemptId ? "history" : "problem");
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
+  // A removed problem or mistyped link; retrying cannot help.
+  const [missing, setMissing] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [revealing, setRevealing] = useState(false);
@@ -58,6 +60,8 @@ export function useProblemController({
     localSaved,
     resolveConflict,
     recoverable,
+    orphan,
+    discardDraft,
     initialize,
     changeCode,
     flush,
@@ -85,7 +89,9 @@ export function useProblemController({
 
       if (localNewer) setNotice("이 브라우저에 남아 있던 미저장 코드를 복구했습니다.");
     } catch (e) {
-      if (mounted.current) setLoadError(errorMessage(e));
+      if (!mounted.current) return;
+      if (e instanceof ApiError && e.status === 404) setMissing(true);
+      else setLoadError(errorMessage(e));
     } finally {
       if (mounted.current) setLoading(false);
     }
@@ -126,7 +132,11 @@ export function useProblemController({
     window.addEventListener("codefit:backup-imported", refreshImported);
     return () => window.removeEventListener("codefit:backup-imported", refreshImported);
   }, [id, initialAttemptId, restoreImportedCode]);
-  const { busy, review } = useCodeReview({
+  const {
+    busy,
+    review,
+    remaining: reviewsLeft,
+  } = useCodeReview({
     id,
     scope,
     aiReady,
@@ -207,6 +217,12 @@ export function useProblemController({
     setNotice(message);
     setConfirm(null);
   }
+  function loadOrphan() {
+    if (!orphan) return;
+    replaceCode(orphan.record.code, "닫은 창에 남아 있던 초안을 불러왔습니다.");
+    // The editor now keeps the draft under its own key.
+    discardDraft(orphan.key);
+  }
 
   return {
     detail,
@@ -217,6 +233,7 @@ export function useProblemController({
     setError,
     loadError,
     setLoadError,
+    missing,
     loading,
     setLoading,
     saveState,
@@ -224,7 +241,11 @@ export function useProblemController({
     localSaved,
     resolveConflict,
     recoverable,
+    orphan,
+    loadOrphan,
+    discardDraft,
     busy,
+    reviewsLeft,
     revealing,
     confirm,
     setConfirm,

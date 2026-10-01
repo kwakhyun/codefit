@@ -16,6 +16,8 @@ export class DraftController {
   private dirty = false;
   private running: Promise<boolean> | null = null;
   private conflict: Progress | null = null;
+  // Code sent since the last acknowledgement; a lost response may still have saved it.
+  private unacknowledged = new Set<string>();
   constructor(
     private readonly io: {
       save: (code: string, revision: number) => Promise<SaveResult>;
@@ -117,6 +119,17 @@ export class DraftController {
       );
       try {
         const result = await this.io.save(code, this.revision!);
+        if (
+          "conflict" in result &&
+          result.conflict.code !== null &&
+          this.unacknowledged.has(result.conflict.code)
+        ) {
+          // Our own earlier write; continue from its revision instead of reporting a conflict.
+          this.unacknowledged.clear();
+          this.revision = result.conflict.codeRevision;
+          this.persist();
+          continue;
+        }
         if ("conflict" in result) {
           this.conflict = result.conflict;
           // Keep the original base until explicit resolution; reload cannot bypass the conflict.
@@ -125,12 +138,14 @@ export class DraftController {
           return false;
         }
         this.revision = result.saved.codeRevision;
+        this.unacknowledged.clear();
         this.conflict = null;
         this.dirty = edit !== this.edit;
         this.persist();
         this.publish({ kind: this.dirty ? "saving" : "saved" });
         this.io.onSaved(result.saved);
       } catch {
+        if (this.unacknowledged.size < 20) this.unacknowledged.add(code);
         this.publish(
           this.conflict
             ? { kind: "conflict", server: this.conflict }

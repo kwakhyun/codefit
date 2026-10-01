@@ -5,8 +5,8 @@ import { session } from "@/lib/server/session";
 export const runtime = "nodejs";
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    await session(request);
-    return json(learningLab(await requireProblem((await context.params).id)));
+    const { owner } = await session(request);
+    return json(learningLab(await requireProblem((await context.params).id, owner)));
   } catch (error) {
     return failure(error);
   }

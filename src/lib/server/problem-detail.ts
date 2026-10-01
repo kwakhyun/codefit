@@ -9,7 +9,7 @@ export async function problemDetail(
   attempt?: string | null,
 ): Promise<ProblemDetail> {
   const [problem, progress, attempts] = await Promise.all([
-    store.problem(id),
+    store.problem(id, owner),
     store.progressFor(owner, id),
     store.queries.recentAttempts(owner, id, attempt),
   ]);

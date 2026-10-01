@@ -11,6 +11,7 @@ import {
   trainingSchema,
   observationSourceText,
   coachingEvidenceText,
+  resumeStage,
 } from "./training";
 import { readHandoffDraft, writeHandoffDraft, formatHandoffDraft } from "./draft";
 import { handoffDocument } from "./document";
@@ -83,6 +84,15 @@ describe("bounded, isolated execution", () => {
     expect(check("", "new Promise(() => {})").status).toBe("error");
     expect(check("", "(async()=>{while(true) await Promise.resolve()})()").status).toBe("error");
     expect(check("", "'x'.repeat(5000)").status).toBe("error");
+    // Synchronous loops and unsettled asynchronous chains get distinct guidance.
+    for (const [code, expression] of [
+      ["while (true) {}", "42"],
+      ["function spin() { while (true) {} }", "spin()"],
+    ])
+      expect(check(code, expression).actual).toContain("반복문이 끝나는 조건");
+    expect(check("", "(async()=>{while(true) await Promise.resolve()})()").actual).toContain(
+      "비동기 작업의 종료 조건",
+    );
     expect(check("", "({a:1})").actual).toBe('{"a":1}');
   });
   it("reports syntax and rejected promise errors without fabricating a pass", () => {
@@ -91,6 +101,15 @@ describe("bounded, isolated execution", () => {
       status: "error",
       actual: "expected failure",
     });
+    for (const [code, expression] of [
+      ["throw 'x'", "42"],
+      ["", "Promise.reject('x')"],
+      ["", "(() => { throw 'x' })()"],
+    ])
+      expect(check(code, expression).actual).toBe('오류로 전달된 값: "x"');
+    expect(check("", "(async () => { throw { code: 1 } })()").actual).toBe(
+      '오류로 전달된 값: {"code":1}',
+    );
     expect(sameOutput('{"b":2,"a":1}', { a: 1, b: 2 })).toBe(true);
     expect(sameOutput("undefined", undefined)).toBe(false);
   });
@@ -123,6 +142,16 @@ it("keeps V1 backwards compatible and protects training with the same code revis
 });
 
 describe("saved observation provenance", () => {
+  it("resumes a saved lab on the first step still missing its evidence", () => {
+    const locked = { choice: "shared", reason: "", locked: true };
+    const observation = { id: "prediction", status: "ok" as const, actual: "[3,3]" };
+    const run = { codeHash: "hash", suiteVersion: "v", results: [] };
+    expect(resumeStage(undefined)).toBe(0);
+    expect(resumeStage(emptyTraining())).toBe(0);
+    expect(resumeStage({ ...emptyTraining(), prediction: locked })).toBe(0);
+    expect(resumeStage({ ...emptyTraining(), prediction: locked, observation })).toBe(2);
+    expect(resumeStage({ ...emptyTraining(), prediction: locked, observation, run })).toBe(3);
+  });
   it("invalidates evidence when its original source, probe, or runner changes", async () => {
     const problem = handoffProblems.find((p) => p.id === "handoff-cart")!;
     const lab = learningLab(problem);

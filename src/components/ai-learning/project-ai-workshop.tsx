@@ -22,6 +22,11 @@ import {
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { RequestStatus } from "@/components/project-check/request-status";
 import { WorkshopTopics } from "./workshop-topics";
+import {
+  requestWorkshopGeneration,
+  takeWorkshopAnalysis,
+  takeWorkshopGeneration,
+} from "./workshop-autostart";
 export function ProjectAiWorkshop() {
   const params = useSearchParams();
   const [overview, setOverview] = useState<CheckOverview>();
@@ -79,6 +84,7 @@ function Workspace({
   const [saved, setSaved] = useState<ProjectWorkshop | null>();
   const [progress, setProgress] = useState({ completed: 0, canRecover: false });
   const [error, setError] = useState("");
+  const [missing, setMissing] = useState(false);
   const [busy, setBusy] = useState("");
   const [reload, setReload] = useState(0);
   const generationRevision = useGenerationRevision();
@@ -95,9 +101,10 @@ function Workspace({
   useEffect(() => {
     if (!id) return;
     const abort = new AbortController();
+    const path = `/api/project-check/${encodeURIComponent(id)}`;
     Promise.all([
-      api<Check>(`/api/project-check/${id}`, { scope: overview.scope, signal: abort.signal }),
-      api<LearningStatus<ProjectWorkshop>>(`/api/project-check/${id}/workshop?stepwise=true`, {
+      api<Check>(path, { scope: overview.scope, signal: abort.signal }),
+      api<LearningStatus<ProjectWorkshop>>(`${path}/workshop?stepwise=true`, {
         scope: overview.scope,
         signal: abort.signal,
       }),
@@ -110,12 +117,29 @@ function Workspace({
         setError("");
       })
       .catch((e) => {
-        if (!abort.signal.aborted) setError(errorMessage(e));
+        if (abort.signal.aborted) return;
+        // A deleted or mistyped record cannot be fixed by retrying the same link.
+        setMissing(e instanceof ApiError && (e.status === 404 || e.status === 400));
+        setError(errorMessage(e));
       });
     return () => abort.abort();
   }, [id, overview.scope, reload, generationRevision]);
+  useEffect(() => {
+    // Continue work the learner already confirmed on the entry form, exactly once per tab.
+    if (id || !overview.aiReady || !draft.url.trim() || !takeWorkshopAnalysis(draft.url)) return;
+    void Promise.resolve().then(runAnalysis);
+  });
+  useEffect(() => {
+    if (!id || !check || saved === undefined || !takeWorkshopGeneration(id)) return;
+    const allowed =
+      progress.canRecover || (overview.aiReady && overview.usage.analysis.remaining > 0);
+    if (saved === null && check.page.repository && allowed) void Promise.resolve().then(generate);
+  });
   async function analyze(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
+    await runAnalysis();
+  }
+  async function runAnalysis() {
     if (lock.current) return;
     lock.current = true;
     setError("");
@@ -142,6 +166,8 @@ function Workspace({
         );
       }
       if (!alive.current) return;
+      // The confirmed cost covers the learning generation, so continue without another click.
+      requestWorkshopGeneration(record.id);
       router.replace(`/learn/ai/project?check=${record.id}`);
       refresh();
     } catch (e) {
@@ -205,6 +231,11 @@ function Workspace({
       {error && (
         <Card role="alert">
           <p>{error}</p>
+          {id && missing && (
+            <AppLink className="primary-button" href="/learn/ai/project">
+              다른 프로젝트 선택하거나 새로 분석하기
+            </AppLink>
+          )}
           {id && <Button onClick={() => setReload((n) => n + 1)}>저장된 학습 다시 불러오기</Button>}
         </Card>
       )}

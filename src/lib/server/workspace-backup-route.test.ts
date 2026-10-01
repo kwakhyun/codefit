@@ -5,6 +5,7 @@ import { learningFixture } from "./project-learning-contract.test-helper";
 import { emptyLearning } from "../learn/progress";
 import { BACKUP_MAX_BYTES } from "../backup-limits";
 import { restoredProjectId } from "./workspace-backup";
+import { validateReview } from "../problem";
 const context = vi.hoisted(() => ({ owner: "source" }));
 vi.mock("./session", () => ({ session: async () => ({ owner: context.owner }) }));
 let store: SqliteStore;
@@ -116,4 +117,44 @@ it("API accepts the exact UTF-8 request limit and rejects one extra byte", async
     );
   expect((await send(body)).status).toBe(200);
   expect((await send(body + " ")).status).toBe(413);
+});
+it("API rejects mismatched records before spending import allowance and reports storage faults as 500", async () => {
+  const problem = seedProblems[0];
+  const review = validateReview(
+    {
+      summary: "요구사항별로 코드를 검토했습니다.",
+      criteria: problem.requirements.map((_, requirementIndex) => ({
+        requirementIndex,
+        passed: true,
+        feedback: "구체적인 코드의 동작을 확인했습니다.",
+      })),
+      strengths: [],
+      improvements: [],
+    },
+    problem,
+  );
+  const attempt = {
+    id: "orphan",
+    problemId: problem.id,
+    code: "code",
+    // Well-formed, but it judges the same requirement twice.
+    review: {
+      ...review,
+      criteria: review.criteria.map((c) => ({ ...c, requirementIndex: 0 })),
+    },
+    assisted: false,
+    createdAt: new Date().toISOString(),
+  };
+  for (const attempts of [[attempt], [{ ...attempt, review, problemId: "missing-problem" }]]) {
+    const response = await POST(request({ version: 2, problems: [], progress: {}, attempts }));
+    expect(response.status).toBe(400);
+  }
+  expect(store.db.prepare("SELECT COUNT(*) AS n FROM limits").get()?.n).toBe(0);
+  const importBackup = vi.spyOn(store, "importBackup").mockImplementation(() => {
+    throw new Error("disk I/O error");
+  });
+  const response = await POST(request({ version: 2, problems: [], progress: {}, attempts: [] }));
+  expect(response.status).toBe(500);
+  expect((await response.json()).error).not.toContain("일치하지");
+  importBackup.mockRestore();
 });

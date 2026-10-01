@@ -164,6 +164,29 @@ it("passes the declared contract and current reported observation without execut
   expect(aiLimit).toHaveBeenCalledTimes(1);
   expect(store.completeCoaching).toHaveBeenCalledWith(lease, problem.id, JSON.stringify(reply));
 });
+it("returns the personal allowance when the AI call fails, but not after a saved reply", async () => {
+  const refund = vi.fn();
+  aiLimit.mockResolvedValue(refund);
+  const store = {
+    startJob: vi.fn().mockResolvedValue({ state: "new", lease: { id: "lease" } }),
+    queries: { recordAiRun: vi.fn() },
+    completeCoaching: vi.fn(),
+    failJob: vi.fn(),
+  };
+  getStore.mockResolvedValue(store);
+  coach.mockRejectedValue(new Error("invalid model output"));
+  expect((await call(training())).status).toBe(500);
+  expect(refund).toHaveBeenCalledTimes(1);
+  expect(store.failJob).toHaveBeenCalledTimes(1);
+  coach.mockResolvedValue({
+    evidenceId: "prediction",
+    observation: "표시된 결과입니다.",
+    question: "참조를 비교해 볼까요?",
+    nextCheck: "두 객체를 비교하세요.",
+  });
+  expect((await call(training())).status).toBe(200);
+  expect(refund).toHaveBeenCalledTimes(1);
+});
 it.each([false, true])(
   "replays a saved reply (experiment=%s) without a second AI call or quota",
   async (withExperiment) => {

@@ -99,6 +99,13 @@ export const emptyTraining = (): TrainingDraft => ({
   version: 1,
   prediction: { choice: "", reason: "", locked: false },
 });
+/** Lab step (0-based) to reopen a saved draft on: the first step still missing its evidence.
+ * The original is re-run from the prediction step, so a locked prediction without an
+ * observation resumes there. */
+export function resumeStage(t: TrainingDraft | undefined) {
+  if (!t?.prediction.locked || !t.observation) return 0;
+  return t.run ? 3 : 2;
+}
 
 type LabCase = { id: string; expression: string; expected: unknown; note: string };
 export type LearningLab = {

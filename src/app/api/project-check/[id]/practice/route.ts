@@ -10,10 +10,10 @@ export const maxDuration = 120;
 type Context = { params: Promise<{ id: string }> };
 async function contextFor(request: Request, context: Context) {
   const { owner } = await projectMember(request);
-  const { id } = await context.params;
   const store = await getStore();
-  if (!(await store.queries.projectChecks.get(owner, id)))
-    throw new HttpError(404, "점검 기록을 찾지 못했습니다.");
+  // A revision reuses the root analysis's saved content instead of generating it again.
+  const id = await store.queries.projectChecks.rootId(owner, (await context.params).id);
+  if (!id) throw new HttpError(404, "점검 기록을 찾지 못했습니다.");
   return { owner, id, store };
 }
 export async function GET(request: Request, context: Context) {

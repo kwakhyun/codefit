@@ -9,7 +9,21 @@ export type SecurityReport = {
   url: string;
   checkedAt: string;
   findings: SecurityFinding[];
+  /** HTTP status of the final response whose headers were inspected. */
+  status?: number;
+  /** Addresses that redirected before the final `url`, without query strings. */
+  redirects?: string[];
 };
+export function securityReportRoute(report: SecurityReport) {
+  return [
+    ...(report.redirects?.length
+      ? [`이동 경로: ${[...report.redirects, report.url].join(" → ")}`]
+      : []),
+    ...(report.status && report.status !== 200
+      ? [`최종 응답 코드 ${report.status}: 이 응답의 헤더를 기준으로 확인했습니다.`]
+      : []),
+  ];
+}
 export const securityStatus = {
   observed: "설정 관찰",
   review: "보완 검토",
@@ -45,8 +59,9 @@ export function securityReportText(report: SecurityReport) {
   return [
     `공개 페이지 보안 설정 점검`,
     report.url,
+    ...securityReportRoute(report),
     report.checkedAt,
-    "범위: 최종 HTML 응답의 헤더와 메타 태그. 공격, 로그인, API 권한 검증은 수행하지 않았습니다. 취약점이 없다는 증명이 아닙니다.",
+    "범위: 최종 응답의 헤더와 HTML 메타 태그. 공격, 로그인, API 권한 검증은 수행하지 않았습니다. 취약점이 없다는 증명이 아닙니다.",
     ...report.findings.map(
       (f) =>
         `\n[${securityStatus[f.status]}] ${f.title}\n근거: ${f.evidence}\n다음 행동: ${f.action}`,

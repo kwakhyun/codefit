@@ -9,7 +9,10 @@ export async function GET(request: Request) {
     const { owner } = await projectMember(request);
     const id = z.uuid().safeParse(new URL(request.url).searchParams.get("id"));
     if (!id.success) throw new HttpError(400, "프로젝트 기록 주소를 확인해 주세요.");
-    return json(await (await getStore()).queries.projectLearning.get(owner, id.data));
+    const store = await getStore();
+    // Revisions continue the training of their root analysis.
+    const root = await store.queries.projectChecks.rootId(owner, id.data);
+    return json(await store.queries.projectLearning.get(owner, root ?? id.data));
   } catch (e) {
     return failure(e);
   }
@@ -18,7 +21,11 @@ export async function POST(request: Request) {
   try {
     const { owner } = await projectMember(request);
     const input = await readBody(request, trainingInput, 2000);
-    return json(await (await getStore()).queries.projectLearning.submit(owner, input));
+    const store = await getStore();
+    const root = await store.queries.projectChecks.rootId(owner, input.id);
+    return json(
+      await store.queries.projectLearning.submit(owner, { ...input, id: root ?? input.id }),
+    );
   } catch (e) {
     return failure(e);
   }

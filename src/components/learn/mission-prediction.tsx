@@ -2,6 +2,7 @@ import { FieldLabel, Input, Textarea, Button } from "@/components/ui/primitives"
 import { missionContext } from "@/lib/learn/context";
 import { VoiceInput } from "@/components/ui/voice-input";
 import type { Mission } from "@/lib/learn/catalog";
+import { choiceOrder } from "@/lib/learn/services/missions";
 import type { LearningRecord, LearningRecordUpdate } from "@/lib/learn/progress";
 export function MissionPrediction({
   mission,
@@ -49,16 +50,16 @@ export function MissionPrediction({
         <h3>먼저 확인 기준을 정해요</h3>
         <fieldset disabled={record.locked}>
           <legend>{mission.prediction}</legend>
-          {mission.choices.map((choice, i) => (
-            <FieldLabel className="learn-option" key={choice}>
+          {choiceOrder(mission, "prediction").map((i, position) => (
+            <FieldLabel className="learn-option" key={mission.choices[i]}>
               <Input
-                id={`learn-choice-${i}`}
+                id={`learn-choice-${position}`}
                 name="prediction"
                 type="radio"
                 checked={record.prediction === i}
                 onChange={() => update((x) => ({ ...x, prediction: i }))}
               />
-              <span>{choice}</span>
+              <span>{mission.choices[i]}</span>
             </FieldLabel>
           ))}
         </fieldset>

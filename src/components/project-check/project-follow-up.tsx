@@ -249,7 +249,7 @@ export function ProjectFollowUp({
       </p>
       <Button
         className="primary-button"
-        disabled={busy || (check.revisionNumber ?? 0) >= 3}
+        disabled={busy || (check.revisionNumber ?? 0) >= 3 || (check.revisions?.length ?? 0) >= 3}
         onClick={() => void revise()}
       >
         같은 질문에 보완 답변 작성 →

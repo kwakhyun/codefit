@@ -1,12 +1,13 @@
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
-const { session, consumeLimits, askGuide } = vi.hoisted(() => ({
+const { session, consumeLimits, refundLimits, askGuide } = vi.hoisted(() => ({
   session: vi.fn(),
   consumeLimits: vi.fn(),
+  refundLimits: vi.fn(),
   askGuide: vi.fn(),
 }));
 vi.mock("@/lib/server/session", () => ({ session }));
 vi.mock("@/lib/server/database", () => ({
-  getStore: async () => ({ consumeLimits, queries: { recordAiRun: vi.fn() } }),
+  getStore: async () => ({ consumeLimits, queries: { recordAiRun: vi.fn(), refundLimits } }),
 }));
 vi.mock("@/lib/server/ai-guide", () => ({ askGuide }));
 import { POST, GET } from "./route";
@@ -27,6 +28,7 @@ beforeEach(() => {
   vi.stubEnv("VERCEL", "");
   session.mockReset().mockResolvedValue({ owner: "one", scope: "guest:one" });
   consumeLimits.mockReset().mockResolvedValue(true);
+  refundLimits.mockReset().mockResolvedValue(undefined);
   askGuide.mockReset();
 });
 afterEach(() => vi.unstubAllEnvs());
@@ -58,8 +60,12 @@ it("uses separate guide allowances and shared service caps before calling AI", a
       (e: { key: string }) => e.key.includes("ai:review:") || e.key.includes("ai:generate:"),
     ),
   ).toBe(false);
-  expect(entries.some((e: { key: string }) => e.key === "ai:global:day")).toBe(true);
+  // The guide has its own service budget and never spends the core AI features' global windows.
+  expect(entries.some((e: { key: string }) => e.key.startsWith("ai:"))).toBe(false);
+  expect(entries.some((e: { key: string }) => e.key === "guide:global:day")).toBe(true);
+  expect(entries.some((e: { key: string }) => e.key === "guide:global:hour")).toBe(true);
   expect(askGuide).toHaveBeenCalledOnce();
+  expect(refundLimits).not.toHaveBeenCalled();
 });
 it("does not retry or charge a provider request when rate limited, and recovers provider failures", async () => {
   consumeLimits.mockResolvedValue(false);
@@ -73,6 +79,8 @@ it("does not retry or charge a provider request when rate limited, and recovers 
   expect(reply.source).toBe("basic");
   expect(JSON.stringify(reply)).not.toContain("private provider details");
   expect(askGuide).toHaveBeenCalledOnce();
+  // Only the personal daily allowances are returned; burst, network and service windows remain.
+  expect(refundLimits).toHaveBeenCalledWith(["guide:guest-network:local", "guide:owner:one"]);
 });
 it("rejects oversized and malformed chat histories before any AI work", async () => {
   expect(

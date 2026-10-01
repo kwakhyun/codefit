@@ -30,7 +30,8 @@ describe("handoff reference quality", () => {
       expect(safe).not.toHaveProperty("hints");
       expect(safe.scenario).not.toContain("서비스는 제출 코드를 실행하지 않습니다.");
       let failures = 0;
-      for (const check of handoffSpecs[problem.handoff!.track].cases) {
+      const spec = handoffSpecs[problem.handoff!.track];
+      for (const check of [...spec.cases, ...(problem.handoff!.variant ? spec.variantCases : [])]) {
         expect(await run(problem.solution, check.expression), check.note).toEqual(check.expected);
         try {
           if (
@@ -47,6 +48,25 @@ describe("handoff reference quality", () => {
         expect(await run(problem.solution, example.input)).toEqual(JSON.parse(example.output));
     });
   }
+  it("each retry variant adds a check in its own situation that its starting code misses", async () => {
+    for (const problem of handoffProblems.filter((p) => p.handoff!.variant)) {
+      const { variantCases } = handoffSpecs[problem.handoff!.track];
+      expect(variantCases.length, problem.id).toBeGreaterThan(0);
+      let missed = 0;
+      for (const check of variantCases) {
+        try {
+          if (
+            JSON.stringify(await run(problem.starterCode, check.expression)) !==
+            JSON.stringify(check.expected)
+          )
+            missed++;
+        } catch {
+          missed++;
+        }
+      }
+      expect(missed, problem.id).toBeGreaterThan(0);
+    }
+  });
   it("normal original aggregation behavior is retained, extension tested separately", async () => {
     const spec = handoffSpecs.total;
     for (const orders of [

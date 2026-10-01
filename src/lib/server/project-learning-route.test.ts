@@ -24,7 +24,8 @@ it("blocks stale guest and member workspaces before touching private training", 
 it("returns no-store private data and rejects unexpected fields without an AI dependency", async () => {
   current.mockResolvedValue({ owner: "user:a", scope: "a", user: { id: "a" } });
   const get = vi.fn().mockResolvedValue({ version: 1, revision: 0, modules: [] });
-  getStore.mockResolvedValue({ queries: { projectLearning: { get } } });
+  const rootId = vi.fn().mockResolvedValue(id);
+  getStore.mockResolvedValue({ queries: { projectLearning: { get }, projectChecks: { rootId } } });
   const response = await GET(
     new Request(`https://codefit.test/api/project-check/training?id=${id}`, {
       headers: { "x-codefit-workspace": "a" },

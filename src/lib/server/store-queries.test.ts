@@ -4,7 +4,13 @@ import { DatabaseSync } from "node:sqlite";
 import { SqliteStore } from "./sqlite-store";
 import { queryContract } from "./query-contract.test-helper";
 import { decodeCursor, StoreQueries } from "./store-queries";
-import { networkIdentity, aiLimits, validateLimits } from "./usage-policy";
+import {
+  aiAllowance,
+  aiLimits,
+  importLimits,
+  networkIdentity,
+  validateLimits,
+} from "./usage-policy";
 
 describe("SQLite read model contract", () => {
   const store = new SqliteStore(":memory:");
@@ -31,6 +37,32 @@ it("ignores untrusted IP headers outside Vercel and hashes trusted IPs", () => {
   expect(identity).not.toContain("192.0.2.10");
   expect(() => networkIdentity(request, { VERCEL: "1" })).toThrow();
   expect(aiLimits("new-cookie", identity, "review").map((l) => l.key)).toContain("ai:global:day");
+  // Self-hosted guests are not pooled into one shared "local" network bucket.
+  expect(aiLimits("new-cookie", "local", "review").map((l) => l.key)).toEqual([
+    "ai:review:new-cookie",
+    "ai:global:hour",
+    "ai:global:day",
+  ]);
+  expect(importLimits("guest", "local", 1, 1).map((l) => l.key)).not.toContain(
+    "import:network:local",
+  );
+});
+it("returns one personal AI use without reopening shared pools", async () => {
+  const store = new SqliteStore(":memory:");
+  try {
+    const limits = aiLimits("visitor:a", "wifi", "review");
+    expect(await store.consumeLimits(limits)).toBe(true);
+    await store.queries.releaseLimits(["ai:review:visitor:a", "ai:review:visitor:a"]);
+    expect((await store.queries.usage("visitor:a")).remaining.review).toBe(
+      aiAllowance("visitor:a").review,
+    );
+    const count = (key: string) =>
+      store.db.prepare("SELECT count FROM limits WHERE key=?").get(key)?.count;
+    expect(count("ai:review:visitor:a")).toBe(0);
+    expect(count("ai:global:day")).toBe(1);
+  } finally {
+    store.db.close();
+  }
 });
 it("reuses initialized SQLite connections after module reload", async () => {
   const original = new SqliteStore(":memory:");

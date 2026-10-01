@@ -14,6 +14,7 @@ import {
   type CoachReply,
   type LearningLab,
   type TrainingDraft,
+  resumeStage,
 } from "@/lib/handoff/training";
 import { runInSandbox } from "@/lib/handoff/runner";
 
@@ -42,6 +43,7 @@ export function useLearningLab({
   const [editorSeen, setEditorSeen] = useState(false);
   const stageTarget = useRef(initialStage);
   const headingFocusPending = useRef(false);
+  const resumed = useRef(initialStage > 0);
   function setStage(next: number, focusHeading = true) {
     if (next === 2) setEditorSeen(true);
     if (stageTarget.current === next) return;
@@ -84,6 +86,19 @@ export function useLearningLab({
       operation.current?.abort();
     };
   }, []);
+  useEffect(() => {
+    // The draft is loaded by the time the lab is enabled; reopen on the first unfinished step.
+    if (!enabled || resumed.current) return;
+    resumed.current = true;
+    const next = resumeStage(readHandoffDraft(value).training);
+    if (!next) return;
+    void Promise.resolve().then(() => {
+      if (!mounted.current || stageTarget.current !== initialStage) return;
+      stageTarget.current = next;
+      if (next === 2) setEditorSeen(true);
+      changeStage(next);
+    });
+  }, [enabled, value, initialStage]);
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();

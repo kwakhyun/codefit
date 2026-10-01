@@ -1,5 +1,12 @@
 import type { PublicDocument } from "./project-page";
 import type { SecurityFinding, SecurityReport } from "../security-check";
+/** Redirect targets may carry session parameters chosen by the site; report paths only. */
+function withoutQuery(value: string) {
+  const url = new URL(value);
+  url.search = "";
+  url.hash = "";
+  return url.href;
+}
 export function inspectSecurity(document: PublicDocument): SecurityReport {
   const header = (name: string) => {
     const value = document.headers[name];
@@ -12,7 +19,9 @@ export function inspectSecurity(document: PublicDocument): SecurityReport {
     .replace(/<(script|style|template)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "");
   const metaCsp = /<meta\b[^>]*http-equiv\s*=\s*["']?content-security-policy["'\s>]/i.test(markup);
   const hsts = header("strict-transport-security");
-  const maxAge = hsts.match(/(?:^|;)\s*max-age\s*=\s*(\d+)\s*(?:;|$)/i);
+  // RFC 6797 allows a quoted-string value: max-age="31536000".
+  const maxAge = hsts.match(/(?:^|;)\s*max-age\s*=\s*(?:(\d+)|"(\d+)")\s*(?:;|$)/i);
+  const maxAgeSeconds = maxAge ? Number(maxAge[1] ?? maxAge[2]) : 0;
   const frame = csp
     .split(",")
     .some((policy) => policy.split(";").some((d) => /^\s*frame-ancestors\s+\S/i.test(d)));
@@ -36,9 +45,9 @@ export function inspectSecurity(document: PublicDocument): SecurityReport {
     {
       id: "hsts",
       title: "HTTPS 유지 정책 (HSTS)",
-      status: maxAge && Number(maxAge[1]) > 0 ? "observed" : "review",
+      status: maxAgeSeconds > 0 ? "observed" : "review",
       evidence:
-        maxAge && Number(maxAge[1]) > 0
+        maxAgeSeconds > 0
           ? "양수 max-age를 가진 HSTS 헤더가 있습니다. 최초 접속과 하위 도메인의 보장은 별도 확인이 필요합니다."
           : "유효한 양수 max-age를 가진 HSTS 헤더를 관찰하지 못했습니다. 현재 요청 자체는 HTTPS입니다.",
       action:
@@ -87,5 +96,11 @@ export function inspectSecurity(document: PublicDocument): SecurityReport {
         "아래 모의해킹 준비 과제를 본인의 테스트 환경에서 수행하세요. 서버가 소유자와 현재 권한을 확인하는지 비교해야 합니다.",
     },
   ];
-  return { url: document.url, checkedAt: document.fetchedAt, findings };
+  return {
+    url: withoutQuery(document.url),
+    checkedAt: document.fetchedAt,
+    findings,
+    ...(document.status ? { status: document.status } : {}),
+    ...(document.redirects?.length ? { redirects: document.redirects.map(withoutQuery) } : {}),
+  };
 }

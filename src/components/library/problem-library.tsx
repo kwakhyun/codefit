@@ -30,7 +30,7 @@ interface ProblemLibraryProps {
   data: Workspace;
   library: LibraryController;
   onGenerate: () => void;
-  bookmarking: string | null;
+  bookmarking: ReadonlySet<string>;
   bookmark: (p: ProblemSummary, bookmarked: boolean) => Promise<void>;
   exportData: () => Promise<void>;
   exporting: boolean;

@@ -19,16 +19,22 @@ export function AiLesson({
   id,
   content,
   returnTo = "/learn/ai",
+  projectQuery,
 }: {
   id: AiLessonId;
   content: AiLessonContent;
   returnTo?: string;
+  /** `project=…&topic=…` from a project workshop, carried to the next lesson. */
+  projectQuery?: string;
 }) {
   const lesson = AI_LESSONS.find((item) => item.id === id)!;
   const category = AI_TRACKS.find((item) => item.id === lesson.track)!;
   const { records, save, ready, storageError } = useAiLearningProgress();
   const progress = records[id] || EMPTY_AI_PROGRESS;
-  const { step, experiment, completed } = progress;
+  const { step: savedStep, experiment, completed } = progress;
+  // A completed lesson reopens on its summary; the step buttons still lead back to the practice.
+  const [summaryFirst, setSummaryFirst] = useState(true);
+  const step = completed && summaryFirst ? 2 : savedStep;
   const answer = progress.answer ?? null;
   const checked = progress.checked ?? false;
   const [retry, setRetry] = useState(false);
@@ -39,6 +45,7 @@ export function AiLesson({
     save(id, { ...progress, ...patch });
   }
   function move(to: 0 | 1 | 2) {
+    setSummaryFirst(false);
     update({ step: to });
     requestAnimationFrame(() => heading.current?.focus());
   }
@@ -298,7 +305,7 @@ export function AiLesson({
                         {next ? (
                           <Link
                             className="primary-button"
-                            href={catalogLessonUrl(next.id, returnTo)}
+                            href={`${catalogLessonUrl(next.id, returnTo)}${projectQuery ? `&${projectQuery}` : ""}`}
                           >
                             다음 수업: {next.title} <ArrowRight size={16} aria-hidden="true" />
                           </Link>

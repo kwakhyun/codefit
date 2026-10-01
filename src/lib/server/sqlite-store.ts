@@ -14,12 +14,14 @@ import {
   backupReads,
   backupParameters,
   buildBackup,
+  BackupMismatch,
   prepareBackup,
+  restoredProblem,
+  restoredReview,
   restoredProjectId,
   restoredProjectJobs,
 } from "./workspace-backup";
 import {
-  validateReview,
   type Attempt,
   type Problem,
   type ProblemSummary,
@@ -71,20 +73,22 @@ export class SqliteStore implements ProblemStore {
       while (true) {
         const rows = this.db
           .prepare(
-            "SELECT content FROM problems p WHERE NOT EXISTS (SELECT 1 FROM problem_catalog c WHERE c.id=p.id) LIMIT 100",
+            "SELECT content,owner FROM problems p WHERE NOT EXISTS (SELECT 1 FROM problem_catalog c WHERE c.id=p.id) LIMIT 100",
           )
           .all();
         if (!rows.length) break;
-        for (const row of rows) this.addCatalog(JSON.parse(String(row.content)));
+        for (const row of rows)
+          this.addCatalog(JSON.parse(String(row.content)), row.owner as string | null);
       }
     });
   }
-  private addCatalog(problem: Problem) {
+  private addCatalog(problem: Problem, owner: string | null = null) {
+    const values = catalogValues(problem, owner);
     this.db
       .prepare(
-        `INSERT INTO problem_catalog (${catalogColumns}) VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING`,
+        `INSERT INTO problem_catalog (${catalogColumns}) VALUES (${values.map(() => "?").join(",")}) ON CONFLICT(id) DO NOTHING`,
       )
-      .run(...catalogValues(problem));
+      .run(...values);
   }
   private transaction<T>(fn: () => T): T {
     if (this.inTransaction) return fn();
@@ -101,8 +105,13 @@ export class SqliteStore implements ProblemStore {
       this.inTransaction = false;
     }
   }
-  problem(id: string): Problem | null {
-    const row = this.db.prepare("SELECT content FROM problems WHERE id=?").get(id);
+  /** With an owner, problems restored privately by other owners are hidden. */
+  problem(id: string, owner?: string): Problem | null {
+    const row = owner
+      ? this.db
+          .prepare("SELECT content FROM problems WHERE id=? AND (owner IS NULL OR owner=?)")
+          .get(id, owner)
+      : this.db.prepare("SELECT content FROM problems WHERE id=?").get(id);
     return row ? JSON.parse(row.content as string) : null;
   }
   problems() {
@@ -119,12 +128,12 @@ export class SqliteStore implements ProblemStore {
       .all()
       .map((row) => ({ ...JSON.parse(String(row.summary)), hintCount: Number(row.hint_count) }));
   }
-  addProblem(problem: Problem) {
+  addProblem(problem: Problem, owner: string | null = null) {
     this.transaction(() => {
       this.db
-        .prepare("INSERT INTO problems (id,content,created_at) VALUES (?,?,?)")
-        .run(problem.id, JSON.stringify(problem), problem.createdAt);
-      this.addCatalog(problem);
+        .prepare("INSERT INTO problems (id,content,created_at,owner) VALUES (?,?,?,?)")
+        .run(problem.id, JSON.stringify(problem), problem.createdAt, owner);
+      this.addCatalog(problem, owner);
     });
   }
   progressFor(owner: string, id: string): Progress | null {
@@ -333,10 +342,11 @@ export class SqliteStore implements ProblemStore {
       let problems = 0,
         attempts = 0;
       for (const problem of backup.problems) {
-        if (!this.problem(problem.id)) {
-          this.addProblem(problem);
+        const existing = this.db.prepare("SELECT owner FROM problems WHERE id=?").get(problem.id);
+        if (!existing) {
+          this.addProblem(restoredProblem(problem), owner);
           problems++;
-        }
+        } else if (existing.owner !== null && existing.owner !== owner) continue;
         this.db
           .prepare(
             "INSERT INTO restored_problems(owner,problem_id) VALUES (?,?) ON CONFLICT(owner,problem_id) DO NOTHING",
@@ -344,7 +354,8 @@ export class SqliteStore implements ProblemStore {
           .run(owner, problem.id);
       }
       for (const p of Object.values(backup.progress)) {
-        if (!this.problem(p.problemId)) throw new Error("Backup references an unknown problem");
+        if (!this.problem(p.problemId, owner))
+          throw new BackupMismatch("Backup references an unknown problem");
         const existing = this.db
           .prepare("SELECT 1 FROM progress WHERE owner=? AND problem_id=?")
           .get(owner, p.problemId);
@@ -366,9 +377,9 @@ export class SqliteStore implements ProblemStore {
             );
       }
       for (const attempt of backup.attempts) {
-        const problem = this.problem(attempt.problemId);
-        if (!problem) throw new Error("Backup references an unknown problem");
-        const review = validateReview(attempt.review, problem);
+        const problem = this.problem(attempt.problemId, owner);
+        if (!problem) throw new BackupMismatch("Backup references an unknown problem");
+        const review = restoredReview(attempt.review, problem);
         if (this.db.prepare("SELECT 1 FROM attempts WHERE owner=? AND id=?").get(owner, attempt.id))
           continue;
         const id = importedAttemptId(owner, attempt.id);
@@ -403,7 +414,7 @@ export class SqliteStore implements ProblemStore {
         const id = own ? project.check.id : restoredProjectId(owner, project.check.id);
         // Preserve an existing whole project, including a pending analysis or newer training.
         if (this.db.prepare("SELECT 1 FROM jobs WHERE id=?").get(id)) continue;
-        for (const job of restoredProjectJobs(project, id)) {
+        for (const job of restoredProjectJobs(project, id, owner)) {
           this.db
             .prepare(
               "INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES (?,?,?,'done',?,?,'',?)",

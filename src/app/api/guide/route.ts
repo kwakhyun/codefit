@@ -33,15 +33,20 @@ export async function POST(request: Request) {
       );
     const store = await getStore();
     const network = networkIdentity(request);
-    const allowed = await store.consumeLimits([
+    // Personal daily allowances are refunded when the provider call fails.
+    const personal = [
       ...(!owner.startsWith("user:")
         ? [{ key: `guide:guest-network:${network}`, max: 2, windowMs: 86_400_000 }]
         : []),
-      { key: `guide:burst:${owner}`, max: 3, windowMs: 60_000 },
       { key: `guide:owner:${owner}`, max: allowanceFor(owner).guide, windowMs: 86_400_000 },
+    ];
+    const allowed = await store.consumeLimits([
+      ...personal,
+      { key: `guide:burst:${owner}`, max: 3, windowMs: 60_000 },
       { key: `guide:network:${network}`, max: 40, windowMs: 86_400_000 },
-      { key: "ai:global:hour", max: 40, windowMs: 3_600_000 },
-      { key: "ai:global:day", max: 100, windowMs: 86_400_000 },
+      // A separate service budget: guide traffic never exhausts review, generation or analysis.
+      { key: "guide:global:hour", max: 40, windowMs: 3_600_000 },
+      { key: "guide:global:day", max: 150, windowMs: 86_400_000 },
     ]);
     if (!allowed)
       return json(
@@ -56,6 +61,9 @@ export async function POST(request: Request) {
       );
     } catch {
       // Do not retry paid requests automatically or expose provider errors / user text.
+      // Burst, network and service windows still count the attempt to bound repeated failures.
+      if (!request.signal.aborted)
+        await store.queries.refundLimits(personal.map((entry) => entry.key)).catch(() => {});
       return json(
         basicGuide(
           input.profile,

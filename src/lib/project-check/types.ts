@@ -193,6 +193,8 @@ export interface StoredCheck {
   analysis: Analysis;
   previousReview?: { answers: string[]; assessment: Assessment };
   revisionNumber?: number;
+  /** Root analysis of a revision. Revisions share its class, practice and learning records. */
+  revisionOf?: string;
 }
 export interface Check extends Omit<StoredCheck, "analysis" | "page"> {
   page: Omit<PageSnapshot, "text" | "captures"> & {
@@ -202,6 +204,7 @@ export interface Check extends Omit<StoredCheck, "analysis" | "page"> {
     questions: Omit<Analysis["questions"][number], "criteria">[];
   };
   review?: { answers: string[]; assessment: Assessment; practice?: ProjectPractice };
+  revisions?: { id: string; createdAt: string; revisionNumber: number }[];
 }
 interface CheckUsage {
   limit: number;

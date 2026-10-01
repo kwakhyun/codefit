@@ -13,6 +13,14 @@ import type { Assessment, Check, CheckListItem, StoredCheck } from "../project-c
 import { z } from "zod";
 import { HttpError } from "./http";
 import { StaleJob } from "./write-conflicts";
+const failureSchema = z.object({ error: z.string().max(500), code: z.number().int() });
+function tryParse(raw: unknown) {
+  try {
+    return JSON.parse(String(raw));
+  } catch {
+    return null;
+  }
+}
 export function publicReview(raw: string): NonNullable<Check["review"]> {
   const { answers, assessment, practice } = JSON.parse(raw);
   return { answers, assessment, ...(practice ? { practice } : {}) };
@@ -50,18 +58,38 @@ export class ProjectCheckStore {
   ) {}
   async analysisStatus(owner: string, id: string) {
     const [row] = await this.query(
-      "SELECT state,expires FROM jobs WHERE owner=? AND id=? AND kind='project-analysis'",
+      "SELECT state,expires,result FROM jobs WHERE owner=? AND id=? AND kind='project-analysis'",
       [owner, id],
     );
     if (!row) return null;
     if (row.state === "done") return { status: "done" as const };
     if (row.state === "cancelled") return { status: "cancelled" as const };
-    return {
-      status:
-        row.state === "pending" && Number(row.expires) > Date.now()
-          ? ("pending" as const)
-          : ("failed" as const),
-    };
+    if (row.state === "pending" && Number(row.expires) > Date.now())
+      return { status: "pending" as const };
+    const failure =
+      row.state === "failed" && row.result ? failureSchema.safeParse(tryParse(row.result)) : null;
+    return { status: "failed" as const, ...(failure?.success ? failure.data : {}) };
+  }
+  /** Keeps a user-safe reason on the failed lease so background polling can show it. */
+  async recordFailure(lease: JobLease, error: unknown) {
+    if (lease.kind !== "project-analysis" || !(error instanceof HttpError)) return;
+    await this.query(
+      "UPDATE jobs SET result=? WHERE id=? AND owner=? AND kind=? AND token=? AND state='failed'",
+      [
+        JSON.stringify({ error: error.message.slice(0, 500), code: error.status }),
+        lease.id,
+        lease.owner,
+        lease.kind,
+        lease.token,
+      ],
+    );
+  }
+  /** A failed or abandoned attempt keeps no result, so a changed input may reuse its fixed ID. */
+  async releaseFailed(owner: string, id: string, kind: string) {
+    await this.query(
+      "DELETE FROM jobs WHERE id=? AND owner=? AND kind=? AND (state='failed' OR (state='pending' AND expires<=?))",
+      [id, owner, kind, Date.now()],
+    );
   }
   async cancelAnalysis(owner: string, id: string) {
     await this.query(
@@ -130,7 +158,32 @@ export class ProjectCheckStore {
       "SELECT j.result,r.result AS review FROM jobs j LEFT JOIN jobs r ON r.id='project-review-' || j.id AND r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.id=? AND j.kind='project-analysis' AND j.state='done'",
       [owner, id],
     );
-    return rows.length ? this.readCheck(rows[0]) : null;
+    if (!rows.length) return null;
+    const check = this.readCheck(rows[0]);
+    if (check.revisionOf) return check;
+    const revisions = (await this.revisionRows(owner, id)).map((row) => ({
+      id: String(row.id),
+      createdAt: String(row.created_at),
+      revisionNumber: Number(row.revision_number),
+    }));
+    return revisions.length ? { ...check, revisions } : check;
+  }
+  private revisionRows(owner: string, rootId: string) {
+    return this.query(
+      `SELECT id,${this.field("result", "createdAt")} AS created_at,${this.field("result", "revisionNumber")} AS revision_number FROM jobs WHERE owner=? AND kind='project-analysis' AND state='done' AND ${this.field("result", "revisionOf")}=? ORDER BY revision_number,expires,id`,
+      [owner, rootId],
+    );
+  }
+  /** Revisions and their root share one class, so the limit counts every revision of the root. */
+  async revisionCount(owner: string, rootId: string) {
+    return (await this.revisionRows(owner, rootId)).length;
+  }
+  /** Revisions reuse the generated practice, AI workshop and training of their root analysis. */
+  async rootId(owner: string, id: string) {
+    const check = await this.get(owner, id);
+    if (!check) return null;
+    if (check.revisionOf && (await this.get(owner, check.revisionOf))) return check.revisionOf;
+    return id;
   }
   private readCheck(row: Record<string, unknown>): Check {
     return {
@@ -220,8 +273,10 @@ export class ProjectCheckStore {
           )
           .join(" OR ")})`
       : "";
+    // Revisions open from their root class; one whose root no longer exists stays listed.
+    const revisionFilter = ` AND NOT EXISTS(SELECT 1 FROM jobs p WHERE p.owner=j.owner AND p.kind='project-analysis' AND p.state='done' AND p.id=${this.field("j.result", "revisionOf")})`;
     const rows = await this.query(
-      `SELECT j.id,j.expires,${columns} FROM jobs j LEFT JOIN jobs r ON r.id='project-review-' || j.id AND r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.kind='project-analysis' AND j.state='done' ${filter} ${searchFilter} ${after ? "AND (j.expires<? OR (j.expires=? AND j.id<?))" : ""} ORDER BY j.expires DESC,j.id DESC LIMIT 21`,
+      `SELECT j.id,j.expires,${columns} FROM jobs j LEFT JOIN jobs r ON r.id='project-review-' || j.id AND r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.kind='project-analysis' AND j.state='done' ${revisionFilter} ${filter} ${searchFilter} ${after ? "AND (j.expires<? OR (j.expires=? AND j.id<?))" : ""} ORDER BY j.expires DESC,j.id DESC LIMIT 21`,
       [
         owner,
         ...urls,
@@ -526,7 +581,13 @@ export class ProjectCheckStore {
       throw new HttpError(409, "기록이 바뀌었습니다. 다시 불러온 후 저장해 주세요.");
     return next;
   }
+  /** Removes a class with its revisions and returns every removed analysis ID. */
   async remove(owner: string, id: string) {
+    const ids = [id, ...(await this.revisionRows(owner, id)).map((row) => String(row.id))];
+    for (const item of ids) await this.removeOne(owner, item);
+    return ids;
+  }
+  private async removeOne(owner: string, id: string) {
     await this.query(
       "DELETE FROM jobs WHERE owner=? AND ((id=? AND kind='project-analysis') OR kind=? OR kind=? OR kind=? OR kind=? OR kind IN (?,?,?,?,?))",
       [

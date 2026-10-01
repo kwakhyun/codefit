@@ -13,7 +13,7 @@ import { AppLink as Link } from "@/components/ui/primitives";
 interface ProblemTableProps {
   library: LibraryController;
   initialView: "library" | "bookmarks" | "browse";
-  bookmarking: string | null;
+  bookmarking: ReadonlySet<string>;
   bookmark: (p: ProblemSummary, bookmarked: boolean) => Promise<void>;
 }
 export function ProblemTable({ library, initialView, bookmarking, bookmark }: ProblemTableProps) {
@@ -114,8 +114,9 @@ export function ProblemTable({ library, initialView, bookmarking, bookmark }: Pr
               <Button
                 className={`bookmark-button icon-button ${progress?.bookmarked ? "active" : ""}`}
                 aria-label={`${p.title} ${progress?.bookmarked ? "북마크 해제" : "북마크"}`}
-                disabled={bookmarking === p.id}
-                onClick={() => bookmark(p, Boolean(progress?.bookmarked))}
+                // Not `disabled`: keyboard focus stays on the button while the change saves.
+                aria-disabled={bookmarking.has(p.id) || undefined}
+                onClick={() => void bookmark(p, Boolean(progress?.bookmarked))}
               >
                 <Bookmark size={17} fill={progress?.bookmarked ? "currentColor" : "none"} />
               </Button>

@@ -28,6 +28,20 @@ export function useLibraryController({
   const [status, setStatus] = useState(initialFilters.status);
   const [sort, setSort] = useState(initialFilters.sort);
   const [page, setPage] = useState(initialFilters.page);
+  // A link to this same view (e.g. the menu) navigates with new URL filters; follow them.
+  const filtersKey = JSON.stringify(initialFilters);
+  const [navigated, setNavigated] = useState(filtersKey);
+  if (navigated !== filtersKey) {
+    setNavigated(filtersKey);
+    setSearch(initialFilters.search);
+    setLevel(initialFilters.level);
+    setKind(initialFilters.kind);
+    setLanguage(initialFilters.language);
+    setSource(initialFilters.source);
+    setStatus(initialFilters.status);
+    setSort(initialFilters.sort);
+    setPage(initialFilters.page);
+  }
   const libraryHref = libraryUrl(
     { search, level, kind, language, source, status, sort, page },
     initialDomain,
@@ -42,6 +56,11 @@ export function useLibraryController({
       window.history.replaceState(null, "", libraryHref);
   }, [initialProblemId, libraryHref]);
   const [result, setResult] = useState<{ href: string; value: LibraryPage } | null>(null);
+  // Read by the fetch effect without refetching on every result change.
+  const shown = useRef(result);
+  useEffect(() => {
+    shown.current = result;
+  }, [result]);
   const [loadError, setLoadError] = useState("");
   const [pending, setPending] = useState(true);
   const [retry, setRetry] = useState(0);
@@ -59,7 +78,9 @@ export function useLibraryController({
     }
     const controller = new AbortController();
     const timer = setTimeout(async () => {
-      setPending(true);
+      // Refreshing the same page (e.g. after a bookmark) keeps the rows and their focus.
+      const background = shown.current?.href === libraryHref;
+      if (!background) setPending(true);
       setLoadError("");
       try {
         const value = await api<LibraryPage>(`/api/library${libraryHref.slice(1)}`, {
@@ -67,7 +88,7 @@ export function useLibraryController({
         });
         if (!controller.signal.aborted) setResult({ href: libraryHref, value });
       } catch (error) {
-        if (!controller.signal.aborted) setLoadError(errorMessage(error));
+        if (!controller.signal.aborted && !background) setLoadError(errorMessage(error));
       } finally {
         if (!controller.signal.aborted) setPending(false);
       }
@@ -108,6 +129,27 @@ export function useLibraryController({
           : initialDomain === "all"
             ? "문제 보관함"
             : domainLabel(initialDomain);
+  function setBookmarked(problemId: string, bookmarked: boolean) {
+    setResult((current) => {
+      const previous = current?.value.progress[problemId];
+      if (!current) return current;
+      const next = previous
+        ? { ...previous, bookmarked }
+        : {
+            problemId,
+            codeRevision: 0,
+            bookmarked,
+            hintsViewed: 0,
+            solutionViewed: false,
+            status: "new" as const,
+            updatedAt: new Date(0).toISOString(),
+          };
+      return {
+        ...current,
+        value: { ...current.value, progress: { ...current.value.progress, [problemId]: next } },
+      };
+    });
+  }
   function resetFilters() {
     setSearch("");
     setLevel("all");
@@ -153,6 +195,7 @@ export function useLibraryController({
     training,
     title,
     resetFilters,
+    setBookmarked,
   };
 }
 export type LibraryController = ReturnType<typeof useLibraryController>;

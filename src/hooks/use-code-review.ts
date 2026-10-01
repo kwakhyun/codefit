@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { api, errorMessage } from "@/lib/client-api";
+import type { AiUsage } from "@/lib/ai-telemetry";
 import { missingHandoffFields, readHandoffDraft, handoffMissingMessage } from "@/lib/handoff/draft";
 import type { Attempt, Progress } from "@/lib/problem";
 
@@ -30,6 +31,19 @@ export function useCodeReview({
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
   const request = useRef<{ code: string; id: string } | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const refreshRemaining = useCallback(async () => {
+    if (!aiReady) return;
+    try {
+      const usage = await api<AiUsage>("/api/usage", { scope });
+      if (mounted.current) setRemaining(usage.remaining.review);
+    } catch {
+      /* The count is informational; a review past the limit still explains it. */
+    }
+  }, [aiReady, scope, mounted]);
+  useEffect(() => {
+    void Promise.resolve().then(refreshRemaining);
+  }, [refreshRemaining]);
 
   async function review(value: string) {
     if (pending.current || value.trim().length < 5 || !aiReady) return;
@@ -61,7 +75,8 @@ export function useCodeReview({
     } finally {
       pending.current = false;
       if (mounted.current) setBusy(false);
+      void refreshRemaining();
     }
   }
-  return { busy, review };
+  return { busy, review, remaining };
 }

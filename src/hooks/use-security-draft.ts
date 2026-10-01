@@ -21,6 +21,8 @@ const schema = z.object({
           }),
         )
         .max(30),
+      status: z.number().int().optional(),
+      redirects: z.array(z.string().max(2000)).max(3).optional(),
     })
     .nullable(),
 });

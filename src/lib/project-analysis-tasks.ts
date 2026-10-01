@@ -64,10 +64,13 @@ async function poll(task: AnalysisTask): Promise<Check> {
     )
       throw new ApiError("분석을 중단했습니다.", 410);
     try {
-      const result = await api<{ status: "pending" | "done" | "failed" | "cancelled" }>(
-        `/api/project-check/${task.id}/status`,
-        { scope: task.scope, signal: AbortSignal.timeout(10_000) },
-      );
+      const result = await api<{
+        status: "pending" | "done" | "failed" | "cancelled";
+        error?: string;
+      }>(`/api/project-check/${task.id}/status`, {
+        scope: task.scope,
+        signal: AbortSignal.timeout(10_000),
+      });
       if (result.status === "done")
         return await api<Check>(`/api/project-check/${task.id}`, {
           scope: task.scope,
@@ -76,7 +79,9 @@ async function poll(task: AnalysisTask): Promise<Check> {
       if (result.status === "cancelled") throw new ApiError("분석을 중단했습니다.", 410);
       if (result.status === "failed")
         throw new ApiError(
-          "분석을 완료하지 못했습니다. 입력한 주소와 이용 한도를 확인한 뒤 다시 시도해 주세요.",
+          // The server stores only user-safe reasons; unknown failures stay generic.
+          result.error ||
+            "분석을 완료하지 못했습니다. 입력한 주소와 이용 한도를 확인한 뒤 다시 시도해 주세요.",
           422,
         );
     } catch (error) {

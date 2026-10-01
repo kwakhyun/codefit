@@ -101,4 +101,7 @@ export const storageColumns = [
   ["jobs", "token", "TEXT NOT NULL DEFAULT ''"],
   ["jobs", "fingerprint", "TEXT NOT NULL DEFAULT ''"],
   ["generation_usage", "token", "TEXT NOT NULL DEFAULT ''"],
+  // Problems first restored from a backup stay private to the importing owner. NULL is public.
+  ["problems", "owner", "TEXT"],
+  ["problem_catalog", "owner", "TEXT"],
 ];

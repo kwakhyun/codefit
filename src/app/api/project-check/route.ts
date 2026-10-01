@@ -51,7 +51,7 @@ export async function POST(request: Request) {
           try {
             await service.create(owner, network, input, AbortSignal.timeout(110_000), claim.lease);
           } catch {
-            // create marks the leased job failed; status polling reports it to its owner.
+            // create marks the lease failed with a user-safe reason; status polling reports it.
           }
         });
       }
@@ -84,8 +84,10 @@ export async function DELETE(request: Request) {
   try {
     const { owner } = await projectMember(request);
     const { id } = await readBody(request, z.object({ id: z.uuid() }).strict(), 500);
-    await (await getStore()).queries.projectChecks.remove(owner, id);
-    return json({ removed: true });
+    return json({
+      removed: true,
+      ids: await (await getStore()).queries.projectChecks.remove(owner, id),
+    });
   } catch (error) {
     return failure(error);
   }
