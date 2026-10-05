@@ -31,6 +31,7 @@ import { ProjectCaptures } from "./project-captures";
 import { ProjectFollowUp } from "./project-follow-up";
 
 import { AnalysisOverview } from "./analysis-overview";
+import { ProjectEvidenceReview } from "./project-evidence-review";
 import { ProjectExample } from "./project-example";
 import { ProjectLearning } from "@/components/project-learning/project-learning";
 import { GuestLogin } from "@/components/account/guest-login";
@@ -796,6 +797,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   이 점검 기록 삭제
                 </Button>
               </Card>
+              <ProjectEvidenceReview key={check.id} check={check} />
               <ProjectQuestions
                 key={check.id}
                 check={check}

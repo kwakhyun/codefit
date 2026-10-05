@@ -3,6 +3,7 @@ import { BACKUP_MAX_BYTES } from "../backup-limits";
 import { SqliteStore } from "./sqlite-store";
 import { workspaceBackupContract } from "./workspace-backup-contract.test-helper";
 import { seedProblems } from "../../data/problems";
+import { fixtureVerificationRecord } from "../project-check/fixtures";
 let store: SqliteStore;
 beforeEach(() => {
   store = new SqliteStore(":memory:");
@@ -85,6 +86,7 @@ it("round-trips captured screens, project evidence and previous answers without 
       questionIndex,
       status: "observed" as const,
       result: "조건을 바꾸고 차단 문구를 확인했습니다.",
+      ...(questionIndex === 0 ? { verification: fixtureVerificationRecord } : {}),
     })),
   };
   store.importBackup("target", file);

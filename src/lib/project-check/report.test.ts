@@ -1,6 +1,11 @@
 import { expect, it } from "vitest";
 import { projectReportText, verificationTemplate } from "./report";
-import { fixtureAssessment, fixtureCheck, fixtureVerificationPlan } from "./fixtures";
+import {
+  fixtureAssessment,
+  fixtureCheck,
+  fixtureVerificationPlan,
+  fixtureVerificationRecord,
+} from "./fixtures";
 import { publicCheck } from "../server/project-check-store";
 it("exports feedback and structured plans while leaving observed outcomes blank", () => {
   const check = {
@@ -22,6 +27,19 @@ it("exports feedback and structured plans while leaving observed outcomes blank"
   expect(text).toContain("AI 코딩 도구에 전달할 요청");
   expect(verificationTemplate(check, 0)).toContain("[직접 확인 후 작성]");
   expect(verificationTemplate(check, 0).length).toBeLessThanOrEqual(2000);
+  expect(
+    projectReportText(check, {
+      revision: 0,
+      tasks: [
+        {
+          questionIndex: 0,
+          status: "observed",
+          result: "관찰 결과",
+          verification: fixtureVerificationRecord,
+        },
+      ],
+    }),
+  ).toContain("재현 패턴 기록됨 (자기 기록)");
 });
 it("keeps legacy assessments and unreviewed questions exportable", () => {
   const check = publicCheck(fixtureCheck);

@@ -50,6 +50,11 @@ test("project tasks persist, original answers survive revision, and screenshots 
   await page.route("**/api/project-check/training?*", (r) =>
     r.fulfill({ status: 503, json: { error: "기초 예제 미사용" } }),
   );
+  await page.route(/\/api\/project-check\/[^/?]+$/, (route) => {
+    expect(route.request().headers()["x-codefit-workspace"]).toBe(data.scope);
+    const id = route.request().url().split("/").at(-1);
+    return route.fulfill({ json: id === original.id ? original : revised });
+  });
   await page.route("**/api/project-check/*/capture?*", (r) => {
     expect(r.request().headers()["x-codefit-workspace"]).toBe(data.scope);
     return r.fulfill({
@@ -81,6 +86,7 @@ test("project tasks persist, original answers survive revision, and screenshots 
     return r.fulfill({ json: revised });
   });
   await page.goto(`/project-check?check=${original.id}`);
+  await page.locator(".analysis-source-library > summary").click();
   await page.getByText("질문 생성에 사용한 공개 화면 1곳 보기", { exact: true }).click();
   await expect(page.getByRole("img", { name: /분석 화면 — 분석 당시/ })).toBeVisible();
   const follow = page.locator("#project-follow-up");

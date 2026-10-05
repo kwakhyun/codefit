@@ -3,7 +3,12 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { SqliteStore } from "./sqlite-store";
 import { ProjectCheckService } from "./project-check-service";
-import { fixtureAnalysis, fixtureAssessment, fixtureCheck } from "../project-check/fixtures";
+import {
+  fixtureAnalysis,
+  fixtureAssessment,
+  fixtureCheck,
+  fixtureVerificationRecord,
+} from "../project-check/fixtures";
 import { publicCheck } from "./project-check-store";
 import { validateAnalysis } from "./ai-project-check";
 let store: SqliteStore;
@@ -197,6 +202,7 @@ it("saves owner-scoped project evidence with optimistic concurrency and preserve
       questionIndex,
       status: "planned" as const,
       result: "이 프로젝트에서 직접 확인할 계획",
+      ...(questionIndex === 0 ? { verification: fixtureVerificationRecord } : {}),
     })),
   };
   await expect(

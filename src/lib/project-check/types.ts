@@ -1,6 +1,7 @@
 import type { ClassMetadata } from "./project-class";
 import { z } from "zod";
 import type { RepositorySnapshot } from "./repository";
+import { verificationRecordSchema } from "./verification";
 export const PROJECT_LIMITS = { windowMs: 86_400_000 } as const;
 export const AREAS = ["사용 흐름", "데이터 저장", "접근 권한", "오류 대응", "설계 선택"] as const;
 export const createCheckSchema = z
@@ -171,6 +172,7 @@ export const practiceSchema = z
             questionIndex: z.number().int().min(0).max(4),
             status: z.enum(["planned", "observed", "blocked"]),
             result: z.string().trim().max(4000),
+            verification: verificationRecordSchema.optional(),
           })
           .strict(),
       )

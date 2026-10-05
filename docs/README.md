@@ -4,26 +4,27 @@
 
 ## 기능과 화면
 
-| 주제                                                | 문서                                                                                                                       |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| 세 작업 공간, 메뉴 순서와 선택 보관                 | [사용자 타입에 따른 탐색](personalized-navigation.md)                                                                      |
-| 작업 공간별 홈, 전용 이미지와 선택형 안내           | [화면별 이미지와 탐색 UI](design/experience-ui.md)                                                                         |
-| 21개 입문 실습, 단계 조작과 학습 기록               | [서비스 원리 배우기](beginner-training.md)                                                                                 |
-| 서비스 분야와 사례의 구성 이력                      | [서비스 분야별 실습](design/service-domain-curriculum.md)                                                                  |
-| AI 코드 이해와 코칭                                 | [이해 훈련 코치](understanding-coach.md), [질문 대상 선택](coach-targeting.md)                                             |
-| 원본·수정 코드의 실행 비교                          | [학습 실험](learning-experiments.md), [실험 후속 질문](experiment-followup.md), [실행 환경의 무결성](sandbox-integrity.md) |
-| 공개 저장소 기반 훈련 생성, 진행 저장과 샘플 분리   | [내 프로젝트로 연습](project-practice.md)                                                                                  |
-| 공개 링크 분석, 질문과 계정별 기록                  | [프로젝트 점검](project-check.md)                                                                                          |
-| 전체 프로젝트 검색, 클래스 관리, 복습과 재분석 이력 | [내 프로젝트 관리](project-classes.md)                                                                                     |
-| 기본 AI 수업, 모의 실습과 브라우저 진도             | [AI 실무 배우기](ai-learning.md)                                                                                           |
-| 프로젝트 코드에 맞춘 AI 활용 학습과 적용 기록       | [프로젝트 AI 활용 학습](project-ai-workshop.md)                                                                            |
-| 공개 Git 플랫폼별 연결 범위와 수집 방식             | [공개 소스 저장소 연결](public-repositories.md)                                                                            |
-| 라이트·다크 테마, 이미지와 로딩 표시                | [화면 테마](themes.md), [공통 UI](ui-system.md)                                                                            |
-| JS 실행 후 공개 본문과 스크린샷 수집                | [프로젝트 화면 수집](project-browser.md)                                                                                   |
-| 답변의 인용 근거와 평가 계약                        | [프로젝트 답변 평가](project-assessment.md)                                                                                |
-| 내 프로젝트 확인 과제, 보완 답변과 공통 실습        | [프로젝트 학습](project-learning.md)                                                                                       |
-| 공개 보안 설정과 탭 임시 확인 기록                  | [보안 설정 점검](security-check.md)                                                                                        |
-| 첫 미션 선택과 선택적 AI 안내                       | [핏 시작 가이드](design/fit-start-guide.md)                                                                                |
+| 주제                                                 | 문서                                                                                                                       |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 세 작업 공간, 메뉴 순서와 선택 보관                  | [사용자 타입에 따른 탐색](personalized-navigation.md)                                                                      |
+| 작업 공간별 홈, 전용 이미지와 선택형 안내            | [화면별 이미지와 탐색 UI](design/experience-ui.md)                                                                         |
+| 21개 입문 실습, 단계 조작과 학습 기록                | [서비스 원리 배우기](beginner-training.md)                                                                                 |
+| 서비스 분야와 사례의 구성 이력                       | [서비스 분야별 실습](design/service-domain-curriculum.md)                                                                  |
+| AI 코드 이해와 코칭                                  | [이해 훈련 코치](understanding-coach.md), [질문 대상 선택](coach-targeting.md)                                             |
+| 원본·수정 코드의 실행 비교                           | [학습 실험](learning-experiments.md), [실험 후속 질문](experiment-followup.md), [실행 환경의 무결성](sandbox-integrity.md) |
+| 공개 저장소 기반 훈련 생성, 진행 저장과 샘플 분리    | [내 프로젝트로 연습](project-practice.md)                                                                                  |
+| 공개 링크 분석, 질문과 계정별 기록                   | [프로젝트 점검](project-check.md)                                                                                          |
+| 질문별 근거 확인, AI 수정 요청과 수정 전후 검증 기록 | [근거와 수정 검증 기록](project-evidence-review.md)                                                                        |
+| 전체 프로젝트 검색, 클래스 관리, 복습과 재분석 이력  | [내 프로젝트 관리](project-classes.md)                                                                                     |
+| 기본 AI 수업, 모의 실습과 브라우저 진도              | [AI 실무 배우기](ai-learning.md)                                                                                           |
+| 프로젝트 코드에 맞춘 AI 활용 학습과 적용 기록        | [프로젝트 AI 활용 학습](project-ai-workshop.md)                                                                            |
+| 공개 Git 플랫폼별 연결 범위와 수집 방식              | [공개 소스 저장소 연결](public-repositories.md)                                                                            |
+| 라이트·다크 테마, 이미지와 로딩 표시                 | [화면 테마](themes.md), [공통 UI](ui-system.md)                                                                            |
+| JS 실행 후 공개 본문과 스크린샷 수집                 | [프로젝트 화면 수집](project-browser.md)                                                                                   |
+| 답변의 인용 근거와 평가 계약                         | [프로젝트 답변 평가](project-assessment.md)                                                                                |
+| 내 프로젝트 확인 과제, 보완 답변과 공통 실습         | [프로젝트 학습](project-learning.md)                                                                                       |
+| 공개 보안 설정과 탭 임시 확인 기록                   | [보안 설정 점검](security-check.md)                                                                                        |
+| 첫 미션 선택과 선택적 AI 안내                        | [핏 시작 가이드](design/fit-start-guide.md)                                                                                |
 
 [AI 실무 배우기](ai-learning.md)는 15개 분야, 32개 수업의 모의 실습과 브라우저 진도 보관을 설명합니다.
 

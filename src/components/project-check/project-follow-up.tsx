@@ -13,6 +13,8 @@ import { useEffect, useRef, useState } from "react";
 import { projectReportText, verificationTemplate } from "@/lib/project-check/report";
 import { api, errorMessage } from "@/lib/client-api";
 import { practiceSchema, type Check, type ProjectPractice } from "@/lib/project-check/types";
+import { VerificationRecord } from "./verification-record";
+import { RepairRequest } from "./project-evidence-review";
 export function ProjectFollowUp({
   check,
   scope,
@@ -229,6 +231,12 @@ export function ProjectFollowUp({
                 placeholder="확인한 조건과 순서 / 기대한 결과 / 실제 결과 또는 확인하지 못한 이유"
                 style={{ width: "100%" }}
               />
+              <VerificationRecord
+                value={task.verification}
+                disabled={busy}
+                onChange={(verification) => change(f.questionIndex, { verification })}
+              />
+              <RepairRequest check={check} questionIndex={f.questionIndex} practice={practice} />
             </Disclosure>
           );
         })}

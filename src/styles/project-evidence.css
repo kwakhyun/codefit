@@ -1,0 +1,85 @@
+.evidence-review-facts,
+.verification-record-stages {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.evidence-review-facts > div,
+.verification-record-stages fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.evidence-review-facts dt {
+  color: var(--muted);
+  font-size: var(--text-small);
+}
+.evidence-review-facts dd {
+  margin: 8px 0 0;
+  font-weight: 650;
+}
+.evidence-review-item,
+.repair-request,
+.verification-record {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.evidence-review-item > summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  justify-content: space-between;
+}
+.evidence-review-label {
+  font-size: var(--text-small);
+  color: var(--muted);
+  font-weight: 400;
+}
+.repair-request label,
+.verification-record label {
+  display: block;
+  margin: 12px 0 6px;
+}
+.repair-request textarea,
+.verification-record input,
+.verification-record textarea,
+.verification-record select {
+  width: 100%;
+  min-width: 0;
+}
+.repair-request button {
+  margin-top: 12px;
+}
+.verification-record-stages {
+  margin-top: 20px;
+}
+.verification-record-stages legend {
+  font-weight: 650;
+}
+@media (max-width: 1000px) {
+  .evidence-review-facts,
+  .verification-record-stages {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .evidence-review-item {
+    padding: 12px;
+  }
+  .evidence-review-item .repair-request,
+  #project-follow-up .repair-request,
+  #project-follow-up .verification-record {
+    padding: 16px 0 0;
+    border-width: 1px 0 0;
+    border-radius: 0;
+  }
+  .verification-record-stages fieldset {
+    padding: 12px;
+  }
+}

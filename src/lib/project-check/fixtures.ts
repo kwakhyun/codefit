@@ -1,4 +1,12 @@
 import { AREAS, type Analysis, type Assessment, type StoredCheck } from "./types";
+import type { VerificationRecord } from "./verification";
+
+export const fixtureVerificationRecord: VerificationRecord = {
+  command: "npm test -- booking-retry",
+  before: { outcome: "failed", evidence: "원본: 예약 1건 예상, 실제 2건" },
+  after: { outcome: "passed", evidence: "수정본: 예약 1건 예상, 실제 1건" },
+  reverted: { outcome: "failed", evidence: "수정만 되돌린 사본: 예약 1건 예상, 실제 2건" },
+};
 /** Synthetic examples shared by isolated tests; never substituted for an AI response in the service. */
 export const fixtureAnalysis: Analysis = {
   title: "예약 서비스 설계 점검",
