@@ -1,0 +1,234 @@
+/* Clarity pass: one control per job, notices that read as notices and steady page chrome.
+   Loaded after design-polish.css. Reuses the existing theme roles; no new palette. */
+
+/* Korean copy already breaks between words; balanced headings and paragraphs without a lone
+   last word read better than hard-coded <br> breaks, which misfire at other widths. */
+:is(h1, h2, h3) {
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+
+/* Practice source and practice kind are one choice each, so they share the segmented track
+   used by the problem type filter instead of two separately outlined buttons. */
+.practice-origin.segmented {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  width: fit-content;
+  max-width: 100%;
+}
+.practice-origin.segmented > :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+  text-decoration: none;
+}
+.practice-origin.segmented > :is(button, a):hover:not([aria-pressed="true"], [aria-current]) {
+  background: transparent;
+  color: var(--text);
+}
+.practice-origin.segmented > :is([aria-pressed="true"], [aria-current]) {
+  border: 0;
+  background: light-dark(var(--light-panel), #283448);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow:
+    0 1px 3px light-dark(rgb(15 23 42 / 12%), rgb(0 0 0 / 40%)),
+    0 0 0 1px light-dark(rgb(15 23 42 / 4%), rgb(255 255 255 / 6%));
+}
+/* Learning pages tint --surface to the page colour, which left this entry card with neither
+   fill nor outline in light mode. It gets the panel fill and hairline other cards use. */
+.practice-entry-card.ui-card {
+  border: 1px solid var(--line);
+  background-color: light-dark(var(--light-panel), #171d28);
+}
+/* Leaving the page is a link beside the switch, not another segment. */
+.practice-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+.practice-switch-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+  font-size: var(--text-ui);
+}
+.practice-switch-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
+}
+.practice-switch-links a:hover {
+  color: var(--text);
+}
+@media (max-width: 600px) {
+  .practice-origin.segmented {
+    width: 100%;
+  }
+  .practice-origin.segmented > :is(button, a) {
+    flex: 1 1 0;
+    padding-inline: 8px;
+  }
+}
+
+/* Availability notices: a tinted callout with an icon instead of an empty-looking card. */
+.ui-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px solid light-dark(#ecd6a4, #66502d);
+  border-radius: var(--radius-control);
+  background: light-dark(var(--light-amber-soft), #211c12);
+  color: light-dark(#6b4300, #f2c879);
+  font-size: var(--text-ui);
+  line-height: 1.7;
+}
+.ui-notice > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.ui-notice + .project-layout {
+  margin-top: 24px;
+}
+
+/* Fields in one form share one surface and corner: the project form mixed white inputs with
+   a grey select, and 9px corners with 12px buttons. */
+.project-page :is(input:not([type="checkbox"]), textarea, .ui-native-select) {
+  border-radius: var(--radius-control);
+}
+.project-page .ui-native-select {
+  background-color: light-dark(var(--light-panel), #080b10);
+}
+.ui-select-trigger {
+  border-radius: var(--radius-control);
+}
+
+/* Lesson sources use the same trailing chevron as the other expandable cards. */
+.ai-sources > summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-right: 36px;
+  list-style: none;
+}
+.ai-sources > summary::-webkit-details-marker {
+  display: none;
+}
+.ai-sources > summary::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  background: var(--muted);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transition: transform var(--motion-fast);
+}
+.ai-sources[open] > summary::after {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-sources > summary::after {
+    transition: none;
+  }
+}
+
+/* Page intro artwork stays decorative on phones: smaller, so the page's first choice is
+   reached sooner. */
+@media (max-width: 700px) {
+  .visual-intro > .section-artwork {
+    width: min(100%, 176px);
+    margin-top: 4px;
+  }
+}
+
+/* AI lesson categories on phones: one swipeable row instead of a fixed-height box that
+   scrolled inside the scrolling page and cut chips off mid-row. */
+@media (max-width: 640px) {
+  .ai-category-filters {
+    flex-wrap: nowrap;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 0 8px;
+    border: 0;
+    border-radius: 0;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+  .ai-category-filters::-webkit-scrollbar {
+    display: none;
+  }
+  .ai-category-filters button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    scroll-snap-align: start;
+  }
+}
+
+/* History shortcuts are cards like the resume card above them, grouped closer together. */
+.ui-link.history-track-link {
+  margin-bottom: 12px;
+  border-radius: var(--radius-panel);
+  text-decoration: none;
+}
+.history-track-link + .history-coding-title {
+  margin-top: 44px;
+}
+
+/* Mobile page chrome: pages with the shared site header now match the home and editor bar —
+   flush to the top, icon-only logo, workspace and theme actions, and an edge-to-edge divider. */
+@media (max-width: 760px) {
+  :is(.learn-page, .handoff-page, .project-practice-page, .project-classes-page, .account-page):has(
+    > .site-header:first-child
+  ) {
+    padding-top: 0;
+  }
+  .site-header.site-header {
+    min-height: 68px;
+    padding: 12px 0;
+    gap: 8px;
+    flex-wrap: nowrap;
+    /* The outset paints the divider to the viewport edges without adding scrollable width. */
+    border-image: linear-gradient(var(--line), var(--line)) 0 0 100% 0 / 0 0 1px 0 / 0 100vw;
+  }
+  .site-header .brand-wordmark {
+    display: none;
+  }
+  .site-header.site-header > .site-preference {
+    display: flex;
+    margin-left: auto;
+  }
+  .site-header > .theme-toggle {
+    margin-left: 0;
+  }
+  .site-header .persona-change {
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+  }
+  .site-header .persona-change > span {
+    display: none;
+  }
+}

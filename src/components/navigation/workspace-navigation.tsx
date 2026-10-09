@@ -25,21 +25,24 @@ export function WorkspaceNavigation({
   initialDomain = "all",
   saved = 0,
   activeProblem,
+  practiceMode,
 }: {
   initialProblemId?: string;
   initialView?: LibraryView;
   initialDomain?: DomainId | "all";
   saved?: number;
   activeProblem?: ProblemSummary;
+  /** Project practice belongs to the track it was opened from: code reading or service behavior. */
+  practiceMode?: "code" | "service";
 }) {
   const { preference, profile, type } = useLearningPreference();
   const pathname = usePathname();
   const isHome = pathname === "/";
   function current(href: string) {
     if (href === "/?view=browse") return isHome && initialView === "browse";
+    if (pathname === "/project-practice")
+      return href === (practiceMode === "service" ? "/learn" : practiceMode && "/handoff");
     if (href === "/learn") return pathname === "/learn";
-    if (href === "/project-check")
-      return pathname === "/project-check" || pathname === "/project-practice";
     return pathname === href || pathname.startsWith(href + "/");
   }
   return (

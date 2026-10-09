@@ -26,8 +26,6 @@ export default async function HandoffPage({
           GitHub 저장소를 연결해 실제 코드로 연습하거나, 준비된 샘플을 선택하세요. 입력부터 결과까지
           처리 흐름을 따라가며 내 말로 설명해 봅니다.
         </p>
-
-        <p className="muted">내 프로젝트 맞춤 훈련 또는 저장소 연결 없는 샘플 체험</p>
       </VisualIntro>
       <PracticeEntry initialSample={sample} mode="code">
         <ExperienceJourney topic="code" />

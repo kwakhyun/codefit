@@ -262,6 +262,18 @@
   background: light-dark(var(--light-hover), #fff);
   border-radius: 50%;
 }
+/* The GitHub mark ships white for dark surfaces; invert it on light ones so it stays visible. */
+.provider-github {
+  filter: invert(1);
+}
+:root[data-theme="dark"] .provider-github {
+  filter: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .provider-github {
+    filter: none;
+  }
+}
 .guest-login {
   display: flex;
   flex-wrap: wrap;

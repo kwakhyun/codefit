@@ -15,7 +15,7 @@ export function PracticeEntry({
   const [sample, setSample] = useState(initialSample);
   return (
     <div className="practice-entry">
-      <div className="practice-origin" role="group" aria-label="연습 자료 선택">
+      <div className="practice-origin segmented" role="group" aria-label="연습 자료 선택">
         <Button aria-pressed={!sample} onClick={() => setSample(false)}>
           <GitBranch size={18} /> 내 프로젝트로 연습
         </Button>

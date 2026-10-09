@@ -19,6 +19,7 @@ import {
   Textarea,
 } from "@/components/ui/primitives";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
+import { CircleAlert } from "lucide-react";
 import { RequestStatus } from "@/components/project-check/request-status";
 import { ExerciseRunner } from "./exercise-runner";
 
@@ -200,24 +201,28 @@ function PracticeWorkspace({
   const repositories = checks.filter((c) => c.page.source === "repository");
   return (
     <div className="project-practice-workspace">
-      <nav className="practice-origin" aria-label="프로젝트 연습 종류">
-        <AppLink href={id ? `/projects?class=${id}` : "/projects"}>내 프로젝트</AppLink>
-        <AppLink
-          aria-current={mode === "code" ? "page" : undefined}
-          href={`/project-practice?mode=code${id ? `&check=${id}` : ""}`}
-        >
-          코드 이해 훈련
-        </AppLink>
-        <AppLink
-          aria-current={mode === "service" ? "page" : undefined}
-          href={`/project-practice?mode=service${id ? `&check=${id}` : ""}`}
-        >
-          서비스 동작 실습
-        </AppLink>
-        <AppLink href={mode === "code" ? "/handoff?source=sample" : "/learn?source=sample"}>
-          샘플 체험으로 이동
-        </AppLink>
-      </nav>
+      <div className="practice-switch">
+        <nav className="practice-origin segmented" aria-label="프로젝트 연습 종류">
+          <AppLink
+            aria-current={mode === "code" ? "page" : undefined}
+            href={`/project-practice?mode=code${id ? `&check=${id}` : ""}`}
+          >
+            코드 이해 훈련
+          </AppLink>
+          <AppLink
+            aria-current={mode === "service" ? "page" : undefined}
+            href={`/project-practice?mode=service${id ? `&check=${id}` : ""}`}
+          >
+            서비스 동작 실습
+          </AppLink>
+        </nav>
+        <div className="practice-switch-links">
+          <AppLink href={id ? `/projects?class=${id}` : "/projects"}>내 프로젝트</AppLink>
+          <AppLink href={mode === "code" ? "/handoff?source=sample" : "/learn?source=sample"}>
+            샘플 체험으로 이동
+          </AppLink>
+        </div>
+      </div>
       {error && (
         <Card role="alert">
           <p>{error}</p>
@@ -312,7 +317,8 @@ function PracticeWorkspace({
               </p>
             )}
             {!data.aiReady && (
-              <p role="status">
+              <p role="status" className="ui-notice">
+                <CircleAlert size={18} aria-hidden="true" />
                 지금은 새 AI 분석을 준비 중입니다. 저장된 실습이나 샘플 체험을 이용해 주세요.
               </p>
             )}

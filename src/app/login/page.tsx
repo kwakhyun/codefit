@@ -35,9 +35,8 @@ export default async function LoginPage({
             연습 기록을 이어가세요
           </h1>
           <p>
-            Google 또는 GitHub로 로그인하면 하루 6회 AI 문제를 만들고,
-            <br />
-            다른 기기에서도 저장한 풀이를 이어서 볼 수 있습니다.
+            Google 또는 GitHub로 로그인하면 하루 6회 AI 문제를 만들고, 다른 기기에서도 저장한 풀이를
+            이어서 볼 수 있습니다.
           </p>
           {params.error && (
             <Status className="inline-error" role="alert">

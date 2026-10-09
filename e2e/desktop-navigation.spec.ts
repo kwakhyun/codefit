@@ -45,3 +45,33 @@ test("mobile uses its menu without a duplicate desktop sidebar", async ({ page }
     true,
   );
 });
+
+test("project practice highlights the track it belongs to", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const nav = page.getByRole("navigation", { name: "작업 공간 메뉴", exact: true });
+  for (const [mode, name] of [
+    ["code", "AI 코드 이해 훈련"],
+    ["service", "서비스 원리 배우기"],
+  ]) {
+    await page.goto(`/project-practice?mode=${mode}`);
+    await expect(nav.locator('[aria-current="page"]')).toHaveText(name);
+    await expect(
+      page.getByRole("navigation", { name: "프로젝트 연습 종류" }).locator('[aria-current="page"]'),
+    ).toHaveCount(1);
+  }
+});
+
+test("mobile pages share one header layout", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ["/project-check", "/learn/ai", "/projects"]) {
+    await page.goto(path);
+    const header = page.locator(".site-header");
+    expect((await header.boundingBox())!.y, path).toBe(0);
+    await expect(header.locator(".brand-wordmark")).toBeHidden();
+    await expect(header.getByRole("button", { name: /작업 공간 변경/ })).toBeVisible();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+      path,
+    ).toBe(true);
+  }
+});

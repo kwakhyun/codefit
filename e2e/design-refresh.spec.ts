@@ -83,3 +83,20 @@ test("mobile task navigation closes, restores focus and follows links", async ({
   await expect(page).toHaveURL(/\/security-check$/);
   await expect(menu).toBeHidden();
 });
+
+test("states read as what they are: open slots, empty rings and a visible GitHub mark", async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
+  await page.goto("/?view=history");
+  const days = page.locator(".training-week > span");
+  await expect(days).toHaveCount(7);
+  for (const day of await page.locator(".training-week > span:not(.active) svg").all())
+    await expect(day).toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  await page.goto("/?view=browse");
+  await expect(page.locator(".empty-status").first()).toHaveCSS("border-radius", "50%");
+  await page.goto("/login");
+  await expect(page.locator(".provider-github").first()).toHaveCSS("filter", "invert(1)");
+  await page.goto("/problems/handoff-cart");
+  await expect(page.locator(".guide-launcher")).toHaveCount(0);
+});

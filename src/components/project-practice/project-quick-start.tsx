@@ -55,14 +55,22 @@ export function ProjectQuickStart({
     >
       {!embedded && (
         <div className="quick-start-heading">
-          <span className="eyebrow">
-            <GitBranch size={16} /> 내 프로젝트에서 시작하세요
-          </span>
-          <h2>링크 하나로 점검부터 실습까지</h2>
           <p>
-            공개 소스 저장소를 연결하면{" "}
-            <strong>프로젝트 점검, 코드 이해 훈련, 서비스 원리 실습</strong>을 함께 준비합니다.
+            <GitBranch size={18} aria-hidden="true" />
+            공개 소스 저장소 링크 하나로 세 가지 학습을 함께 준비합니다.
           </p>
+          <ul className="quick-start-outcomes" aria-label="한 번 연결하면 준비되는 학습">
+            <li>
+              <ClipboardCheck size={18} aria-hidden="true" /> 프로젝트 점검{" "}
+              <span>설계 질문 5개</span>
+            </li>
+            <li>
+              <Code2 size={18} aria-hidden="true" /> 코드 이해 훈련 <span>3개</span>
+            </li>
+            <li>
+              <Workflow size={18} aria-hidden="true" /> 서비스 동작 실습 <span>3개</span>
+            </li>
+          </ul>
         </div>
       )}
       <form onSubmit={start}>
@@ -94,37 +102,20 @@ export function ProjectQuickStart({
             <ArrowRight size={18} />
           </Button>
         </div>
-        {embedded ? (
-          <div className="quick-start-note">
-            <p>로그인 없이 시작할 수 있어요. 새 프로젝트는 분석 2회를 사용합니다.</p>
-            <details>
-              <summary>분석 범위와 데이터 안내</summary>
-              <p>
-                공개 코드 일부를 OpenAI로 보내 질문과 연습을 만듭니다. 저장소를 실행하거나 수정하지
-                않습니다. 생성한 연습은 추가 AI 호출 없이 이어갈 수 있습니다.
-              </p>
-            </details>
-          </div>
-        ) : (
-          <p className="muted">
-            공개 코드 발췌를 OpenAI로 보내 분석합니다. 새 프로젝트는 분석 2회를 사용하며, 생성
-            이후에는 무료로 이어갑니다. 실제 저장소를 실행하거나 수정하지 않습니다.
+        <div className="quick-start-note">
+          <p>
+            로그인 없이 시작할 수 있어요. 공개 코드 일부를 OpenAI로 보내 분석하며, 새 프로젝트는
+            분석 2회를 사용합니다.
           </p>
-        )}
-      </form>
-      {!embedded && (
-        <div className="quick-start-outcomes" aria-label="한 번 연결하면 준비되는 학습">
-          <span>
-            <ClipboardCheck size={20} /> 설계 질문 5개
-          </span>
-          <span>
-            <Code2 size={20} /> 내 코드 이해 훈련 3개
-          </span>
-          <span>
-            <Workflow size={20} /> 서비스 동작 실습 3개
-          </span>
+          <details>
+            <summary>분석 범위 안내</summary>
+            <p>
+              저장소를 실행하거나 수정하지 않습니다. 생성한 질문과 연습은 추가 AI 호출 없이 이어갈
+              수 있습니다.
+            </p>
+          </details>
         </div>
-      )}
+      </form>
       {storageError && (
         <p role="status">
           이 브라우저에 입력을 보관하지 못했습니다. 분석 결과는 서버 기록에서 찾을 수 있습니다.

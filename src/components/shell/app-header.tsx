@@ -9,7 +9,7 @@ import { Modal } from "@/components/ui/modal";
 
 import type { Workspace } from "@/lib/problem";
 import { BrandIcon } from "@/components/ui/brand-icon";
-import { CircleHelp, Menu, MoreHorizontal, RotateCcw, Sparkles } from "lucide-react";
+import { CircleHelp, Menu, MoreHorizontal, RefreshCw, Sparkles } from "lucide-react";
 interface AppHeaderProps {
   setMobileMenu: Dispatch<SetStateAction<boolean>>;
   initialProblemId: string | undefined;
@@ -105,7 +105,7 @@ export function AppHeader({
                   void load();
                 }}
               >
-                <RotateCcw size={20} /> 문제와 기록 새로고침
+                <RefreshCw size={20} /> 문제와 기록 새로고침
               </Button>
             )}
           </div>
@@ -114,15 +114,17 @@ export function AppHeader({
           <Button
             className="icon-button desktop-header-action"
             aria-label="문제와 기록 새로고침"
+            title="문제와 기록 새로고침"
             disabled={refreshing}
             onClick={() => void load()}
           >
-            <RotateCcw size={17} className={refreshing ? "spin" : ""} />
+            <RefreshCw size={17} className={refreshing ? "spin" : ""} />
           </Button>
         )}
         <Button
           className="icon-button help-button desktop-header-action"
           aria-label="사용 안내"
+          title="사용 안내"
           onClick={(event) => {
             // Safari does not focus buttons on pointer activation; retain a dialog return target.
             event.currentTarget.focus();

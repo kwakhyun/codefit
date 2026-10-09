@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/primitives";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useRef, useState, useSyncExternalStore } from "react";
-import { X, Minimize2 } from "lucide-react";
+import { X } from "lucide-react";
 import { FitMascot } from "./fit-mascot";
 
 const GuidePanel = dynamic(() => import("./guide-panel"), { ssr: false });
@@ -22,18 +22,14 @@ function isDismissed() {
 
 export function GuideWidget() {
   const pathname = usePathname();
-  const practicing =
-    pathname.startsWith("/problems/") ||
-    pathname.startsWith("/learn/") ||
-    ["/project-check", "/security-check", "/learn", "/handoff"].includes(pathname);
-  const showInvitation = pathname === "/";
   const [open, setOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const [compact, setCompact] = useState(false);
-  const compactMode = compact || practicing;
   const storedDismissal = useSyncExternalStore(subscribe, isDismissed, () => true);
   const launcher = useRef<HTMLButtonElement>(null);
+  // The labelled launcher only accompanies the first-visit invitation on home. Everywhere else
+  // it stays a small icon so it does not cover list rows, cards or a page's primary action.
+  const inviting = pathname === "/" && !dismissed && !storedDismissal && !open;
   function dismissIntro() {
     setDismissed(true);
     try {
@@ -46,13 +42,13 @@ export function GuideWidget() {
     setOpen(false);
     requestAnimationFrame(() => launcher.current?.focus());
   }
+  const panel = loaded && <GuidePanel open={open} onClose={close} />;
+  // The editor fills the viewport with its own actions and keeps usage help in its header.
+  if (pathname.startsWith("/problems/")) return panel;
   return (
     <>
-      <aside
-        className={`guide-launcher ${compactMode ? "is-compact" : ""}`}
-        aria-label="시작 가이드"
-      >
-        {showInvitation && !dismissed && !storedDismissal && !open && !compactMode && (
+      <aside className={`guide-launcher ${inviting ? "" : "is-compact"}`} aria-label="시작 가이드">
+        {inviting && (
           <div className="guide-intro-hint">
             <Button
               onClick={() => {
@@ -80,31 +76,18 @@ export function GuideWidget() {
           aria-label="핏 시작 가이드 열기"
           aria-haspopup="dialog"
           aria-expanded={open}
+          title={inviting ? undefined : "시작 가이드"}
           onClick={() => {
-            setCompact(false);
             dismissIntro();
             setLoaded(true);
             setOpen(true);
           }}
         >
-          <FitMascot size={compactMode ? 32 : 64} />
-          {!compactMode && <span>시작 가이드</span>}
+          <FitMascot size={inviting ? 64 : 32} />
+          {inviting && <span>시작 가이드</span>}
         </Button>
-        {!compactMode && !open && (
-          <Button
-            className="guide-collapse"
-            aria-label="시작 가이드 작게 보기"
-            onClick={() => {
-              dismissIntro();
-              setCompact(true);
-              requestAnimationFrame(() => launcher.current?.focus());
-            }}
-          >
-            <Minimize2 size={15} />
-          </Button>
-        )}
       </aside>
-      {loaded && <GuidePanel open={open} onClose={close} />}
+      {panel}
     </>
   );
 }

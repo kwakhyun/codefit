@@ -160,10 +160,6 @@
     border-radius: 18px;
     background: var(--surface);
   }
-  .workspace-welcome .quick-start-heading h2 {
-    font-size: 26px;
-    letter-spacing: -0.025em;
-  }
   .desktop-content .class-empty {
     padding: 32px;
     gap: 16px;

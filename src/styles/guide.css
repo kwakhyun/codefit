@@ -56,12 +56,12 @@ body:has(.guide-launcher) {
 }
 .guide-intro-hint {
   position: relative;
-  background: light-dark(var(--light-hover), #f5f5f5);
-  color: light-dark(var(--light-text), #171717);
+  background: light-dark(var(--light-panel), #202938);
+  color: var(--text);
   padding: 6px 32px 6px 8px;
-  border: 1px solid light-dark(var(--light-strong-line), #fff);
+  border: 1px solid light-dark(var(--light-line), #3d4a5e);
   border-radius: 15px;
-  box-shadow: 0 5px 24px #0005;
+  box-shadow: 0 8px 28px light-dark(rgb(15 23 42 / 14%), rgb(0 0 0 / 45%));
 }
 .guide-intro-hint > button:first-child {
   padding: 6px 8px;
@@ -78,9 +78,9 @@ body:has(.guide-launcher) {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: light-dark(var(--light-text), #171717);
-  background: light-dark(var(--light-hover), #f5f5f5);
-  border: 1px solid light-dark(var(--light-strong-line), #777);
+  color: var(--text);
+  background: light-dark(var(--light-panel), #283448);
+  border: 1px solid light-dark(var(--light-line), #4a5870);
 }
 .guide-panel.modal {
   position: fixed;
@@ -476,32 +476,6 @@ body:has(.guide-panel[open]) {
   }
 }
 
-/* Let users clear space around page controls without losing access to the guide. */
-.guide-launcher .guide-collapse {
-  position: absolute;
-  top: -20px;
-  right: -5px;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid light-dark(var(--light-strong-line), #777);
-  border-radius: 50%;
-  color: light-dark(var(--light-text), #fff);
-  background: light-dark(var(--light-canvas), #17191d);
-}
-.guide-launcher.is-compact .guide-launcher .guide-launch-button {
-  width: 48px;
-  height: 48px;
-  min-height: 48px;
-  padding: 7px;
-  border-radius: 16px;
-}
-.guide-launcher.is-compact .fit-mascot {
-  width: 32px;
-  height: 32px;
-}
-
 /* Floating guide controls keep their own dimensions instead of inheriting form-button padding. */
 .guide-launcher .guide-launch-button {
   width: 88px;
@@ -522,15 +496,6 @@ body:has(.guide-panel[open]) {
   background: light-dark(var(--light-panel), #101114);
   border-color: light-dark(var(--light-strong-line), #c4c9d2);
 }
-.guide-launcher .guide-collapse {
-  top: -12px;
-  right: -8px;
-  width: 36px;
-  height: 36px;
-  min-height: 36px;
-  padding: 0;
-  border-radius: 50%;
-}
 .guide-launcher .guide-intro-hint {
   max-width: min(230px, calc(100vw - 132px));
   padding: 10px 34px 10px 12px;
@@ -542,12 +507,12 @@ body:has(.guide-panel[open]) {
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: light-dark(var(--light-text), #171717);
+  color: var(--text);
   font: 400 13px/1.7 var(--sans);
 }
 .guide-intro-hint > .ui-button:first-child:hover:not(:disabled) {
   background: transparent;
-  color: light-dark(var(--light-text), #000);
+  color: var(--text);
 }
 .guide-launcher .guide-dismiss {
   right: -6px;
@@ -559,8 +524,8 @@ body:has(.guide-panel[open]) {
   border-radius: 50%;
 }
 .guide-launcher .guide-dismiss:hover:not(:disabled) {
-  background: light-dark(var(--light-hover), #e7e9ed);
-  color: light-dark(var(--light-text), #171717);
+  background: var(--surface-hover);
+  color: var(--text);
 }
 .guide-launcher.is-compact .guide-launch-button {
   width: 48px;
@@ -578,14 +543,24 @@ body:has(.guide-panel[open]) {
     right: 16px;
     bottom: calc(16px + env(safe-area-inset-bottom));
   }
-  .guide-launcher .guide-collapse,
   .guide-launcher .guide-dismiss {
     width: 44px;
     height: 44px;
     min-height: 44px;
   }
-  .guide-launcher .guide-collapse {
-    top: -20px;
-    right: -4px;
+  /* On phones the invitation bubble carries the label; the launcher stays icon-sized. */
+  .guide-launcher .guide-launch-button {
+    width: 48px;
+    height: 48px;
+    min-height: 48px;
+    padding: 7px;
+    border-radius: 16px;
+  }
+  .guide-launcher .guide-launch-button .fit-mascot {
+    width: 32px;
+    height: 32px;
+  }
+  .guide-launcher .guide-launch-button > span {
+    display: none;
   }
 }

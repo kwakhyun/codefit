@@ -48,12 +48,12 @@ test("first visit invitation is dismissible and the guide is keyboard accessible
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/guide-launcher.png" });
   await page.getByRole("button", { name: "첫 방문 안내 숨기기" }).click();
+  // Without the invitation the launcher shrinks to an icon so it does not cover page content.
+  await expect(page.locator(".guide-launcher")).toHaveClass(/is-compact/);
   await page.reload();
   await expect(page.getByRole("button", { name: "첫 방문 안내 숨기기" })).toHaveCount(0);
   const launcher = page.getByRole("button", { name: "핏 시작 가이드 열기" });
-  await page.getByRole("button", { name: "시작 가이드 작게 보기" }).click();
   await expect(page.locator(".guide-launcher")).toHaveClass(/is-compact/);
-  await expect(launcher).toBeFocused();
   await expect(launcher).toHaveCSS("width", "48px");
   await launcher.focus();
   await page.keyboard.press("Enter");

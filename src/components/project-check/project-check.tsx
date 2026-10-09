@@ -44,6 +44,7 @@ import {
   FolderOpen,
   ChevronRight,
   ChevronDown,
+  CircleAlert,
 } from "lucide-react";
 import { useProjectHistory, type UpdateOverview } from "@/hooks/use-project-history";
 import { useProjectDraft } from "@/hooks/use-project-draft";
@@ -407,7 +408,8 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
         </Status>
       )}
       {!data.aiReady && (
-        <Status role="status" className="project-panel">
+        <Status role="status" className="ui-notice">
+          <CircleAlert size={18} aria-hidden="true" />
           현재 새 AI 분석을 시작할 수 없습니다. 저장된 질문과 평가 기록은 계속 볼 수 있습니다.
         </Status>
       )}

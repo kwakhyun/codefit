@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { Suspense } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { UserRound } from "lucide-react";
 import { AppLink as Link } from "@/components/ui/primitives";
 import { BrandIcon } from "@/components/ui/brand-icon";
@@ -17,6 +18,11 @@ const workspaceRoutes = [
   "/profile",
   "/privacy",
 ];
+
+function PracticeAwareNavigation() {
+  const mode = useSearchParams().get("mode");
+  return <WorkspaceNavigation practiceMode={mode === "service" ? "service" : "code"} />;
+}
 
 /** Keep product navigation stable while each page owns its content and mobile menu. */
 export function DesktopFrame({ children }: { children: React.ReactNode }) {
@@ -38,7 +44,9 @@ export function DesktopFrame({ children }: { children: React.ReactNode }) {
             <small>배우고, 이해하고, 검증하기</small>
           </span>
         </Link>
-        <WorkspaceNavigation />
+        <Suspense fallback={<WorkspaceNavigation />}>
+          <PracticeAwareNavigation />
+        </Suspense>
         <div className="sidebar-bottom">
           <Link className="nav-item" href="/profile">
             <UserRound size={17} />

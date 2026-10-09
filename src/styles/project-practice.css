@@ -249,35 +249,45 @@
 }
 .quick-start-heading {
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
-.quick-start-heading .eyebrow {
+.quick-start-heading > p {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--accent);
+  gap: 10px;
+  font-size: 1.0625rem;
+  font-weight: 600;
 }
-.quick-start-heading h2 {
-  margin: 0;
-  font-size: clamp(1.6rem, 3vw, 2.25rem);
-  line-height: 1.4;
+.quick-start-heading > p > svg {
+  flex-shrink: 0;
+  color: var(--accent);
 }
 .project-quick-start p {
   margin: 0;
   line-height: 1.85;
 }
+/* What the link prepares: a plain summary, not chips that look pressable. */
 .quick-start-outcomes {
   display: flex;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text);
+  font-size: var(--text-ui);
 }
-.quick-start-outcomes span {
+.quick-start-outcomes li {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background: var(--bg);
-  border-radius: 12px;
+  gap: 8px;
+}
+.quick-start-outcomes svg {
+  color: var(--muted);
+}
+.quick-start-outcomes li > span {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 .project-quick-start form {
   display: grid;
@@ -320,11 +330,8 @@
     flex-direction: column;
   }
   .quick-start-outcomes {
-    gap: 8px;
-  }
-  .quick-start-outcomes span {
-    padding: 8px 10px;
-    font-size: 0.875rem;
+    flex-direction: column;
+    gap: 6px;
   }
   .quick-start-input button {
     min-height: 50px;

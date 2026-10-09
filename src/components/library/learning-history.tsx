@@ -31,7 +31,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
   return (
     <>
       <VisualIntro topic="progress" className="page-title compact-visual-intro">
-        <span className="eyebrow">YOUR LEARNING LOG</span>
+        <span className="eyebrow">나의 연습실</span>
         <h1>내 학습 기록</h1>
         <p>제출한 코드와 검토 결과를 확인하고, 보완할 문제를 다시 풀어보세요.</p>
       </VisualIntro>
@@ -48,7 +48,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
           <strong>AI 코드 이해 훈련 기록</strong>
           <p>분석한 과제와 복습할 내용을 확인하세요.</p>
         </div>
-        <ArrowRight size={18} />
+        <ArrowRight size={18} aria-hidden="true" />
       </Link>
       <h2 className="history-coding-title">코딩 문제 풀이 기록</h2>
       <div className="stats-row history-stats">
@@ -112,7 +112,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
               className={day.active ? "active" : ""}
               aria-label={`${day.label} ${day.active ? "훈련 완료" : "검토 기록 없음"}`}
             >
-              <Check size={16} />
+              <Check size={16} aria-hidden="true" />
               <small>{day.label}</small>
             </span>
           ))}

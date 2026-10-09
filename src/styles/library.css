@@ -323,11 +323,12 @@
   color: light-dark(var(--light-muted), #b5b5b5);
 }
 
+/* An open ring matches the solved check-circle; a square read as an unchecked checkbox. */
 .empty-status {
-  height: 14px;
-  width: 14px;
-  border: 1px solid light-dark(var(--light-line), #606060);
-  border-radius: 0;
+  height: 15px;
+  width: 15px;
+  border: 1.5px solid light-dark(var(--light-line), #606060);
+  border-radius: 50%;
   display: block;
 }
 

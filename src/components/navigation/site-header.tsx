@@ -55,7 +55,7 @@ export function SiteHeader() {
     <header className="site-header">
       <Link href="/" className="brand-logo" aria-label="CODE:FIT 홈">
         <BrandIcon />
-        CODE:FIT_
+        <span className="brand-wordmark">CODE:FIT_</span>
       </Link>
       <div className="desktop-location" aria-label="현재 위치">
         <Link href="/">CODE:FIT</Link>

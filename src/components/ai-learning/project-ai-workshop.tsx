@@ -20,6 +20,7 @@ import {
   Textarea,
 } from "@/components/ui/primitives";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
+import { CircleAlert } from "lucide-react";
 import { RequestStatus } from "@/components/project-check/request-status";
 import { WorkshopTopics } from "./workshop-topics";
 import {
@@ -306,7 +307,10 @@ function Workspace({
               저장소 분석하고 다음으로 →
             </Button>
             {!overview.aiReady && (
-              <p role="status">AI 연결을 준비 중입니다. 기존 학습이나 일반 수업을 이용해 주세요.</p>
+              <p role="status" className="ui-notice">
+                <CircleAlert size={18} aria-hidden="true" />
+                AI 연결을 준비 중입니다. 기존 학습이나 일반 수업을 이용해 주세요.
+              </p>
             )}
           </form>
         </Card>

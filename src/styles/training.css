@@ -130,14 +130,20 @@
   box-sizing: content-box;
   padding: 12px;
   border: 1px solid light-dark(var(--light-line), #333);
+  border-radius: var(--radius-small);
   background: light-dark(var(--light-panel), #151515);
   color: light-dark(var(--light-muted), #454545);
 }
 
+/* Only days with a completed review show a check; empty days stay an open slot. */
+.training-week > :not(.active) svg {
+  color: transparent;
+  border-style: dashed;
+}
 .training-week > .active svg {
   color: var(--success);
-  background: light-dark(var(--light-panel), #101e18);
-  border-color: light-dark(var(--light-line), #2d5443);
+  background: light-dark(var(--light-green-soft), #101e18);
+  border-color: light-dark(#9fcdb4, #2d5443);
 }
 
 .training-week small {
