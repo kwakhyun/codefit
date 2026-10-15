@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { checkCodeRevision, existingClaim, ownsJob, StaleJob } from "./write-conflicts";
 import { StoreQueries } from "./store-queries";
 import { authSchema } from "./auth-schema.mjs";
-import { generationAllowance, GENERATION_LEASE_MS, generationDay } from "./generation-quota";
+import { generationAllowance, generationLeaseMs, generationDay } from "./generation-quota";
 import { catalogColumns, catalogValues } from "./catalog-record";
 import { validateLimits } from "./usage-policy";
 import postgres, { type Sql, type TransactionSql } from "postgres";
@@ -219,7 +219,7 @@ export class PostgresStore implements ProblemStore {
       const existing = existingClaim(row, owner, kind, fingerprint);
       if (existing) return existing;
       const lease = { id, owner, kind, token: randomUUID() };
-      await store.sql`INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES(${id},${owner},${kind},'pending',NULL,${Date.now() + GENERATION_LEASE_MS},${lease.token},${fingerprint}) ON CONFLICT(id) DO UPDATE SET state='pending',result=NULL,expires=EXCLUDED.expires,token=EXCLUDED.token`;
+      await store.sql`INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES(${id},${owner},${kind},'pending',NULL,${Date.now() + generationLeaseMs(kind)},${lease.token},${fingerprint}) ON CONFLICT(id) DO UPDATE SET state='pending',result=NULL,expires=EXCLUDED.expires,token=EXCLUDED.token`;
       return { state: "new", lease };
     });
   }

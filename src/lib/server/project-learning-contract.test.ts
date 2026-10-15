@@ -110,6 +110,41 @@ it("preserves the full cited block including the actual decision after imports",
     ),
   ).toMatchObject({ line: 1, endLine: 2 });
 });
+
+it("offers a complete nested conditional when fixed windows separate its condition and outcome", () => {
+  const source = [
+    "const messages = approved",
+    "  ? [",
+    ...Array.from({ length: 8 }, (_, i) => `    'Approved message ${i}',`),
+    "  ]",
+    "  : sources.length",
+    "    ? [",
+    ...Array.from({ length: 5 }, (_, i) => `        'Source message ${i}',`),
+    "      ]",
+    "    : [",
+    "        'No source found',",
+    "        'Add a document or narrow the question',",
+    "      ];",
+  ];
+  const c = learningEvidence({
+    ...repo,
+    files: [
+      {
+        ...repo.files[0],
+        totalLines: source.length,
+        lines: source.map((text, i) => ({ number: i + 1, text })),
+      },
+    ],
+  });
+  const complete = c.snippets.find(
+    ({ code }) =>
+      code.includes(": sources.length") && code.includes("Add a document or narrow the question"),
+  );
+  expect(complete).toBeDefined();
+  const evidence = c.resolveEvidence(complete!.id);
+  expect(evidence.length).toBeLessThanOrEqual(1100);
+  expect(evidence).toContain("'No source found'");
+});
 it("prioritizes business implementations across packages over routes and generated records", () => {
   const files = [
     ...Array.from({ length: 30 }, (_, i) => ({ path: `apps/web/app/api/a${i}/route.ts` })),

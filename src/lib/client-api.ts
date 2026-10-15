@@ -1,6 +1,7 @@
 import { problemUrl } from "./library-state";
 import { generationRequest, runGeneration, setGenerationScope } from "./generation-activity";
 import { trackRequest } from "./request-progress";
+import { PRACTICE_REQUEST_TIMEOUT_MS } from "./project-check/practice-generation-policy";
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -46,6 +47,10 @@ export async function api<T>(
   }
   const finish = trackRequest();
   try {
+    const timeout =
+      options?.method === "POST" && /^\/api\/project-check\/[^/?]+\/practice$/.test(url)
+        ? PRACTICE_REQUEST_TIMEOUT_MS
+        : 115_000;
     const response = await fetch(url, {
       method: options?.method || "GET",
       credentials: "same-origin",
@@ -57,8 +62,8 @@ export async function api<T>(
       },
       body: options?.body !== undefined ? JSON.stringify(options.body) : undefined,
       signal: options?.signal
-        ? AbortSignal.any([options.signal, AbortSignal.timeout(115_000)])
-        : AbortSignal.timeout(115_000),
+        ? AbortSignal.any([options.signal, AbortSignal.timeout(timeout)])
+        : AbortSignal.timeout(timeout),
       keepalive: options?.keepalive,
     });
     let data;

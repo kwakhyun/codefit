@@ -5,8 +5,9 @@ import { getStore } from "@/lib/server/database";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
 import { ProjectCheckService } from "@/lib/server/project-check-service";
 import { networkIdentity } from "@/lib/server/usage-policy";
+import { PRACTICE_GENERATION_TIMEOUT_MS } from "@/lib/project-check/practice-generation-policy";
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 240;
 type Context = { params: Promise<{ id: string }> };
 async function contextFor(request: Request, context: Context) {
   const { owner } = await projectMember(request);
@@ -49,7 +50,7 @@ export async function POST(request: Request, context: Context) {
           networkIdentity(request),
           id,
           "practice",
-          AbortSignal.timeout(105_000),
+          AbortSignal.timeout(PRACTICE_GENERATION_TIMEOUT_MS),
         ),
       );
     return json(
@@ -57,7 +58,7 @@ export async function POST(request: Request, context: Context) {
         owner,
         networkIdentity(request),
         id,
-        AbortSignal.timeout(105_000),
+        AbortSignal.timeout(PRACTICE_GENERATION_TIMEOUT_MS),
       ),
     );
   } catch (error) {

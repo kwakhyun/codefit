@@ -191,12 +191,40 @@ it("uses a bounded tool-free review and forwards cancellation", async () => {
   const [request, options] = parse.mock.calls[0];
   expect(request.store).toBe(false);
   expect(request.tools).toBeUndefined();
-  expect(request.max_output_tokens).toBe(2500);
+  expect(request.max_output_tokens).toBe(4000);
   expect(options.signal).toBe(signal);
   expect(request.input[0].content).toContain("untrusted DATA");
   expect(request.text.format.schema.properties.reviews.items.required).toEqual(
     expect.arrayContaining(["answerLeakQuote", "serviceOutcome"]),
   );
+});
+it("records categorical quality failures without saving source, review prose or answers", async () => {
+  const rejected = verdict([1], "missing_evidence");
+  rejected.reviews[0].reason = "private source details must stay out of telemetry";
+  parse.mockResolvedValue({ output_parsed: rejected, model: "gpt-5.6-sol" });
+  const record = vi.fn();
+  const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+  try {
+    await expect(
+      assertProjectContentQuality(repository, content, AbortSignal.timeout(1000), record),
+    ).rejects.toMatchObject({ status: 502 });
+    expect(record).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        outcome: "success", // Provider succeeded; the independent semantic gate rejected it.
+        contentQuality: {
+          verdict: "rejected",
+          issues: [{ item: "code-0", code: "missing_evidence" }],
+        },
+      }),
+    );
+    expect(JSON.stringify([record.mock.calls, warning.mock.calls])).not.toContain("private source");
+    expect(JSON.stringify(record.mock.calls)).not.toContain("supportedChoices");
+    parse.mockResolvedValue({ output_parsed: verdict([0]), model: "gpt-5.6-sol" });
+    await assertProjectContentQuality(repository, content, AbortSignal.timeout(1000), record);
+    expect(record.mock.calls.at(-1)![0].contentQuality).toEqual({ verdict: "passed", issues: [] });
+  } finally {
+    warning.mockRestore();
+  }
 });
 
 const workshop = {

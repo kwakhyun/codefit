@@ -47,6 +47,14 @@ test("project learning: first answers, recovery, practice gate, transfer and acc
       },
     }),
   );
+  // The selected check is fetched separately from the paginated overview.
+  // Keep this fixture in the same workspace instead of leaking to the real auth route.
+  await page.route(`**/api/project-check/${id}`, (route) =>
+    route.fulfill({ json: { ...publicCheck(fixtureCheck), review } }),
+  );
+  await page.route(`**/api/project-check/${id}/thumbnail`, (route) =>
+    route.fulfill({ status: 204 }),
+  );
   await page.route("**/api/project-check/training**", async (route) => {
     if (route.request().method() === "GET")
       return route.fulfill({ json: await store.queries.projectLearning.get(owner, id) });

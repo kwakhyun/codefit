@@ -12,6 +12,11 @@ export interface AiRun {
   outputTokens: number | null;
   estimatedCostUsd: number | null;
   createdAt: string;
+  /** Categorical diagnostics only: never source, prose, answer keys or provider bodies. */
+  contentQuality?: {
+    verdict: "passed" | "rejected";
+    issues: { item: string; code: string }[];
+  };
 }
 export interface AiUsage {
   canGenerate: boolean;

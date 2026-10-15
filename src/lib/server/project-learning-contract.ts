@@ -8,6 +8,7 @@ import {
   projectExercisesSchema,
 } from "../project-check/generated-practice";
 import { workshopPlanSchema } from "../ai-learning/project-workshop";
+import { sourceStatements } from "./repository-source-statements";
 
 /** Only server-issued IDs can be cited; the model never writes paths or line numbers. */
 export function learningEvidence(repository: RepositorySnapshot) {
@@ -74,6 +75,27 @@ export function learningEvidence(repository: RepositorySnapshot) {
         evidence: lines.map((l) => sourceLine(file.path, l.number, l.text)).join("\n"),
       });
     }
+    // A nested conditional can straddle two fixed windows: one shows its test,
+    // the other the returned array. Offer the complete expression when it fits
+    // one citation instead of forcing a repair to swap one missing half for the other.
+    if (/\.[cm]?[jt]sx?$/.test(file.path))
+      for (const [index, line] of file.lines.entries()) {
+        if (!/^\s*:\s*[\w(]/.test(line.text)) continue;
+        const expression = sourceStatements(file.path, file.lines.slice(index))[0];
+        if (expression.length < 2) continue;
+        const evidence = expression.map((l) => sourceLine(file.path, l.number, l.text)).join("\n");
+        if (
+          evidence.length > 1100 ||
+          snippets.some((snippet) => snippet.evidence.includes(evidence))
+        )
+          continue;
+        snippets.push({
+          id: nextId(),
+          file: file.path,
+          code: expression.map((l) => `${l.number}: ${l.text}`).join("\n"),
+          evidence,
+        });
+      }
   }
   if (!snippets.length) throw new HttpError(422, "학습에 사용할 코드 근거가 없습니다.");
   const byId = new Map(snippets.map((s) => [s.id, s.evidence]));
@@ -126,9 +148,30 @@ export function learningEvidence(repository: RepositorySnapshot) {
     correctChoice: z.string().trim().min(1).max(160),
     distractors: z.array(z.string().trim().min(1).max(160)).min(1).max(3),
   };
-  const task = projectExercisesSchema.shape.code.element
-    .omit({ choices: true, answer: true, serviceScenario: true })
-    .extend({ evidence, guidance: practiceGuidanceSchema, ...quiz });
+  const fields = projectExercisesSchema.shape.code.element.shape;
+  // Generate evidence and the actual prediction before writing learning scaffolds.
+  // Otherwise the model often writes the tested result into an early goal/title.
+  const task = z
+    .object({
+      evidence,
+      situation: fields.situation,
+      assumptions: fields.assumptions,
+      question: fields.question,
+      ...quiz,
+      walkthrough: fields.walkthrough,
+      explanation: fields.explanation,
+      verification: fields.verification,
+      title: fields.title.describe(
+        "Neutral starting situation; do not state a result, including a partial result.",
+      ),
+      purpose: fields.purpose.describe(
+        "A reason to compare the possible outcomes, never which outcome happens or its benefit.",
+      ),
+      guidance: practiceGuidanceSchema.describe(
+        "Before submission, goal, terms and readingSteps must NOT state whether a call, return, write, deletion or recovery occurs. Point to conditions and alternative states to compare. Put all conclusions only in takeaway.",
+      ),
+    })
+    .strict();
   const topic = workshopPlanSchema.shape.topics.element
     .omit({ choices: true, answer: true })
     .extend({ evidence, ...quiz });
@@ -186,7 +229,17 @@ export function learningEvidence(repository: RepositorySnapshot) {
     practiceSchema: z
       .object({
         code: z.array(task).length(3),
-        service: z.array(task.extend({ serviceScenario: serviceScenarioSchema })).length(3),
+        service: z
+          .array(
+            z
+              .object({
+                evidence,
+                serviceScenario: serviceScenarioSchema,
+                ...task.omit({ evidence: true }).shape,
+              })
+              .strict(),
+          )
+          .length(3),
       })
       .strict(),
     workshopSchema: workshopPlanSchema.extend({ topics: z.array(topic).max(6) }),

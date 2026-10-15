@@ -258,6 +258,28 @@ it("rejects a checkpoint when the project was deleted during generation", async 
   expect(await store.queries.projectChecks.learningStage(owner, id, "practice", "code")).toBeNull();
 });
 
+it("keeps both request and stage leases valid while a long quality repair finishes", async () => {
+  const started = Date.now();
+  const now = vi.spyOn(Date, "now").mockReturnValue(started);
+  const service = new ProjectCheckService(store);
+  const advance = () =>
+    service.advanceLearning(owner, "net", id, "practice", AbortSignal.timeout(5000));
+  vi.mocked(generateProjectExercises).mockImplementation(async () => {
+    now.mockReturnValue(started + 170_000); // Past the former 150-second lease.
+    await expect(advance()).rejects.toMatchObject({ status: 409 });
+    return exercises;
+  });
+  try {
+    expect(await advance()).toMatchObject({ status: "pending", completed: 1 });
+    expect(
+      await store.queries.projectChecks.learningStage(owner, id, "practice", "code"),
+    ).not.toBeNull();
+    expect(generateProjectExercises).toHaveBeenCalledTimes(1);
+  } finally {
+    now.mockRestore();
+  }
+});
+
 it("lets a guest analyze one repository, generate both learning bundles and then reach its limit", async () => {
   const snapshot = (await store.queries.projectChecks.get(owner, id))!;
   const ai = {

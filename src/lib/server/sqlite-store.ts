@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { checkCodeRevision, existingClaim, ownsJob, StaleJob } from "./write-conflicts";
 import { StoreQueries } from "./store-queries";
 import { authSchema } from "./auth-schema.mjs";
-import { generationAllowance, GENERATION_LEASE_MS, generationDay } from "./generation-quota";
+import { generationAllowance, generationLeaseMs, generationDay } from "./generation-quota";
 import { catalogColumns, catalogValues } from "./catalog-record";
 import { validateLimits } from "./usage-policy";
 import { mkdirSync } from "node:fs";
@@ -308,7 +308,7 @@ export class SqliteStore implements ProblemStore {
         .prepare(
           "INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES (?,?,?,'pending',NULL,?,?,?) ON CONFLICT(id) DO UPDATE SET state='pending',result=NULL,expires=excluded.expires,token=excluded.token",
         )
-        .run(id, owner, kind, Date.now() + GENERATION_LEASE_MS, lease.token, fingerprint);
+        .run(id, owner, kind, Date.now() + generationLeaseMs(kind), lease.token, fingerprint);
       return { state: "new", lease };
     });
   }

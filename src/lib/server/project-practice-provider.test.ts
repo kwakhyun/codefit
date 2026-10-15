@@ -1,6 +1,9 @@
 import { expect, it, vi } from "vitest";
 import { fixtureCheck } from "../project-check/fixtures";
 import { generateProjectExercises } from "./ai-project-check";
+vi.mock("./project-practice-guidance", () => ({
+  refinePracticeGuidance: vi.fn(async (exercises) => exercises),
+}));
 const { parse } = vi.hoisted(() => ({ parse: vi.fn() }));
 vi.mock("./project-content-quality", async (original) => ({
   ...(await original<typeof import("./project-content-quality")>()),
@@ -146,12 +149,100 @@ for (const mode of ["code", "service"] as const) {
     );
     const repairedInput = JSON.parse(parse.mock.calls[1][0].input[1].content[0].text);
     expect(repairedInput.repair.findings[0].reason).toBe("반환 근거 누락");
+    expect(repairedInput.repair.strategy).toBe("correct");
+    expect(parse.mock.calls[1][0].reasoning.effort).toBe("medium");
+    parse.mockClear();
+    vi.mocked(assertProjectContentQuality)
+      .mockRejectedValueOnce(issue)
+      .mockRejectedValueOnce(issue)
+      .mockResolvedValueOnce();
+    parse
+      .mockResolvedValueOnce(output)
+      .mockResolvedValueOnce(revision)
+      .mockResolvedValueOnce({
+        output_parsed: {
+          ...revision.output_parsed,
+          [mode]: [{ ...task, question: "다른 저장 조건의 결과는?" }, null, null],
+        },
+      });
+    const replaced = await generateProjectExercises(check, new AbortController().signal, mode);
+    expect(replaced[mode][0].question).toBe("다른 저장 조건의 결과는?");
+    expect(replaced[mode].slice(1)).toEqual(result[mode].slice(1));
+    expect(parse).toHaveBeenCalledTimes(3);
+    expect(JSON.parse(parse.mock.calls[2][0].input[1].content[0].text).repair.strategy).toBe(
+      "replace",
+    );
+    expect(assertProjectContentQuality).toHaveBeenLastCalledWith(
+      check.page.repository,
+      { exercises: replaced, previous: undefined },
+      expect.any(AbortSignal),
+    );
+    parse.mockClear();
+    const leak = new ContentQualityError([
+      {
+        ...issue.findings[0],
+        issue: "answer_leak",
+        answerLeakQuote: "기존 결과",
+        supportedChoices: [result[mode][0].answer],
+        serviceOutcome: mode === "service" ? "observable" : null,
+      },
+    ]);
+    vi.mocked(assertProjectContentQuality).mockRejectedValueOnce(leak).mockResolvedValueOnce();
+    parse.mockResolvedValueOnce(output).mockResolvedValueOnce({
+      output_parsed: {
+        ...revision.output_parsed,
+        [mode]: [
+          {
+            ...task,
+            question: result[mode][0].question,
+            title: "요청 조건 비교하기",
+            correctChoice: "model attempted to change the answer",
+            distractors: ["another answer"],
+            explanation: "model attempted to change the explanation",
+          },
+          null,
+          null,
+        ],
+      },
+    });
+    const clarified = await generateProjectExercises(check, new AbortController().signal, mode);
+    expect(JSON.parse(parse.mock.calls[1][0].input[1].content[0].text).repair.strategy).toBe(
+      "clarify",
+    );
+    expect(clarified[mode][0].title).toBe("요청 조건 비교하기");
+    expect(clarified[mode][0].choices).toEqual(result[mode][0].choices);
+    expect(clarified[mode][0].answer).toBe(result[mode][0].answer);
+    expect(clarified[mode][0].explanation).toBe(result[mode][0].explanation);
+    expect(clarified[mode][0].evidence).toEqual(result[mode][0].evidence);
     parse.mockClear();
     vi.mocked(assertProjectContentQuality).mockRejectedValue(issue);
     await expect(generateProjectExercises(check, new AbortController().signal, mode)).rejects.toBe(
       issue,
     );
-    expect(parse).toHaveBeenCalledTimes(2); // Never retry indefinitely or return the draft.
+    expect(parse).toHaveBeenCalledTimes(4); // Never retry indefinitely or return the draft.
+    parse.mockClear();
+    const clock = vi.spyOn(performance, "now").mockReturnValueOnce(0).mockReturnValue(170_000);
+    try {
+      await expect(
+        generateProjectExercises(check, new AbortController().signal, mode),
+      ).rejects.toBe(issue);
+      expect(parse).toHaveBeenCalledTimes(1); // Insufficient time for correction + review.
+    } finally {
+      clock.mockRestore();
+    }
+    parse.mockClear();
+    vi.mocked(assertProjectContentQuality).mockRejectedValue(new Error("review offline"));
+    await expect(
+      generateProjectExercises(check, new AbortController().signal, mode),
+    ).rejects.toThrow("review offline");
+    expect(parse).toHaveBeenCalledTimes(1);
+    parse.mockClear();
+    const cancelled = new AbortController();
+    cancelled.abort();
+    await expect(generateProjectExercises(check, cancelled.signal, mode)).rejects.toMatchObject({
+      name: "AbortError",
+    });
+    expect(parse).not.toHaveBeenCalled();
     vi.mocked(assertProjectContentQuality).mockReset();
     for (const slots of [
       [null, null, null],

@@ -1,3 +1,4 @@
+import { PRACTICE_GENERATION_TIMEOUT_MS } from "../../src/lib/project-check/practice-generation-policy";
 import OpenAI from "openai";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
@@ -76,6 +77,13 @@ export function safeContentFailure(error: unknown) {
         }),
       ),
     };
+  if (error instanceof OpenAI.APIConnectionTimeoutError)
+    return { errorType: "TimeoutError", reason: "The provider request exceeded its time limit." };
+  if (error instanceof OpenAI.APIUserAbortError)
+    return {
+      errorType: "AbortError",
+      reason: "The provider request was cancelled by the stage signal.",
+    };
   if (error instanceof OpenAI.APIError)
     return {
       errorType: "ProviderError",
@@ -104,6 +112,7 @@ function usage(runs: AiRun[]) {
   return {
     requests: runs.length,
     failedRequests: runs.filter((run) => run.outcome === "error").length,
+    qualityRejections: runs.filter((run) => run.contentQuality?.verdict === "rejected").length,
     models: [...new Set(runs.map((run) => run.model))],
     inputTokens: runs.reduce((sum, run) => sum + (run.inputTokens ?? 0), 0),
     outputTokens: runs.reduce((sum, run) => sum + (run.outputTokens ?? 0), 0),
@@ -245,7 +254,9 @@ export async function evaluateProjectContent(
       continue;
     }
     const started = performance.now();
-    const signal = AbortSignal.timeout(105_000);
+    const signal = AbortSignal.timeout(
+      name === "code" || name === "service" ? PRACTICE_GENERATION_TIMEOUT_MS : 105_000,
+    );
     entry.requestId = randomUUID();
     await persist();
     try {

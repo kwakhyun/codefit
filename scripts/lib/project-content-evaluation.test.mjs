@@ -183,6 +183,14 @@ it("retains specific quality findings but never provider secrets or bodies", () 
   const provider = new OpenAI.APIError(429, { message: secret }, secret, new Headers());
   expect(safeContentFailure(provider)).toMatchObject({ errorType: "ProviderError", status: 429 });
   expect(JSON.stringify(safeContentFailure(provider))).not.toContain(secret);
+  expect(safeContentFailure(new OpenAI.APIConnectionTimeoutError({ message: secret }))).toEqual({
+    errorType: "TimeoutError",
+    reason: "The provider request exceeded its time limit.",
+  });
+  expect(safeContentFailure(new OpenAI.APIUserAbortError({ message: secret }))).toEqual({
+    errorType: "AbortError",
+    reason: "The provider request was cancelled by the stage signal.",
+  });
   const quality = new ContentQualityError([
     {
       id: "code-0",

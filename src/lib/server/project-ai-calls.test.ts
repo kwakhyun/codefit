@@ -146,16 +146,37 @@ it("records and budgets both generation and review, then reuses completed stages
   for (const mode of ["code", "service"] as const)
     parse
       .mockResolvedValueOnce(response(practice(mode)))
+      .mockImplementationOnce((request) =>
+        response({
+          items: JSON.parse(request.input[1].content).items.map(
+            ({
+              id,
+              title,
+              purpose,
+              guidance,
+            }: {
+              id: string;
+              title: string;
+              purpose: string;
+              guidance: { takeaway?: string };
+            }) => {
+              const { takeaway, ...shown } = guidance;
+              void takeaway;
+              return { id, title, purpose, guidance: shown };
+            },
+          ),
+        }),
+      )
       .mockImplementationOnce((request) => review(request));
   expect(await advance("practice")).toMatchObject({ status: "pending" });
-  expect(runs()).toHaveLength(2);
-  expect(count()).toBe(2);
+  expect(runs()).toHaveLength(3);
+  expect(count()).toBe(3);
   const saved = await advance("practice");
   expect(saved.status).toBe("done");
   expect(await advance("practice")).toEqual(saved);
-  expect(parse).toHaveBeenCalledTimes(4);
-  expect(count()).toBe(4);
-  expect(runs()).toHaveLength(4);
+  expect(parse).toHaveBeenCalledTimes(6);
+  expect(count()).toBe(6);
+  expect(runs()).toHaveLength(6);
   expect(
     runs().every(
       (run) =>

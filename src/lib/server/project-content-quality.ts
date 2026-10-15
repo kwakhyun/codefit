@@ -237,18 +237,18 @@ export async function reviewProjectContent(
   });
   return withAiTelemetry(
     "project",
-    "2026-10-15.project.content-quality-v6",
+    "2026-10-15.project.content-quality-v7",
     async (capture) => {
       const response = await new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
-        timeout: 30_000,
+        timeout: "exercises" in content ? 45_000 : 30_000,
         maxRetries: 0,
       }).responses.parse(
         {
           model,
           store: false,
-          reasoning: { effort: "low" },
-          max_output_tokens: 2500,
+          reasoning: { effort: "exercises" in content ? "medium" : "low" },
+          max_output_tokens: "exercises" in content ? 4000 : 2500,
           input: [
             {
               role: "developer",
@@ -268,7 +268,11 @@ export async function reviewProjectContent(
           "콘텐츠 품질 검사 응답을 확인하지 못했습니다. 다시 생성해 주세요.",
         );
       // Also reject duplicate IDs: an array length alone does not establish coverage.
-      contentReviewFailures(content, parsed.data);
+      const failures = contentReviewFailures(content, parsed.data);
+      capture(response, {
+        verdict: failures.length ? "rejected" : "passed",
+        issues: failures.map(({ id, issue }) => ({ item: id, code: issue })),
+      });
       return parsed.data;
     },
     record,

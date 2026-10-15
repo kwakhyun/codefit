@@ -21,7 +21,12 @@ export function withAiCallContext<T>(
 export async function withAiTelemetry<T>(
   operation: AiRun["operation"],
   promptVersion: string,
-  task: (capture: (response: Pick<Response, "usage" | "model">) => void) => Promise<T>,
+  task: (
+    capture: (
+      response: Pick<Response, "usage" | "model">,
+      quality?: AiRun["contentQuality"],
+    ) => void,
+  ) => Promise<T>,
   record?: RunRecorder,
   model = aiModel(operation),
 ): Promise<T> {
@@ -44,8 +49,9 @@ export async function withAiTelemetry<T>(
     createdAt: new Date().toISOString(),
   };
   try {
-    const result = await task((response) => {
+    const result = await task((response, quality) => {
       run.model = response.model;
+      if (quality) run.contentQuality = quality;
       if (response.usage) {
         run.inputTokens = response.usage.input_tokens;
         run.cachedInputTokens = response.usage.input_tokens_details.cached_tokens;
@@ -62,6 +68,12 @@ export async function withAiTelemetry<T>(
     return result;
   } finally {
     run.latencyMs = Math.round(performance.now() - started);
+    if (run.contentQuality?.verdict === "rejected")
+      console.warn("Project content quality rejected", {
+        runId: run.id,
+        requestId: run.requestId,
+        issues: run.contentQuality.issues,
+      });
     try {
       await (record ?? context?.record)?.(run);
     } catch {

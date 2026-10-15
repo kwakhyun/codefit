@@ -5,6 +5,26 @@ import { checkListItem } from "../project-check/types";
 import { fixtureCheck, fixtureAssessment } from "../project-check/fixtures";
 /** The same private-result SQL and fencing contract runs against either adapter. */
 export function projectContract(getStore: () => ProblemStore) {
+  it("holds practice generation leases through repair and permits recovery after expiry", async () => {
+    const store = getStore(),
+      owner = `user:${randomUUID()}`,
+      started = Date.now();
+    const now = vi.spyOn(Date, "now").mockReturnValue(started);
+    try {
+      const kinds = ["project-practice:example", "project-learning-stage:example"];
+      const ids = kinds.map(() => randomUUID());
+      for (const [index, kind] of kinds.entries())
+        expect((await store.startJob(owner, ids[index], kind, "same")).state).toBe("new");
+      now.mockReturnValue(started + 170_000);
+      for (const [index, kind] of kinds.entries())
+        expect((await store.startJob(owner, ids[index], kind, "same")).state).toBe("pending");
+      now.mockReturnValue(started + 241_000);
+      for (const [index, kind] of kinds.entries())
+        expect((await store.startJob(owner, ids[index], kind, "same")).state).toBe("new");
+    } finally {
+      now.mockRestore();
+    }
+  });
   it("edits class metadata without changing source or answers, detects conflicts, and backs it up", async () => {
     const store = getStore(),
       owner = `user:${randomUUID()}`,
