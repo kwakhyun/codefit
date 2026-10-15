@@ -206,7 +206,10 @@ for (const width of [1440, 390]) {
     await page.getByRole("button", { name: "기록 저장", exact: true }).click();
     await expect(page.getByText("연습 기록을 저장했습니다.", { exact: true })).toBeVisible();
     await page.reload();
-    await expect(page.getByText("내가 적은 이유: 버튼을 두 번 눌렀기 때문입니다.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "3. 설명하기", exact: true })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: /내 설명 또는 실제 확인 기록/ })).toHaveValue(
+      "같은 요청의 결과를 다시 돌려줍니다. 테스트는 확인 예정입니다.",
+    );
     expect(learning.progress.service[0].note).toContain("확인 예정");
   });
 }

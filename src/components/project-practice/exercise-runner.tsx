@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { usePracticeDraft } from "@/hooks/use-practice-draft";
 import { api, errorMessage } from "@/lib/client-api";
 import type { Check } from "@/lib/project-check/types";
 import type { GeneratedPractice, PracticeMode } from "@/lib/project-check/generated-practice";
@@ -33,20 +34,19 @@ export function ExerciseRunner({
 }) {
   const responses = saved.progress[mode],
     tasks = saved.exercises[mode];
-  const first = responses.findIndex((r) => !r.completed);
-  const [index, setIndex] = useState(first >= 0 ? first : Math.min(responses.length, 2));
-  const [stage, setStage] = useState(
-    responses[first >= 0 ? first : Math.min(responses.length, 2)] ? 1 : 0,
-  );
-  const [reason, setReason] = useState("");
-  const [choice, setChoice] = useState<number | null>(null);
-  const [note, setNote] = useState<string | null>(null);
+  const draft = usePracticeDraft(scope, check.id, mode, saved);
+  const {
+    index,
+    entry: { stage, reason, choice, note },
+  } = draft;
+  const setStage = (stage: number) => draft.update({ stage });
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const lock = useRef(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const stageHeading = useRef<HTMLHeadingElement>(null);
+  const completeHeading = useRef<HTMLHeadingElement>(null);
   const previousStage = useRef(stage);
   const previousIndex = useRef(index);
   useEffect(() => {
@@ -61,6 +61,14 @@ export function ExerciseRunner({
     response = responses[index];
   const service = mode === "service";
   const completed = responses.filter((r) => r.completed).length;
+  const previousCompleted = useRef(completed);
+  useEffect(() => {
+    if (previousCompleted.current < 3 && completed === 3) {
+      completeHeading.current?.focus();
+      completeHeading.current?.scrollIntoView({ block: "center", behavior: "auto" });
+    }
+    previousCompleted.current = completed;
+  }, [completed]);
   const sourcePanel = (
     <div className="practice-study-source">
       <h3>{service ? "이 동작을 설명하는 코드 근거" : "결과의 근거가 되는 원본 코드"}</h3>
@@ -101,16 +109,17 @@ export function ExerciseRunner({
     ? ["상황을 보고 내 생각 남기기", "예상과 서비스 결과 비교", "원리와 확인 방법 정리"]
     : stages.map((item) => item.description);
   async function save(finish: boolean) {
-    if (lock.current) return;
+    if (lock.current || draft.conflict) return;
     const answer = response?.choice ?? choice;
     if (answer === null) return;
+    const token = draft.capture();
     lock.current = true;
     setBusy(true);
     setError("");
     const progress = [...responses];
     progress[index] = {
       choice: answer,
-      note: note ?? response?.note ?? "",
+      note,
       predictionReason: response?.predictionReason ?? reason,
       completed: finish || response?.completed || false,
     };
@@ -120,16 +129,9 @@ export function ExerciseRunner({
         scope,
         body: { mode, revision: saved.revision, progress },
       });
+      draft.acknowledge(result, index, token, finish);
       onSaved(result);
       setNotice("연습 기록을 저장했습니다.");
-      if (!response) setStage(1);
-      if (finish && index < 2) {
-        setIndex(index + 1);
-        setStage(0);
-        setReason("");
-        setChoice(null);
-        setNote(null);
-      }
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -150,11 +152,9 @@ export function ExerciseRunner({
             disabled={busy || (i > 0 && !responses[i - 1]?.completed)}
             aria-current={i === index ? "step" : undefined}
             onClick={() => {
-              setIndex(i);
-              setStage(responses[i] ? 1 : 0);
-              setReason("");
-              setChoice(null);
-              setNote(null);
+              draft.select(i);
+              setNotice("");
+              setError("");
             }}
           >
             {i + 1}. {t.title}
@@ -168,11 +168,30 @@ export function ExerciseRunner({
         <h2 ref={heading} tabIndex={-1}>
           {task.title}
         </h2>
+        {draft.storageError && (
+          <p role="status">
+            이 브라우저에 초안을 보관하지 못했습니다. 화면을 떠나기 전에 예상이나 기록을 저장해
+            주세요.
+          </p>
+        )}
+        {draft.conflict && (
+          <div role="status">
+            <p>
+              다른 곳에서 저장한 기록이 있어 저장된 내용을 먼저 보여드립니다. 이전에 작성한 초안을
+              불러올 수 있습니다.
+              {response ? " 첫 예상은 저장된 답변을 유지합니다." : ""}
+            </p>
+            <div className="practice-origin">
+              <Button onClick={() => draft.resolve(true)}>내 초안 불러오기</Button>
+              <Button onClick={() => draft.resolve(false)}>저장된 기록 유지</Button>
+            </div>
+          </div>
+        )}
         <nav className="practice-stages" aria-label="문제 학습 단계">
           {stages.map((item, i) => (
             <Button
               key={item.title}
-              disabled={busy || (i > 0 && !response)}
+              disabled={busy || draft.conflict || (i > 0 && !response)}
               aria-current={stage === i ? "step" : undefined}
               onClick={() => setStage(i)}
             >
@@ -244,7 +263,7 @@ export function ExerciseRunner({
               )}
               {stage === 0 ? (
                 <div className="practice-prediction">
-                  <fieldset disabled={busy || !!response}>
+                  <fieldset disabled={busy || draft.conflict || !!response}>
                     <legend>{task.question}</legend>
                     <p className="muted">
                       {service
@@ -257,7 +276,7 @@ export function ExerciseRunner({
                           type="radio"
                           name={`prediction-${index}`}
                           checked={(response?.choice ?? choice) === i}
-                          onChange={() => setChoice(i)}
+                          onChange={() => draft.update({ choice: i })}
                         />
                         <span>{text}</span>
                       </label>
@@ -272,14 +291,14 @@ export function ExerciseRunner({
                     maxLength={800}
                     value={response?.predictionReason ?? reason}
                     readOnly={!!response}
-                    disabled={busy}
+                    disabled={busy || draft.conflict}
                     placeholder="눈여겨본 조건이나 값이 있다면 적어보세요."
-                    onChange={(e) => setReason(e.target.value)}
+                    onChange={(e) => draft.update({ reason: e.target.value })}
                   />
                   <p className="muted">첫 예상은 비교 단계에서도 보관됩니다.</p>
                   <Button
                     className="primary-button"
-                    disabled={busy || (!response && choice === null)}
+                    disabled={busy || draft.conflict || (!response && choice === null)}
                     onClick={() => (response ? setStage(1) : save(false))}
                   >
                     {busy
@@ -337,7 +356,11 @@ export function ExerciseRunner({
                         </p>
                       )}
                     </div>
-                    <Button className="primary-button" onClick={() => setStage(2)}>
+                    <Button
+                      className="primary-button"
+                      disabled={busy || draft.conflict}
+                      onClick={() => setStage(2)}
+                    >
                       내 말로 설명하기
                     </Button>
                   </div>
@@ -366,9 +389,10 @@ export function ExerciseRunner({
               id={`practice-note-${index}`}
               rows={4}
               maxLength={2000}
-              value={note ?? response.note}
+              value={note}
+              disabled={busy || draft.conflict}
               onChange={(e) => {
-                setNote(e.target.value);
+                draft.update({ note: e.target.value });
                 setNotice("");
               }}
               placeholder="어떤 조건이 결과를 결정했나요? 조건을 바꾸면 어떻게 될까요? 실제 확인한 내용은 따로 적어보세요."
@@ -377,10 +401,14 @@ export function ExerciseRunner({
               직접 확인하기 전에는 확인 예정으로 기록하세요. 이 기록은 AI가 채점하지 않습니다.
             </p>
             <div className="practice-origin">
-              <Button disabled={busy} onClick={() => save(false)}>
+              <Button disabled={busy || draft.conflict} onClick={() => save(false)}>
                 {busy ? "저장 중…" : "기록 저장"}
               </Button>
-              <Button className="primary-button" disabled={busy} onClick={() => save(true)}>
+              <Button
+                className="primary-button"
+                disabled={busy || draft.conflict}
+                onClick={() => save(true)}
+              >
                 {index < 2 ? "이해했어요, 다음 상황으로" : "연습 마치기"}
               </Button>
             </div>
@@ -417,7 +445,9 @@ export function ExerciseRunner({
       {notice && <p role="status">{notice}</p>}
       {completed === 3 && (
         <Card className="practice-complete" role="status">
-          <h2>내 프로젝트의 세 가지 상황을 살펴봤어요</h2>
+          <h2 ref={completeHeading} tabIndex={-1}>
+            내 프로젝트의 세 가지 상황을 살펴봤어요
+          </h2>
           <p>
             예상과 해설, 확인 기록이 저장되었습니다. 다음에는 실제 테스트 환경에서 결과를 확인해
             기록을 보완해 보세요.

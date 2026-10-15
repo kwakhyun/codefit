@@ -6,7 +6,9 @@ import type { Check, CheckOverview } from "@/lib/project-check/types";
 import { z } from "zod";
 export type UpdateOverview = (update: (current: CheckOverview) => CheckOverview) => void;
 export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview) {
-  const selected = useSearchParams().get("check");
+  const params = useSearchParams();
+  const selected = params.get("check");
+  const newProject = params.get("new") === "1";
   const selectionKey = `codefit-project-selection:${data.scope}`;
   const initialized = useRef(false);
   const [detail, setDetail] = useState<{ id: string; check?: Check; error?: string }>();
@@ -20,7 +22,7 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
     // are explicit navigation and must never be replaced by an older selection.
     if (!initialized.current) {
       initialized.current = true;
-      if (!selected) {
+      if (!selected && !newProject) {
         try {
           const saved = z.uuid().safeParse(sessionStorage.getItem(selectionKey));
           if (saved.success) {
@@ -38,7 +40,7 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
     } catch {
       // The server record and its direct URL remain usable when tab storage is blocked.
     }
-  }, [selected, selectionKey]);
+  }, [selected, selectionKey, newProject]);
   useEffect(() => {
     // A refreshed first page invalidates any in-flight older-page request.
     pageRequest.current?.abort();
@@ -87,9 +89,14 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
       else sessionStorage.removeItem(selectionKey);
     } catch {}
     const url = new URL(window.location.href);
-    if (id) url.searchParams.set("check", id);
-    else url.searchParams.delete("check");
-    url.hash = "";
+    if (id) {
+      url.searchParams.set("check", id);
+      url.searchParams.delete("new");
+    } else {
+      url.searchParams.delete("check");
+      url.searchParams.set("new", "1");
+    }
+    url.hash = id ? "" : "project-register";
     if (url.href === window.location.href) return;
     window.history[replace ? "replaceState" : "pushState"](null, "", url);
   }

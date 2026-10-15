@@ -247,7 +247,7 @@ function ClassList({
               placeholder="클래스 이름, 학습 목표 또는 주소"
             />
           </div>
-          <AppLink className="primary-button" href="/project-check">
+          <AppLink className="primary-button" href="/project-check?new=1#project-register">
             새 프로젝트 분석 <ArrowRight size={18} />
           </AppLink>
         </div>
@@ -297,7 +297,7 @@ function ClassList({
             프로젝트를 한 번 분석하면 자동으로 저장됩니다. 질문에 답하고, 실제 코드로 연습하고,
             언제든 이어서 학습하세요.
           </p>
-          <AppLink href="/project-check" className="primary-button">
+          <AppLink href="/project-check?new=1#project-register" className="primary-button">
             첫 프로젝트 연결하기
           </AppLink>
         </Card>

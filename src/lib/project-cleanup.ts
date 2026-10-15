@@ -14,6 +14,9 @@ export function forgetProjects(scope: string, ids: string[]) {
         ids.some(
           (id) =>
             key === `codefit-project:${scope}:${id}` ||
+            key.startsWith(
+              `codefit-practice:${encodeURIComponent(scope)}:${encodeURIComponent(id)}:`,
+            ) ||
             key.startsWith(`codefit-training:${scope}:${id}:`) ||
             key.startsWith(`codefit-follow-up:${scope}:${id}`),
         )

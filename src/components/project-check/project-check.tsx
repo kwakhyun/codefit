@@ -36,6 +36,7 @@ import { ProjectExample } from "./project-example";
 import { ProjectLearning } from "@/components/project-learning/project-learning";
 import { GuestLogin } from "@/components/account/guest-login";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useSearchParams } from "next/navigation";
 import { AppLink as Link } from "@/components/ui/primitives";
 import {
   ArrowRight,
@@ -177,6 +178,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
   const { confirm, confirmation } = useConfirmation();
   const history = useProjectHistory(data, onChange);
   const { selected, check, select } = history;
+  const newProject = useSearchParams().get("new") === "1";
   const fade = useFadeTransition<HTMLDivElement>(selected || "new");
   const alive = useRef(true);
   const activeMutation = useRef(false);
@@ -221,7 +223,15 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
     return subscribeAnalysis(follow);
   }, [data.scope]);
   const resultHeading = useRef<HTMLHeadingElement>(null);
+  const registrationHeading = useRef<HTMLHeadingElement>(null);
   const historyPanel = useRef<HTMLDetailsElement>(null);
+  function focusRegistration() {
+    registrationHeading.current?.focus({ preventScroll: true });
+    registrationHeading.current?.scrollIntoView({ block: "center", behavior: "instant" });
+  }
+  useEffect(() => {
+    if (!selected && newProject) focusRegistration();
+  }, [selected, newProject]);
   useEffect(() => {
     if (selected && historyPanel.current) historyPanel.current.open = false;
   }, [selected]);
@@ -430,6 +440,8 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
               setError("");
               setNotice("");
               select(null);
+              if (historyPanel.current) historyPanel.current.open = false;
+              if (!selected) focusRegistration();
             }}
           >
             {analysisExhausted ? "+ 다음 프로젝트 초안 작성" : "+ 새 프로젝트 점검"}
@@ -439,7 +451,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
           >
             내 프로젝트 클래스 관리 →
           </AppLink>
-          <Disclosure ref={historyPanel} className="project-history-list" open={!selected}>
+          <Disclosure ref={historyPanel} className="project-history-list" open={history.missing}>
             <DisclosureSummary>
               <FolderOpen size={18} aria-hidden="true" />
               <strong>점검 기록</strong>
@@ -507,7 +519,9 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
           ) : !check ? (
             <>
               <form className="project-panel project-form" onSubmit={create}>
-                <h2>어떤 프로젝트를 살펴볼까요?</h2>
+                <h2 id="project-register" ref={registrationHeading} tabIndex={-1}>
+                  어떤 프로젝트를 살펴볼까요?
+                </h2>
                 {analysisExhausted && (
                   <Card
                     as="section"

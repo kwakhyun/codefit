@@ -9,6 +9,7 @@ import { RenewProject } from "@/components/project-check/renew-project";
 import { api, errorMessage } from "@/lib/client-api";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import type { GeneratedPractice, PracticeMode } from "@/lib/project-check/generated-practice";
+import { practiceContent } from "@/lib/project-check/practice-draft";
 import {
   AppLink,
   Button,
@@ -401,12 +402,16 @@ function PracticeWorkspace({
             </Card>
           ) : (
             <ExerciseRunner
-              key={mode}
+              key={`${data.scope}:${check.id}:${mode}:${practiceContent(saved, mode)}`}
               check={check}
               mode={mode}
               saved={saved}
               scope={data.scope}
-              onSaved={setSaved}
+              onSaved={(next) =>
+                setSaved((current) =>
+                  current && current.revision > next.revision ? current : next,
+                )
+              }
             />
           )}
           {saved && (
