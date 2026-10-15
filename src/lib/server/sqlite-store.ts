@@ -10,6 +10,15 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { seedProblems } from "../../data/problems";
 import type { Backup } from "../backup";
+import type { BackupPartRequest } from "../backup-bundle";
+import {
+  buildBackupParts,
+  bundleReceipt,
+  bundleImportLimits,
+  backupVolumeLimits,
+  importLimited,
+  validateBackupPart,
+} from "./backup-transfer";
 import {
   backupReads,
   backupParameters,
@@ -335,6 +344,36 @@ export class SqliteStore implements ProblemStore {
         backupReads.map((sql, i) => this.db.prepare(sql).all(...backupParameters(i, owner))),
       ),
     );
+  }
+  exportBackupParts(owner: string, exportedAt: string) {
+    return this.transaction(() =>
+      buildBackupParts(
+        backupReads.map((sql, i) =>
+          this.db.prepare(sql.replace(/ LIMIT \d+$/, "")).all(...backupParameters(i, owner)),
+        ),
+        exportedAt,
+      ),
+    );
+  }
+  importBackupPart(owner: string, input: BackupPartRequest, network: string) {
+    validateBackupPart(input);
+    return this.transaction(() => {
+      const receipt = bundleReceipt(owner, input);
+      const existing = this.db
+        .prepare("SELECT expires FROM jobs WHERE id=? AND owner=? AND kind=?")
+        .get(receipt.id, owner, receipt.kind);
+      const fresh = !existing || Number(existing.expires) <= Date.now();
+      if (!this.consumeLimits(bundleImportLimits(owner, network, fresh))) throw importLimited();
+      const result = this.importBackup(owner, input.backup);
+      if (!this.consumeLimits(backupVolumeLimits(owner, network, result))) throw importLimited();
+      if (fresh)
+        this.db
+          .prepare(
+            "INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES (?,?,?,'done',NULL,?,'','') ON CONFLICT(id) DO UPDATE SET expires=excluded.expires",
+          )
+          .run(receipt.id, owner, receipt.kind, Date.now() + 86_400_000);
+      return result;
+    });
   }
   importBackup(owner: string, backup: Backup) {
     const extra = prepareBackup(backup);

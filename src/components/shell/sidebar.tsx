@@ -113,19 +113,17 @@ export function Sidebar({
             </strong>
           </span>
         </div>
-        {type === "code" && (
-          <Button
-            className="nav-item"
-            onClick={(event) => {
-              // Safari does not focus buttons on pointer activation; retain a dialog return target.
-              event.currentTarget.focus();
-              setSettingsOpen(true);
-            }}
-          >
-            <Settings2 size={17} />
-            <span>환경 설정</span>
-          </Button>
-        )}
+        <Button
+          className="nav-item"
+          onClick={(event) => {
+            // Safari does not focus buttons on pointer activation; retain a dialog return target.
+            event.currentTarget.focus();
+            setSettingsOpen(true);
+          }}
+        >
+          <Settings2 size={17} />
+          <span>환경 설정</span>
+        </Button>
       </div>
     </aside>
   );

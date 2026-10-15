@@ -1,5 +1,8 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { jevDecide } from "./jev";
+import { withAiCallContext } from "./ai-telemetry";
+import { buildCodeGuide } from "./jev-code-guide";
+import type { JevQuestion } from "./jev";
 const questions = {
   q: { type: "choice" as const, instructions: "Classify", criteria: { yes: "yes", no: "no" } },
 };
@@ -83,4 +86,156 @@ it("accepts a native Noul probability and rejects wrong types and out-of-range v
 it("discards unsolicited answers so they cannot trigger additional actions", async () => {
   setup({ ...valid, answers: { ...valid.answers, extra: { type: "noul", noul: 0 } } });
   expect(await jevDecide({}, questions, new AbortController().signal)).toEqual(valid.answers);
+});
+
+it("records TypeSafe's actual model and token usage under the owning request without inventing prices", async () => {
+  const fetcher = setup(valid);
+  vi.stubEnv("TYPESAFE_MODEL", "jev-latest");
+  const beforeCall = vi.fn(),
+    record = vi.fn();
+  const result = await withAiCallContext({ requestId: "project-request", beforeCall, record }, () =>
+    jevDecide({ source: "private code" }, questions, new AbortController().signal),
+  );
+  expect(result).toEqual(valid.answers);
+  expect(beforeCall).toHaveBeenCalledOnce();
+  expect(fetcher).toHaveBeenCalledOnce();
+  expect(record).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      requestId: "project-request",
+      operation: "project",
+      model: "jev-1.13.0",
+      outcome: "success",
+      promptVersion: "2026-10-15.project.code-guide.typesafe-v1",
+      inputTokens: 100,
+      outputTokens: 10,
+      estimatedCostUsd: null,
+    }),
+  );
+  expect(JSON.stringify(record.mock.calls)).not.toContain("private code");
+  expect(JSON.stringify(record.mock.calls)).not.toContain("test-key");
+});
+
+it.each(["network", "http", "json", "answer"])(
+  "records %s failure before returning the optional-guide fallback",
+  async (failure) => {
+    const fetcher = setup(valid);
+    if (failure === "network") fetcher.mockRejectedValue(new Error("private provider message"));
+    if (failure === "http")
+      fetcher.mockResolvedValue(
+        Response.json({ error: "private provider message" }, { status: 529 }),
+      );
+    if (failure === "json") fetcher.mockResolvedValue(new Response("not JSON"));
+    if (failure === "answer") fetcher.mockResolvedValue(Response.json({ ...valid, answers: {} }));
+    const beforeCall = vi.fn(),
+      record = vi.fn();
+    const result = await withAiCallContext(
+      { requestId: "failed-request", beforeCall, record },
+      () => jevDecide({}, questions, new AbortController().signal),
+    );
+    expect(result).toBeNull();
+    expect(beforeCall).toHaveBeenCalledOnce();
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(record).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        requestId: "failed-request",
+        model: "jev-1.13.0",
+        outcome: "error",
+        estimatedCostUsd: null,
+        inputTokens: failure === "answer" ? 100 : null,
+        outputTokens: failure === "answer" ? 10 : null,
+      }),
+    );
+    expect(JSON.stringify(record.mock.calls)).not.toContain("private provider message");
+  },
+);
+
+it.each(["no-key", "disabled", "no-questions", "size"])(
+  "does not reserve or record a provider attempt for %s skips",
+  async (reason) => {
+    const fetcher = setup(valid);
+    if (reason === "no-key") vi.stubEnv("TYPESAFE_API_KEY", "");
+    if (reason === "disabled") vi.stubEnv("TYPESAFE_ENABLED", "false");
+    const beforeCall = vi.fn(),
+      record = vi.fn();
+    expect(
+      await withAiCallContext({ requestId: "skipped-request", beforeCall, record }, () =>
+        jevDecide(
+          reason === "size" ? "가".repeat(30000) : {},
+          reason === "no-questions" ? {} : questions,
+          new AbortController().signal,
+        ),
+      ),
+    ).toBeNull();
+    expect(beforeCall).not.toHaveBeenCalled();
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(record).not.toHaveBeenCalled();
+  },
+);
+
+it("stops before fetch when the shared request budget rejects and does not record a paid attempt", async () => {
+  const fetcher = setup(valid);
+  const beforeCall = vi.fn().mockRejectedValue(new Error("budget exhausted")),
+    record = vi.fn();
+  expect(
+    await withAiCallContext({ requestId: "blocked-request", beforeCall, record }, () =>
+      jevDecide({}, questions, new AbortController().signal),
+    ),
+  ).toBeNull();
+  expect(beforeCall).toHaveBeenCalledOnce();
+  expect(fetcher).not.toHaveBeenCalled();
+  expect(record).not.toHaveBeenCalled();
+});
+
+it("applies the same request budget to every parallel code-guide batch", async () => {
+  const fetcher = setup(valid);
+  fetcher.mockImplementation(async (_url: string, input: RequestInit) => {
+    const body = JSON.parse(String(input.body)) as { questions: Record<string, JevQuestion> };
+    return Response.json({
+      ...valid,
+      answers: Object.fromEntries(
+        Object.entries(body.questions).map(([id, question]) => [
+          id,
+          question.type === "noul"
+            ? { type: "noul", noul: 0.99 }
+            : {
+                type: "choice",
+                choice: "access",
+                confidence: 1,
+                probabilities: Object.fromEntries(
+                  Object.keys(question.criteria).map((option) => [
+                    option,
+                    option === "access" ? 1 : 0,
+                  ]),
+                ),
+              },
+        ]),
+      ),
+    });
+  });
+  let available = 1;
+  const beforeCall = vi.fn(async () => {
+      if (available === 0) throw new Error("budget exhausted");
+      available--;
+    }),
+    record = vi.fn();
+  const result = await withAiCallContext(
+    { requestId: "analysis-with-guide", beforeCall, record },
+    () =>
+      buildCodeGuide(
+        Array.from({ length: 25 }, (_, i) => ({
+          id: String(i),
+          file: `auth-${i}.ts`,
+          code: "if (!user) throw Error();",
+          evidence: `auth-${i}.ts:L1 if (!user) throw Error();`,
+        })),
+        "Authentication",
+        new AbortController().signal,
+      ),
+  );
+  expect(result).toHaveLength(1);
+  expect(beforeCall).toHaveBeenCalledTimes(3);
+  expect(fetcher).toHaveBeenCalledOnce();
+  expect(record).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({ requestId: "analysis-with-guide", outcome: "success" }),
+  );
 });

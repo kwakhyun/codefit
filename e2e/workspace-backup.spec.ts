@@ -107,7 +107,7 @@ test("download and restore coding, beginner and project learning through account
     await expect(
       page.getByRole("heading", { name: fixtureCheck.analysis.title, exact: true }),
     ).toBeVisible();
-    await page.getByText("질문별 AI 피드백 5개 보기", { exact: true }).click();
+    await expect(page.locator(".project-feedback-list")).toHaveAttribute("open", "");
     await page.getByText("내 답변 보기", { exact: true }).first().click();
     await expect(page.getByText("내 설계 설명", { exact: true }).first()).toBeVisible();
     await page.reload();
@@ -115,6 +115,84 @@ test("download and restore coding, beginner and project learning through account
       page.getByRole("heading", { name: fixtureCheck.analysis.title, exact: true }),
     ).toBeVisible();
     expect(await target.store.queries.projectChecks.get(target.owner, id)).toBeNull();
+  } finally {
+    source.store.db.close();
+    target.store.db.close();
+  }
+});
+
+test("large backup downloads as one file and resumes an interrupted multi-part restore", async ({
+  page,
+  context,
+}) => {
+  const source = await testAccount(resolve("artifacts/e2e.sqlite"), E2E_BASE_URL);
+  const target = await testAccount(resolve("artifacts/e2e.sqlite"), E2E_BASE_URL);
+  const login = async (cookie: string) => {
+    const [name, ...value] = cookie.split("=");
+    await context.clearCookies();
+    await context.addCookies([
+      { name, value: value.join("="), url: E2E_BASE_URL, httpOnly: true, sameSite: "Lax" },
+    ]);
+  };
+  try {
+    source.store.db.prepare("DELETE FROM limits WHERE key LIKE 'import:%'").run();
+    for (let index = 0; index < 5; index++) {
+      const id = crypto.randomUUID();
+      const claim = source.store.startJob(source.owner, id, "project-analysis", id);
+      if (claim.state !== "new") throw Error();
+      await source.store.queries.projectChecks.complete(claim.lease, {
+        ...fixtureCheck,
+        id,
+        page: {
+          ...fixtureCheck.page,
+          captures: Array.from({ length: 3 }, () => ({
+            url: "https://example.com/",
+            title: "Fixture",
+            text: "",
+            screenshot: "A".repeat(270000),
+          })),
+        },
+      });
+    }
+    await login(source.cookie);
+    await page.goto("/");
+    await page.getByRole("button", { name: "환경 설정" }).click();
+    const downloading = page.waitForEvent("download");
+    await page.getByRole("button", { name: "내 학습 기록 내보내기", exact: true }).click();
+    const file = await readFile((await (await downloading).path())!);
+    const bundle = JSON.parse(file.toString());
+    expect(file.byteLength).toBeGreaterThan(4_000_000);
+    expect(bundle.version).toBe(4);
+    expect(bundle.parts).toHaveLength(2);
+    await login(target.cookie);
+    await page.goto("/");
+    await page.getByRole("button", { name: "환경 설정" }).click();
+    await page.route("**/api/import", async (route) => {
+      if (route.request().postDataJSON().index === 1)
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "Temporary test outage" }),
+        });
+      else await route.continue();
+    });
+    await page
+      .getByLabel("학습 기록 백업 파일")
+      .setInputFiles({ name: "large-backup.json", mimeType: "application/json", buffer: file });
+    await expect(page.getByRole("dialog").getByRole("alert")).toContainText("2 / 2 조각");
+    expect(await target.store.queries.projectChecks.list(target.owner)).toHaveLength(4);
+    await page.unroute("**/api/import");
+    await page
+      .getByLabel("학습 기록 백업 파일")
+      .setInputFiles({ name: "large-backup.json", mimeType: "application/json", buffer: file });
+    await expect(
+      page.getByRole("dialog").getByRole("status").filter({ hasText: "백업을 가져왔습니다" }),
+    ).toContainText("프로젝트 1개");
+    expect(await target.store.queries.projectChecks.list(target.owner)).toHaveLength(5);
+    expect(
+      target.store.db.prepare("SELECT count FROM limits WHERE key=?").get(`import:${target.owner}`)
+        ?.count,
+    ).toBe(1);
   } finally {
     source.store.db.close();
     target.store.db.close();

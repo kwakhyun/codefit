@@ -1,5 +1,8 @@
 import { importLimits, networkIdentity } from "@/lib/server/usage-policy";
 import { backupSchema } from "@/lib/backup";
+import { backupPartRequestSchema } from "@/lib/backup-bundle";
+import { validateBackupPart } from "@/lib/server/backup-transfer";
+import { z } from "zod";
 import { BACKUP_MAX_BYTES } from "@/lib/backup-limits";
 import {
   BackupMismatch,
@@ -19,8 +22,14 @@ const mismatch = () =>
 export async function POST(request: Request) {
   try {
     const { owner } = await session(request);
-    const backup = await readBody(request, backupSchema, BACKUP_MAX_BYTES);
+    const input = await readBody(
+      request,
+      z.union([backupSchema, backupPartRequestSchema]),
+      BACKUP_MAX_BYTES,
+    );
+    const backup = input.version === 4 ? input.backup : input;
     try {
+      if (input.version === 4) validateBackupPart(input);
       prepareBackup(backup);
     } catch {
       throw new HttpError(
@@ -39,6 +48,14 @@ export async function POST(request: Request) {
     } catch (error) {
       if (error instanceof BackupMismatch) throw mismatch();
       throw error;
+    }
+    if (input.version === 4) {
+      try {
+        return json(await store.importBackupPart(owner, input, networkIdentity(request)));
+      } catch (error) {
+        if (error instanceof BackupMismatch) throw mismatch();
+        throw error;
+      }
     }
     const existing = await store.queries.countExistingProblems(backup.problems.map((p) => p.id));
     const newProblems = backup.problems.length - existing;

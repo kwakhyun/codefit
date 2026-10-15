@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { backupTransferContract } from "./backup-transfer-contract.test-helper";
 import { randomUUID } from "node:crypto";
 import { backupSchema } from "../backup";
 import { seedProblems } from "../../data/problems";
@@ -10,6 +11,7 @@ import { validateReferencedAssessment } from "./project-assessment-references";
 import type { Assessment } from "../project-check/types";
 
 export function workspaceBackupContract(getStore: () => ProblemStore) {
+  backupTransferContract(getStore);
   it("backup: preserves v3 issue evidence and rejects missing decisions, forged quotes or uncapped scores", async () => {
     const store = getStore();
     const { owner, id } = await learningFixture(store);

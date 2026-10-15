@@ -51,7 +51,7 @@ export const backupReads = [
 export function backupParameters(index: number, owner: string) {
   return index === 0 ? [owner, owner, owner, owner] : [owner];
 }
-export function buildBackup(rows: Row[][]): Backup {
+export function backupData(rows: Row[][], exportedAt = new Date().toISOString()) {
   const [
     problems,
     progress,
@@ -64,8 +64,8 @@ export function buildBackup(rows: Row[][]): Backup {
     workshops = [],
   ] = rows;
   const raw = {
-    version: 3,
-    exportedAt: new Date().toISOString(),
+    version: 3 as const,
+    exportedAt,
     problems: problems.map((r) => JSON.parse(String(r.content))),
     progress: Object.fromEntries(progress.map((r) => [String(r.problem_id), toProgress(r)])),
     attempts: attempts.map(toAttempt),
@@ -96,8 +96,12 @@ export function buildBackup(rows: Row[][]): Backup {
       })(),
     })),
   };
+  return raw;
+}
+export function buildBackup(rows: Row[][]): Backup {
+  const raw = backupData(rows);
   const parsed = backupSchema.safeParse(raw);
-  if (!parsed.success || progress.length > BACKUP_MAX_PROBLEMS)
+  if (!parsed.success || Object.keys(raw.progress).length > BACKUP_MAX_PROBLEMS)
     throw new HttpError(
       413,
       "한 파일에 담을 수 있는 기록 수를 넘어서 내보내지 못했습니다. 저장된 기록은 그대로 유지됩니다.",

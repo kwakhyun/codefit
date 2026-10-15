@@ -85,7 +85,7 @@ export function PracticeApp({
     libraryUrl(initialFilters, initialDomain, initialView),
     initialAttemptId,
   );
-  const actions = useWorkspaceActions({ load, onProgress });
+  const actions = useWorkspaceActions({ load, onProgress, scope: data?.scope });
   const {
     toast,
     setToast,

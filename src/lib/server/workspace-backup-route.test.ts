@@ -6,6 +6,8 @@ import { emptyLearning } from "../learn/progress";
 import { BACKUP_MAX_BYTES } from "../backup-limits";
 import { restoredProjectId } from "./workspace-backup";
 import { validateReview } from "../problem";
+import { fixtureCheck } from "../project-check/fixtures";
+import { validateBackupBundle } from "../backup-bundle";
 const context = vi.hoisted(() => ({ owner: "source" }));
 vi.mock("./session", () => ({ session: async () => ({ owner: context.owner }) }));
 let store: SqliteStore;
@@ -103,6 +105,64 @@ it("API rejects oversized export with a readable error and keeps stored records"
     store.db.prepare("SELECT content FROM legacy WHERE owner=?").get(context.owner),
   ).toBeTruthy();
 });
+it("API transfers large bundles within 4 MB, rejects damaged parts, and fences changed snapshots", async () => {
+  for (let index = 0; index < 5; index++) {
+    const id = crypto.randomUUID();
+    const claim = store.startJob(context.owner, id, "project-analysis", id);
+    if (claim.state !== "new") throw Error();
+    await store.queries.projectChecks.complete(claim.lease, {
+      ...fixtureCheck,
+      id,
+      page: {
+        ...fixtureCheck.page,
+        captures: Array.from({ length: 3 }, () => ({
+          url: "https://example.com/",
+          title: "Fixture",
+          text: "",
+          screenshot: "A".repeat(270000),
+        })),
+      },
+    });
+  }
+  const firstResponse = await GET(new Request("http://localhost/api/export?part=0"));
+  expect(firstResponse.status).toBe(200);
+  const firstText = await firstResponse.text();
+  expect(Buffer.byteLength(firstText)).toBeLessThan(BACKUP_MAX_BYTES);
+  const first = JSON.parse(firstText);
+  const query = new URLSearchParams({
+    part: "1",
+    exportedAt: first.exportedAt,
+    snapshot: first.manifest.id,
+  });
+  const second = await (await GET(new Request(`http://localhost/api/export?${query}`))).json();
+  const bundle = await validateBackupBundle({
+    version: 4,
+    exportedAt: first.exportedAt,
+    manifest: first.manifest,
+    parts: [first.backup, second.backup],
+  });
+  context.owner = "other";
+  expect((await GET(new Request(`http://localhost/api/export?${query}`))).status).toBe(409);
+  const bad = { ...bundle.parts[0], legacy: "tamper" };
+  expect(
+    (await POST(request({ version: 4, manifest: bundle.manifest, index: 0, backup: bad }))).status,
+  ).toBe(400);
+  expect(store.db.prepare("SELECT COUNT(*) AS n FROM limits").get()?.n).toBe(0);
+  for (const [index, backup] of bundle.parts.entries()) {
+    const response = await POST(request({ version: 4, manifest: bundle.manifest, index, backup }));
+    expect(response.status).toBe(200);
+  }
+  expect(await store.queries.projectChecks.list(context.owner)).toHaveLength(5);
+  expect(
+    store.db.prepare("SELECT count FROM limits WHERE key=?").get(`import:${context.owner}`)?.count,
+  ).toBe(1);
+  context.owner = "source";
+  store.saveProgress(context.owner, seedProblems[0].id, {
+    baseRevision: 0,
+    code: "changed during export",
+  });
+  expect((await GET(new Request(`http://localhost/api/export?${query}`))).status).toBe(409);
+}, 30000);
 it("API accepts the exact UTF-8 request limit and rejects one extra byte", async () => {
   const backup = { version: 2, problems: [], progress: {}, attempts: [], legacy: "한글" };
   const text = JSON.stringify(backup);

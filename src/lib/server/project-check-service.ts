@@ -24,6 +24,11 @@ import { publicCheck, publicReview } from "./project-check-store";
 import { HttpError } from "./http";
 import { readProjectPages } from "./project-browser";
 import { githubTarget, readProjectRepository } from "./project-repository";
+import { withAiCallContext } from "./ai-telemetry";
+const providerLimits = () => [
+  { key: "ai:global:hour", max: 40, windowMs: 3_600_000 },
+  { key: "ai:global:day", max: 100, windowMs: PROJECT_LIMITS.windowMs },
+];
 const defaults = {
   readPage: (url: string, signal: AbortSignal, source?: "repository" | "website") =>
     source === "website"
@@ -41,6 +46,31 @@ export class ProjectCheckService {
     private store: ProblemStore,
     private ai = defaults,
   ) {}
+  private runAi<T>(owner: string, requestId: string, signal: AbortSignal, task: () => Promise<T>) {
+    // The first call was reserved atomically with the personal allowance. Keep
+    // that reservation on failure; every subsequent provider attempt needs its own.
+    let reserved = true;
+    return withAiCallContext(
+      {
+        requestId,
+        record: (run) => this.store.queries.recordAiRun(owner, run),
+        beforeCall: async () => {
+          signal.throwIfAborted();
+          if (reserved) {
+            reserved = false;
+            return;
+          }
+          if (!(await this.store.consumeLimits(providerLimits())))
+            throw new HttpError(
+              429,
+              "서비스 AI 호출 한도에 도달해 다음 생성이나 검사를 시작하지 않았습니다. 저장된 학습은 유지됩니다. 잠시 후 다시 시도해 주세요.",
+            );
+          signal.throwIfAborted();
+        },
+      },
+      task,
+    );
+  }
   private async consume(owner: string, network: string, kind: "analysis" | "review") {
     const allowed = await this.store.consumeLimits([
       ...(!owner.startsWith("user:")
@@ -62,8 +92,7 @@ export class ProjectCheckService {
         max: kind === "analysis" ? 10 : 20,
         windowMs: PROJECT_LIMITS.windowMs,
       },
-      { key: "ai:global:hour", max: 40, windowMs: 3_600_000 },
-      { key: "ai:global:day", max: 100, windowMs: PROJECT_LIMITS.windowMs },
+      ...providerLimits(),
     ]);
     if (!allowed)
       throw new HttpError(
@@ -88,7 +117,9 @@ export class ProjectCheckService {
     try {
       await this.consume(owner, network, "analysis");
       charges = await this.store.queries.projectChecks.practiceCharges(owner, network);
-      const exercises = await generateProjectExercises(check, signal);
+      const exercises = await this.runAi(owner, claim.lease.id, signal, () =>
+        generateProjectExercises(check, signal),
+      );
       signal.throwIfAborted();
       const result: GeneratedPractice = {
         exercises,
@@ -121,7 +152,9 @@ export class ProjectCheckService {
     try {
       await this.consume(owner, network, "analysis");
       charges = await this.store.queries.projectChecks.practiceCharges(owner, network);
-      const plan = await generateProjectWorkshop(check, signal);
+      const plan = await this.runAi(owner, claim.lease.id, signal, () =>
+        generateProjectWorkshop(check, signal),
+      );
       signal.throwIfAborted();
       const result: ProjectWorkshop = {
         plan,
@@ -137,7 +170,7 @@ export class ProjectCheckService {
       throw error;
     }
   }
-  /** One provider call per HTTP request. Completed stages survive retries and navigation. */
+  /** One learning stage per request, including bounded quality review and repair. */
   async advanceLearning(
     owner: string,
     network: string,
@@ -184,7 +217,7 @@ export class ProjectCheckService {
               "학습 생성에 사용할 횟수가 없습니다. 한도 초기화 후 이어서 진행해 주세요.",
             );
           // The two-stage bundle consumes one personal credit at its final stage.
-          // Every provider attempt still counts toward global and network cost limits.
+          // Reserve the first provider attempt; runAi charges each additional attempt.
           if (
             !(await this.store.consumeLimits([
               {
@@ -192,8 +225,7 @@ export class ProjectCheckService {
                 max: 10,
                 windowMs: PROJECT_LIMITS.windowMs,
               },
-              { key: "ai:global:hour", max: 40, windowMs: 3_600_000 },
-              { key: "ai:global:day", max: 100, windowMs: PROJECT_LIMITS.windowMs },
+              ...providerLimits(),
             ]))
           )
             throw new HttpError(429, "잠시 후 학습 생성을 다시 시도해 주세요.");
@@ -210,24 +242,31 @@ export class ProjectCheckService {
         if (stageClaim.state === "done") parts[index] = JSON.parse(stageClaim.result);
         else {
           stageLease = stageClaim.lease;
-          const part =
-            kind === "practice"
-              ? await generateProjectExercises(
-                  check,
-                  signal,
-                  stage as "code" | "service",
-                  index
-                    ? (parts[0] as GeneratedPractice["exercises"]).code.map(
-                        ({ title, situation, question }) => ({ title, situation, question }),
-                      )
-                    : undefined,
-                )
-              : await generateProjectWorkshop(
-                  check,
-                  signal,
-                  stage as "observed" | "proposed",
-                  index ? workshopPlanSchema.parse(parts[0]).topics.map((t) => t.title) : undefined,
-                );
+          const part = await this.runAi<GeneratedPractice["exercises"] | ProjectWorkshop["plan"]>(
+            owner,
+            claim.lease.id,
+            signal,
+            () =>
+              kind === "practice"
+                ? generateProjectExercises(
+                    check,
+                    signal,
+                    stage as "code" | "service",
+                    index
+                      ? (parts[0] as GeneratedPractice["exercises"]).code.map(
+                          ({ title, situation, question }) => ({ title, situation, question }),
+                        )
+                      : undefined,
+                  )
+                : generateProjectWorkshop(
+                    check,
+                    signal,
+                    stage as "observed" | "proposed",
+                    index
+                      ? workshopPlanSchema.parse(parts[0]).topics.map((t) => t.title)
+                      : undefined,
+                  ),
+          );
           signal.throwIfAborted();
           // Validate before storing a durable checkpoint, including mocked/injected generators.
           if (kind === "practice") {
@@ -354,8 +393,8 @@ export class ProjectCheckService {
         );
       await checkCancellation();
       await this.consume(owner, network, "analysis");
-      const analysis = await this.ai.analyze(page, input.description, signal, (run) =>
-        this.store.queries.recordAiRun(owner, run),
+      const analysis = await this.runAi(owner, claim.lease.id, signal, () =>
+        this.ai.analyze(page, input.description, signal),
       );
       await checkCancellation();
       const result: StoredCheck = {
@@ -464,13 +503,8 @@ export class ProjectCheckService {
       );
     try {
       await this.consume(owner, network, "review");
-      const reply = await discussProjectCode(
-        check,
-        input.questionIndex,
-        input.answer,
-        previous,
-        signal,
-        (run) => this.store.queries.recordAiRun(owner, run),
+      const reply = await this.runAi(owner, claim.lease.id, signal, () =>
+        discussProjectCode(check, input.questionIndex, input.answer, previous, signal),
       );
       const result: ProjectDialogue = {
         id,
@@ -511,8 +545,8 @@ export class ProjectCheckService {
       throw new HttpError(409, "답변을 검토하고 있습니다. 잠시 후 기록을 새로고침해 주세요.");
     try {
       await this.consume(owner, network, "review");
-      const assessment = await this.ai.assess(check, input.answers, signal, (run) =>
-        this.store.queries.recordAiRun(owner, run),
+      const assessment = await this.runAi(owner, claim.lease.id, signal, () =>
+        this.ai.assess(check, input.answers, signal),
       );
       const result = { answers: input.answers, assessment };
       await this.store.queries.projectChecks.complete(claim.lease, result);

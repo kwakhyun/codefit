@@ -75,7 +75,11 @@ export function SettingsDialog({
             원본이 포함됩니다.
           </p>
         )}
-        <Button className="secondary-button full-width" onClick={exportData} disabled={exporting}>
+        <Button
+          className="secondary-button full-width"
+          onClick={exportData}
+          disabled={exporting || importing || !data}
+        >
           {exporting ? <LoaderCircle className="spin" size={16} /> : <ArrowDownToLine size={16} />}
           내 학습 기록 내보내기
         </Button>
@@ -94,7 +98,7 @@ export function SettingsDialog({
         <Button
           className="secondary-button full-width import-button"
           onClick={() => importFile.current?.click()}
-          disabled={importing}
+          disabled={importing || exporting || !data}
         >
           {importing ? <LoaderCircle className="spin" size={16} /> : <Upload size={16} />}백업
           가져오기
@@ -111,6 +115,10 @@ export function SettingsDialog({
         <p className="import-note">
           내 코딩 기록, 입문 실습과 프로젝트 평가와 학습 기록을 함께 백업합니다. 프로젝트 주소와
           작성한 답변도 파일에 포함됩니다. 기존 백업 파일도 가져올 수 있습니다.
+        </p>
+        <p className="import-note">
+          기록이 많으면 작은 조각을 담은 파일 하나로 내보냅니다. 가져오기가 중단되면 같은 파일을
+          다시 선택하세요. 완료된 조각과 기존 기록은 유지됩니다.
         </p>
       </div>
     </Modal>

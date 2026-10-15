@@ -4,12 +4,60 @@ import { SqliteStore } from "./sqlite-store";
 import { workspaceBackupContract } from "./workspace-backup-contract.test-helper";
 import { seedProblems } from "../../data/problems";
 import { fixtureVerificationRecord } from "../project-check/fixtures";
+import { validateReview } from "../problem";
+import { digest } from "./backup-transfer";
 let store: SqliteStore;
 beforeEach(() => {
   store = new SqliteStore(":memory:");
 });
 afterEach(() => store.db.close());
 workspaceBackupContract(() => store);
+it("backup retries charge only new attempts and a volume rejection rolls back records and allowances", () => {
+  const problem = seedProblems[0];
+  const review = validateReview(
+    {
+      summary: "요구사항별로 코드를 검토했습니다.",
+      criteria: problem.requirements.map((_, requirementIndex) => ({
+        requirementIndex,
+        passed: true,
+        feedback: "코드의 동작을 확인했습니다.",
+      })),
+      strengths: [],
+      improvements: [],
+    },
+    problem,
+  );
+  store.saveAttempt("source", problem.id, "original submission", review);
+  const { parts, manifest } = store.exportBackupParts("source", new Date().toISOString());
+  const input = { version: 4 as const, manifest, index: 0, backup: parts[0] };
+  expect(store.importBackupPart("target", input, "test").attempts).toBe(1);
+  expect(
+    store.consumeLimits([
+      { key: "import:attempts", max: 1_000_000, cost: 999_999, windowMs: 86400000 },
+    ]),
+  ).toBe(true);
+  expect(store.importBackupPart("target", input, "test").attempts).toBe(0);
+  const backup = structuredClone(parts[0]);
+  backup.attempts[0].id = "second-submission";
+  const hashes = [digest(backup)];
+  const next = { ...input, backup, manifest: { id: digest(hashes), hashes } };
+  expect(() => store.importBackupPart("target", next, "test")).toThrow(/한도/);
+  expect(store.attempts("target")).toHaveLength(1);
+  expect(store.db.prepare("SELECT count FROM limits WHERE key='import:target'").get()?.count).toBe(
+    1,
+  );
+  expect(
+    store.db.prepare("SELECT count FROM limits WHERE key='import:parts:target'").get()?.count,
+  ).toBe(2);
+  expect(
+    store.db.prepare("SELECT COUNT(*) AS n FROM jobs WHERE kind='backup-import'").get()?.n,
+  ).toBe(1);
+  // After the next window opens, retry the same file and continue past its restored prefix.
+  store.db.prepare("UPDATE limits SET expires=0 WHERE key='import:attempts'").run();
+  expect(store.importBackupPart("target", input, "test").attempts).toBe(0);
+  expect(store.importBackupPart("target", next, "test").attempts).toBe(1);
+  expect(store.attempts("target")).toHaveLength(2);
+});
 it("backup excludes over 2500 unrelated public problems instead of creating an unimportable file", () => {
   const insert = store.db.prepare("INSERT INTO problems (id,content,created_at) VALUES (?,?,?)");
   store.db.exec("BEGIN");

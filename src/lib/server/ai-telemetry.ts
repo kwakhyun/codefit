@@ -1,8 +1,22 @@
 import { randomUUID } from "node:crypto";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { aiModel } from "./ai-models";
 import { estimateCost, type AiRun } from "../ai-telemetry";
 import type { Response } from "openai/resources/responses/responses";
 export type RunRecorder = (run: AiRun) => Promise<void> | void;
+const callContext = new AsyncLocalStorage<{
+  requestId: string;
+  beforeCall: () => Promise<void>;
+  record: RunRecorder;
+}>();
+
+/** Propagate budget and ownership through nested generation/review/repair calls. */
+export function withAiCallContext<T>(
+  context: NonNullable<ReturnType<typeof callContext.getStore>>,
+  task: () => Promise<T>,
+) {
+  return callContext.run(context, task);
+}
 
 export async function withAiTelemetry<T>(
   operation: AiRun["operation"],
@@ -11,9 +25,13 @@ export async function withAiTelemetry<T>(
   record?: RunRecorder,
   model = aiModel(operation),
 ): Promise<T> {
+  const context = callContext.getStore();
+  // A rejected budget check is not a provider attempt and must not be recorded as one.
+  await context?.beforeCall();
   const started = performance.now();
   const run: AiRun = {
     id: randomUUID(),
+    ...(context ? { requestId: context.requestId } : {}),
     operation,
     promptVersion,
     model,
@@ -45,7 +63,7 @@ export async function withAiTelemetry<T>(
   } finally {
     run.latencyMs = Math.round(performance.now() - started);
     try {
-      await record?.(run);
+      await (record ?? context?.record)?.(run);
     } catch {
       console.error("AI telemetry persistence failed", { runId: run.id });
     }

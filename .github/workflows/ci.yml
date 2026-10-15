@@ -47,14 +47,16 @@ jobs:
       - run: npm run typecheck
       - run: npm run check:unused
       - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Verify critical flows in Chromium
+        run: npm run test:e2e:ci
       - if: ${{ inputs.full_browser_tests == true }}
-        run: npm run build
-      - if: ${{ inputs.full_browser_tests == true }}
-        run: npx playwright install --with-deps chromium firefox webkit
+        run: npx playwright install --with-deps firefox webkit
       - if: ${{ inputs.full_browser_tests == true }}
         run: npm run test:e2e
       - uses: actions/upload-artifact@v7
-        if: ${{ always() && inputs.full_browser_tests == true }}
+        if: ${{ always() }}
         with:
           name: browser-test-report
           path: playwright-report/

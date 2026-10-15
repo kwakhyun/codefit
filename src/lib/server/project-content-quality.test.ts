@@ -2,6 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { fixtureAnalysis } from "../project-check/fixtures";
 import type { ProjectExercises } from "../project-check/generated-practice";
 import type { RepositorySnapshot } from "../project-check/repository";
+import type { WorkshopPlan } from "../ai-learning/project-workshop";
 const { parse } = vi.hoisted(() => ({ parse: vi.fn() }));
 vi.mock("openai", () => ({
   default: class {
@@ -133,4 +134,62 @@ it("uses a bounded tool-free review and forwards cancellation", async () => {
   expect(request.max_output_tokens).toBe(2500);
   expect(options.signal).toBe(signal);
   expect(request.input[0].content).toContain("untrusted DATA");
+});
+
+const workshop = {
+  summary: "인증 학습",
+  limitations: "일부 코드만 확인했습니다.",
+  topics: [
+    {
+      kind: "observed",
+      evidence: ["src/save.ts:L3 return save(job);"],
+      question: "AI가 인증 여부를 결정하나요?",
+      choices: ["AI가 인증한다", "코드만으로 확인할 수 없다"],
+      answer: 0,
+      feedback: "AI가 인증을 처리합니다.",
+      explanation: "이 코드는 AI를 호출합니다.",
+    },
+  ],
+} as WorkshopPlan;
+
+it("independently reviews workshop classification, evidence and answers without leaking the key", async () => {
+  const content = { workshop, previousTopics: ["이전 학습"] };
+  const input = contentReviewInput(repository, content);
+  expect(input.items[0]).not.toHaveProperty("answer");
+  expect(input.items[0]).toMatchObject({ kind: "workshop", application: "observed" });
+  expect(input.items[0]).toHaveProperty("feedbackAfterAnswer");
+  expect(input.previousTopics).toEqual(["이전 학습"]);
+  for (const row of [
+    { supportedChoices: [1], issue: null },
+    { supportedChoices: [0, 1], issue: null },
+    { supportedChoices: [0], issue: "unsupported_claim" },
+  ]) {
+    parse.mockResolvedValueOnce({
+      output_parsed: {
+        reviews: [
+          {
+            id: "workshop-0",
+            ...row,
+            reason: "인용한 코드에 AI 호출이 없습니다.",
+          },
+        ],
+      },
+    });
+    await expect(
+      assertProjectContentQuality(repository, content, AbortSignal.timeout(1000)),
+    ).rejects.toMatchObject({
+      status: 502,
+      findings: [expect.objectContaining({ id: "workshop-0" })],
+    });
+  }
+  expect(parse.mock.calls[0][0].input[0].content).toContain("application=observed requires");
+});
+
+it("accepts an empty AI topic list without an unnecessary provider call", async () => {
+  await assertProjectContentQuality(
+    repository,
+    { workshop: { ...workshop, topics: [] } },
+    AbortSignal.timeout(1000),
+  );
+  expect(parse).not.toHaveBeenCalled();
 });

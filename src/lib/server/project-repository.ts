@@ -39,10 +39,10 @@ export const repositorySourcePolicy = {
   excludedSegments:
     /(^|\/)(node_modules|vendor|dist|build|coverage|\.git|\.next|fixtures|__pycache__|\.agents|\.codex|artifacts|\.storybook)(\/|$)/
       .source,
-  excludedNames: /(^|\/)(\.env[^/]*|[^/]*(?:secret|credential|private.key)[^/]*|[^/]+\.min\.[jt]s)$/
-    .source,
+  excludedNames:
+    /(^|\/)(\.env[^/]*|[^/]*(?:secret|credential|private.key)[^/]*|[^/]+\.min\.[cm]?[jt]s)$/.source,
   extensions:
-    /\.(py|tsx?|jsx?|mjs|go|java|rs|md|toml|ya?ml|cs|c|cpp|h|swift|kt|dart|rb|php|vue|svelte|sql|sh|bash|zsh|fish)$/
+    /\.(py|[cm]?[jt]sx?|go|java|rs|md|toml|ya?ml|cs|c|cpp|h|swift|kt|dart|rb|php|vue|svelte|sql|sh|bash|zsh|fish)$/
       .source,
   extensionless: /(?:^|\/)(?:bin|sbin)\/[^/.]+$/.source,
   priorities: [
@@ -73,7 +73,7 @@ export const repositorySourcePolicy = {
       rank: 0.75,
     },
     { pattern: /(?:^|\/)(?:models|entities)\/.*\.dart$/.source, rank: 7 },
-    { pattern: /\.d\.ts$|(?:^|\/)[^/]*[-.]generated\.[^.]+$/.source, rank: 12 },
+    { pattern: /\.d\.[cm]?ts$|(?:^|\/)[^/]*[-.]generated\.[^.]+$/.source, rank: 12 },
     // Classify supporting surfaces before matching domain words such as "service".
     // Otherwise service-thumbnail.tsx can outrank the service implementation.
     {
@@ -89,14 +89,14 @@ export const repositorySourcePolicy = {
     {
       // Business boundaries should not lose every slot to alphabetically earlier services.
       pattern:
-        /(?:^|\/)(?:[^/]*(?:signer|signing|wallet|vault|capture|recorder|ingestion|approv(?:al|e))[^/]*\.[cm]?[jt]s|capture\/[^/]+\.[jt]s)$/
+        /(?:^|\/)(?:[^/]*(?:signer|signing|wallet|vault|capture|recorder|ingestion|approv(?:al|e))[^/]*\.[cm]?[jt]s|capture\/[^/]+\.[cm]?[jt]s)$/
           .source,
       rank: 0.8,
     },
     { pattern: /(?:^|\/)(?:bin|sbin)\//.source, rank: 1 },
     {
       pattern:
-        /(?:^|\/)(?:runner|pipeline|scheduler|orchestrator|service|main|app)\.(?:py|[jt]s|go|rs|sh|dart)$/
+        /(?:^|\/)(?:runner|pipeline|scheduler|orchestrator|service|main|app)\.(?:py|[cm]?[jt]s|go|rs|sh|dart)$/
           .source,
       rank: 0.75,
     },
@@ -133,7 +133,7 @@ export const repositorySourcePolicy = {
       pattern: /(^|\/)(tests?|docs|examples|changes|infra|\.github)\/|(?:test|spec)\.[^.]+$/.source,
       rank: 8,
     },
-    { pattern: /(?:^|\/)(?:app\/)?api\/|(?:^|\/)route\.[jt]s$/.source, rank: 4 },
+    { pattern: /(?:^|\/)(?:app\/)?api\/|(?:^|\/)route\.[cm]?[jt]s$/.source, rank: 4 },
     {
       pattern:
         /(?:^|\/)(?:ai|agents?|llm)\/|(?:assistant|orchestrat|executor|payment|model|openai|service)[-./]/
@@ -147,7 +147,7 @@ export const repositorySourcePolicy = {
       rank: 2,
     },
     {
-      pattern: /\.(py|[jt]sx?|mjs|go|java|rs|cs|c|cpp|h|swift|kt|dart|rb|php|vue|svelte|sql)$/
+      pattern: /\.(py|[cm]?[jt]sx?|go|java|rs|cs|c|cpp|h|swift|kt|dart|rb|php|vue|svelte|sql)$/
         .source,
       rank: 3,
     },
@@ -196,37 +196,41 @@ export function selectRepositoryFiles<T extends { path: string }>(
   return selected;
 }
 
-export function dependencyCandidates<T extends { path: string }>(
+function modulePath(value: string) {
+  return value
+    .replace(/\.(?:[cm]?[jt]sx?|dart|py|sh|bash|zsh|fish)$/, "")
+    .replace(/\/(?:index|__init__)$/, "");
+}
+function resolvedDependencies<T extends { path: string }>(
   files: RepositoryFile[],
   candidates: T[],
 ) {
   const wanted = new Set<string>();
   for (const file of files)
     for (const line of file.lines) {
-      const match = /(?:from\s*|import\s*(?:\(\s*)?|export\s*|require\s*\()(["'])([^"']+)\1/.exec(
-        line.text,
-      );
-      const spec = match?.[2];
-      const python = /^\s*from\s+([.\w]+)\s+import\s+(\w+)/.exec(line.text);
+      const python = file.path.endsWith(".py")
+        ? /^\s*(?:from\s+([.\w]+)\s+import\s+(\w+)|import\s+([\w.]+))/.exec(line.text)
+        : null;
       if (python) {
-        const relative = python[1].match(/^\.+/)?.[0].length ?? 0;
-        const modulePath = python[1].replace(/^\.+/, "").replace(/\./g, "/");
+        const name = python[1] ?? python[3];
+        const relative = name.match(/^\.+/)?.[0].length ?? 0;
+        const importedPath = name.replace(/^\.+/, "").replace(/\./g, "/");
         const base = relative
           ? path.posix.normalize(
               path.posix.join(
                 path.posix.dirname(file.path),
                 ...Array(relative - 1).fill(".."),
-                modulePath,
+                importedPath,
               ),
             )
-          : modulePath;
+          : importedPath;
         for (const candidate of candidates) {
-          const name = candidate.path.replace(/\.py$/, "").replace(/\/__init__$/, "");
+          const name = modulePath(candidate.path);
           if (
             name === base ||
             name.endsWith(`/${base}`) ||
-            name === `${base}/${python[2]}` ||
-            name.endsWith(`/${base}/${python[2]}`)
+            (python[2] &&
+              (name === `${base}/${python[2]}` || name.endsWith(`/${base}/${python[2]}`)))
           )
             wanted.add(name);
         }
@@ -234,41 +238,61 @@ export function dependencyCandidates<T extends { path: string }>(
       const shell = /(?:^|[;\s])(?:source|\.)\s+["']?([^"'\s;]+)/.exec(line.text)?.[1];
       if (shell && !shell.includes("$"))
         wanted.add(
-          path.posix
-            .normalize(path.posix.join(path.posix.dirname(file.path), shell))
-            .replace(/\.(?:sh|bash|zsh|fish)$/, ""),
+          modulePath(path.posix.normalize(path.posix.join(path.posix.dirname(file.path), shell))),
         );
-      if (!spec) continue;
-      if (spec.startsWith("package:") && file.path.endsWith(".dart")) {
-        const modulePath = spec
-          .slice("package:".length)
-          .split("/")
-          .slice(1)
-          .join("/")
-          .replace(/\.dart$/, "");
-        const root = file.path.includes("/lib/") ? file.path.split("/lib/")[0] + "/" : "";
-        wanted.add(`${root}lib/${modulePath}`);
-      }
-      if (spec.startsWith(".") || (file.path.endsWith(".dart") && !spec.includes(":")))
-        wanted.add(
-          path.posix
-            .normalize(path.posix.join(path.posix.dirname(file.path), spec))
-            .replace(/\.(?:[cm]?[jt]sx?|dart)$/, ""),
-        );
-      if (spec.startsWith("@/")) {
-        const prefix = /^(.*?)(?:src|app)\//.exec(file.path)?.[1] ?? "";
-        wanted.add(`${prefix}src/${spec.slice(2)}`);
-        wanted.add(`${prefix}${spec.slice(2)}`);
+      for (const match of line.text.matchAll(
+        /\b(?:from\s*|import\s*(?:\(\s*)?|require\s*\()\s*(["'])([^"']+)\1/g,
+      )) {
+        const spec = match[2];
+        if (spec.startsWith("package:") && file.path.endsWith(".dart")) {
+          const importedPath = spec.slice("package:".length).split("/").slice(1).join("/");
+          const root = file.path.includes("/lib/") ? file.path.split("/lib/")[0] + "/" : "";
+          wanted.add(modulePath(`${root}lib/${importedPath}`));
+        }
+        if (spec.startsWith(".") || (file.path.endsWith(".dart") && !spec.includes(":")))
+          wanted.add(
+            modulePath(path.posix.normalize(path.posix.join(path.posix.dirname(file.path), spec))),
+          );
+        if (spec.startsWith("@/")) {
+          const prefix = /^(.*?)(?:src|app)\//.exec(file.path)?.[1] ?? "";
+          wanted.add(modulePath(`${prefix}src/${spec.slice(2)}`));
+          wanted.add(modulePath(`${prefix}${spec.slice(2)}`));
+        }
       }
     }
-  return candidates.filter(
-    (f) =>
-      wanted.has(
-        f.path
-          .replace(/\.(?:[cm]?[jt]sx?|dart|py|sh|bash|zsh|fish)$/, "")
-          .replace(/\/(?:index|__init__)$/, ""),
-      ) && sourcePriority(f.path) < 7,
-  );
+  return candidates.filter((file) => wanted.has(modulePath(file.path)));
+}
+export function dependencyCandidates<T extends { path: string }>(
+  files: RepositoryFile[],
+  candidates: T[],
+) {
+  return resolvedDependencies(files, candidates).filter((file) => sourcePriority(file.path) < 7);
+}
+
+/** Both GitHub and other Git origins use the same bounded, two-round import walk. */
+export async function collectRepositoryFiles<T extends { path: string }>(
+  candidates: T[],
+  read: (selected: T[]) => Promise<RepositoryFile[]>,
+  followImports = true,
+) {
+  const files: RepositoryFile[] = [];
+  const visited = new Set<string>();
+  let selected = selectRepositoryFiles(candidates, followImports ? 8 : 16);
+  for (let round = 0; selected.length && round < (followImports ? 3 : 1); round++) {
+    selected.forEach((file) => visited.add(file.path));
+    files.push(...(await read(selected)));
+    if (round === 2 || !followImports) break;
+    const remaining = candidates.filter((file) => !visited.has(file.path));
+    const linked = selectRepositoryFiles(dependencyCandidates(files, remaining), 4);
+    selected = [
+      ...linked,
+      ...selectRepositoryFiles(
+        remaining.filter((file) => !linked.includes(file)),
+        4 - linked.length,
+      ),
+    ];
+  }
+  return files;
 }
 
 // These are review locations, not vulnerability findings. No target code is executed.
@@ -381,36 +405,11 @@ export function addedLines(patch: string) {
   return lines;
 }
 export function importLinks(files: RepositoryFile[]): RepositorySnapshot["links"] {
-  const links: RepositorySnapshot["links"] = [];
-  const modules = new Map(
-    files.map((f) => [
-      f.path.replace(/\.(py|[jt]sx?|mjs)$/, "").replace(/\/(?:__init__|index)$/, ""),
-      f.path,
-    ]),
+  return files.flatMap((file) =>
+    resolvedDependencies([file], files)
+      .filter((dependency) => dependency.path !== file.path)
+      .map((dependency) => ({ from: file.path, to: dependency.path })),
   );
-  for (const f of files)
-    for (const line of f.lines) {
-      const python = /^\s*(?:from\s+([.\w]+)\s+import|import\s+([\w.]+))/.exec(line.text);
-      const js = /(?:\bfrom\s*|\brequire\s*\()\s*["']([^"']+)["']/.exec(line.text);
-      let name = python?.[1] || python?.[2];
-      if (name) {
-        const dots = /^\.+/.exec(name)?.[0].length || 0;
-        name = dots
-          ? path.posix.join(
-              path.posix.dirname(f.path),
-              ...Array(Math.max(0, dots - 1)).fill(".."),
-              name.slice(dots).replaceAll(".", "/"),
-            )
-          : name.replaceAll(".", "/");
-      } else if (js?.[1].startsWith("."))
-        name = path.posix
-          .normalize(path.posix.join(path.posix.dirname(f.path), js[1]))
-          .replace(/\.(js|ts)$/, "");
-      const to = name && modules.get(name);
-      if (to && to !== f.path && !links.some((l) => l.from === f.path && l.to === to))
-        links.push({ from: f.path, to });
-    }
-  return links;
 }
 
 /** Fixed GitHub API and raw-file origins, no credentials, redirects, checkout, subprocess or project execution. */
@@ -519,69 +518,62 @@ export async function readProjectRepository(
       (f.size || 0) <= repositorySourcePolicy.maxFileBytes &&
       (!changed || (changed.get(f.path)?.size || 0) > 0),
   );
-  const selected = selectRepositoryFiles(eligible, target.pullRequest ? 16 : 8);
-  const files: RepositoryFile[] = [];
-  for (let i = 0; i < selected.length; i += 4) {
-    const batch = await Promise.all(
-      selected.slice(i, i + 4).map(async (f) => {
-        let text: string;
-        if (target.pullRequest) {
-          const blob = await get(
-            `git/blobs/${f.sha}`,
-            z.object({
-              encoding: z.literal("base64"),
-              content: z.string().max(Math.ceil(repositorySourcePolicy.maxFileBytes * 1.5)),
-              size: z.number().max(repositorySourcePolicy.maxFileBytes),
-            }),
-          );
-          text = Buffer.from(blob.content, "base64").toString("utf8");
-        } else {
-          // Public raw files do not consume a REST request for every source file.
-          const response = await request(
-            `https://raw.githubusercontent.com/${target.name}/${commit}/${f.path.split("/").map(encodeURIComponent).join("/")}`,
-            { signal, redirect: "error", cache: "no-store" },
-          );
-          if (!response.ok)
-            throw new HttpError(
-              422,
-              "선택한 공개 코드 파일을 읽지 못했습니다. 잠시 후 다시 시도해 주세요.",
-            );
-          const reader = response.body?.getReader();
-          if (!reader) throw new HttpError(422, "코드 파일을 읽지 못했습니다.");
-          const parts: Uint8Array[] = [];
-          let size = 0;
-          try {
-            while (true) {
-              const { value, done } = await reader.read();
-              if (done) break;
-              size += value.byteLength;
-              if (size > repositorySourcePolicy.maxFileBytes)
-                throw new HttpError(422, "코드 파일이 수집 크기 제한을 넘었습니다.");
-              parts.push(value);
+  const files = await collectRepositoryFiles(
+    eligible,
+    async (selected) => {
+      const collected: RepositoryFile[] = [];
+      for (let i = 0; i < selected.length; i += 4) {
+        const batch = await Promise.all(
+          selected.slice(i, i + 4).map(async (f) => {
+            let text: string;
+            if (target.pullRequest) {
+              const blob = await get(
+                `git/blobs/${f.sha}`,
+                z.object({
+                  encoding: z.literal("base64"),
+                  content: z.string().max(Math.ceil(repositorySourcePolicy.maxFileBytes * 1.5)),
+                  size: z.number().max(repositorySourcePolicy.maxFileBytes),
+                }),
+              );
+              text = Buffer.from(blob.content, "base64").toString("utf8");
+            } else {
+              // Public raw files do not consume a REST request for every source file.
+              const response = await request(
+                `https://raw.githubusercontent.com/${target.name}/${commit}/${f.path.split("/").map(encodeURIComponent).join("/")}`,
+                { signal, redirect: "error", cache: "no-store" },
+              );
+              if (!response.ok)
+                throw new HttpError(
+                  422,
+                  "선택한 공개 코드 파일을 읽지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                );
+              const reader = response.body?.getReader();
+              if (!reader) throw new HttpError(422, "코드 파일을 읽지 못했습니다.");
+              const parts: Uint8Array[] = [];
+              let size = 0;
+              try {
+                while (true) {
+                  const { value, done } = await reader.read();
+                  if (done) break;
+                  size += value.byteLength;
+                  if (size > repositorySourcePolicy.maxFileBytes)
+                    throw new HttpError(422, "코드 파일이 수집 크기 제한을 넘었습니다.");
+                  parts.push(value);
+                }
+              } finally {
+                await reader.cancel();
+              }
+              text = Buffer.concat(parts).toString("utf8");
             }
-          } finally {
-            await reader.cancel();
-          }
-          text = Buffer.concat(parts).toString("utf8");
-        }
-        return text.includes("\0") ? null : extractSource(f.path, text, changed?.get(f.path));
-      }),
-    );
-    files.push(...batch.filter((f): f is RepositoryFile => !!f && f.lines.length > 0));
-    // Two import-following rounds reach implementations behind thin adapters,
-    // while retaining the same 16-file cap and pinned-commit requests.
-    if (!target.pullRequest && (i === 4 || i === 8)) {
-      const remaining = eligible.filter((f) => !selected.some((s) => s.path === f.path));
-      const linked = selectRepositoryFiles(dependencyCandidates(files, remaining), 4);
-      selected.push(
-        ...linked,
-        ...selectRepositoryFiles(
-          remaining.filter((f) => !linked.includes(f)),
-          4 - linked.length,
-        ),
-      );
-    }
-  }
+            return text.includes("\0") ? null : extractSource(f.path, text, changed?.get(f.path));
+          }),
+        );
+        collected.push(...batch.filter((f): f is RepositoryFile => !!f && f.lines.length > 0));
+      }
+      return collected;
+    },
+    !target.pullRequest,
+  );
   files.splice(0, files.length, ...boundRepositoryContext(files));
   if (!files.length)
     throw new HttpError(

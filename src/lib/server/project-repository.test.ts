@@ -3,6 +3,7 @@ import {
   githubTarget,
   githubRetryDelay,
   eligibleSource,
+  dependencyCandidates,
   extractSource,
   addedLines,
   importLinks,
@@ -343,4 +344,30 @@ it("reads a bounded large runtime file instead of dropping it at 100KB", async (
   expect(page.repository!.files[0].lines.map((l) => l.text).join("\n").length).toBeLessThanOrEqual(
     6500,
   );
+});
+
+it("collects CommonJS and typed Node modules and resolves their runtime import extensions", () => {
+  for (const extension of ["cjs", "mts", "cts", "mjs", "ts", "tsx"])
+    expect(eligibleSource(`src/worker.${extension}`)).toBe(true);
+  for (const name of [
+    "node_modules/pkg/main.cjs",
+    "src/credentials.cts",
+    "../main.mts",
+    "bundle.min.cjs",
+  ])
+    expect(eligibleSource(name)).toBe(false);
+  const files = [
+    extractSource("src/main.cts", 'const run = require("./worker.cjs"); import("@/result.mjs");'),
+    extractSource("src/worker.cts", 'export { run } from "./result.mjs";'),
+    extractSource("src/result.mts", "export const run = () => 1;"),
+  ];
+  expect(dependencyCandidates([files[0]], files.slice(1)).map((file) => file.path)).toEqual([
+    "src/worker.cts",
+    "src/result.mts",
+  ]);
+  expect(importLinks(files)).toEqual([
+    { from: "src/main.cts", to: "src/worker.cts" },
+    { from: "src/main.cts", to: "src/result.mts" },
+    { from: "src/worker.cts", to: "src/result.mts" },
+  ]);
 });

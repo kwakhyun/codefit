@@ -4,6 +4,7 @@ import { z } from "zod";
 import { publicUrl } from "./project-page";
 import { browserNetworkPolicy } from "./project-browser";
 import {
+  collectRepositoryFiles,
   eligibleSource,
   extractSource,
   importLinks,
@@ -41,18 +42,29 @@ export function looksLikeRepository(raw: string) {
     ) || /\.git\/?$/.test(url.pathname)
   );
 }
-const collectedSchema = z.object({
-  commit: z.string().regex(/^[a-f0-9]{40,64}$/),
+const objectId = z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/);
+const manifestSchema = z.object({
+  commit: objectId,
   total: z.number().int().nonnegative().max(50000),
   files: z
     .array(
       z.object({
         path: z.string().max(500),
-        mode: z.enum(["100644", "100755"]).optional(),
+        mode: z.enum(["100644", "100755"]),
+        sha: objectId,
+      }),
+    )
+    .max(50000),
+});
+const blobsSchema = z.object({
+  blobs: z
+    .array(
+      z.object({
+        sha: objectId,
         text: z.string().max(repositorySourcePolicy.maxFileBytes),
       }),
     )
-    .max(16),
+    .max(8),
 });
 
 /** Only our reader runs. No checkout, hooks, submodules, installs or target code execution. */
@@ -92,23 +104,34 @@ export async function readPublicGitRepository(
       ],
       { signal },
     );
-    const command = await sandbox.runCommand({
-      cmd: "node",
-      args: ["/vercel/sandbox/read.mjs"],
-      signal,
-    });
-    if (command.exitCode !== 0) throw new Error("collection");
-    const output = await sandbox.readFileToBuffer(
-      { path: "/vercel/sandbox/result.json" },
-      { signal },
+    async function runReader<T>(schema: z.ZodType<T>, args: string[] = []): Promise<T> {
+      const command = await sandbox.runCommand({
+        cmd: "node",
+        args: ["/vercel/sandbox/read.mjs", ...args],
+        signal,
+      });
+      if (command.exitCode !== 0) throw new Error("collection");
+      const output = await sandbox.readFileToBuffer(
+        { path: "/vercel/sandbox/result.json" },
+        { signal },
+      );
+      if (!output || output.length > 8_000_000) throw new Error("size");
+      return schema.parse(JSON.parse(output.toString()));
+    }
+    const result = await runReader(manifestSchema);
+    const candidates = result.files.filter((file) => eligibleSource(file.path, file.mode));
+    const files = boundRepositoryContext(
+      await collectRepositoryFiles(candidates, async (selected) => {
+        const selectedIds = new Set(selected.map((file) => file.sha));
+        const { blobs } = await runReader(blobsSchema, ["read", ...selectedIds]);
+        if (blobs.some((blob) => !selectedIds.has(blob.sha))) throw new Error("unexpected blob");
+        const byId = new Map(blobs.map((blob) => [blob.sha, blob.text]));
+        return selected.flatMap((file) => {
+          const text = byId.get(file.sha);
+          return text === undefined || text.includes("\0") ? [] : [extractSource(file.path, text)];
+        });
+      }),
     );
-    if (!output || output.length > repositorySourcePolicy.maxFileBytes * 16 * 2)
-      throw new Error("size");
-    const result = collectedSchema.parse(JSON.parse(output.toString()));
-    const candidates = result.files.filter(
-      (f) => eligibleSource(f.path, f.mode) && !f.text.includes("\0"),
-    );
-    const files = boundRepositoryContext(candidates.map((f) => extractSource(f.path, f.text)));
     if (!files.length)
       throw new HttpError(
         422,
@@ -120,7 +143,7 @@ export async function readPublicGitRepository(
       commit: result.commit,
       totalFiles: result.total,
       eligibleFiles: candidates.length,
-      truncatedTree: true,
+      truncatedTree: false,
       omittedFiles: Math.max(0, result.total - files.length),
       files,
       links: importLinks(files),
@@ -156,20 +179,28 @@ mkdirSync('/tmp/git-home',{recursive:true});
 const env={PATH:process.env.PATH,HOME:'/tmp/git-home',GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null',GIT_TERMINAL_PROMPT:'0',GIT_ASKPASS:'/bin/false',GIT_ALLOW_PROTOCOL:'https',GIT_LFS_SKIP_SMUDGE:'1'};
 const config=['-c','core.hooksPath=/dev/null','-c','http.followRedirects=initial','-c','credential.helper=','-c','protocol.allow=never','-c','protocol.https.allow=always','-c','http.lowSpeedLimit=1024','-c','http.lowSpeedTime=10'];
 const git=(args)=>execFileSync('bash',['-c','ulimit -f 65536; exec git "$@"','git',...config,...args],{cwd:'/vercel/sandbox',env,timeout:28000,maxBuffer:6000000,encoding:'utf8',stdio:['ignore','pipe','pipe']});
-git(['clone','--depth=1','--single-branch','--filter=blob:none','--no-checkout','--no-recurse-submodules','--',target.url,'repo']);
-const commit=git(['-C','repo','rev-parse','HEAD']).trim();
-// Reading objects avoids symlinks, worktree filters and Git LFS downloads.
-const entries=git(['-C','repo','ls-tree','-rz','HEAD']).split('\0').filter(Boolean);
-if(entries.length>50000)throw Error('tree limit');
-const safePath=(value)=>!value.split('/').some(p=>!p||p==='.'||p==='..')&&!/[\x00-\x1f\\]/.test(value);
-const policy=${JSON.stringify(repositorySourcePolicy)};
-const eligibleSource=(value,mode)=>safePath(value)&&!new RegExp(policy.excludedSegments,'i').test(value)&&!new RegExp(policy.excludedNames,'i').test(value)&&(new RegExp(policy.extensions,'i').test(value)||new RegExp(policy.extensionless,'i').test(value)||(mode==='100755'&&!value.split('/').at(-1).includes('.')));
-const priority=(value)=>policy.priorities.find(p=>new RegExp(p.pattern,'i').test(value))?.rank??6;
-const candidates=entries.flatMap(e=>{const m=/^(100644|100755) blob ([a-f0-9]{40,64})\t(.+)$/s.exec(e);return m&&eligibleSource(m[3],m[1])?[{sha:m[2],path:m[3],mode:m[1]}]:[];});
-const selected=[],counts=new Map();
-const group=p=>/^(apps|packages|services)\/[^/]+/.exec(p)?.[0]??p.split('/').slice(0,2).join('/');
-while(candidates.length&&selected.length<16){candidates.sort((a,b)=>(priority(a.path)+Math.min(2,(counts.get(group(a.path))??0)*0.35))-(priority(b.path)+Math.min(2,(counts.get(group(b.path))??0)*0.35))||a.path.localeCompare(b.path));const next=candidates.shift();selected.push(next);counts.set(group(next.path),(counts.get(group(next.path))??0)+1);}
-const files=[];
-for(const file of selected){const size=Number(git(['-C','repo','cat-file','-s',file.sha]));if(size>policy.maxFileBytes)continue;const text=git(['-C','repo','cat-file','blob',file.sha]);if(!text.includes('\0'))files.push({path:file.path,mode:file.mode,text});}
-writeFileSync('/vercel/sandbox/result.json',JSON.stringify({commit,total:entries.length,files}));
+if(process.argv[2]==='read'){
+  // The host chooses every file with the shared policy; this VM only reads pinned blobs.
+  const ids=process.argv.slice(3);
+  if(ids.length>8||ids.some(id=>!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(id)))throw Error('invalid selection');
+  const blobs=[];
+  for(const sha of new Set(ids)){
+    const size=Number(git(['-C','repo','cat-file','-s',sha]));
+    if(size>${repositorySourcePolicy.maxFileBytes})continue;
+    const text=git(['-C','repo','cat-file','blob',sha]);
+    if(!text.includes('\0'))blobs.push({sha,text});
+  }
+  writeFileSync('/vercel/sandbox/result.json',JSON.stringify({blobs}));
+}else{
+  git(['clone','--depth=1','--single-branch','--filter=blob:none','--no-checkout','--no-recurse-submodules','--',target.url,'repo']);
+  const commit=git(['-C','repo','rev-parse','HEAD']).trim();
+  // Reading objects avoids symlinks, worktree filters and Git LFS downloads.
+  const entries=git(['-C','repo','ls-tree','-rz',commit]).split('\0').filter(Boolean);
+  if(entries.length>50000)throw Error('tree limit');
+  const files=entries.flatMap(entry=>{
+    const match=/^(100644|100755) blob ([a-f0-9]{40,64})\t(.+)$/s.exec(entry);
+    return match?[{sha:match[2],path:match[3],mode:match[1]}]:[];
+  });
+  writeFileSync('/vercel/sandbox/result.json',JSON.stringify({commit,total:entries.length,files}));
+}
 `;

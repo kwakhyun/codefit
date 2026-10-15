@@ -1,5 +1,7 @@
 export interface AiRun {
   id: string;
+  /** Server-generated job identity shared by generation, review and repair calls. */
+  requestId?: string;
   operation: "generate" | "review" | "guide" | "project";
   model: string;
   promptVersion: string;

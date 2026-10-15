@@ -1,16 +1,16 @@
 "use client";
 
 import { api, errorMessage } from "@/lib/client-api";
-import { BACKUP_MAX_SIZE_LABEL, BACKUP_MAX_BYTES } from "@/lib/backup-limits";
-import type { BackupImportResult } from "@/lib/backup";
 import type { ProblemSummary, Progress } from "@/lib/problem";
 import { useEffect, useRef, useState } from "react";
 export function useWorkspaceActions({
   load,
   onProgress,
+  scope,
 }: {
   load: () => Promise<void>;
   onProgress: (progress: Progress) => void;
+  scope?: string;
 }) {
   const [toast, setToast] = useState("");
   const [toastError, setToastError] = useState(false);
@@ -58,7 +58,11 @@ export function useWorkspaceActions({
     setExporting(true);
     setSettingsNotice(null);
     try {
-      const result = await api<unknown>("/api/export");
+      if (!scope) throw new Error("계정 정보를 불러온 뒤 다시 시도해 주세요.");
+      const { downloadBackup } = await import("@/lib/backup-client");
+      const result = await downloadBackup(scope, (text) =>
+        setSettingsNotice({ text, error: false }),
+      );
       const url = URL.createObjectURL(
         new Blob([JSON.stringify(result)], { type: "application/json" }),
       );
@@ -68,8 +72,12 @@ export function useWorkspaceActions({
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       setToastError(false);
-      setToast("문제와 학습 기록을 내보냈습니다.");
-      setSettingsNotice({ text: "문제와 학습 기록을 내보냈습니다.", error: false });
+      const message =
+        result.version === 4
+          ? `문제와 학습 기록을 ${result.parts.length}개 조각이 담긴 묶음 파일로 내보냈습니다. 이 파일 하나로 복원할 수 있습니다.`
+          : "문제와 학습 기록을 내보냈습니다.";
+      setToast(message);
+      setSettingsNotice({ text: message, error: false });
     } catch (e) {
       const message = errorMessage(e);
       setToastError(true);
@@ -83,18 +91,17 @@ export function useWorkspaceActions({
     setImporting(true);
     setSettingsNotice(null);
     try {
-      if (file.size > BACKUP_MAX_BYTES)
-        throw new Error(`백업 파일은 ${BACKUP_MAX_SIZE_LABEL}까지 가져올 수 있습니다.`);
+      if (!scope) throw new Error("계정 정보를 불러온 뒤 다시 시도해 주세요.");
+      const { restoreBackup } = await import("@/lib/backup-client");
       let body: unknown;
       try {
         body = JSON.parse(await file.text());
       } catch {
         throw new Error("올바른 JSON 백업 파일이 아닙니다. 내보낸 백업 파일을 선택해 주세요.");
       }
-      const result = await api<BackupImportResult>("/api/import", {
-        method: "POST",
-        body,
-      });
+      const result = await restoreBackup(body, scope, (text) =>
+        setSettingsNotice({ text, error: false }),
+      );
       await load();
       window.dispatchEvent(new Event("codefit:backup-imported"));
       const message = `백업을 가져왔습니다. 새 문제 ${result.problems}개, 풀이 ${result.attempts}개, 입문 실습 ${result.learning ?? 0}개, 프로젝트 ${result.projects ?? 0}개가 추가되었습니다. 기존 기록은 유지했습니다.`;
@@ -102,6 +109,8 @@ export function useWorkspaceActions({
       setToast(message);
       setSettingsNotice({ text: message, error: false });
     } catch (e) {
+      // A previous part may have committed. Refresh those records even if a later part failed.
+      window.dispatchEvent(new Event("codefit:backup-imported"));
       const message = errorMessage(e);
       setToastError(true);
       setToast(message);

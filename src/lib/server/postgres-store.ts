@@ -8,6 +8,15 @@ import { validateLimits } from "./usage-policy";
 import postgres, { type Sql, type TransactionSql } from "postgres";
 import { seedProblems } from "../../data/problems";
 import type { Backup } from "../backup";
+import type { BackupPartRequest } from "../backup-bundle";
+import {
+  buildBackupParts,
+  bundleReceipt,
+  bundleImportLimits,
+  backupVolumeLimits,
+  importLimited,
+  validateBackupPart,
+} from "./backup-transfer";
 import {
   backupReads,
   backupParameters,
@@ -264,6 +273,43 @@ export class PostgresStore implements ProblemStore {
         return buildBackup(rows);
       },
     )) as unknown as Backup;
+  }
+  async exportBackupParts(owner: string, exportedAt: string) {
+    return (await (this.sql as Sql).begin(
+      "isolation level repeatable read read only",
+      async (sql) => {
+        const rows = [];
+        for (const [i, text] of backupReads.entries()) {
+          let index = 0;
+          rows.push(
+            await sql.unsafe(
+              text.replace(/ LIMIT \d+$/, "").replace(/\?/g, () => `$${++index}`),
+              backupParameters(i, owner),
+            ),
+          );
+        }
+        return buildBackupParts(rows, exportedAt);
+      },
+    )) as unknown as ReturnType<typeof buildBackupParts>;
+  }
+  async importBackupPart(owner: string, input: BackupPartRequest, network: string) {
+    validateBackupPart(input);
+    return this.transaction(async (store) => {
+      // Match importBackup's lock order, including concurrent ordinary restores.
+      await store.sql`SELECT pg_advisory_xact_lock(704712003)`;
+      const receipt = bundleReceipt(owner, input);
+      const [existing] =
+        await store.sql`SELECT expires FROM jobs WHERE id=${receipt.id} AND owner=${owner} AND kind=${receipt.kind}`;
+      const fresh = !existing || Number(existing.expires) <= Date.now();
+      if (!(await store.consumeLimits(bundleImportLimits(owner, network, fresh))))
+        throw importLimited();
+      const result = await store.importBackup(owner, input.backup);
+      if (!(await store.consumeLimits(backupVolumeLimits(owner, network, result))))
+        throw importLimited();
+      if (fresh)
+        await store.sql`INSERT INTO jobs(id,owner,kind,state,result,expires,token,fingerprint) VALUES(${receipt.id},${owner},${receipt.kind},'done',NULL,${Date.now() + 86_400_000},'','') ON CONFLICT(id) DO UPDATE SET expires=EXCLUDED.expires`;
+      return result;
+    });
   }
   async importBackup(owner: string, backup: Backup) {
     const extra = prepareBackup(backup);
