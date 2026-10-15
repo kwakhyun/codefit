@@ -41,7 +41,7 @@ function sameResponse(left: Response | null, right?: Response) {
     : !right;
 }
 
-export function practiceStart(progress: Response[]) {
+function practiceStart(progress: Response[]) {
   const unfinished = progress.findIndex((response) => !response.completed);
   return unfinished >= 0 ? unfinished : Math.min(progress.length, 2);
 }
