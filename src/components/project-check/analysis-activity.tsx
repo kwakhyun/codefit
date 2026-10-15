@@ -3,6 +3,7 @@ import {
   generationSnapshot,
   generationServerSnapshot,
   subscribeGeneration,
+  isGenerationResultPage,
 } from "@/lib/generation-activity";
 import { GenerationActivity } from "./generation-activity";
 import { useEffect, useSyncExternalStore } from "react";
@@ -27,6 +28,13 @@ export function AnalysisActivity() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tasks = useSyncExternalStore(subscribeAnalysis, analysisSnapshot, analysisServerSnapshot);
+  const search = searchParams.toString();
+  useEffect(() => {
+    for (const task of tasks) {
+      if (task.status === "done" && isGenerationResultPage(task.href, pathname, search))
+        dismissAnalysis(task.id);
+    }
+  }, [tasks, pathname, search]);
   useEffect(() => {
     void syncAnalysisSession();
     const refresh = () => void syncAnalysisSession();

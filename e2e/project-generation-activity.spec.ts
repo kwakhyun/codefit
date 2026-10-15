@@ -25,6 +25,94 @@ const check = {
     },
   },
 };
+const previousTask = {
+  title: "기존 결과 확인",
+  purpose: "반환 흐름 이해",
+  situation: "기존 결과가 있습니다.",
+  assumptions: "previous에 값이 있습니다.",
+  evidence: ["main.ts:L1 return previous;"],
+  question: "어떤 값을 반환하나요?",
+  choices: ["기존 결과", "새 결과"],
+  answer: 0,
+  walkthrough: [
+    { action: "값 확인", result: "기존 값" },
+    { action: "반환", result: "기존 결과" },
+  ],
+  explanation: "기존 결과를 반환합니다.",
+  verification: "반환값 확인",
+};
+for (const kind of ["practice", "workshop"]) {
+  test(`${kind} refreshes allowance after renewing a project without a page reload`, async ({
+    page,
+  }) => {
+    let renewed: typeof check | undefined;
+    let analyses = 0;
+    let generations = 0;
+    await page.route("**/api/project-check", (route) => {
+      if (route.request().method() === "POST") {
+        analyses++;
+        renewed = { ...check, id: route.request().postDataJSON().requestId };
+        return route.fulfill({ json: renewed });
+      }
+      return route.fulfill({
+        json: {
+          scope: "user:renew-allowance",
+          signedIn: true,
+          aiReady: true,
+          checks: renewed ? [renewed, check] : [check],
+          usage: {
+            analysis: { limit: 5, remaining: renewed ? 2 : 0 },
+            review: { limit: 12, remaining: 12 },
+          },
+        },
+      });
+    });
+    await page.route(/\/api\/project-check\/[^/?]+$/, (route) =>
+      route.fulfill({ json: renewed ?? check }),
+    );
+    await page.route("**/api/project-check/*/thumbnail", (route) => route.fulfill({ status: 204 }));
+    await page.route(`**/api/project-check/*/${kind}**`, (route) => {
+      if (route.request().method() === "POST") generations++;
+      const result = renewed
+        ? null
+        : kind === "practice"
+          ? {
+              exercises: {
+                code: Array(3).fill(previousTask),
+                service: Array(3).fill(previousTask),
+              },
+              progress: { code: [], service: [] },
+              revision: 0,
+              createdAt: fixtureCheck.createdAt,
+            }
+          : {
+              plan: { summary: "기존 학습", limitations: "수집한 코드 범위", topics: [] },
+              responses: [],
+              revision: 0,
+              createdAt: fixtureCheck.createdAt,
+            };
+      return route.fulfill({ json: { result, completed: result ? 2 : 0, canRecover: false } });
+    });
+    await page.goto(
+      kind === "practice" ? `/project-practice?check=${id}` : `/learn/ai/project?check=${id}`,
+    );
+    const generate = page.getByRole("button", {
+      name: kind === "practice" ? "맞춤 연습 6개 만들기" : "AI 활용 학습 만들기",
+      exact: true,
+    });
+    await expect(
+      page.getByRole("button", { name: "최신 코드로 새로 점검", exact: true }),
+    ).toBeVisible();
+    // The account allowance changed externally while this page was open.
+    await page.getByRole("button", { name: "최신 코드로 새로 점검", exact: true }).click();
+    await expect.poll(() => renewed?.id).toBeTruthy();
+    await expect(page).toHaveURL(new RegExp(`check=${renewed!.id}`));
+    await expect(generate).toBeEnabled();
+    await expect(page.getByText("프로젝트 분석이 완료됐어요", { exact: true })).toHaveCount(0);
+    expect(analyses).toBe(1);
+    expect(generations).toBe(0);
+  });
+}
 for (const kind of ["practice", "workshop"]) {
   for (const stay of [false, true]) {
     test(`${kind} generation ${stay ? "shows its inline result without a covering notice" : "continues after client navigation with completion notice"}`, async ({

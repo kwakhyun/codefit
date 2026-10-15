@@ -76,16 +76,51 @@ export function failure(error: unknown) {
   }
   if (error instanceof OpenAI.APIError) {
     const status = error.status;
-    // Never log request bodies, provider errors or credentials.
-    console.error("AI request failed", { status, type: error.constructor.name });
-    if (status === 429)
+    const quotaCodes = [
+      "insufficient_quota",
+      "credit_balance_exhausted",
+      "organization_spend_limit_exceeded",
+      "project_spend_limit_exceeded",
+      "organization_usage_limit_exceeded",
+    ];
+    const quota =
+      status === 429 &&
+      (error.type === "insufficient_quota" || quotaCodes.includes(error.code ?? ""));
+    // Log only known categories, never provider messages, bodies or credentials.
+    const category = quota
+      ? quotaCodes.includes(error.code ?? "")
+        ? error.code
+        : "insufficient_quota"
+      : status === 429
+        ? "rate_limit"
+        : "provider_error";
+    console.error("AI request failed", { status, category });
+    if (quota)
       return json(
         {
           error:
-            "AI 서비스의 이용 한도에 도달했거나 요청이 몰리고 있습니다. 잠시 후 다시 시도해 주세요.",
+            "AI 서비스 운영 한도에 도달해 요청을 처리하지 못했습니다. 서비스 운영자의 한도 조정이 필요합니다. 반복해서 요청하지 말고 복구 후 다시 시도해 주세요.",
+        },
+        503,
+      );
+    if (status === 429) {
+      const response = json(
+        {
+          error: "AI 요청이 몰려 일시적으로 제한됐습니다. 잠시 기다린 뒤 다시 시도해 주세요.",
         },
         429,
       );
+      const retryAfter = error.headers?.get("retry-after");
+      // Copy only a valid delay or HTTP date, not arbitrary upstream header text.
+      if (retryAfter) {
+        const seconds = /^\d+(\.\d+)?$/.test(retryAfter)
+          ? Math.ceil(Number(retryAfter))
+          : Math.ceil((Date.parse(retryAfter) - Date.now()) / 1000);
+        if (Number.isFinite(seconds) && seconds > 0)
+          response.headers.set("Retry-After", String(seconds));
+      }
+      return response;
+    }
     if (status === 401 || status === 403)
       return json(
         {

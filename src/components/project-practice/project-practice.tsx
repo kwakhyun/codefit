@@ -44,16 +44,18 @@ export function ProjectPracticeApp() {
         if (!controller.signal.aborted) setError(errorMessage(e));
       });
     return () => controller.abort();
-  }, [revision]);
+  }, [revision, id]);
   useEffect(() => {
     const refresh = () => {
       setRevision((n) => n + 1);
     };
     window.addEventListener("focus", refresh);
     window.addEventListener("codefit:backup-imported", refresh);
+    window.addEventListener("codefit:analysis-changed", refresh);
     return () => {
       window.removeEventListener("focus", refresh);
       window.removeEventListener("codefit:backup-imported", refresh);
+      window.removeEventListener("codefit:analysis-changed", refresh);
     };
   }, []);
   return (
@@ -393,7 +395,7 @@ function PracticeWorkspace({
               </Button>
               {data.usage.analysis.remaining < 1 && !progress.canRecover && (
                 <p role="status">
-                  분석 횟수를 모두 사용했습니다.{" "}
+                  프로젝트 생성 횟수를 모두 사용했습니다.{" "}
                   {data.usage.analysis.resetsAt
                     ? `${new Date(data.usage.analysis.resetsAt).toLocaleString("ko-KR")} 이후 다시 이용할 수 있습니다.`
                     : "한도가 초기화된 뒤 다시 이용해 주세요."}

@@ -30,6 +30,7 @@ import {
 } from "./workshop-autostart";
 export function ProjectAiWorkshop() {
   const params = useSearchParams();
+  const id = params.get("check");
   const [overview, setOverview] = useState<CheckOverview>();
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
@@ -37,18 +38,24 @@ export function ProjectAiWorkshop() {
     const abort = new AbortController();
     api<CheckOverview>("/api/project-check", { scope: null, signal: abort.signal })
       .then((v) => {
-        setOverview(v);
-        setError("");
+        if (!abort.signal.aborted) {
+          setOverview(v);
+          setError("");
+        }
       })
       .catch((e) => {
         if (!abort.signal.aborted) setError(errorMessage(e));
       });
     return () => abort.abort();
-  }, [revision]);
+  }, [revision, id]);
   useEffect(() => {
     const refresh = () => setRevision((n) => n + 1);
     window.addEventListener("focus", refresh);
-    return () => window.removeEventListener("focus", refresh);
+    window.addEventListener("codefit:analysis-changed", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("codefit:analysis-changed", refresh);
+    };
   }, []);
   return (
     <>
@@ -61,9 +68,9 @@ export function ProjectAiWorkshop() {
       {!overview && !error && <ScreenSkeleton variant="lesson" label="프로젝트 기록 불러오는 중" />}
       {overview && (
         <Workspace
-          key={`${overview.scope}:${params.get("check") || "new"}`}
+          key={`${overview.scope}:${id || "new"}`}
           overview={overview}
-          id={params.get("check")}
+          id={id}
           refresh={() => setRevision((n) => n + 1)}
         />
       )}
