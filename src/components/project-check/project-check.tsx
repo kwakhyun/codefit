@@ -156,9 +156,10 @@ export function ProjectCheckApp() {
             <Card as="aside" className="guest-trial-notice">
               <strong>로그인 없이 실제 프로젝트를 점검해 보세요</strong>
               <p>
-                24시간에 분석 {data.usage.analysis.limit}회와 답변 평가 {data.usage.review.limit}
-                회를 체험할 수 있습니다. 기록은 이 브라우저의 쿠키로 찾습니다. 로그인하면 분석 5회,
-                평가 12회를 사용할 수 있습니다.
+                24시간에 프로젝트 생성 {data.usage.analysis.limit}회와 답변 평가{" "}
+                {data.usage.review.limit}
+                회를 체험할 수 있습니다. 분석과 실습, AI 학습 생성이 같은 횟수를 사용합니다. 기록은
+                이 브라우저의 쿠키로 찾습니다. 로그인하면 생성 5회, 평가 12회를 사용할 수 있습니다.
               </p>
               <GuestLogin returnTo="/project-check" compact />
             </Card>
@@ -192,7 +193,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
   const { url, description, requestId } = draft;
   const analysisExhausted = data.usage.analysis.remaining === 0;
   const analysisResetLabel = data.usage.analysis.resetsAt
-    ? `${dateLabel(data.usage.analysis.resetsAt)}에 새 분석 한도가 초기화됩니다.`
+    ? `${dateLabel(data.usage.analysis.resetsAt)}에 프로젝트 생성 한도가 초기화됩니다.`
     : "초기화 시각을 확인하려면 기록 새로고침을 눌러 주세요.";
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -379,7 +380,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
       <div className="project-usage">
         <span>
           <strong>
-            새 분석 {data.usage.analysis.remaining} / {data.usage.analysis.limit}회
+            프로젝트 생성 {data.usage.analysis.remaining} / {data.usage.analysis.limit}회
           </strong>{" "}
           남음
         </span>
@@ -388,7 +389,7 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
         </span>
         <span>
           {data.usage.analysis.resetsAt
-            ? `${dateLabel(data.usage.analysis.resetsAt)} 분석 한도 초기화`
+            ? `${dateLabel(data.usage.analysis.resetsAt)} 생성 한도 초기화`
             : "첫 사용부터 24시간 기준"}
         </span>
         {data.usage.review.resetsAt && (
@@ -530,8 +531,8 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   >
                     <h3>지금은 새 프로젝트를 분석할 수 없습니다</h3>
                     <p>
-                      새 분석 {data.usage.analysis.limit}회를 모두 사용했습니다.{" "}
-                      {analysisResetLabel}
+                      분석과 실습, AI 학습에 사용하는 프로젝트 생성 {data.usage.analysis.limit}회를
+                      모두 사용했습니다. {analysisResetLabel}
                     </p>
                     <p>
                       주소와 설명은 미리 작성해 둘 수 있습니다. 이 계정의 현재 탭에 초안을
@@ -679,8 +680,10 @@ function MemberWorkspace({ data, onChange }: { data: CheckOverview; onChange: Up
                   </p>
                 )}
                 <p className="project-help">
-                  새 분석 1회가 사용됩니다. AI 호출 후 응답을 받지 못한 경우에도 횟수가 차감될 수
-                  있습니다. 한도는 기존 코딩 문제 생성과 별개입니다.
+                  분석에 프로젝트 생성 1회를 사용합니다. 이후 코드 훈련과 서비스 실습 6개를 함께
+                  만들 때 1회를 더 사용합니다. AI 학습 생성도 같은 횟수를 사용하며, 저장된 결과를
+                  보거나 답안을 저장할 때는 차감하지 않습니다. 분석은 AI 호출 후 응답을 받지 못해도
+                  횟수가 차감될 수 있습니다.
                 </p>
                 {analyzing && (
                   <RequestStatus

@@ -20,6 +20,12 @@ for (const hasHistory of [true, false]) {
     };
     let analyses = 0,
       reviews = 0;
+    await page.route(`**/api/project-check/${fixtureCheck.id}`, (route) =>
+      route.fulfill({ json: data.checks[0] }),
+    );
+    await page.route(`**/api/project-check/${fixtureCheck.id}/thumbnail`, (route) =>
+      route.fulfill({ status: 204 }),
+    );
     await page.route("**/api/project-check", (route) => {
       const method = route.request().method();
       if (method === "POST") analyses++;
@@ -36,13 +42,16 @@ for (const hasHistory of [true, false]) {
     });
     await page.goto("/project-check");
     const notice = page.getByRole("region", { name: "새 분석 한도 안내" });
-    await expect(notice).toContainText("새 분석 2회를 모두 사용했습니다");
+    await expect(notice).toContainText("프로젝트 생성 2회를 모두 사용했습니다");
+    await expect(notice).toContainText("분석과 실습, AI 학습");
     await expect(notice).toContainText("답변 평가는 2회 남아 있습니다");
     await expect(page.locator("#project-analysis-limit")).toContainText("9월 21일");
     await expect(
       page.getByRole("button", { name: "새 분석 한도를 모두 사용했습니다", exact: true }),
     ).toBeDisabled();
-    await page.getByLabel("서비스 링크", { exact: true }).fill("https://example.com/next");
+    await page
+      .getByLabel("서비스 또는 공개 저장소 링크", { exact: true })
+      .fill("https://example.com/next");
     await page.getByLabel("서비스와 구현 방식 설명").fill("다음 프로젝트를 위한 설명 초안");
     await page.reload();
     await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue(
@@ -66,7 +75,7 @@ for (const hasHistory of [true, false]) {
       await expect(page).toHaveURL(/\/learn$/);
       await page.goBack();
     }
-    await expect(page.getByLabel("서비스 링크", { exact: true })).toHaveValue(
+    await expect(page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true })).toHaveValue(
       "https://example.com/next",
     );
     await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue(

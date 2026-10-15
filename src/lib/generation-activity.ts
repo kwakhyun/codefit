@@ -18,6 +18,16 @@ export const generationSnapshot = () => visible;
 export const generationServerSnapshot = () => empty;
 export const generationRevision = () => revision;
 export const generationServerRevision = () => 0;
+/** Both practice tracks share one result; a different project still needs its notice. */
+export function isGenerationResultPage(href: string, pathname: string, search: string) {
+  const target = new URL(href, "https://codefit.local");
+  if (target.pathname !== pathname) return false;
+  const current = new URLSearchParams(search);
+  return [...target.searchParams].every(
+    ([key, value]) =>
+      (pathname === "/project-practice" && key === "mode") || current.get(key) === value,
+  );
+}
 export function subscribeGeneration(listener: () => void) {
   listeners.add(listener);
   return () => {

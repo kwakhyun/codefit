@@ -1,5 +1,6 @@
 "use client";
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { LoaderCircle, CheckCircle2, CircleAlert, X } from "lucide-react";
 import { AppLink, Button } from "@/components/ui/primitives";
 import {
@@ -7,13 +8,22 @@ import {
   generationSnapshot,
   generationServerSnapshot,
   dismissGeneration,
+  isGenerationResultPage,
 } from "@/lib/generation-activity";
 export function GenerationActivity() {
+  const pathname = usePathname();
+  const search = useSearchParams().toString();
   const tasks = useSyncExternalStore(
     subscribeGeneration,
     generationSnapshot,
     generationServerSnapshot,
   );
+  useEffect(() => {
+    for (const task of tasks) {
+      if (task.status === "done" && isGenerationResultPage(task.href, pathname, search))
+        dismissGeneration(task.id);
+    }
+  }, [tasks, pathname, search]);
   if (!tasks.length) return null;
   return (
     <section className="generation-activity" aria-label="생성 작업 상태">

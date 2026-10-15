@@ -301,7 +301,7 @@ function PracticeWorkspace({
             </p>
             <p className="muted">
               비공개 저장소는 지원하지 않습니다. 비밀키나 사용자 데이터를 입력하지 마세요. 저장소
-              분석 1회, 다음 단계의 연습 생성 1회를 사용합니다. 현재 분석{" "}
+              분석과 다음 단계의 연습 생성에 프로젝트 생성 횟수를 각각 1회 사용합니다. 현재{" "}
               {data.usage.analysis.remaining}회 남음.
             </p>
             <Button
@@ -366,7 +366,7 @@ function PracticeWorkspace({
                 코드 버전을 기준으로 저장하며, 이후 저장소 변경 사항은 새 분석에서 반영합니다.
               </p>
               <p>
-                생성 시 분석 1회 사용 · 현재 {data.usage.analysis.remaining}회 남음. 답변 저장과
+                프로젝트 생성 1회 사용 · 현재 {data.usage.analysis.remaining}회 남음. 답변 저장과
                 이어하기에는 AI 횟수를 사용하지 않습니다.
               </p>
               <p>

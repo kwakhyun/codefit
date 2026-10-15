@@ -1,5 +1,17 @@
 import { beforeEach, expect, it, vi } from "vitest";
 beforeEach(() => vi.resetModules());
+it("recognizes the result across query order and practice tabs without hiding another project's notice", async () => {
+  const { isGenerationResultPage: matches } = await import("./generation-activity");
+  expect(
+    matches("/project-practice?check=one&mode=code", "/project-practice", "mode=service&check=one"),
+  ).toBe(true);
+  expect(
+    matches("/project-practice?check=one&mode=code", "/project-practice", "check=two&mode=code"),
+  ).toBe(false);
+  expect(matches("/project-check?check=one", "/project-check", "new=1")).toBe(false);
+  expect(matches("/project-check?check=one", "/projects", "class=one")).toBe(false);
+  expect(matches("/?view=browse", "/", "view=history")).toBe(false);
+});
 it("deduplicates running work, updates stages, isolates scopes, and keeps completion visible", async () => {
   const m = await import("./generation-activity");
   let finish!: (value: number) => void;
