@@ -105,7 +105,7 @@ it("records TypeSafe's actual model and token usage under the owning request wit
       operation: "project",
       model: "jev-1.13.0",
       outcome: "success",
-      promptVersion: "2026-10-15.project.code-guide.typesafe-v1",
+      promptVersion: "2026-10-15.project.code-guide.persistence-v2",
       inputTokens: 100,
       outputTokens: 10,
       estimatedCostUsd: null,

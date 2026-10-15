@@ -1,7 +1,11 @@
 import { expect, it } from "vitest";
 import { learningEvidence } from "./project-learning-contract";
 import { eligibleSource, selectRepositoryFiles } from "./project-repository";
-import { repositoryCitation, type RepositorySnapshot } from "../project-check/repository";
+import {
+  repositoryCitation,
+  sourceLine,
+  type RepositorySnapshot,
+} from "../project-check/repository";
 const repo: RepositorySnapshot = {
   name: "owner/repo",
   commit: "a".repeat(40),
@@ -166,6 +170,78 @@ it("does not separate a short method's early return from its later busy guard wh
   const text = bounded[0].lines.map((line) => line.text).join("\n");
   expect(text).toMatch(/guard-\d+/);
   for (const [, index] of text.matchAll(/guard-(\d+)/g)) expect(text).toContain(`reuse-${index}`);
+});
+
+it("budgets multiline conditions atomically and ignores operators inside strings and comments", async () => {
+  const { boundRepositoryContext } = await import("./repository-context");
+  const { sourceStatements } = await import("./repository-source-statements");
+  const source = Array.from({ length: 40 }, (_, i) => [
+    `state.allowed${i} =`,
+    "  input.isBound && // comment has an unmatched (",
+    "  input.coverage === 'COMPLETE' &&",
+    "  !input.unattributed &&",
+    "  input.bindingsMatch;",
+    "if (state.allowed) return publish();",
+    "",
+  ]).flat();
+  const file = {
+    path: "src/policy.ts",
+    totalLines: source.length,
+    partial: false,
+    lines: source.map((text, index) => ({ number: index + 1, text })),
+  };
+  const bounded = boundRepositoryContext([file], 1800)[0];
+  const numbers = new Set(bounded.lines.map((line) => line.number));
+  expect(bounded.lines.some((line) => line.text.includes("input.coverage"))).toBe(true);
+  for (const line of bounded.lines)
+    if (line.text.includes("input.")) {
+      const start = Math.floor((line.number - 1) / 7) * 7;
+      for (let i = start; i < start + 5; i++) expect(numbers.has(i + 1)).toBe(true);
+    }
+  expect(
+    bounded.lines.reduce(
+      (n, line) => n + sourceLine(file.path, line.number, line.text).length + 1,
+      0,
+    ),
+  ).toBeLessThanOrEqual(1800);
+  const literals = [
+    'const marker = "( &&"; // ||',
+    "const expression = /[()&|]/;",
+    "/* if ( && */ const ready = true;",
+    "const prose = `fake if (",
+    "  && condition`；".replace("；", ";"),
+    "return ready;",
+  ].map((text, index) => ({ number: index + 1, text }));
+  expect(
+    sourceStatements("source.ts", literals).map((group) => group.map((line) => line.number)),
+  ).toEqual([[1], [2], [3], [4, 5], [6]]);
+  expect(sourceStatements("source.py", literals)).toHaveLength(literals.length);
+});
+
+it("keeps interior entry guards before spending the context allowance on import headers", async () => {
+  const { boundRepositoryContext } = await import("./repository-context");
+  const lines = [
+    ...Array.from({ length: 35 }, (_, i) => `import { helper${i} } from './helpers/module${i}';`),
+    "",
+    "async function publish(input) {",
+    "  if (!input.valid) throw new Error('invalid');",
+    "  if (input.existing) return input.existing;",
+    "  return save(input);",
+    "}",
+    "",
+    ...Array.from({ length: 30 }, (_, i) => `export type Label${i} = { name: string };`),
+  ];
+  const file = {
+    path: "src/domain/publisher.ts",
+    totalLines: lines.length,
+    partial: false,
+    lines: lines.map((text, index) => ({ number: index + 1, text })),
+  };
+  const bounded = boundRepositoryContext([file], 1000)[0];
+  const excerpt = bounded.lines.map((line) => line.text).join("\n");
+  expect(excerpt).toContain("if (!input.valid)");
+  expect(excerpt).toContain("if (input.existing) return input.existing;");
+  expect(excerpt).toContain("return save(input);");
 });
 
 it("selects runtime Python modules before package initializers, setup and tests", () => {

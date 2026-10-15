@@ -1,26 +1,27 @@
 /** Opt-in live regression harness. Reports stay in ignored artifacts; no database writes. */
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile, rename, realpath } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
-import { randomUUID } from "node:crypto";
 import { readProjectRepository } from "../src/lib/server/project-repository";
-import { analyzeProject, generateProjectExercises } from "../src/lib/server/ai-project-check";
-import { ContentQualityError } from "../src/lib/server/project-content-quality";
-import { repositorySnapshotSchema } from "../src/lib/project-check/repository";
-import type { PageSnapshot, StoredCheck } from "../src/lib/project-check/types";
-import type { AiRun } from "../src/lib/ai-telemetry";
-
+import {
+  evaluateProjectContent,
+  parseContentSnapshot,
+  parseContentStages,
+  safeContentFailure,
+} from "./lib/project-content-evaluation";
 const { values } = parseArgs({
   options: {
     live: { type: "boolean" },
     url: { type: "string" },
     snapshot: { type: "string" },
+    stages: { type: "string" },
     out: { type: "string", default: `artifacts/project-content/${Date.now()}.json` },
   },
 });
+const selected = parseContentStages(values.stages);
 if (!values.live) {
   console.log(
-    "Paid generation + independent quality review; up to one repair per stage. No database writes. Use --live and exactly one of --url or --snapshot. Load credentials through the environment.",
+    `Dry run: ${selected.join(", ")}. No API calls or file writes. Use --live and exactly one of --url or --snapshot. Omitted prerequisites must exist in the saved report. Reports contain private source and generated drafts; keep them in ignored artifacts/.`,
   );
   process.exit(0);
 }
@@ -31,75 +32,48 @@ const output = path.resolve(values.out!);
 const artifacts = path.resolve("artifacts");
 if (!output.startsWith(artifacts + path.sep))
   throw new Error("Keep reports under ignored artifacts/.");
-const report: Record<string, unknown> = { startedAt: new Date().toISOString(), stages: {} };
-const stages = report.stages as Record<string, unknown>;
 await mkdir(path.dirname(output), { recursive: true });
-const save = () => writeFile(output, JSON.stringify(report, null, 2) + "\n");
-async function stage<T>(name: string, action: () => Promise<T>) {
-  const started = performance.now();
+const realArtifacts = await realpath(artifacts);
+const realDirectory = await realpath(path.dirname(output));
+if (realDirectory !== realArtifacts && !realDirectory.startsWith(realArtifacts + path.sep))
+  throw new Error(
+    "Report directory must remain inside artifacts/; external symlinks are not allowed.",
+  );
+// TypeSafe batches may finish concurrently. Serialize and atomically replace reports.
+let writing = Promise.resolve();
+const save = (report: unknown) => {
+  const serialized = JSON.stringify(report, null, 2) + "\n";
+  writing = writing.then(async () => {
+    await writeFile(output + ".tmp", serialized);
+    await rename(output + ".tmp", output);
+  });
+  return writing;
+};
+try {
+  let input;
   try {
-    const result = await action();
-    report[name] = result;
-    stages[name] = { status: "passed", elapsedMs: Math.round(performance.now() - started) };
-    await save();
-    console.log(`${name}: passed`);
-    return result;
+    input = parseContentSnapshot(
+      values.url
+        ? await readProjectRepository(values.url, AbortSignal.timeout(40_000))
+        : JSON.parse(await readFile(values.snapshot!, "utf8")),
+    );
   } catch (error) {
-    stages[name] = {
-      status: "failed",
-      elapsedMs: Math.round(performance.now() - started),
-      errorType: error instanceof Error ? error.constructor.name : "unknown",
-      ...(error instanceof ContentQualityError ? { findings: error.findings } : {}),
-    };
-    await save();
+    await save({
+      version: 2,
+      selectedStages: selected,
+      passed: false,
+      stages: { page: { status: "failed", failure: safeContentFailure(error) } },
+    });
     throw error;
   }
-}
-try {
-  const page = await stage("page", async (): Promise<PageSnapshot> => {
-    if (values.url) return readProjectRepository(values.url, AbortSignal.timeout(40_000));
-    const snapshot = JSON.parse(await readFile(values.snapshot!, "utf8"));
-    const page = (snapshot.page ?? snapshot) as PageSnapshot;
-    // Pinning the saved source makes comparisons independent of a moving branch.
-    page.repository = repositorySnapshotSchema.parse(page.repository);
-    return page;
-  });
-  const runs: AiRun[] = [];
-  report.analysisRuns = runs;
-  const analysis = await stage("analysis", () =>
-    analyzeProject(page, "", AbortSignal.timeout(105_000), (run) => {
-      runs.push(run);
-    }),
+  const report = await evaluateProjectContent(input, selected, save, undefined, (name, status) =>
+    console.log(`${name}: ${status}`),
   );
-  const check: StoredCheck = {
-    id: randomUUID(),
-    createdAt: new Date().toISOString(),
-    description: "",
-    page,
-    analysis,
-  };
-  const code = await stage(
-    "code",
-    async () => (await generateProjectExercises(check, AbortSignal.timeout(105_000), "code")).code,
-  );
-  await stage(
-    "service",
-    async () =>
-      (
-        await generateProjectExercises(
-          check,
-          AbortSignal.timeout(105_000),
-          "service",
-          code.map(({ title, situation, question }) => ({ title, situation, question })),
-        )
-      ).service,
-  );
-  report.completedAt = new Date().toISOString();
-  await save();
+  process.exitCode = report.passed ? 0 : 1;
   console.log(
-    `5 questions + 3 code + 3 service exercises passed generation gates. Static review only. Report: ${output}`,
+    `Static content gates ${report.passed ? "passed" : "incomplete"}. Private report: ${output}`,
   );
 } catch {
-  console.error(`Generation did not pass all stages. Inspect the private report: ${output}`);
+  console.error(`Evaluation did not complete. Inspect the private report: ${output}`);
   process.exitCode = 1;
 }

@@ -56,6 +56,8 @@ const verdict = (answers: number[], issue: "missing_evidence" | null = null) => 
   reviews: [
     {
       id: "code-0",
+      answerLeakQuote: null,
+      serviceOutcome: null,
       supportedChoices: answers,
       issue,
       reason: issue ? "앞선 반환 조건이 빠졌습니다." : "",
@@ -83,6 +85,62 @@ it("rejects a different independently solved answer, ambiguous answers and quali
   ])
     expect(contentReviewFailures(content, result)).toHaveLength(1);
 });
+it("rejects answer-revealing purposes, identifier definitions and assumptions even with a correct verdict", () => {
+  for (const field of ["purpose", "term", "assumptions"] as const) {
+    const example = structuredClone(content);
+    const task = example.exercises.code[0];
+    const quote =
+      field === "purpose"
+        ? "실패를 성공으로 표시하지 않도록 합니다"
+        : field === "term"
+          ? "기존 기록과 새 기록을 합친 목록"
+          : "저장 호출 두 번은 모두 성공합니다";
+    if (field === "term")
+      task.guidance = {
+        goal: "저장할 기록을 비교합니다",
+        terms: [{ term: "pendingRecords", meaning: quote }],
+        readingSteps: ["저장 인자를 찾으세요", "처리 순서를 비교하세요"],
+        takeaway: "답안 제출 뒤의 설명",
+      };
+    else task[field] = quote;
+    const review = verdict([0]);
+    const result = contentReviewFailures(example, {
+      reviews: [{ ...review.reviews[0], answerLeakQuote: quote }],
+    });
+    expect(result).toEqual([expect.objectContaining({ issue: "answer_leak" })]);
+    expect(result[0].reason).toContain(quote);
+  }
+});
+it("requires leakage witnesses to come from prose visible before answering", () => {
+  const example = structuredClone(content);
+  example.exercises.code[0].explanation = "제출 뒤에만 보이는 정답 설명";
+  for (const quote of ["제출 뒤에만 보이는 정답 설명", "거부", "job.closing", "없는 문구"]) {
+    expect(() =>
+      contentReviewFailures(example, {
+        reviews: [{ ...verdict([0]).reviews[0], answerLeakQuote: quote }],
+      }),
+    ).toThrow("인용 문구");
+  }
+  expect(() =>
+    contentReviewFailures(example, {
+      reviews: [{ ...verdict([0]).reviews[0], issue: "answer_leak", answerLeakQuote: null }],
+    }),
+  ).toThrow("인용 문구");
+});
+it("separately rejects internal-value quizzes presented as service exercises", () => {
+  const example = structuredClone(content);
+  example.exercises.service = example.exercises.code;
+  example.exercises.code = [];
+  const review = { ...verdict([0]).reviews[0], id: "service-0" };
+  expect(
+    contentReviewFailures(example, {
+      reviews: [{ ...review, serviceOutcome: "internal_only" }],
+    }),
+  ).toEqual([expect.objectContaining({ issue: "not_service_scenario" })]);
+  expect(
+    contentReviewFailures(example, { reviews: [{ ...review, serviceOutcome: "observable" }] }),
+  ).toEqual([]);
+});
 it("rejects invalid citations before they can silently lose surrounding context", () => {
   const invalid = structuredClone(content);
   invalid.exercises.code[0].evidence = ["src/save.ts:L2 invented();"];
@@ -101,6 +159,8 @@ it("accepts open-ended analysis without a fabricated answer key", () => {
   const review = {
     reviews: fixtureAnalysis.questions.map((_, i) => ({
       id: `analysis-${i}`,
+      answerLeakQuote: null,
+      serviceOutcome: null,
       supportedChoices: [],
       issue: null,
       reason: "",
@@ -134,6 +194,9 @@ it("uses a bounded tool-free review and forwards cancellation", async () => {
   expect(request.max_output_tokens).toBe(2500);
   expect(options.signal).toBe(signal);
   expect(request.input[0].content).toContain("untrusted DATA");
+  expect(request.text.format.schema.properties.reviews.items.required).toEqual(
+    expect.arrayContaining(["answerLeakQuote", "serviceOutcome"]),
+  );
 });
 
 const workshop = {
@@ -169,6 +232,8 @@ it("independently reviews workshop classification, evidence and answers without 
         reviews: [
           {
             id: "workshop-0",
+            answerLeakQuote: null,
+            serviceOutcome: null,
             ...row,
             reason: "인용한 코드에 AI 호출이 없습니다.",
           },

@@ -1,4 +1,5 @@
 import { boundRepositoryContext } from "./repository-context";
+import { sourceStatements } from "./repository-source-statements";
 import path from "node:path";
 import { z } from "zod";
 import type { PageSnapshot } from "../project-check/types";
@@ -283,7 +284,9 @@ export async function collectRepositoryFiles<T extends { path: string }>(
     files.push(...(await read(selected)));
     if (round === 2 || !followImports) break;
     const remaining = candidates.filter((file) => !visited.has(file.path));
-    const linked = selectRepositoryFiles(dependencyCandidates(files, remaining), 4);
+    // Dependencies must not consume every remaining slot: an independent
+    // runtime boundary may not be imported by the first entry point we read.
+    const linked = selectRepositoryFiles(dependencyCandidates(files, remaining), 3);
     selected = [
       ...linked,
       ...selectRepositoryFiles(
@@ -305,17 +308,19 @@ function sourceWindow(all: string[], at: number, radius: number): [number, numbe
     Math.max(0, at - radius),
     Math.min(all.length - 1, at + radius),
   ];
-  for (let start = at; start >= Math.max(0, at - 40); start--) {
+  for (let start = at; start >= Math.max(0, at - 80); start--) {
     const line = all[start];
     if (/^\s*(?:if|for|while|switch|catch|with)\s*\(/.test(line)) continue;
     const declaration =
       /^\s*(?:(?:export|default|async|private|public|protected|static|override)\s+)*(?:function\s+)?[\w$]+\s*(?:<[^>]+>)?\(.*\)\s*(?::[^{}]+)?\s*\{\s*$/.test(
         line,
-      ) || /^\s*(?:export\s+)?(?:const|let)\s+[\w$]+\s*=.*=>\s*\{\s*$/.test(line);
+      ) ||
+      /^\s*(?:export\s+)?(?:const|let)\s+[\w$]+\s*=.*=>\s*\{\s*$/.test(line) ||
+      /^\s*[\w$]+:\s*(?:async\s+)?\(.*\)\s*=>\s*\{\s*$/.test(line);
     if (!declaration) continue;
     const indent = /^\s*/.exec(line)![0];
-    for (let end = start + 1; end < Math.min(all.length, start + 41); end++) {
-      if (all[end].trim() !== "}" && all[end].trim() !== "};") continue;
+    for (let end = start + 1; end < Math.min(all.length, start + 81); end++) {
+      if (!/^}(?:[;,)]|$)/.test(all[end].trim())) continue;
       if (/^\s*/.exec(all[end])![0] !== indent) continue;
       if (end < at) break;
       if (all.slice(start, end + 1).join("\n").length <= 4000) return [start, end];
@@ -330,18 +335,50 @@ export function extractSource(
   changedLines?: Set<number>,
 ): RepositoryFile {
   const all = text.replace(/\r\n/g, "\n").split("\n");
+  let inKey = false;
+  const sanitized = all.map((line) => {
+    if (/-----BEGIN .*PRIVATE KEY-----/.test(line)) inKey = true;
+    const hide =
+      inKey ||
+      /(?:api[_-]?key|secret|password|token)\s*[=:]\s*["'][^"']{8,}["']/i.test(line) ||
+      /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[A-Z0-9]{16})\b/.test(line);
+    if (/-----END .*PRIVATE KEY-----/.test(line)) inKey = false;
+    return (hide ? "[민감한 값으로 보이는 줄 제외]" : line).slice(0, 400);
+  });
+  const statements = sourceStatements(
+    filePath,
+    all.map((text, index) => ({ number: index + 1, text })),
+  );
+  const spans = new Map<number, [number, number]>();
+  for (const group of statements)
+    for (const line of group)
+      spans.set(line.number - 1, [group[0].number - 1, group.at(-1)!.number - 1]);
   const selected = new Set<number>();
-  const add = (i: number, radius: number) => {
-    for (let n = Math.max(0, i - radius); n <= Math.min(all.length - 1, i + radius); n++)
-      selected.add(n);
+  let spent = 0;
+  const include = (start: number, end: number) => {
+    start = Math.max(0, start);
+    end = Math.min(all.length - 1, end);
+    if (start > end) return;
+    start = spans.get(start)?.[0] ?? start;
+    end = spans.get(end)?.[1] ?? end;
+    const indices = Array.from({ length: end - start + 1 }, (_, i) => start + i).filter(
+      (i) => !selected.has(i),
+    );
+    const cost = indices.reduce((sum, i) => sum + sanitized[i].length, 0);
+    if (spent + cost > 6500) return;
+    indices.forEach((i) => selected.add(i));
+    spent += cost;
   };
-  if (changedLines) for (const line of [...changedLines].slice(0, 100)) add(line - 1, 3);
-  else if (text.length <= 6500) all.forEach((_, i) => selected.add(i));
+  if (changedLines) {
+    const changed = [...changedLines].slice(0, 100);
+    // Spend the PR budget on changed statements before their optional context.
+    for (const line of changed) include(line - 1, line - 1);
+    for (const line of changed) include(line - 4, line + 2);
+  } else if (text.length <= 6500) all.forEach((_, i) => include(i, i));
   else {
-    for (let i = 0; i < Math.min(all.length, 25); i++) selected.add(i);
+    for (let i = 0; i < Math.min(all.length, 25); i++) include(i, i);
     // Spread evidence throughout large files instead of reading only their header.
     const candidates = all.flatMap((line, i) => (decisionLine.test(line) ? [i] : []));
-    let spent = [...selected].reduce((sum, i) => sum + Math.min(all[i].length, 400), 0);
     const count = Math.min(candidates.length, 14);
     // Alternate early and late decisions; never truncate a chosen function at the budget edge.
     const order = Array.from({ length: count }, (_, i) =>
@@ -353,34 +390,12 @@ export function extractSource(
         candidates[Math.floor((n * candidates.length) / count)],
         3,
       );
-      const indices = Array.from({ length: end - start + 1 }, (_, i) => start + i).filter(
-        (i) => !selected.has(i),
-      );
-      const cost = indices.reduce((sum, i) => sum + Math.min(all[i].length, 400), 0);
-      if (spent + cost > 6500) continue;
-      indices.forEach((i) => selected.add(i));
-      spent += cost;
+      include(start, end);
     }
   }
-  let length = 0;
-  let inKey = false;
-  const sanitized = all.map((line) => {
-    if (/-----BEGIN .*PRIVATE KEY-----/.test(line)) inKey = true;
-    const hide =
-      inKey ||
-      /(?:api[_-]?key|secret|password|token)\s*[=:]\s*["'][^"']{8,}["']/i.test(line) ||
-      /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[A-Z0-9]{16})\b/.test(line);
-    if (/-----END .*PRIVATE KEY-----/.test(line)) inKey = false;
-    return hide ? "[민감한 값으로 보이는 줄 제외]" : line;
-  });
   const lines = [...selected]
     .sort((a, b) => a - b)
-    .flatMap((i) => {
-      const text = sanitized[i].slice(0, 400);
-      if (length + text.length > 6500) return [];
-      length += text.length;
-      return [{ number: i + 1, text }];
-    });
+    .map((i) => ({ number: i + 1, text: sanitized[i] }));
   return {
     path: filePath,
     totalLines: all.length,

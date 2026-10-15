@@ -4,6 +4,7 @@ import {
   githubRetryDelay,
   eligibleSource,
   dependencyCandidates,
+  collectRepositoryFiles,
   extractSource,
   addedLines,
   importLinks,
@@ -93,6 +94,112 @@ it("keeps short method preconditions with a sampled later guard", () => {
   for (const [, index] of excerpt.matchAll(/guard-(\d+)/g))
     expect(excerpt).toContain(`reuse-${index}`);
   expect(file.lines.reduce((sum, line) => sum + line.text.length, 0)).toBeLessThanOrEqual(6500);
+});
+it("keeps complete multiline boolean assignments in long callback excerpts", () => {
+  const blocks = Array.from({ length: 30 }, (_, i) =>
+    [
+      `const task${i} = tool({`,
+      "  execute: async (input) => {",
+      ...Array.from({ length: 45 }, (_, n) => `    const padding${n} = input.value;`),
+      `    state.accepted${i} =`,
+      "      input.bound &&",
+      "      input.coverage === 'COMPLETE' &&",
+      "      !input.extraClaims &&",
+      "      input.bindingsMatch;",
+      `    if (state.accepted${i}) {`,
+      `      return save${i}(input);`,
+      "    }",
+      "    return undefined;",
+      "  },",
+      "});",
+    ].join("\n"),
+  ).join("\n");
+  const file = extractSource("src/worker.ts", blocks);
+  const original = blocks.split("\n");
+  const numbers = new Set(file.lines.map((line) => line.number));
+  expect(file.lines.some((line) => line.text.includes("input.coverage"))).toBe(true);
+  for (const line of file.lines) {
+    expect(line.text).toBe(original[line.number - 1]);
+    if (/input\.(?:bound|coverage|bindingsMatch)|input.extraClaims/.test(line.text)) {
+      let start = line.number - 1;
+      while (!/state\.accepted\d+ =$/.test(original[start])) start--;
+      for (let index = start; index <= start + 4; index++)
+        expect(numbers.has(index + 1)).toBe(true);
+    }
+  }
+  expect(file.lines.reduce((sum, line) => sum + line.text.length, 0)).toBeLessThanOrEqual(6500);
+});
+it("keeps the full expression crossing the initial header boundary", () => {
+  const source = [
+    ...Array.from({ length: 20 }, (_, i) => `export const prefix${i} = '${"x".repeat(90)}';`),
+    "const allowed =",
+    ...Array.from({ length: 9 }, (_, i) => `  flags.condition${i} &&`),
+    "  flags.last;",
+    ...Array.from({ length: 80 }, (_, i) => `export const suffix${i} = '${"x".repeat(90)}';`),
+  ];
+  const file = extractSource("src/policy.ts", source.join("\n"));
+  const numbers = new Set(file.lines.map((line) => line.number));
+  for (let line = 21; line <= 31; line++) expect(numbers.has(line)).toBe(true);
+  for (const line of file.lines) expect(line.text).toBe(source[line.number - 1]);
+  expect(file.lines.reduce((sum, line) => sum + line.text.length, 0)).toBeLessThanOrEqual(6500);
+});
+it("prioritizes all changed expressions before spending a PR budget on nearby context", () => {
+  const source = Array.from({ length: 20 }, (_, i) => [
+    ...Array(4).fill(`// prefix ${"x".repeat(370)}`),
+    `const allowed${i} =`,
+    "  input.ready &&",
+    "  input.enabled;",
+    ...Array(4).fill(`// suffix ${"x".repeat(370)}`),
+  ]).flat();
+  const changed = new Set(Array.from({ length: 20 }, (_, i) => i * 11 + 6));
+  const file = extractSource("src/policy.ts", source.join("\n"), changed);
+  const numbers = new Set(file.lines.map((line) => line.number));
+  for (const line of changed)
+    for (const number of [line - 1, line, line + 1]) expect(numbers.has(number)).toBe(true);
+  expect(file.changed).toBe(true);
+  for (const line of file.lines) expect(line.text).toBe(source[line.number - 1]);
+  expect(file.lines.reduce((sum, line) => sum + line.text.length, 0)).toBeLessThanOrEqual(6500);
+});
+it("omits an oversized expression as a whole in both header and PR sampling", () => {
+  const source = [
+    "const allowed =",
+    ...Array.from({ length: 30 }, (_, i) => `  input.condition${i}${"x".repeat(300)} &&`),
+    "  input.last;",
+    "export const safe = true;",
+  ];
+  for (const changed of [undefined, new Set([10, source.length])]) {
+    const file = extractSource("src/policy.ts", source.join("\n"), changed);
+    expect(file.lines.some((line) => line.number < source.length)).toBe(false);
+    if (changed) expect(file.lines).toEqual([{ number: source.length, text: source.at(-1) }]);
+    expect(file.partial).toBe(true);
+  }
+});
+it("reserves follow-up source slots even when each import round has many dependencies", async () => {
+  const core = Array.from({ length: 10 }, (_, i) => ({
+    path: `src/runtime/engine${i}/service.ts`,
+  }));
+  const helpers = Array.from({ length: 10 }, (_, i) => ({ path: `src/lib/helper${i}.ts` }));
+  const rounds: string[][] = [];
+  const files = await collectRepositoryFiles([...core, ...helpers], async (selected) => {
+    rounds.push(selected.map((file) => file.path));
+    return selected.map((file) =>
+      extractSource(
+        file.path,
+        file.path === core[0].path
+          ? helpers
+              .slice(0, 5)
+              .map((h) => `import "@/${h.path.slice(4, -3)}";`)
+              .join("\n")
+          : file.path === helpers[0].path
+            ? `import "./helper9";`
+            : "export const execute = () => true;",
+      ),
+    );
+  });
+  expect(files).toHaveLength(16);
+  expect(rounds[1]).toContain(core[8].path);
+  expect(rounds[2]).toContain(core[9].path);
+  expect(files.some((file) => file.path === helpers[9].path)).toBe(true);
 });
 it("prioritizes product boundaries over marketing and verification scripts", () => {
   const paths = [

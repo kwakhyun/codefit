@@ -104,6 +104,8 @@ function review(request: ReviewRequest, fail = false) {
   return response({
     reviews: items.map((item, index) => ({
       id: item.id,
+      answerLeakQuote: null,
+      serviceOutcome: item.id.startsWith("service-") ? "observable" : null,
       supportedChoices: [item.choices.findIndex((choice) => choice === "200" || choice === "AI")],
       issue: fail && index === 0 ? "unsupported_claim" : null,
       reason: fail && index === 0 ? "인용 코드에 AI 호출이 없습니다." : "",

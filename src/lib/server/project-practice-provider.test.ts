@@ -111,6 +111,8 @@ for (const mode of ["code", "service"] as const) {
     const issue = new ContentQualityError([
       {
         id: `${mode}-0`,
+        answerLeakQuote: null,
+        serviceOutcome: null,
         supportedChoices: [],
         issue: "missing_evidence",
         reason: "반환 근거 누락",
@@ -118,16 +120,30 @@ for (const mode of ["code", "service"] as const) {
     ]);
     parse.mockClear();
     vi.mocked(assertProjectContentQuality).mockRejectedValueOnce(issue).mockResolvedValueOnce();
-    const revision = structuredClone(output);
-    revision.output_parsed[mode].forEach((entry, index) => {
-      entry.question = `수정된 조건 ${index}의 결과는?`;
-    });
+    const revision = {
+      output_parsed: {
+        ...output.output_parsed,
+        [mode]: [
+          { ...output.output_parsed[mode][0], question: "수정된 조건 0의 결과는?" },
+          null,
+          null,
+        ],
+      },
+    };
     parse.mockResolvedValueOnce(output).mockResolvedValueOnce(revision);
     const repaired = await generateProjectExercises(check, new AbortController().signal, mode);
     expect(repaired[mode][0].question).toBe("수정된 조건 0의 결과는?");
     expect(repaired[mode][1]).toEqual(result[mode][1]);
     expect(repaired[mode][2]).toEqual(result[mode][2]);
     expect(parse).toHaveBeenCalledTimes(2);
+    expect(assertProjectContentQuality).toHaveBeenLastCalledWith(
+      check.page.repository,
+      { exercises: repaired, previous: undefined },
+      expect.any(AbortSignal),
+    );
+    expect(parse.mock.calls[1][0].text.format.schema.properties[mode].items.anyOf).toEqual(
+      expect.arrayContaining([expect.objectContaining({ type: "null" })]),
+    );
     const repairedInput = JSON.parse(parse.mock.calls[1][0].input[1].content[0].text);
     expect(repairedInput.repair.findings[0].reason).toBe("반환 근거 누락");
     parse.mockClear();
@@ -137,6 +153,26 @@ for (const mode of ["code", "service"] as const) {
     );
     expect(parse).toHaveBeenCalledTimes(2); // Never retry indefinitely or return the draft.
     vi.mocked(assertProjectContentQuality).mockReset();
+    for (const slots of [
+      [null, null, null],
+      [output.output_parsed[mode][0], null],
+      [{ ...output.output_parsed[mode][0], evidence: ["CFREF_999"] }, null, null],
+    ]) {
+      parse.mockReset();
+      parse
+        .mockResolvedValueOnce(output)
+        .mockResolvedValueOnce({ output_parsed: { ...output.output_parsed, [mode]: slots } });
+      vi.mocked(assertProjectContentQuality).mockRejectedValueOnce(issue).mockResolvedValueOnce();
+      await expect(
+        generateProjectExercises(check, new AbortController().signal, mode),
+      ).rejects.toMatchObject({ status: 502 });
+      expect(parse).toHaveBeenCalledTimes(2);
+      // A missing flagged correction, shifted index or forged citation cannot reuse
+      // the failed draft or reach the final quality gate as a successful correction.
+      expect(assertProjectContentQuality).toHaveBeenCalledTimes(1);
+      vi.mocked(assertProjectContentQuality).mockReset();
+    }
+    parse.mockReset();
     parse.mockResolvedValue({
       output_parsed: {
         code: mode === "code" ? Array(3).fill(task) : [],

@@ -119,6 +119,8 @@ it("repairs flagged question premises once and requires the repaired analysis to
   const issue = new ContentQualityError([
     {
       id: "analysis-0",
+      answerLeakQuote: null,
+      serviceOutcome: null,
       supportedChoices: [],
       issue: "unsupported_claim",
       reason: "단정한 처리 보장",

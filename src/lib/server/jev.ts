@@ -63,7 +63,7 @@ export async function jevDecide<Q extends Record<string, JevQuestion>>(
   try {
     return await withAiTelemetry(
       "project",
-      "2026-10-15.project.code-guide.typesafe-v1",
+      "2026-10-15.project.code-guide.persistence-v2",
       async (capture) => {
         status = "unavailable";
         const response = await fetch("https://api.typesafe.ai/v1/systemone", {

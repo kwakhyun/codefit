@@ -57,3 +57,62 @@ it("does not swallow user cancellation", async () => {
     "aborted",
   );
 });
+
+const decoding = {
+  id: "decode",
+  file: "codec.ts",
+  code: "const parsed = JSON.parse(payload);\nreturn parsed.version === 2 ? decrypt(parsed, pin) : null;",
+  evidence:
+    "codec.ts:L1 const parsed = JSON.parse(payload);\ncodec.ts:L2 return parsed.version === 2 ? decrypt(parsed, pin) : null;",
+};
+
+it("rejects a confident storage label when a decoder has no persistence evidence", async () => {
+  decide.mockResolvedValue({
+    value0: { type: "noul", noul: 0.99 },
+    role0: { type: "choice", choice: "data", confidence: 0.99 },
+    persistence0: { type: "noul", noul: 0.02 },
+  });
+  expect(await buildCodeGuide([decoding], "project", new AbortController().signal)).toEqual([]);
+  expect(decide).toHaveBeenCalledTimes(1);
+});
+
+it("keeps a storage operation that also decodes the loaded value", async () => {
+  const stored = {
+    id: "stored",
+    file: "records.ts",
+    code: "const saved = await deviceStorage.getItem(key);\nreturn saved ? JSON.parse(saved) : null;",
+    evidence:
+      "records.ts:L1 const saved = await deviceStorage.getItem(key);\nrecords.ts:L2 return saved ? JSON.parse(saved) : null;",
+  };
+  decide.mockResolvedValue({
+    value0: { type: "noul", noul: 0.99 },
+    role0: { type: "choice", choice: "data", confidence: 0.9 },
+    persistence0: { type: "noul", noul: 0.98 },
+  });
+  expect(await buildCodeGuide([stored], "project", new AbortController().signal)).toEqual([
+    { title: "데이터를 저장하거나 불러오는 곳", evidence: stored.evidence },
+  ]);
+});
+
+it.each([undefined, { type: "noul", noul: 0.55 }, { type: "choice", choice: "data" }])(
+  "omits a storage label when its independent evidence is missing or uncertain (%j)",
+  async (persistence) => {
+    decide.mockResolvedValue({
+      value0: { type: "noul", noul: 0.99 },
+      role0: { type: "choice", choice: "data", confidence: 0.99 },
+      persistence0: persistence,
+    });
+    expect(await buildCodeGuide([decoding], "project", new AbortController().signal)).toEqual([]);
+  },
+);
+
+it("does not require storage evidence for a supported processing rule", async () => {
+  decide.mockResolvedValue({
+    value0: { type: "noul", noul: 0.95 },
+    role0: { type: "choice", choice: "business", confidence: 0.9 },
+    persistence0: { type: "noul", noul: 0.01 },
+  });
+  expect(await buildCodeGuide([decoding], "project", new AbortController().signal)).toEqual([
+    { title: "서비스의 핵심 규칙을 처리하는 곳", evidence: decoding.evidence },
+  ]);
+});
