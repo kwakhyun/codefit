@@ -16,7 +16,9 @@ const overview = (): CheckOverview => ({
   nextCursor: null,
 });
 async function enterProject(page: Page) {
-  await page.getByLabel("서비스 링크", { exact: true }).fill("https://example.com/");
+  await page
+    .getByLabel("서비스 또는 공개 저장소 링크", { exact: true })
+    .fill("https://example.com/");
   await page.getByLabel("서비스와 구현 방식 설명").fill("직접 만든 예약 서비스입니다.");
 }
 
@@ -42,7 +44,9 @@ test("analysis drafts survive reload and retry the same request, without an extr
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
   await expect(failed).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel("서비스 링크", { exact: true })).toHaveValue("https://example.com/");
+  await expect(page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true })).toHaveValue(
+    "https://example.com/",
+  );
   await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue(
     "직접 만든 예약 서비스입니다.",
   );
@@ -58,7 +62,7 @@ test("analysis drafts survive reload and retry the same request, without an extr
   data = { ...overview(), scope: "user:other-assistance-test" };
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue("");
-  await expect(page.getByLabel("서비스 링크", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true })).toHaveValue("");
   await expect(failed).toHaveCount(0);
 });
 
@@ -272,18 +276,20 @@ test("waiting feedback, unavailable speech, mobile layout and storage failures r
     };
   });
   await page.clock.install();
+  // The server accepts the analysis at once and keeps working in the background; its status
+  // stays pending until the test lets it fail.
+  let finished = false;
   await page.route("**/api/project-check/*/status", (route) =>
-    route.fulfill({ status: 404, json: { error: "이 계정에서 분석 요청을 찾지 못했습니다." } }),
+    route.fulfill({
+      json: finished ? { status: "failed", error: "연결 오류" } : { status: "pending" },
+    }),
   );
-  let release!: () => void;
-  const pending = new Promise<void>((resolve) => {
-    release = resolve;
-  });
   await page.route("**/api/project-check", async (route) => {
-    if (route.request().method() === "POST") {
-      await pending;
-      return route.fulfill({ status: 502, json: { error: "연결 오류" } });
-    }
+    if (route.request().method() === "POST")
+      return route.fulfill({
+        status: 202,
+        json: { status: "pending", id: route.request().postDataJSON().requestId },
+      });
     return route.fulfill({ json: overview() });
   });
   await page.goto("/project-check");
@@ -310,8 +316,14 @@ test("waiting feedback, unavailable speech, mobile layout and storage failures r
   await expect(page.getByRole("complementary", { name: "AI 요청 상태" })).toContainText(
     "응답이 늦어지고 있습니다",
   );
-  release();
-  await expect(page.locator(".project-recovery").getByText("분석하지 못했어요")).toBeVisible();
+  finished = true;
+  // Status reads are spaced by a polling interval on the installed clock; advance it until the
+  // next read reports the failure.
+  const failed = page.locator(".project-recovery").getByText("분석하지 못했어요");
+  await expect(async () => {
+    await page.clock.fastForward(2_500);
+    await expect(failed).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
   await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue(
     "직접 만든 예약 서비스입니다.",
   );

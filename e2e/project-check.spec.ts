@@ -1,9 +1,22 @@
 import { waitForUiTransitions } from "./ui-helpers";
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { fixtureCheck, fixtureAssessment } from "../src/lib/project-check/fixtures";
 import { publicCheck } from "../src/lib/server/project-check-store";
 import type { CheckOverview } from "../src/lib/project-check/types";
+/** The list holds summaries; an opened record is read from its own detail endpoint. */
+async function routeDetails(page: Page, records: () => CheckOverview["checks"]) {
+  await page.route(/\/api\/project-check\/[0-9a-f-]{36}$/, (route) => {
+    const id = new URL(route.request().url()).pathname.split("/").pop();
+    const record = records().find((check) => check.id === id);
+    return record
+      ? route.fulfill({ json: record })
+      : route.fulfill({
+          status: 404,
+          json: { error: "이 계정에서 점검 기록을 찾을 수 없습니다." },
+        });
+  });
+}
 function overview(): CheckOverview {
   return {
     scope: "user:project-test",
@@ -72,8 +85,11 @@ test("link to questions, draft restore, keyboard navigation, assessment and dele
       return route.fulfill({ json: { removed: true } });
     }
   });
+  await routeDetails(page, () => data.checks);
   await page.goto("/project-check");
-  await page.getByLabel("서비스 링크", { exact: true }).fill("https://example.com/");
+  await page
+    .getByLabel("서비스 또는 공개 저장소 링크", { exact: true })
+    .fill("https://example.com/");
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
   await expect(page.getByRole("heading", { name: "예약 서비스 설계 점검" })).toBeFocused();
   await page
@@ -136,7 +152,10 @@ test("quota, failed assessment retry and account isolation preserve the right dr
     }
     return route.fulfill({ json: data });
   });
+  await routeDetails(page, () => data.checks);
   await page.goto("/project-check");
+  // Saved checks are folded under "점검 기록".
+  await page.locator(".project-history-list > summary").click();
   await page.getByRole("button", { name: /예약 서비스 설계 점검/ }).click();
   await page.getByLabel("내 설계 설명").fill("나만의 설계 메모");
   await page.getByRole("button", { name: "5. 설계 선택" }).click();
@@ -191,10 +210,28 @@ test("real signed-in API keeps stored project evidence private across account ch
     expect(owned.scope).toBe(a.owner);
     expect(owned.checks[0].id).toBe(id);
     expect(owned.checks[0].page).not.toHaveProperty("text");
-    expect(owned.checks[0].analysis.questions[0]).not.toHaveProperty("criteria");
+    // The list carries summaries only; questions come from the owner's detail request.
+    expect(Object.keys(owned.checks[0].analysis)).toEqual(["title"]);
     expect(response.headers()["cache-control"]).toBe("no-store");
+    const detailResponse = await page.request.get(`/api/project-check/${id}`, {
+      headers: { "x-codefit-workspace": a.owner },
+    });
+    const detail = await detailResponse.json();
+    expect(detail.id).toBe(id);
+    expect(detail.page).not.toHaveProperty("text");
+    expect(detail.analysis.questions).toHaveLength(fixtureCheck.analysis.questions.length);
+    for (const question of detail.analysis.questions)
+      expect(question).not.toHaveProperty("criteria");
+    expect(detailResponse.headers()["cache-control"]).toBe("no-store");
     await login(b.cookie);
     expect((await (await page.request.get("/api/project-check")).json()).checks).toEqual([]);
+    expect(
+      (
+        await page.request.get(`/api/project-check/${id}`, {
+          headers: { "x-codefit-workspace": b.owner },
+        })
+      ).status(),
+    ).toBe(404);
     expect(
       (
         await page.request.patch("/api/project-check", {
