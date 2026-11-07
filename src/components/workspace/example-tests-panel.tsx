@@ -115,16 +115,16 @@ export function SelfCheckPanel({
         </div>
         <Button
           className={`secondary-button ${checked ? "active" : ""}`}
-          aria-pressed={checked}
           disabled={pending}
           onClick={() => onToggle(!checked)}
         >
           {checked ? <CircleCheck size={16} /> : <Check size={16} />}
-          {checked ? "직접 확인함" : "직접 확인함으로 표시"}
+          {checked ? "직접 확인 표시 해제" : "직접 확인함으로 표시"}
         </Button>
       </div>
       <small>
-        ‘직접 확인함’은 내 기록용 표시이며 ‘해결’로 계산하지 않습니다. 다시 누르면 해제됩니다.
+        {checked ? "현재 ‘직접 확인함’으로 기록되어 있습니다. " : ""}‘직접 확인함’은 내 기록용
+        표시이며 ‘해결’로 계산하지 않습니다.
       </small>
     </section>
   );

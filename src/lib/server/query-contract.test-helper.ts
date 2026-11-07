@@ -274,8 +274,8 @@ export function queryContract(getStore: () => ProblemStore & { addProblem(p: Pro
       strengths: [],
       improvements: [],
     });
-    const [paging, join] = ["be-pagination", "db-left-join"].map(
-      (id) => seedProblems.find((p) => p.id === id)!,
+    const [paging, join] = ["be-pagination", "db-left-join"].map((id) =>
+      seedProblems.find((p) => p.id === id)!,
     );
     await store.saveAttempt(owner, paging.id, "first try", review(paging, false));
     await store.saveAttempt(owner, paging.id, "second try", review(paging, false));

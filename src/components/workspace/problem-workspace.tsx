@@ -291,7 +291,7 @@ export function ProblemWorkspace({
           {problem.source === "ai" && (
             <Button
               className={`icon-button ${detail.hidden ? "active" : ""}`}
-              aria-label={detail.hidden ? "내 목록에 다시 표시" : "내 목록에서 숨기기"}
+              aria-label="내 목록에서 숨기기"
               aria-pressed={Boolean(detail.hidden)}
               title="AI 생성 문제를 내 문제 목록에서 숨깁니다. 다른 학습자에게는 계속 보입니다."
               onClick={async () => {
@@ -564,7 +564,7 @@ export function ProblemWorkspace({
               member={scope.startsWith("user:")}
               loginReturnTo={problemUrl(id, returnTo)}
               alternative={
-                problem.handoff ? "실행 테스트" : tests ? "예시 테스트" : "직접 확인 표시"
+                problem.handoff ? "내 코드 테스트" : tests ? "예시 테스트" : "직접 확인 표시"
               }
               onReview={() => requestReview(code)}
             />
