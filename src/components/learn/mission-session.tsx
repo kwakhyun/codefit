@@ -5,7 +5,8 @@ import { AppLink as Link } from "@/components/ui/primitives";
 import { useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, Download, Lightbulb } from "lucide-react";
 import { useBeginnerMission } from "@/hooks/use-beginner-mission";
-import { MISSIONS, isArchivedMission, type Mission, type Action } from "@/lib/learn/catalog";
+import { isArchivedMission, type Mission, type Action } from "@/lib/learn/catalog";
+import type { ServiceDomain } from "@/lib/learn/services/types";
 import {
   canComplete,
   checksPassed,
@@ -20,16 +21,38 @@ import { MissionPrediction } from "./mission-prediction";
 import { MissionObservation } from "./mission-observation";
 import { MissionRepair } from "./mission-repair";
 import { MissionTransfer } from "./mission-transfer";
-import { LEARNING_STAGES as stages } from "@/lib/learn/overview";
+import { LEARNING_STAGES as stages, nextMission } from "@/lib/learn/overview";
 const labels = {
-  saved: "학습 기록 저장됨",
+  saved: "자동 저장됨",
   saving: "저장 중…",
-  local: "저장 대기",
+  local: "곧 자동 저장",
   offline: "오프라인 · 브라우저 보관",
   failed: "저장 실패 · 재시도 가능",
   conflict: "다른 곳의 기록과 충돌",
   resolving: "서버 버전 확인 중",
 };
+type SaveState = keyof typeof labels;
+const problems: SaveState[] = ["offline", "failed", "conflict"];
+/**
+ * Autosave cycles through waiting, saving and saved after every pause. Only problems, and the
+ * recovery from one, are announced; the visible label keeps showing the current state.
+ */
+function useSaveAnnouncement(state: SaveState) {
+  const [seen, setSeen] = useState({ state, troubled: false, message: "" });
+  if (seen.state !== state) {
+    const problem = problems.includes(state);
+    setSeen({
+      state,
+      troubled: problem || (seen.troubled && state !== "saved"),
+      message: problem
+        ? labels[state]
+        : state === "saved" && seen.troubled
+          ? "학습 기록을 다시 자동 저장했습니다."
+          : seen.message,
+    });
+  }
+  return seen.message;
+}
 function download(mission: Mission, record: LearningRecord) {
   const blob = new Blob([learningSummary(mission, record)], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -42,12 +65,16 @@ function download(mission: Mission, record: LearningRecord) {
 export function MissionSession({
   mission,
   session,
+  domain,
 }: {
   mission: Mission;
   session: LearningSession;
+  /** Service domain filter the mission list was opened with. */
+  domain?: ServiceDomain;
 }) {
   const controller = useBeginnerMission(mission, session),
     record = controller.record;
+  const announcement = useSaveAnnouncement(controller.draft.saveState);
   const fade = useFadeTransition<HTMLElement>(record.stage);
   const [observationUndo, setObservationUndo] = useState<Action[] | null>(null);
   const [sandbox, setSandbox] = useState<Action[]>([]),
@@ -69,7 +96,7 @@ export function MissionSession({
   }
   const evidence = reproduced(mission, record.actions),
     passed = checksPassed(mission, record),
-    next = MISSIONS[MISSIONS.findIndex((x) => x.id === mission.id) + 1];
+    next = nextMission(mission, domain);
   const allowed = [
     true,
     record.locked,
@@ -92,7 +119,7 @@ export function MissionSession({
     setNotice("");
   }
   function restartObservation() {
-    download(mission, record);
+    // "이전 관찰 복구" restores these actions; downloading is a separate, optional action.
     setObservationUndo(record.actions);
     controller.update((current) => ({ ...current, actions: [], checked: [], completed: false }));
   }
@@ -121,22 +148,23 @@ export function MissionSession({
           <ArrowLeft size={16} /> 서비스 원리 배우기
         </Link>
         <div className="learn-save">
-          <span role="status">{labels[controller.draft.saveState]}</span>
+          <span className="learn-save-state" data-state={controller.draft.saveState}>
+            {labels[controller.draft.saveState]}
+          </span>
+          <span className="sr-only" role="status">
+            {announcement}
+          </span>
           <Button className="text-button" onClick={() => void controller.draft.saveNow()}>
-            학습 기록 저장
+            지금 저장
           </Button>
-          <Button
-            className="icon-button"
-            aria-label="학습 기록 내려받기"
-            onClick={() => download(mission, record)}
-          >
-            <Download size={18} />
+          <Button className="text-button" onClick={() => download(mission, record)}>
+            <Download size={16} aria-hidden="true" /> 기록 파일 내려받기
           </Button>
         </div>
       </header>
       <p className="learn-fineprint">
-        {learningStorageDescription(session.signedIn)} 예제 안의 저장 버튼은 실습 속 데이터만
-        바꿉니다.
+        입력하면 자동으로 저장합니다. {learningStorageDescription(session.signedIn)} 예제 안의 저장
+        버튼은 실습 속 데이터만 바꿉니다.
       </p>
       {isArchivedMission(mission.id) && (
         <p className="learn-fineprint">
@@ -226,6 +254,7 @@ export function MissionSession({
                 evidence={evidence}
                 canRestore={observationUndo !== null}
                 onRestart={restartObservation}
+                onDownload={() => download(mission, record)}
                 onRestore={restoreObservation}
                 onContinue={() => move(2)}
               />
@@ -250,6 +279,7 @@ export function MissionSession({
                 record={record}
                 update={controller.update}
                 nextMission={next}
+                domain={next && domain ? domain : undefined}
                 onComplete={complete}
               />
             )}

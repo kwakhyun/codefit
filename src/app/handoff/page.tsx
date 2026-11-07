@@ -15,7 +15,7 @@ export default async function HandoffPage({
 }: {
   searchParams: Promise<{ source?: string }>;
 }) {
-  const sample = (await searchParams).source === "sample";
+  const { source } = await searchParams;
   return (
     <main id="main-content" className="handoff-page">
       <SiteHeader />
@@ -27,7 +27,10 @@ export default async function HandoffPage({
           처리 흐름을 따라가며 내 말로 설명해 봅니다.
         </p>
       </VisualIntro>
-      <PracticeEntry initialSample={sample} mode="code">
+      <PracticeEntry
+        initialSource={source === "sample" || source === "project" ? source : undefined}
+        mode="code"
+      >
         <ExperienceJourney topic="code" />
         <HandoffDashboard />
         <aside className="handoff-quality">

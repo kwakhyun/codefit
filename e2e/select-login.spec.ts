@@ -6,7 +6,7 @@ import { testAccount } from "../scripts/lib/test-account";
 test("custom category select supports keyboard, dismissal and mobile; guest login uses official icons", async ({
   page,
 }, info) => {
-  await page.goto("/learn");
+  await page.goto("/learn?source=sample");
   const combo = page.getByRole("combobox", { name: "기술 개념", exact: true });
   await combo.focus();
   await page.keyboard.press("Enter");
@@ -76,7 +76,7 @@ test("member generator selects work inside a modal and guest CTA stays hidden", 
     await expect(language).toBeFocused();
     await expect(page.locator(".guest-login")).toHaveCount(0);
     await modal.getByRole("button", { name: "닫기", exact: true }).click();
-    await page.goto("/learn");
+    await page.goto("/learn?source=sample");
     await expect(
       page.getByText(
         "학습 기록은 계정에 저장됩니다. 같은 계정으로 로그인하면 다른 기기에서도 이어서 볼 수 있습니다.",

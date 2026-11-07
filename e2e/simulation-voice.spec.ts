@@ -20,7 +20,7 @@ test("all missions explain their purpose before recording real experiment action
     for (const action of mission.reproduce)
       await app.locator(`[data-sim-action="${action}"]`).click();
     await expect(app.getByRole("status")).toHaveText(simulate(mission, mission.reproduce).message);
-    await page.getByRole("button", { name: "학습 기록 저장", exact: true }).click();
+    await page.getByRole("button", { name: "지금 저장", exact: true }).click();
     await expect
       .poll(async () => {
         const body = await (await page.request.get(`/api/learn/${mission.id}`)).json();

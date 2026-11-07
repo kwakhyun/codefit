@@ -70,7 +70,7 @@ test("guide dismissal and optional experiments keep keyboard focus on a real con
     app.locator(`[data-sim-action="${steps.find((item) => item.optional)!.action}"]`),
   ).toBeFocused();
   await expect(page.getByTestId("experiment-spotlight")).toBeVisible();
-  await page.getByRole("button", { name: "기록 내려받고 관찰 다시 시작" }).click();
+  await page.getByRole("button", { name: "관찰 다시 시작", exact: true }).click();
   for (const step of steps.filter((item) => !item.optional)) {
     await app.locator(`[data-sim-action="${step.action}"]`).click();
   }

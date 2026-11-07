@@ -16,10 +16,39 @@ for (const type of ["starter", "coder", "maker", "builder"]) {
     expect(p!.y).toBeLessThan(secondary!.y);
     await page.goto("/learn");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "내 서비스 점검을 돕는 보조 실습",
+      "서비스가 동작하는 이유를 확인해 보세요",
     );
-    const labs = await page.locator("#labs").boundingBox();
+    // A first visit opens project practice; samples stay one click away.
+    await expect(page.getByRole("button", { name: "내 프로젝트로 연습" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await page.getByRole("button", { name: "샘플로 체험" }).click();
+    // Sections follow the recommended order: the first recommended mission is a basics mission.
     const basics = await page.locator("#basics").boundingBox();
-    expect(labs!.y).toBeLessThan(basics!.y);
+    const labs = await page.locator("#labs").boundingBox();
+    expect(basics!.y).toBeLessThan(labs!.y);
   });
 }
+
+test("practice tab follows ?source, stays in the URL and is remembered", async ({ page }) => {
+  const sample = page.getByRole("button", { name: "샘플로 체험" });
+  const project = page.getByRole("button", { name: "내 프로젝트로 연습" });
+  await page.goto("/learn");
+  await sample.click();
+  await expect(page).toHaveURL(/\/learn\?source=sample$/);
+  await page.goto("/learn");
+  await expect(sample).toHaveAttribute("aria-pressed", "true");
+  await page.goto("/learn?source=project");
+  await expect(project).toHaveAttribute("aria-pressed", "true");
+  await project.click();
+  await page.goto("/learn#labs");
+  // Links into a sample section open the sample tab.
+  await expect(sample).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#labs")).toBeVisible();
+  await page.goto("/handoff");
+  await expect(page.getByRole("button", { name: "내 프로젝트로 연습" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});

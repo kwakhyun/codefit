@@ -87,8 +87,10 @@ test("stage navigation preserves observation undo and repair experiments", async
   const observations = page.locator(".learn-observations ol li");
   const original = await observations.allTextContents();
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "기록 내려받고 관찰 다시 시작", exact: true }).click();
+  await page.getByRole("button", { name: "관찰 기록 내려받기", exact: true }).click();
   expect((await download).suggestedFilename()).toBe("codefit-where-data-lives.txt");
+  await page.getByRole("button", { name: "관찰 다시 시작", exact: true }).click();
+  await expect(page.getByRole("button", { name: "이전 관찰 복구", exact: true })).toBeFocused();
   const navigation = page.getByRole("navigation", { name: "입문 미션 단계" });
   await navigation.getByRole("button", { name: /예상하기/ }).click();
   await navigation.getByRole("button", { name: /직접 확인/ }).click();
@@ -106,8 +108,8 @@ test("stage navigation preserves observation undo and repair experiments", async
 });
 test("mobile keyboard entry, dashboard, hints and accessibility", async ({ page }, info) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/learn");
-  await expect(page.getByRole("heading", { name: "서비스 오류 해결 실습" })).toBeVisible();
+  await page.goto("/learn?source=sample");
+  await expect(page.getByRole("heading", { name: "권한, 저장 실패와 중복 요청" })).toBeVisible();
   await accessible(page);
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/beginner-mobile.png", fullPage: true });

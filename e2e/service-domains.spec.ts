@@ -6,7 +6,7 @@ import { SERVICE_DOMAINS, domainFor } from "../src/lib/learn/services/domains";
 test("domain and concept filters work together, restore all cards, and keep keyboard focus", async ({
   page,
 }) => {
-  await page.goto("/learn");
+  await page.goto("/learn?source=sample");
   const filters = page.getByRole("group", { name: "서비스 분야" });
   await expect(page.locator(".learn-card:visible")).toHaveCount(MISSIONS.length);
   for (const domain of SERVICE_DOMAINS) {

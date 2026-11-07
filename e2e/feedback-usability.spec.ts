@@ -73,7 +73,7 @@ test("observation draft preserves writing, is editable, and survives record save
   ).toBeVisible();
   const edited = "민수 계정에서 지민의 비공개 글이 보였습니다.";
   await page.locator("#request-actual").fill(edited);
-  await page.getByRole("button", { name: "학습 기록 저장", exact: true }).click();
+  await page.getByRole("button", { name: "지금 저장", exact: true }).click();
   await expect
     .poll(async () => {
       const data = await (await page.request.get(`/api/learn/${mission.id}`)).json();
@@ -93,7 +93,7 @@ test("storage mission distinguishes learning save and optional observation actio
 }) => {
   await page.goto("/learn/where-data-lives");
   await expect(page.getByText(/게스트 학습 기록은 서버에 저장하고/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "학습 기록 저장", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "지금 저장", exact: true })).toBeVisible();
   await page.getByRole("radio").first().check();
   await page.getByRole("button", { name: "예상 남기고 직접 확인" }).click();
   await expect(page.locator(".learn-observation-guide")).toContainText("저장하기 → 새로고침 실험");
@@ -106,7 +106,7 @@ test("storage mission distinguishes learning save and optional observation actio
   await expect(page.getByRole("region", { name: "실험 결과 요약" })).toBeVisible();
   await expect(page.getByRole("button", { name: "선택 실험 이어하기" })).toBeVisible();
   await expect(page.getByRole("button", { name: "다른 기기에서 보기", exact: true })).toBeEnabled();
-  await page.goto("/learn");
+  await page.goto("/learn?source=sample");
   await expect(page.locator(".learn-progress")).toContainText(
     "쿠키를 지우면 기존 기록에 접근할 수 없습니다",
   );
