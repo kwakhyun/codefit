@@ -1,18 +1,18 @@
 .project-ai-entry {
   display: grid;
-  gap: 16px;
-  margin-top: 28px;
+  gap: var(--space-4);
+  margin-top: var(--space-7);
   max-width: 760px;
 }
 .project-ai-entry form {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .learn-page .project-ai-entry .ui-label {
   flex-direction: row;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0;
 }
 .project-ai-entry p {
@@ -36,35 +36,35 @@
   width: fit-content;
   font-size: 14px;
   line-height: 1.7;
-  padding-block: 8px;
+  padding-block: var(--space-2);
 }
 .ai-home-catalog-link {
   display: inline-flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 .ai-home-hero {
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
 }
 .ai-home-hero .workspace-art {
   align-self: start;
-  margin-top: 40px;
+  margin-top: var(--space-10);
 }
 .project-ai-workspace,
 .project-ai-plan {
   display: grid;
-  gap: 28px;
+  gap: var(--space-7);
 }
 .project-ai-connect {
   display: grid;
-  gap: 20px;
+  gap: var(--space-5);
   padding: clamp(24px, 4vw, 40px);
 }
 .project-ai-connect form {
   display: grid;
   gap: 14px;
-  padding-top: 16px;
+  padding-top: var(--space-4);
   border-top: 1px solid var(--line);
 }
 .project-ai-connect > :is(h2, p),
@@ -76,7 +76,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .project-ai-connect .ui-label + :is(input, select, textarea) {
   margin-top: -6px;
@@ -94,17 +94,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: var(--space-5);
   flex-wrap: wrap;
 }
 .project-ai-source p {
-  margin-top: 8px;
+  margin-top: var(--space-2);
   color: var(--muted);
 }
 .project-ai-summary {
-  padding: 28px;
+  padding: var(--space-7);
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .project-ai-summary :is(p, h2) {
   margin: 0;
@@ -116,11 +116,11 @@
 .project-ai-switch {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .project-ai-switch button {
   padding: 14px 20px;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .project-ai-switch button[aria-pressed="true"],
 .project-ai-topic-list button[aria-pressed="true"] {
@@ -130,13 +130,13 @@
 .project-ai-topic-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
-  gap: 12px;
+  gap: var(--space-3);
 }
 .project-ai-topic-list button {
   text-align: left;
-  padding: 20px;
+  padding: var(--space-5);
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
   line-height: 1.5;
 }
 .project-ai-topic-list small {
@@ -151,11 +151,11 @@
 .project-ai-topic header,
 .project-ai-topic section {
   display: grid;
-  gap: 20px;
+  gap: var(--space-5);
   min-width: 0;
 }
 .project-ai-topic section {
-  padding-top: 28px;
+  padding-top: var(--space-7);
   border-top: 1px solid var(--line);
 }
 .project-ai-topic :is(h2, h3, h4, p) {
@@ -172,7 +172,7 @@
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   min-width: 0;
 }
 .practice-prediction fieldset {
@@ -190,12 +190,12 @@
 .project-ai-lessons {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .project-ai-lessons a {
   padding: 14px 18px;
   background: var(--surface-hover);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   line-height: 1.6;
 }
 @media (max-width: 650px) {
@@ -205,11 +205,11 @@
 }
 .project-ai-return {
   display: grid;
-  gap: 12px;
-  padding: 20px 24px;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
   border: 1px solid var(--line);
   border-radius: 16px;
-  margin: 24px 0;
+  margin: var(--space-6) 0;
 }
 .project-ai-return p {
   margin: 0;
@@ -229,7 +229,7 @@
   margin-block: 0;
 }
 .class-versions > :is(h2, h3) + p {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 @media (max-width: 1100px) {
   .project-ai-input {
@@ -245,13 +245,13 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .ai-home-hero .workspace-art {
-    margin-top: 8px;
+    margin-top: var(--space-2);
   }
   .project-ai-switch button {
     flex: 1 1 160px;
   }
   .project-ai-entry {
-    margin-top: 20px;
+    margin-top: var(--space-5);
   }
 }
 
@@ -259,14 +259,14 @@
   margin-bottom: 36px;
 }
 .project-ai-summary details p {
-  padding-top: 16px;
+  padding-top: var(--space-4);
 }
 
 /* Overall topic progress and first vs revised answers. */
 .project-ai-progress {
   display: grid;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 .project-ai-progress progress {
   width: 100%;
@@ -278,8 +278,8 @@
 }
 .project-ai-answers {
   display: grid;
-  gap: 8px;
-  margin: 8px 0;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
 }
 .project-ai-answers dt {
   font-size: var(--text-caption);
@@ -290,7 +290,7 @@
 }
 .project-ai-entry-blocked {
   display: grid;
-  gap: 4px;
+  gap: var(--space-1);
   padding: 12px 14px;
   border: 1px solid var(--warning);
   border-radius: var(--radius-small);
@@ -303,14 +303,14 @@
 }
 
 .class-versions > p + ul {
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 
 .practice-origin.segmented > :is(button, a) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
   white-space: nowrap;
   min-height: 44px;
   padding: 10px 18px;
@@ -328,6 +328,6 @@
 @media (max-width: 600px) {
   .practice-origin.segmented > :is(button, a) {
     flex: 1 1 0;
-    padding-inline: 8px;
+    padding-inline: var(--space-2);
   }
 }

@@ -4,17 +4,17 @@
 .training-panel .eyebrow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .training-topics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-  margin: 24px 0;
+  gap: var(--space-2);
+  margin: var(--space-6) 0;
 }
 .training-topics button {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 14px 8px;
   border: 1px solid light-dark(var(--light-line), #465366);
   background: light-dark(var(--light-blue-soft), #111820);
@@ -26,13 +26,13 @@
 .training-topics button[aria-pressed="true"] {
   border-color: light-dark(var(--light-strong-line), #bdd7fb);
   background: light-dark(var(--light-blue-soft), #243447);
-  color: light-dark(var(--light-text), #fff);
+  color: var(--text-strong);
 }
 .training-topics span {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
 }
 .training-topics small {
   font-size: 12px;
@@ -41,7 +41,7 @@
 .training-panel h3 {
   font-size: 22px;
   line-height: 1.5;
-  margin: 20px 0 8px;
+  margin: var(--space-5) 0 var(--space-2);
 }
 .training-reason summary,
 .training-explanation summary {
@@ -63,7 +63,7 @@
   line-height: 1.8;
 }
 .training-stages li[aria-current="step"] {
-  color: light-dark(var(--light-text), #fff);
+  color: var(--text-strong);
   font-weight: 700;
 }
 .training-panel .training-fields {
@@ -76,13 +76,13 @@
 .training-panel .training-confidence {
   min-width: 0;
   border: 1px solid light-dark(var(--light-line), #394656);
-  border-radius: 12px;
-  padding: 16px;
-  margin: 24px 0;
+  border-radius: var(--radius-control);
+  padding: var(--space-4);
+  margin: var(--space-6) 0;
 }
 .training-panel .training-question legend,
 .training-panel .training-confidence legend {
-  padding: 0 8px;
+  padding: 0 var(--space-2);
   color: light-dark(var(--light-text), #f1f5fa);
   font-size: 16px;
   font-weight: 600;
@@ -91,19 +91,19 @@
 }
 .training-panel .training-scenario {
   background: light-dark(var(--light-blue-soft), #1c2733);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: var(--radius-small);
+  padding: var(--space-4);
   color: light-dark(var(--light-text), #e3ebf5);
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
 }
 .training-panel .training-question label,
 .training-panel .training-confidence label,
 .training-panel label.training-assisted {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin: 4px 0;
-  padding: 12px 8px;
+  gap: var(--space-3);
+  margin: var(--space-1) 0;
+  padding: var(--space-3) var(--space-2);
   line-height: 1.75;
   cursor: pointer;
   min-height: 44px;
@@ -112,8 +112,8 @@
 }
 .training-question label:has(input:checked) {
   background: light-dark(var(--light-blue-soft), #26374b);
-  border-radius: 8px;
-  color: light-dark(var(--light-text), #fff);
+  border-radius: var(--radius-small);
+  color: var(--text-strong);
 }
 .project-page .training-panel input[type="radio"],
 .training-panel input[type="checkbox"] {
@@ -121,12 +121,12 @@
   width: 18px;
   height: 18px;
   min-width: 18px;
-  margin: 4px 0 0;
+  margin: var(--space-1) 0 0;
   padding: 0;
   accent-color: light-dark(var(--light-blue), #b6d5ff);
 }
 .training-panel label.training-assisted {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-5);
 }
 .training-fields:disabled {
   opacity: 0.65;
@@ -139,22 +139,22 @@
   font-size: 14px;
 }
 .training-practice {
-  padding: 20px;
+  padding: var(--space-5);
   background: light-dark(var(--light-blue-soft), #18212d);
   border: 1px solid light-dark(var(--light-line), #3b4d65);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .training-practice .primary-button {
   display: inline-flex;
   gap: 10px;
-  margin: 8px 0 16px;
+  margin: var(--space-2) 0 var(--space-4);
   text-align: center;
   line-height: 1.7;
 }
 .training-result h4 {
   font-size: 20px;
   line-height: 1.6;
-  margin: 24px 0 16px;
+  margin: var(--space-6) 0 var(--space-4);
 }
 .training-comparison {
   display: grid;
@@ -169,7 +169,7 @@
 }
 .training-comparison div {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   text-align: center;
 }
 .training-comparison strong {
@@ -182,22 +182,22 @@
   font-size: 14px;
 }
 .training-evidence {
-  padding-left: 20px;
+  padding-left: var(--space-5);
   color: light-dark(var(--light-text), #bfcede);
   font-size: 14px;
   line-height: 1.9;
 }
 .training-evidence li {
-  margin: 8px 0;
+  margin: var(--space-2) 0;
 }
 .training-explanation {
   border-top: 1px solid light-dark(var(--light-line), #344352);
 }
 .training-explanation article {
   margin: 14px 0;
-  padding: 16px;
+  padding: var(--space-4);
   background: light-dark(var(--light-blue-soft), #18202b);
-  border-radius: 8px;
+  border-radius: var(--radius-small);
 }
 .training-explanation h5 {
   font-size: 16px;
@@ -209,19 +209,19 @@
 }
 .training-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 .training-return {
   max-width: 1440px;
-  margin: 20px auto 0;
-  padding: 0 24px;
+  margin: var(--space-5) auto 0;
+  padding: 0 var(--space-6);
 }
 .training-return a {
   display: inline-block;
   min-height: 44px;
-  padding: 12px 0;
+  padding: var(--space-3) 0;
   color: light-dark(var(--light-blue), #c6dcfa);
   line-height: 1.7;
 }
@@ -234,30 +234,30 @@
   }
   .training-panel .training-question,
   .training-panel .training-confidence {
-    padding: 12px;
+    padding: var(--space-3);
   }
   .training-practice {
-    padding: 16px;
+    padding: var(--space-4);
   }
   .training-actions > button {
     width: 100%;
   }
   .training-comparison {
     padding: 18px 10px;
-    gap: 8px;
+    gap: var(--space-2);
   }
 }
 .project-feedback-list {
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 .project-feedback-list > summary {
   cursor: pointer;
-  padding: 16px 0;
+  padding: var(--space-4) 0;
   min-height: 44px;
   line-height: 1.7;
   color: light-dark(var(--light-blue), #cadcf5);
 }
 .project-results > .primary-button {
   display: inline-flex;
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }

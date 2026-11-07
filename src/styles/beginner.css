@@ -11,7 +11,7 @@
 .learn-page {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 32px 32px 56px;
+  padding: var(--space-8) var(--space-8) var(--space-14);
   font-size: var(--text-body);
 }
 .learn-page a {
@@ -22,16 +22,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-4);
   border-bottom: 1px solid var(--line);
 }
 .learn-header + .learn-fineprint {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 .learn-header > a {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .learn-header .brand-logo {
   margin: 0;
@@ -42,14 +42,14 @@
   height: 30px;
 }
 .learn-intro {
-  padding: 24px 0;
+  padding: var(--space-6) 0;
   max-width: 900px;
 }
 .learn-intro h1 {
   font-size: clamp(28px, 3.5vw, 40px);
   line-height: 1.45;
   letter-spacing: -0.05em;
-  margin: 20px 0;
+  margin: var(--space-5) 0;
 }
 .learn-intro > p {
   font-size: 17px;
@@ -63,24 +63,24 @@
 .learn-progress {
   background: var(--surface);
   border: 1px solid var(--line);
-  padding: 20px 24px;
+  padding: var(--space-5) var(--space-6);
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-4);
   flex-wrap: wrap;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .learn-progress span {
   color: var(--muted);
   font-size: var(--text-small);
 }
 .learn-course {
-  padding: 40px 0 0;
+  padding: var(--space-10) 0 0;
   scroll-margin-top: 24px;
 }
 .learn-section-title h2 {
   font-size: 25px;
-  margin: 8px 0;
+  margin: var(--space-2) 0;
 }
 .learn-section-title p {
   color: var(--muted);
@@ -95,7 +95,7 @@
   border-radius: var(--radius-panel);
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  padding: var(--space-6);
   background: var(--surface);
   border: 1px solid var(--line);
   text-decoration: none;
@@ -110,7 +110,7 @@
 .learn-card > div {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-2);
   font-size: var(--text-caption);
   color: var(--muted);
 }
@@ -120,7 +120,7 @@
 .learn-card h3 {
   font-size: 19px;
   line-height: 1.6;
-  margin: 16px 0 8px;
+  margin: var(--space-4) 0 var(--space-2);
 }
 .learn-card p {
   margin: 0 0 22px;
@@ -132,11 +132,11 @@
   font-size: var(--text-ui);
   margin-top: auto;
   border-top: 1px solid var(--line);
-  padding-top: 16px;
+  padding-top: var(--space-4);
 }
 .learn-limits {
   border-top: 1px solid var(--line);
-  margin-top: 40px;
+  margin-top: var(--space-10);
   padding-top: 26px;
   color: var(--muted);
 }
@@ -151,16 +151,16 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   font-size: var(--text-caption);
   color: var(--muted);
 }
 .mission-title {
-  padding: 32px 0 20px;
+  padding: var(--space-8) 0 var(--space-5);
 }
 .mission-title h1 {
   font-size: clamp(25px, 3vw, 34px);
-  margin: 12px 0;
+  margin: var(--space-3) 0;
   line-height: 1.5;
 }
 .mission-title p {
@@ -170,15 +170,15 @@
 .learn-steps {
   position: sticky;
   top: 8px;
-  z-index: 10;
+  z-index: var(--z-sticky);
   background: var(--bg);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border: 1px solid var(--line);
-  margin: 8px 0 28px;
-  border-radius: 12px;
-  padding: 4px;
-  gap: 4px;
+  margin: var(--space-2) 0 var(--space-7);
+  border-radius: var(--radius-control);
+  padding: var(--space-1);
+  gap: var(--space-1);
 }
 .learn-steps button {
   display: flex;
@@ -212,7 +212,7 @@
 }
 .mission-stage > h2 {
   font-size: 23px;
-  margin: 0 0 20px;
+  margin: 0 0 var(--space-5);
   scroll-margin-top: 100px;
 }
 .mission-stage > .primary-button {
@@ -231,7 +231,7 @@
 }
 .learn-page label:not(.learn-option) {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 18px 0;
 }
 .learn-page textarea {
@@ -247,8 +247,8 @@
 .learn-option {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
+  gap: var(--space-3);
+  padding: var(--space-4);
   background: var(--surface);
   border: 1px solid light-dark(var(--light-line), #404a43);
   margin: 10px 0;
@@ -277,34 +277,34 @@
 }
 .learn-transfer > .primary-button {
   display: flex;
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 .mission-columns {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 24px;
+  gap: var(--space-6);
   align-items: start;
 }
 .learn-observations {
   min-width: 0;
-  padding: 24px;
+  padding: var(--space-6);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--surface);
   scroll-margin-top: 110px;
 }
 .learn-observations > h3:not(:first-child) {
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 .learn-observations > p + p:not(:empty) {
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 .learn-observations > p:empty {
   display: none;
 }
 .learn-observations > .text-button {
   display: flex;
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 .learn-observations > .learn-concept {
   margin-bottom: 0;
@@ -314,8 +314,8 @@
   margin: 0 0 10px;
 }
 .learn-observations ol {
-  padding-left: 24px;
-  margin: 12px 0;
+  padding-left: var(--space-6);
+  margin: var(--space-3) 0;
   color: light-dark(var(--light-muted), #c2c8c4);
   font-size: var(--text-ui);
   max-height: 280px;
@@ -328,24 +328,24 @@
 .learn-coach {
   background: light-dark(var(--light-blue-soft), #141e27);
   border: 1px solid light-dark(var(--light-line), #3a536b);
-  padding: 20px;
+  padding: var(--space-5);
   margin: 22px 0;
   color: light-dark(var(--light-text), #c7d7e7);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .learn-coach > p + span {
   display: block;
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 .learn-concept p {
   margin: 10px 0 0;
 }
 .learn-request {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
   max-width: 800px;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 28px;
+  padding-bottom: var(--space-7);
 }
 .learn-page .learn-request > *,
 .learn-page .learn-request label {
@@ -356,17 +356,17 @@
   justify-self: start;
 }
 .learn-request > div {
-  padding-block: 4px;
+  padding-block: var(--space-1);
 }
 .learn-request .voice-input {
   margin-top: 10px;
 }
 .learn-fixes > h3,
 .learn-checks > h3 {
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 .learn-checks > p {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-5);
 }
 .learn-request h3,
 .learn-fixes h3,
@@ -386,7 +386,7 @@
   margin-top: 30px;
 }
 .learn-checks {
-  margin: 24px 0;
+  margin: var(--space-6) 0;
   border: 1px solid light-dark(var(--light-line), #424942);
   padding: 22px;
 }
@@ -394,7 +394,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-4);
   border-top: 1px solid light-dark(var(--light-line), #3d453f);
   padding: 18px 0;
 }
@@ -407,7 +407,7 @@
   font-size: var(--text-small);
 }
 .learn-check p {
-  margin: 8px 0 0;
+  margin: var(--space-2) 0 0;
   font-size: var(--text-ui);
 }
 .learn-success {
@@ -417,7 +417,7 @@
   color: light-dark(var(--light-amber), #f2c879);
 }
 .mission-stage > .primary-button + .learn-fineprint {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 .learn-fineprint {
   color: light-dark(var(--light-muted), #aeb5b0);
@@ -427,41 +427,41 @@
 .learn-completed {
   border: 1px solid light-dark(var(--light-strong-line), #5b8a6e);
   background: light-dark(var(--light-canvas), #132119);
-  padding: 24px;
-  margin: 28px 0;
+  padding: var(--space-6);
+  margin: var(--space-7) 0;
 }
 .learn-completed h3 {
   margin-top: 0;
   font-size: 22px;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
   color: light-dark(var(--light-green), #ade6c4);
 }
 .learn-completed > div {
-  margin-top: 20px;
+  margin-top: var(--space-5);
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .learn-support {
-  margin-top: 32px;
-  padding-top: 24px;
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
   border-top: 1px solid var(--line);
 }
 .learn-support li {
   margin-bottom: 10px;
 }
 .learn-page details {
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   border: 1px solid light-dark(var(--light-line), #3c4540);
-  padding: 16px;
-  margin: 20px 0;
+  padding: var(--space-4);
+  margin: var(--space-5) 0;
 }
 .learn-page summary {
   cursor: pointer;
   min-height: 28px;
 }
 .learn-page details[open] summary {
-  margin-bottom: 20px;
+  margin-bottom: var(--space-5);
 }
 .learn-page pre {
   overflow: auto;
@@ -469,18 +469,18 @@
   overflow-wrap: anywhere;
   font: var(--text-ui)/1.8 var(--mono);
   background: light-dark(var(--light-panel), #111);
-  padding: 20px;
+  padding: var(--space-5);
 }
 .learn-conflict {
   background: light-dark(var(--light-amber-soft), #281c11);
   border: 1px solid light-dark(var(--light-strong-line), #aa804e);
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
 }
 .learn-comparison {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: var(--space-4);
 }
 .learn-comparison pre {
   max-height: 340px;
@@ -555,7 +555,7 @@
     max-width: 100%;
   }
   .learn-checks {
-    padding: 16px;
+    padding: var(--space-4);
   }
   .learn-option {
     padding: 14px;
@@ -565,7 +565,7 @@
     min-height: 44px;
   }
   .learn-page pre {
-    padding: 12px;
+    padding: var(--space-3);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -578,11 +578,11 @@
   border-color: var(--action-soft);
 }
 .learn-observation-guide {
-  margin: 0 0 24px;
+  margin: 0 0 var(--space-6);
   background: var(--surface);
-  padding: 16px;
+  padding: var(--space-4);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   line-height: 1.8;
 }
 
@@ -591,7 +591,7 @@
     padding: 18px;
   }
   .learn-observation-guide {
-    margin-bottom: 20px;
+    margin-bottom: var(--space-5);
   }
   .mission-stage > .primary-button {
     width: 100%;
@@ -613,7 +613,7 @@
 .observation-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
+  gap: var(--space-1) var(--space-4);
 }
 
 /* Sample progress shown above the practice tabs on /learn and /handoff. */
@@ -621,8 +621,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 20px;
-  margin: 0 0 16px;
+  gap: var(--space-3) var(--space-5);
+  margin: 0 0 var(--space-4);
   padding: 14px 18px;
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
@@ -633,7 +633,7 @@
   flex: 1 1 260px;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 12px;
+  gap: var(--space-1) var(--space-3);
   min-width: 0;
 }
 .practice-progress strong {
@@ -669,7 +669,7 @@
 .lab-target {
   display: grid;
   align-content: start;
-  gap: 16px;
+  gap: var(--space-4);
   padding: clamp(18px, 3vw, 28px);
   border: 1px solid var(--line);
   background: var(--surface);
@@ -679,17 +679,17 @@
 .mission-rule {
   display: grid;
   gap: 10px;
-  padding-top: 16px;
+  padding-top: var(--space-4);
   border-top: 1px solid var(--line);
 }
 
 .lab-purpose,
 .lab-target {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 
 .lab-target li + li {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 .observation-checkpoint {

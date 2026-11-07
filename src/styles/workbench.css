@@ -4,18 +4,18 @@
    --surface that learning pages set). */
 .visual-intro {
   grid-template-columns: minmax(0, 1fr) minmax(240px, 30%);
-  gap: 32px;
-  margin: 24px 0;
-  padding: 28px;
+  gap: var(--space-8);
+  margin: var(--space-6) 0;
+  padding: var(--space-7);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
-  background: light-dark(var(--light-panel), #171d28);
+  background: var(--panel);
 }
 .visual-intro .visual-intro-copy h1 {
   font-size: clamp(25px, 2.5vw, 34px);
   line-height: 1.45;
   letter-spacing: -0.035em;
-  margin: 8px 0 12px;
+  margin: var(--space-2) 0 var(--space-3);
   text-wrap: balance;
 }
 .visual-intro .visual-intro-copy h1 br {
@@ -23,12 +23,12 @@
 }
 .visual-intro .visual-intro-copy p {
   max-width: 68ch;
-  margin: 8px 0 0;
+  margin: var(--space-2) 0 0;
   line-height: 1.75;
 }
 .visual-intro > .section-artwork {
   background: transparent;
-  border-radius: 8px;
+  border-radius: var(--radius-small);
 }
 .visual-intro .eyebrow {
   color: var(--muted);
@@ -39,14 +39,14 @@
   border: 0;
   border-radius: 0;
   background: none;
-  margin-bottom: 28px;
+  margin-bottom: var(--space-7);
 }
 .journey-label {
   font-size: 12px;
   margin-bottom: 10px;
 }
 .journey-options {
-  gap: 8px;
+  gap: var(--space-2);
 }
 .journey-options button {
   min-height: 44px;
@@ -64,7 +64,7 @@
 }
 .journey-detail {
   min-height: 0;
-  margin-top: 12px;
+  margin-top: var(--space-3);
   padding: 4px 0 4px 14px;
   background: none;
   border-color: light-dark(var(--light-strong-line), #68849b);
@@ -76,23 +76,23 @@
 }
 .journey-detail p {
   font-size: 13px;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 .project-usage {
-  margin: 20px 0;
+  margin: var(--space-5) 0;
   padding: 14px 18px;
   background: transparent;
 }
 .project-panel {
   background: var(--surface);
-  border-radius: 12px;
-  padding: 28px;
+  border-radius: var(--radius-control);
+  padding: var(--space-7);
 }
 .project-panel > p + :is(p, details, a, button, div) {
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }
 .project-feedback-list {
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 .project-feedback > :is(p, details, strong) {
   margin-block: 14px;
@@ -101,20 +101,20 @@
   display: block;
 }
 .project-next-step {
-  margin-block: 20px;
+  margin-block: var(--space-5);
 }
 .project-panel > .project-help {
-  margin-block: 12px;
+  margin-block: var(--space-3);
 }
 .project-form {
-  gap: 12px;
+  gap: var(--space-3);
 }
 .project-form > .primary-button {
   align-self: flex-start;
-  padding-inline: 24px;
+  padding-inline: var(--space-6);
 }
 .project-page .project-form > label:not(.project-consent) {
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }
 .feature-banner {
   background: var(--surface);
@@ -137,11 +137,11 @@
   margin-bottom: 14px;
 }
 .learn-page .section-heading {
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 .learn-page .section-heading p {
-  margin-top: 8px;
+  margin-top: var(--space-2);
   line-height: 1.75;
 }
 .learn-page .security-exercises > p {
@@ -149,21 +149,21 @@
 }
 .security-finding,
 .security-form {
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 @media (max-width: 700px) {
   .visual-intro {
     grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-    padding: 24px;
-    margin: 16px 0 20px;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    margin: var(--space-4) 0 var(--space-5);
   }
   .visual-intro > .section-artwork {
     grid-row: auto;
     width: min(100%, 240px);
     justify-self: center;
     align-self: start;
-    margin-top: 12px;
+    margin-top: var(--space-3);
   }
   .visual-intro > .section-artwork img {
     aspect-ratio: 3 / 2;
@@ -190,13 +190,13 @@
   }
   .journey-number {
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: var(--space-1);
   }
   .journey-detail {
     min-height: 0;
   }
   .project-panel {
-    padding: 24px 20px;
+    padding: var(--space-6) var(--space-5);
   }
 }
 .project-task-toolbar {
@@ -204,14 +204,14 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin: 24px 0;
-  padding-block: 16px;
+  gap: var(--space-4);
+  margin: var(--space-6) 0;
+  padding-block: var(--space-4);
   border-block: 1px solid var(--line);
 }
 .verification-plan {
-  margin: 20px 0;
-  padding: 20px;
+  margin: var(--space-5) 0;
+  padding: var(--space-5);
   background: light-dark(var(--light-blue-soft), #131b23);
   border-left: 2px solid light-dark(var(--light-strong-line), #819eb5);
 }
@@ -219,12 +219,12 @@
   line-height: 1.6;
 }
 .verification-plan ol {
-  margin: 20px 0;
-  padding-left: 24px;
+  margin: var(--space-5) 0;
+  padding-left: var(--space-6);
 }
 .verification-plan li {
   padding-left: 6px;
-  margin: 16px 0;
+  margin: var(--space-4) 0;
   line-height: 1.75;
 }
 .verification-plan li p {
@@ -241,8 +241,8 @@
 }
 .audit-method {
   border: 1px solid var(--line);
-  border-radius: 12px;
-  margin: 20px 0;
+  border-radius: var(--radius-control);
+  margin: var(--space-5) 0;
   padding: 22px;
   background: var(--surface);
   min-width: 0;
@@ -259,7 +259,7 @@
   font-size: 13px;
 }
 .audit-method > :is(p, label, button, div, section, ol) {
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 .audit-method :is(p, li) {
   line-height: 1.8;
@@ -288,11 +288,11 @@
 }
 .ownership-instructions {
   border-left: 2px solid light-dark(var(--light-strong-line), #819eb5);
-  padding-left: 20px;
+  padding-left: var(--space-5);
 }
 .ownership-instructions > :is(h3, p, button, code) {
   display: block;
-  margin-block: 16px;
+  margin-block: var(--space-4);
 }
 .ownership-instructions code,
 .zap-finding code {
@@ -302,7 +302,7 @@
 }
 .audit-table-wrap {
   overflow-x: auto;
-  margin: 20px 0;
+  margin: var(--space-5) 0;
 }
 .audit-table-wrap table {
   width: 100%;
@@ -312,7 +312,7 @@
 }
 .audit-table-wrap caption {
   text-align: left;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
   color: var(--muted);
 }
 .audit-table-wrap :is(th, td) {
@@ -329,7 +329,7 @@
   color: var(--muted);
 }
 .audit-steps {
-  padding-left: 24px;
+  padding-left: var(--space-6);
 }
 .audit-steps li {
   margin-block: 14px;
@@ -342,8 +342,8 @@
   margin-block: 14px;
 }
 .zap-finding ul {
-  padding-left: 20px;
-  margin-block: 16px;
+  padding-left: var(--space-5);
+  margin-block: var(--space-4);
 }
 .audit-method a {
   color: var(--action-soft);
@@ -403,7 +403,7 @@
 @media (max-width: 700px) {
   .visual-intro > .section-artwork {
     width: min(100%, 176px);
-    margin-top: 4px;
+    margin-top: var(--space-1);
   }
 }
 

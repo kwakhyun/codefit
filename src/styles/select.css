@@ -45,7 +45,7 @@
   padding: 6px;
   box-sizing: border-box;
   border: 1px solid light-dark(var(--light-line), #41464f);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: light-dark(var(--light-panel), #14171b);
   color: light-dark(var(--light-text), #f4f4f5);
   box-shadow: 0 12px 36px #0008;
@@ -59,7 +59,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
   min-height: 44px;
   padding: 10px;
   border-radius: 7px;

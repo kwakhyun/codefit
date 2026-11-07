@@ -5,8 +5,8 @@
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 12px;
-  background: light-dark(var(--light-panel), #101318);
+  border-radius: var(--radius-control);
+  background: var(--art-surface);
   flex-shrink: 0;
 }
 .scenario-art img {
@@ -19,8 +19,8 @@
 .scenario-thumbnail {
   display: flex;
   justify-content: center;
-  background: light-dark(var(--light-panel), #101318);
-  border-radius: 12px;
+  background: var(--art-surface);
+  border-radius: var(--radius-control);
   margin-bottom: 18px;
   overflow: hidden;
 }
@@ -31,8 +31,8 @@
   display: grid;
   grid-template-columns: 120px minmax(0, 1fr);
   align-items: center;
-  gap: 20px;
-  margin: 0 0 24px;
+  gap: var(--space-5);
+  margin: 0 0 var(--space-6);
   padding: 14px 18px;
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
@@ -57,15 +57,15 @@
   font-size: var(--text-caption);
   line-height: 1.65;
   color: var(--muted);
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 .scenario-walkthrough {
   margin: 18px 0 28px;
 }
 .scenario-walkthrough .scenario-visual {
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
   grid-template-columns: 100px minmax(0, 1fr);
-  padding: 12px;
+  padding: var(--space-3);
   gap: 14px;
 }
 .scenario-controls {
@@ -97,8 +97,8 @@
 @media (max-width: 600px) {
   .scenario-visual {
     grid-template-columns: 80px minmax(0, 1fr);
-    gap: 12px;
-    padding: 12px;
+    gap: var(--space-3);
+    padding: var(--space-3);
     align-items: start;
   }
   .scenario-walkthrough .scenario-visual {

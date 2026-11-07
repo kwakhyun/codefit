@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
   color: var(--muted);
   font-size: var(--text-small);
 }
@@ -73,8 +73,8 @@ select {
   position: fixed;
   left: calc(var(--shell-sidebar-width, 0px) + 16px);
   top: -80px;
-  z-index: 100;
-  padding: 12px 20px;
+  z-index: var(--z-toast);
+  padding: var(--space-3) var(--space-5);
   background: var(--accent);
   color: light-dark(var(--light-on-accent), #111111);
 }
@@ -141,7 +141,7 @@ select {
   display: inline-flex;
   gap: 6px;
   align-items: center;
-  padding: 4px 0;
+  padding: var(--space-1) 0;
   color: light-dark(var(--light-muted), #b2b2b2);
   font-size: var(--text-small);
   font-weight: 500;
@@ -200,7 +200,7 @@ p {
 /* Functional color accents over the DOS black and graphite surfaces. */
 ::selection {
   background: light-dark(var(--light-blue-soft), #244363);
-  color: var(--white);
+  color: var(--text-strong);
 }
 
 .primary-button:hover:not(:disabled) {

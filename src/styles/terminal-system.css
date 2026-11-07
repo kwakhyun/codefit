@@ -36,7 +36,7 @@ body {
   font: inherit;
   line-height: 1.5;
   cursor: pointer;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .ui-button:hover:not(:disabled) {
   background: var(--surface-hover);
@@ -108,13 +108,13 @@ body {
 }
 .ui-card > :is(h2, h3) {
   line-height: 1.5;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 .ui-card > p {
   line-height: 1.8;
 }
 .ui-card > p + :is(p, button, a, form, details, div) {
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }
 .ui-card > :last-child {
   margin-bottom: 0;
@@ -152,7 +152,7 @@ body {
 }
 :where(.ui-disclosure-summary) {
   cursor: pointer;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   line-height: 1.7;
 }
 .ui-disclosure[open] > :not(summary) {
@@ -186,7 +186,7 @@ body {
 }
 .ui-status[role="alert"] {
   border-left: 2px solid light-dark(var(--light-strong-line), #eda88f);
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
 }
 .section-artwork,
 .visual-intro > .section-artwork {
@@ -236,14 +236,14 @@ body {
 .ui-loading {
   display: grid;
   gap: 14px;
-  padding: 24px;
+  padding: var(--space-6);
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: var(--radius-control);
 }
 .ui-loading-label {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: center;
   line-height: 1.7;
 }
@@ -253,7 +253,7 @@ body {
 }
 .ui-network-progress {
   position: fixed;
-  z-index: 120;
+  z-index: var(--z-progress);
   inset: 0 0 auto;
   pointer-events: none;
 }
@@ -267,14 +267,14 @@ body {
 }
 .project-request-status > .ui-progress,
 .learn-fineprint > .ui-progress {
-  margin-block: 12px;
+  margin-block: var(--space-3);
 }
 .guest-trial-notice {
-  padding: 20px 24px;
+  padding: var(--space-5) var(--space-6);
   border: 1px solid light-dark(var(--light-line), #55555e);
   border-left: 3px solid var(--action);
   background: light-dark(var(--light-canvas), #1b1b1f);
-  margin: 24px 0;
+  margin: var(--space-6) 0;
   border-radius: var(--radius-control);
 }
 .guest-trial-notice p {
@@ -282,7 +282,7 @@ body {
   line-height: 1.75;
 }
 .project-example-disclosure {
-  margin: 28px 0;
+  margin: var(--space-7) 0;
   padding: 18px;
   border: 1px solid var(--line);
 }
@@ -349,11 +349,11 @@ body {
 
 .guest-login.guest-login-compact {
   display: flex;
-  gap: 16px;
+  gap: var(--space-4);
   padding: 0;
   border: 0;
   background: transparent;
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 .guest-login-compact .guest-login-link {
   min-height: 32px;
@@ -364,8 +364,8 @@ body {
   display: none;
 }
 .project-page > .experience-journey {
-  margin-top: 32px;
-  padding-top: 24px;
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
   border-top: 1px solid var(--line);
 }
 .project-usage,
@@ -380,13 +380,13 @@ body {
 }
 .confirmation-modal > p {
   line-height: 1.8;
-  margin: 0 0 24px;
+  margin: 0 0 var(--space-6);
 }
 .ui-dialog-actions {
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .ui-button.danger-button {
   border-color: light-dark(var(--light-strong-line), #c48778);
@@ -409,14 +409,14 @@ html {
   text-size-adjust: 100%;
 }
 .confirmation-modal > p {
-  margin: 0 24px 24px;
+  margin: 0 var(--space-6) var(--space-6);
 }
 .confirmation-modal .ui-dialog-actions {
-  margin: 0 24px 24px;
+  margin: 0 var(--space-6) var(--space-6);
 }
 .confirmation-modal .confirmation-details {
   margin: -12px 24px 24px;
-  padding-left: 20px;
+  padding-left: var(--space-5);
   line-height: 1.7;
   color: var(--muted);
 }
@@ -459,7 +459,7 @@ html {
   font: 600 var(--text-ui)/1.6 var(--sans);
 }
 .observation-checkpoint.ui-card {
-  padding: 24px;
+  padding: var(--space-6);
   border: 1px solid light-dark(var(--light-strong-line), #777780);
   border-top: 3px solid var(--action);
   box-shadow: 0 8px 28px #0000001f;
@@ -476,8 +476,8 @@ html {
   color: var(--text);
 }
 .checkpoint-evidence {
-  padding: 16px;
-  margin-top: 20px;
+  padding: var(--space-4);
+  margin-top: var(--space-5);
   border-left: 2px solid var(--muted);
   background: var(--bg);
 }
@@ -486,7 +486,7 @@ html {
   color: var(--muted);
 }
 .checkpoint-evidence p {
-  margin: 8px 0 0;
+  margin: var(--space-2) 0 0;
   font-size: 15px;
   line-height: 1.8;
 }
@@ -495,30 +495,30 @@ html {
   width: 100%;
   min-height: 48px;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 .observation-history {
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--line);
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 .observation-history h4 {
-  margin: 16px 0 8px;
+  margin: var(--space-4) 0 var(--space-2);
 }
 .observation-history p {
   line-height: 1.8;
 }
 .learn-observation-guide > span {
   display: block;
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 .observation-prediction > p {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   line-height: 1.8;
 }
 @media (max-width: 700px) {
   .observation-checkpoint.ui-card {
-    padding: 20px;
+    padding: var(--space-5);
   }
   .observation-checkpoint h3 {
     font-size: 20px;
@@ -534,19 +534,19 @@ html {
   background: transparent;
 }
 .repair-next-step p {
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
   line-height: 1.8;
 }
 
 /* Space between complete sections belongs to the parent, not the last text node. */
 .guest-login:not(.guest-login-compact) {
-  margin-block: 24px;
+  margin-block: var(--space-6);
 }
 .security-audit > p {
-  margin-block: 12px 24px;
+  margin-block: var(--space-3) var(--space-6);
 }
 .project-panel > h3 + p {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 .mission-brief :is(h3, h4, p),
 .lab-purpose p,
@@ -562,14 +562,14 @@ html {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 8px 16px;
+  gap: var(--space-2) var(--space-4);
 }
 .mission-rule dd {
   margin: 0;
   font-weight: 600;
 }
 .service-app .service-header {
-  padding: 20px 24px;
+  padding: var(--space-5) var(--space-6);
 }
 .service-app .service-header strong {
   font-size: 20px;
@@ -593,8 +593,8 @@ html {
   color: var(--text);
 }
 .checkpoint-expected {
-  margin-top: 12px;
-  padding: 12px 16px;
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border-left: 2px solid var(--text);
 }
 .checkpoint-expected strong {
@@ -606,7 +606,7 @@ html {
   line-height: 1.7;
 }
 .observation-checkpoint .checkpoint-lesson {
-  margin-top: 20px;
+  margin-top: var(--space-5);
   font-size: 15px;
 }
 .lab-target ul {
@@ -614,38 +614,38 @@ html {
   padding-left: 22px;
 }
 .lab-input-context p {
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 .lab-next-action p {
   margin: 0;
   line-height: 1.8;
 }
 .lab-optional-tools {
-  margin-top: 24px;
-  padding: 16px;
+  margin-top: var(--space-6);
+  padding: var(--space-4);
   border: 1px solid var(--line);
 }
 .lab-runtime-details small {
   display: block;
-  margin-top: 12px;
+  margin-top: var(--space-3);
   line-height: 1.8;
 }
 @media (max-width: 700px) {
   .service-app .service-header {
     align-items: flex-start;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: var(--space-3);
   }
   .observation-checkpoint .checkpoint-evidence {
-    margin-top: 12px;
-    padding: 12px;
+    margin-top: var(--space-3);
+    padding: var(--space-3);
   }
   .observation-checkpoint .checkpoint-expected {
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
   }
 }
 .lab-next-action + .secondary-button {
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }
 
 .service-app .service-policy :is(summary, p),
@@ -661,7 +661,7 @@ html {
 }
 .ui-link.primary-button {
   min-height: 46px;
-  padding: 12px 20px;
+  padding: var(--space-3) var(--space-5);
 }
 .ui-card,
 .ui-disclosure,
@@ -691,7 +691,7 @@ html {
 }
 .nav-item {
   min-height: 46px;
-  padding-block: 12px;
+  padding-block: var(--space-3);
 }
 .nav-item {
   font-size: 15px;
@@ -715,7 +715,7 @@ html {
 }
 .checkpoint-evidence,
 .checkpoint-expected {
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .checkpoint-expected {
   background: light-dark(var(--light-blue-soft), #1c2a3c);
@@ -751,13 +751,13 @@ html {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 20px;
-  padding: 24px 28px;
-  margin-bottom: 28px;
+  gap: var(--space-5);
+  padding: var(--space-6) var(--space-7);
+  margin-bottom: var(--space-7);
   background: var(--surface);
 }
 .project-resume-strip h2 {
-  margin: 8px 0;
+  margin: var(--space-2) 0;
   font-size: 22px;
   line-height: 1.5;
 }
@@ -769,13 +769,13 @@ html {
 }
 .project-page .project-task-intro {
   grid-template-columns: minmax(0, 1fr) 220px;
-  gap: 28px;
-  padding: 24px 28px;
-  margin-bottom: 20px;
+  gap: var(--space-7);
+  padding: var(--space-6) var(--space-7);
+  margin-bottom: var(--space-5);
 }
 .project-page .project-usage {
-  padding: 12px 20px;
-  margin: 20px 0;
+  padding: var(--space-3) var(--space-5);
+  margin: var(--space-5) 0;
   gap: 10px 24px;
 }
 .project-layout-first {
@@ -787,20 +787,20 @@ html {
 @media (max-width: 760px) {
   .project-page .project-task-intro {
     grid-template-columns: 1fr;
-    padding: 24px;
+    padding: var(--space-6);
   }
   .project-page .project-usage {
-    padding: 12px 16px;
-    gap: 8px 16px;
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-2) var(--space-4);
   }
   .project-resume-strip.ui-card {
-    padding: 20px;
+    padding: var(--space-5);
   }
 }
 
 /* Text toggles share balanced gutters; icon-only controls keep their square target. */
 .ui-button.ui-toggle:not(.icon-button) {
-  padding-inline: 16px;
+  padding-inline: var(--space-4);
   padding-block: 10px;
   line-height: 1.5;
 }
@@ -862,7 +862,7 @@ html {
 }
 
 .ui-notice + .project-layout {
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 
 /* Page intro artwork stays decorative on phones: smaller, so the page's first choice is
@@ -870,7 +870,7 @@ html {
 
 /* History shortcuts are cards like the resume card above them, grouped closer together. */
 .ui-link.history-track-link {
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
   border-radius: var(--radius-panel);
   text-decoration: none;
 }
@@ -881,14 +881,14 @@ html {
 
 /* Status text must remain separated from the content it describes. */
 :is(.learn-page, .project-main, .handoff-progress) > .ui-status {
-  margin-block: 16px;
+  margin-block: var(--space-4);
 }
 
 .ui-disclosure[open] > .ui-disclosure-summary + :is(p, div, ul, ol) {
-  margin-block-start: 16px;
+  margin-block-start: var(--space-4);
 }
 
 /* The prediction helper belongs above the answer group, not against its border. */
 .lab-prediction fieldset > .learn-fineprint {
-  margin-block: 12px 20px;
+  margin-block: var(--space-3) var(--space-5);
 }

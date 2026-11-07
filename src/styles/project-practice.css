@@ -22,17 +22,17 @@
 .practice-samples,
 .practice-runner {
   display: grid;
-  gap: 28px;
+  gap: var(--space-7);
   min-width: 0;
 }
 .practice-entry {
-  margin-block: 32px;
+  margin-block: var(--space-8);
 }
 .practice-origin {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 /* Segmented choices: one track with a raised thumb for the selected option. */
@@ -46,7 +46,7 @@
 }
 .practice-origin > :is(button, a) {
   display: inline-flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
   padding: 12px 18px;
   min-height: 46px;
@@ -74,7 +74,7 @@
 .practice-complete {
   padding: clamp(22px, 4vw, 36px);
   display: grid;
-  gap: 20px;
+  gap: var(--space-5);
   min-width: 0;
 }
 :is(.practice-entry-card, .practice-connect, .practice-exercise, .practice-complete)
@@ -90,21 +90,21 @@
 }
 .practice-entry-card ol {
   display: grid;
-  gap: 12px;
-  padding-left: 24px;
+  gap: var(--space-3);
+  padding-left: var(--space-6);
   margin: 0;
   color: var(--muted);
 }
 .practice-connect form {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .practice-connect form > label:not(.practice-consent) {
   margin-top: 10px;
 }
 .practice-project {
   display: flex;
-  gap: 20px;
+  gap: var(--space-5);
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
@@ -118,7 +118,7 @@
 }
 .practice-stepbar {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .practice-stepbar progress {
   width: 100%;
@@ -153,9 +153,9 @@
 .practice-exercise fieldset {
   border: 0;
   padding: 0;
-  margin: 8px 0;
+  margin: var(--space-2) 0;
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   min-width: 0;
 }
 .practice-exercise legend {
@@ -182,7 +182,7 @@
   flex: 0 0 20px;
   width: 20px;
   height: 20px;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 .practice-explanation {
   display: grid;
@@ -192,16 +192,16 @@
 }
 .practice-walkthrough {
   display: grid;
-  gap: 20px;
-  padding-left: 28px;
+  gap: var(--space-5);
+  padding-left: var(--space-7);
   margin: 0;
 }
 .practice-walkthrough li {
-  padding-left: 8px;
+  padding-left: var(--space-2);
   line-height: 1.8;
 }
 .practice-walkthrough li p {
-  margin-top: 8px;
+  margin-top: var(--space-2);
   color: var(--muted);
 }
 .practice-complete {
@@ -222,7 +222,7 @@
 }
 @media (max-width: 600px) {
   .project-practice-page {
-    padding-inline: 16px;
+    padding-inline: var(--space-4);
   }
   .practice-origin > :is(button, a) {
     flex: 1 1 auto;
@@ -245,7 +245,7 @@
 }
 .practice-sources {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
   min-width: 0;
 }
 .practice-sources summary {
@@ -254,7 +254,7 @@
 .project-quick-start {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 24px;
+  gap: var(--space-6);
   padding: clamp(24px, 4vw, 40px);
   background: linear-gradient(
     115deg,
@@ -265,7 +265,7 @@
 }
 .quick-start-heading {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .quick-start-heading > p {
   display: flex;
@@ -286,7 +286,7 @@
 .quick-start-outcomes {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 28px;
+  gap: var(--space-2) var(--space-7);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -296,7 +296,7 @@
 .quick-start-outcomes li {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .quick-start-outcomes svg {
   color: var(--muted);
@@ -309,11 +309,11 @@
   display: grid;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+  gap: var(--space-3);
 }
 .quick-start-input {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .quick-start-input input {
   flex: 1;
@@ -332,7 +332,7 @@
 .quick-start-results {
   display: grid;
   gap: 18px;
-  padding-top: 20px;
+  padding-top: var(--space-5);
   border-top: 1px solid var(--line);
 }
 .quick-start-results > strong {
@@ -358,7 +358,7 @@
 .service-home-connected {
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
   gap: clamp(24px, 4vw, 56px);
-  padding-block: 32px 48px;
+  padding-block: var(--space-8) var(--space-12);
 }
 .service-home-connected .workspace-art {
   align-self: start;
@@ -370,12 +370,12 @@
   border-radius: 0;
   background: none;
   box-shadow: none;
-  gap: 20px;
+  gap: var(--space-5);
 }
 .quick-start-embedded .quick-start-input {
   align-items: stretch;
   padding: 6px;
-  gap: 4px;
+  gap: var(--space-1);
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--surface);
@@ -391,20 +391,20 @@
   background: transparent;
   border: 0;
   box-shadow: none;
-  padding-inline: 12px;
+  padding-inline: var(--space-3);
 }
 .quick-start-embedded .quick-start-input input:focus-visible {
   outline: none;
 }
 .quick-start-embedded .quick-start-input button {
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   font-size: 14px;
   white-space: nowrap;
-  padding-inline: 16px;
+  padding-inline: var(--space-4);
 }
 .quick-start-note {
   display: grid;
-  gap: 4px;
+  gap: var(--space-1);
   font-size: 13px;
   color: var(--muted);
 }
@@ -419,28 +419,28 @@
 details.audit-method,
 .security-exercises details.ui-disclosure,
 details.project-example-disclosure {
-  padding: 20px 24px;
+  padding: var(--space-5) var(--space-6);
 }
 .quick-start-note summary {
   width: fit-content;
-  padding-block: 8px;
+  padding-block: var(--space-2);
   cursor: pointer;
 }
 .quick-start-note details p {
-  padding-block: 4px 8px;
+  padding-block: var(--space-1) var(--space-2);
   max-width: 56ch;
 }
 .quick-start-embedded .quick-start-alternatives {
-  gap: 8px 24px;
+  gap: var(--space-2) var(--space-6);
   font-size: 14px;
 }
 .quick-start-embedded .quick-start-alternatives a {
-  padding-block: 8px;
+  padding-block: var(--space-2);
 }
 @media (max-width: 1100px) {
   .service-home-connected {
     grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
-    gap: 24px;
+    gap: var(--space-6);
   }
   .quick-start-embedded .quick-start-input {
     flex-direction: column;
@@ -453,7 +453,7 @@ details.project-example-disclosure {
 @media (max-width: 760px) {
   .service-home-connected {
     grid-template-columns: minmax(0, 1fr);
-    padding-top: 12px;
+    padding-top: var(--space-3);
   }
   .service-home-connected .workspace-art {
     max-width: 240px;
@@ -484,7 +484,7 @@ details.project-example-disclosure {
 .practice-reading-guide,
 .practice-glossary {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .practice-learning-goal {
   padding: 18px 20px;
@@ -498,11 +498,11 @@ details.project-example-disclosure {
 }
 .practice-glossary dl {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .practice-glossary dl > div {
   display: grid;
-  gap: 4px;
+  gap: var(--space-1);
 }
 .practice-glossary dt {
   font-weight: 700;
@@ -514,7 +514,7 @@ details.project-example-disclosure {
   line-height: 1.7;
 }
 .practice-reading-guide ol {
-  padding-left: 24px;
+  padding-left: var(--space-6);
   line-height: 1.8;
 }
 .practice-exercise h2,
@@ -552,11 +552,11 @@ details.project-example-disclosure {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-width: 0;
-  gap: 20px;
+  gap: var(--space-5);
   align-content: start;
 }
 .practice-study-source {
-  padding: 20px;
+  padding: var(--space-5);
   border: 1px solid var(--line);
   border-radius: 14px;
 }
@@ -564,7 +564,7 @@ details.project-example-disclosure {
   font-size: 1rem;
 }
 .practice-study-source .repository-code {
-  margin-block: 12px;
+  margin-block: var(--space-3);
 }
 .practice-study-source .repository-evidence > summary {
   color: var(--muted);
@@ -573,10 +573,10 @@ details.project-example-disclosure {
 .practice-study-source .repository-evidence a {
   color: var(--accent);
   font-size: 0.85rem;
-  padding: 8px 0;
+  padding: var(--space-2) 0;
 }
 .practice-study-source .practice-scenario {
-  padding: 16px;
+  padding: var(--space-4);
 }
 .practice-study-source .practice-glossary dl > div {
   gap: 2px;
@@ -594,7 +594,7 @@ details.project-example-disclosure {
   display: grid;
   gap: 10px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .practice-result-pair > div:last-child {
   background: var(--surface-raised);
@@ -606,7 +606,7 @@ details.project-example-disclosure {
   }
   .practice-study-layout {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 28px;
+    gap: var(--space-7);
   }
 }
 @media (max-width: 600px) {
@@ -616,7 +616,7 @@ details.project-example-disclosure {
 }
 .practice-service-scene {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
   padding: 22px;
   border: 1px solid var(--accent);
   border-radius: 16px;
@@ -625,7 +625,7 @@ details.project-example-disclosure {
 .practice-service-scene dl {
   margin: 0;
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .practice-service-scene dl > div {
   display: grid;
@@ -652,7 +652,7 @@ details.project-example-disclosure {
 }
 .practice-service-scene dl > div {
   grid-template-columns: 112px minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--space-4);
 }
 @media (max-width: 650px) {
   .practice-service-scene dl > div {
@@ -667,9 +667,9 @@ details.project-example-disclosure {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 14px;
-  margin: 12px 0;
+  margin: var(--space-3) 0;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--surface-raised);
 }
 .practice-progress-line > span {
@@ -683,7 +683,7 @@ details.project-example-disclosure {
 .practice-record-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
 }
 .practice-record-row > select {
@@ -693,12 +693,12 @@ details.project-example-disclosure {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 /* Buttons keep the previous crisper outline so they do not fade into cards. */
 .ui-button {
-  border-color: light-dark(var(--light-line), #343e4e);
+  border-color: var(--control-line);
 }
 
 @media (max-width: 650px) {
@@ -713,7 +713,7 @@ details.project-example-disclosure {
    fill nor outline in light mode. It gets the panel fill and hairline other cards use. */
 .practice-entry-card.ui-card {
   border: 1px solid var(--line);
-  background-color: light-dark(var(--light-panel), #171d28);
+  background-color: var(--panel);
 }
 
 /* Leaving the page is a link beside the switch, not another segment. */
@@ -722,12 +722,12 @@ details.project-example-disclosure {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px 24px;
+  gap: var(--space-3) var(--space-6);
 }
 .practice-switch-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 20px;
+  gap: 0 var(--space-5);
   font-size: var(--text-ui);
 }
 
@@ -755,12 +755,12 @@ details.project-example-disclosure {
   .practice-exercise,
   .practice-complete,
   .project-renew {
-    padding: 20px;
+    padding: var(--space-5);
   }
   .question-context,
   .practice-service-scene,
   .practice-learning-goal {
-    padding: 16px;
+    padding: var(--space-4);
   }
 }
 

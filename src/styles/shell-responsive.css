@@ -37,7 +37,7 @@
     display: none;
   }
   .main-shell > .app-footer {
-    padding-inline: 20px;
+    padding-inline: var(--space-5);
   }
 }
 
@@ -76,7 +76,7 @@
     width: var(--control-size);
   }
   .connection-banner {
-    padding-inline: 16px;
+    padding-inline: var(--space-4);
   }
 }
 
@@ -85,7 +85,7 @@
     padding: 0 13px;
     position: sticky;
     top: 0;
-    z-index: 30;
+    z-index: var(--z-header);
     backdrop-filter: blur(12px);
   }
   .topbar-actions {
@@ -108,7 +108,7 @@
     display: none;
   }
   .sidebar-workspace {
-    margin-block: 24px 20px;
+    margin-block: var(--space-6) var(--space-5);
   }
 }
 @media (max-height: 500px) {
@@ -162,10 +162,10 @@
 }
 .drawer-content > .brand-logo {
   font-size: 22px;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 .drawer-content .sidebar-workspace {
-  margin: 24px 0 20px;
+  margin: var(--space-6) 0 var(--space-5);
 }
 .drawer-content .sidebar-note {
   display: flex;

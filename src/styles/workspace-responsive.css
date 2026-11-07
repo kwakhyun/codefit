@@ -34,7 +34,7 @@
   .problem-tabs button {
     padding: 0 6px;
     font-size: var(--text-ui);
-    gap: 4px;
+    gap: var(--space-1);
   }
   .problem-tabs button svg {
     width: 13px;
@@ -89,7 +89,7 @@
   }
   .problem-tabs button {
     flex: 0 1 auto;
-    padding: 0 20px;
+    padding: 0 var(--space-5);
     font-size: var(--text-ui);
   }
   .workspace-heading h1 {
@@ -148,7 +148,7 @@
     font-size: var(--text-caption);
   }
   .problem-content {
-    padding: 24px;
+    padding: var(--space-6);
     max-height: 420px;
     min-height: 280px;
   }
@@ -211,7 +211,7 @@
     width: 16px;
   }
   .problem-meta {
-    gap: 8px;
+    gap: var(--space-2);
     font-size: var(--text-caption);
   }
   .problem-meta > .kind-label {
@@ -233,7 +233,7 @@
   .problem-tabs button,
   .focus-mode .problem-tabs button {
     flex: 1;
-    padding: 0 8px;
+    padding: 0 var(--space-2);
     font-size: var(--text-ui);
     gap: 5px;
   }
@@ -260,7 +260,7 @@
     font-size: var(--text-small);
   }
   .example-box {
-    padding: 12px;
+    padding: var(--space-3);
   }
   .example-box code {
     font-size: var(--text-ui);
@@ -286,7 +286,7 @@
     font-size: var(--text-caption);
   }
   .editor-topbar > div {
-    gap: 4px;
+    gap: var(--space-1);
   }
   .monaco-shell,
   .focus-mode .monaco-shell {
@@ -304,7 +304,7 @@
     padding: 0 10px;
   }
   .editor-statusbar > span {
-    gap: 8px;
+    gap: var(--space-2);
   }
   .editor-statusbar > span:first-child > span {
     display: none;
@@ -334,7 +334,7 @@
     width: 13px;
   }
   .console-heading {
-    padding: 0 12px;
+    padding: 0 var(--space-3);
     font-size: var(--text-caption);
   }
   .console-heading > span {
@@ -516,7 +516,7 @@
   .editor-filebar > div {
     flex-basis: 100%;
     border-top: 1px solid var(--line);
-    padding: 4px 8px;
+    padding: var(--space-1) var(--space-2);
     justify-content: flex-end;
   }
   .editor-filebar .icon-button {
@@ -526,7 +526,7 @@
   .editor-topbar {
     height: auto;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--space-2);
     padding-block: 6px;
   }
   .console-heading {
@@ -543,8 +543,8 @@
 @media (max-width: 760px) {
   .mobile-pane-tabs {
     display: flex;
-    gap: 4px;
-    margin: 0 0 12px;
+    gap: var(--space-1);
+    margin: 0 0 var(--space-3);
     border-bottom: 1px solid var(--line);
   }
   .mobile-pane-tabs > button {
@@ -587,10 +587,10 @@
   .mobile-action-bar {
     position: sticky;
     bottom: 0;
-    z-index: 5;
+    z-index: var(--z-sticky);
     display: flex;
-    gap: 8px;
-    margin-top: 12px;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
     padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
     background: var(--bg);
     border-top: 1px solid var(--line);
@@ -612,7 +612,7 @@
 .solution-code,
 .submitted-code pre,
 .font-preview {
-  background: var(--black);
+  background: var(--surface-deep);
 }
 
 .problem-tabs button[aria-selected="true"] {

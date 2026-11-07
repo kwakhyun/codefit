@@ -2,8 +2,8 @@
   padding: 18px;
   border: 1px solid var(--line);
   background: var(--surface);
-  margin: 20px 0;
-  border-radius: 12px;
+  margin: var(--space-5) 0;
+  border-radius: var(--radius-control);
 }
 .usage-panel h3 {
   margin: 0 0 15px;
@@ -12,11 +12,11 @@
 .usage-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .usage-grid > div {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .usage-grid strong {
   font-size: 22px;

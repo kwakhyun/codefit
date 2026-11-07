@@ -5,9 +5,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 16px 28px;
-  padding: 20px 24px;
-  margin: 28px 0;
+  gap: var(--space-4) var(--space-7);
+  padding: var(--space-5) var(--space-6);
+  margin: var(--space-7) 0;
   background: light-dark(var(--light-panel), #11161d);
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -20,19 +20,19 @@
 .project-usage button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin-left: auto;
 }
 .project-layout {
   display: grid;
   grid-template-columns: 250px minmax(0, 1fr);
-  gap: 28px;
+  gap: var(--space-7);
   align-items: start;
 }
 .project-main {
   min-width: 0;
   display: grid;
-  gap: 24px;
+  gap: var(--space-6);
 }
 .project-panel {
   padding: 30px;
@@ -44,7 +44,7 @@
       light-dark(color-mix(in srgb, var(--light-blue) 3.92%, transparent), #97bfff0a),
       transparent 55%
     ),
-    light-dark(var(--light-panel), #101318);
+    var(--art-surface);
 }
 .project-panel h2 {
   font-size: 24px;
@@ -60,7 +60,7 @@
 .project-history,
 .project-history-items {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .project-page .project-history-list {
   min-width: 0;
@@ -71,7 +71,7 @@
 .project-history-list summary {
   font-size: 15px;
   color: light-dark(var(--light-muted), #bbc5d4);
-  padding: 12px 0;
+  padding: var(--space-3) 0;
   cursor: pointer;
 }
 .project-history-items > p {
@@ -81,12 +81,12 @@
 }
 .project-history-items > button:not(.secondary-button) {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
   text-align: left;
   padding: 18px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: light-dark(var(--light-panel), #101318);
+  border-radius: var(--radius-control);
+  background: var(--art-surface);
   color: light-dark(var(--light-text), #dce5f2);
   overflow-wrap: anywhere;
 }
@@ -105,7 +105,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .project-form h2 {
   margin-bottom: 0;
@@ -118,11 +118,11 @@
   display: block;
   font-size: 15px;
   font-weight: 600;
-  margin-top: 12px;
+  margin-top: var(--space-3);
   line-height: 1.7;
 }
 .learn-page .project-form > label:not(.project-consent) {
-  margin: 8px 0 0;
+  margin: var(--space-2) 0 0;
 }
 .project-form label > span {
   color: light-dark(var(--light-muted), #b6c3d4);
@@ -150,7 +150,7 @@
   color: light-dark(var(--light-muted), #a9b6c7);
   font-size: 13px;
   line-height: 1.85;
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
 }
 .project-page .primary-button,
 .project-page .secondary-button {
@@ -160,7 +160,7 @@
 .project-summary > a {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   color: var(--action);
   font-size: 14px;
 }
@@ -171,21 +171,21 @@
 .project-question-top {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   font-size: 14px;
   color: light-dark(var(--light-text), #bdcce0);
 }
 .project-question-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 24px 0 28px;
+  gap: var(--space-2);
+  margin: var(--space-6) 0 var(--space-7);
 }
 .project-question-nav button {
   padding: 10px 12px;
   min-height: 44px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-small);
   background: light-dark(var(--light-canvas), #151b24);
   color: light-dark(var(--light-muted), #b7c3d4);
   font-size: 13px;
@@ -200,7 +200,7 @@
   background: light-dark(var(--light-canvas), #1a222d);
   border-left: 3px solid light-dark(var(--light-strong-line), #98b6dd);
   border-radius: 4px;
-  margin: 20px 0;
+  margin: var(--space-5) 0;
 }
 .project-evidence strong {
   font-size: 13px;
@@ -208,18 +208,18 @@
 }
 .project-evidence p {
   font-size: 14px;
-  margin: 8px 0 0;
+  margin: var(--space-2) 0 0;
 }
 .project-question-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   margin: 24px 0 18px;
 }
 .project-error {
-  margin-bottom: 24px;
-  padding: 16px 20px;
+  margin-bottom: var(--space-6);
+  padding: var(--space-4) var(--space-5);
   background: light-dark(var(--light-raised), #341f21);
   color: light-dark(var(--light-red), #ffcdc9);
   border: 1px solid light-dark(var(--light-line), #6b4145);
@@ -230,8 +230,8 @@
 .project-recovery {
   display: grid;
   gap: 10px;
-  padding: 16px;
-  margin: 12px 0;
+  padding: var(--space-4);
+  margin: var(--space-3) 0;
   background: light-dark(var(--light-blue-soft), #19222e);
   border: 1px solid light-dark(var(--light-line), #3a4e68);
   border-radius: 10px;
@@ -255,14 +255,14 @@
 }
 .project-feedback {
   border-top: 1px solid light-dark(var(--light-line), #313c4b);
-  padding-top: 24px;
+  padding-top: var(--space-6);
   margin-top: 30px;
 }
 .project-feedback header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .project-feedback h3 {
   font-size: 18px;
@@ -286,21 +286,21 @@
 }
 .project-feedback summary {
   cursor: pointer;
-  padding: 12px 0;
+  padding: var(--space-3) 0;
   min-height: 44px;
   color: light-dark(var(--light-blue), #c9daf3);
 }
 .project-answer {
   white-space: pre-wrap;
   background: light-dark(var(--light-panel), #0a0d12);
-  padding: 16px;
-  border-radius: 8px;
+  padding: var(--space-4);
+  border-radius: var(--radius-small);
 }
 .project-next-step {
-  padding: 16px 20px;
+  padding: var(--space-4) var(--space-5);
   background: light-dark(var(--light-blue-soft), #19222e);
   border-radius: 10px;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 .project-next-step strong {
   color: light-dark(var(--light-blue), #c0d8fa);
@@ -316,7 +316,7 @@
 @media (max-width: 760px) {
   .project-layout {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: var(--space-5);
   }
   .project-panel {
     padding: 22px 18px;
@@ -348,7 +348,7 @@
 
 .project-assessment-evidence dl {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .project-assessment-evidence dt {
   font-weight: 600;
@@ -360,14 +360,14 @@
 }
 .project-assessment-evidence blockquote {
   margin: 0;
-  padding-left: 12px;
+  padding-left: var(--space-3);
   border-left: 2px solid var(--action);
   white-space: pre-wrap;
   color: var(--text);
 }
 .project-assessment-issue {
-  margin: 20px 0;
-  padding: 16px;
+  margin: var(--space-5) 0;
+  padding: var(--space-4);
   border: 1px solid light-dark(var(--light-line), #886b38);
   border-radius: 10px;
   background: light-dark(var(--light-canvas), #211d15);
@@ -377,40 +377,40 @@
   color: light-dark(var(--light-amber), #f3d297);
 }
 .project-assessment-issue blockquote {
-  margin: 12px 0;
-  padding-left: 12px;
+  margin: var(--space-3) 0;
+  padding-left: var(--space-3);
   border-left: 2px solid light-dark(var(--light-strong-line), #bca06d);
   white-space: pre-wrap;
 }
 
 .project-example {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 .project-example-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin: 24px 0;
+  gap: var(--space-6);
+  margin: var(--space-6) 0;
 }
 .project-example-grid > div {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
   min-width: 0;
-  padding: 20px;
+  padding: var(--space-5);
   background: light-dark(var(--light-canvas), #171e28);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .project-example h3 {
   font-size: 16px;
   margin: 0;
 }
 .project-example-grid p + h3 {
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 .project-example blockquote {
   margin: 0;
-  padding-left: 16px;
+  padding-left: var(--space-4);
   border-left: 3px solid var(--action-soft);
   line-height: 1.8;
 }
@@ -420,7 +420,7 @@
 }
 .project-example summary {
   cursor: pointer;
-  padding: 12px 0;
+  padding: var(--space-3) 0;
 }
 @media (max-width: 700px) {
   .project-example-grid {
@@ -430,7 +430,7 @@
 
 #project-follow-up label {
   display: block;
-  margin: 16px 0 8px;
+  margin: var(--space-4) 0 var(--space-2);
 }
 #project-follow-up select {
   width: 100%;
@@ -443,32 +443,32 @@
   font: inherit;
 }
 #project-follow-up hr {
-  margin: 28px 0;
+  margin: var(--space-7) 0;
   border: 0;
   border-top: 1px solid light-dark(var(--light-line), #303944);
 }
 .project-quota-notice {
-  margin-top: 24px;
-  padding: 20px;
+  margin-top: var(--space-6);
+  padding: var(--space-5);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--surface-hover, light-dark(var(--light-canvas), #182027));
 }
 .project-quota-notice p {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   line-height: 1.7;
 }
 .project-quota-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
-  margin-top: 20px;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
 }
 
 .repository-map {
-  margin-block: 24px;
-  padding: 20px;
+  margin-block: var(--space-6);
+  padding: var(--space-5);
   border: 1px solid var(--line);
   border-radius: 18px;
   min-width: 0;
@@ -481,9 +481,9 @@
 .repository-overview {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: center;
-  margin-top: 24px;
+  margin-top: var(--space-6);
   overflow-wrap: anywhere;
 }
 .repository-overview > span {
@@ -493,8 +493,8 @@
 .repository-explorer {
   display: grid;
   grid-template-columns: minmax(180px, 30%) minmax(0, 1fr);
-  gap: 24px;
-  margin-top: 24px;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
 }
 .repository-files {
   max-height: 500px;
@@ -504,7 +504,7 @@
   display: none;
 }
 .repository-files section + section {
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 .repository-files h3 {
   font-size: 13px;
@@ -515,9 +515,9 @@
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 8px;
+  gap: var(--space-2);
   text-align: left;
-  margin-block: 4px;
+  margin-block: var(--space-1);
   padding: 10px;
   font-size: 13px;
   overflow-wrap: anywhere;
@@ -532,7 +532,7 @@
 }
 .repository-files small {
   display: block;
-  margin-top: 4px;
+  margin-top: var(--space-1);
   color: var(--muted);
 }
 .repository-detail {
@@ -543,14 +543,14 @@
 }
 .repository-relations {
   display: grid;
-  gap: 8px;
-  margin-block: 16px;
+  gap: var(--space-2);
+  margin-block: var(--space-4);
 }
 .repository-relations button {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 10px;
   font-size: 12px;
   overflow-wrap: anywhere;
@@ -561,9 +561,9 @@
   overflow: auto;
   background: light-dark(var(--light-panel), #0b1018);
   color: light-dark(var(--light-text), #d6e2f2);
-  border-radius: 12px;
-  padding: 16px;
-  margin-block: 16px;
+  border-radius: var(--radius-control);
+  padding: var(--space-4);
+  margin-block: var(--space-4);
   font-size: 13px;
   line-height: 1.8;
   tab-size: 4;
@@ -578,7 +578,7 @@
 .repository-line-number {
   display: inline-block;
   min-width: 4ch;
-  margin-right: 16px;
+  margin-right: var(--space-4);
   color: light-dark(var(--light-muted), #9aaac0);
   user-select: none;
 }
@@ -586,13 +586,13 @@
   color: light-dark(var(--light-muted), #9aaac0);
 }
 .repository-evidence {
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }
 .repository-evidence > summary {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   list-style: none;
   overflow-wrap: anywhere;
 }
@@ -601,7 +601,7 @@
 }
 .repository-evidence > summary > svg {
   flex-shrink: 0;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 .repository-evidence[open] > summary > svg {
   transform: rotate(90deg);
@@ -622,12 +622,12 @@
     min-width: 0;
   }
   .repository-map {
-    padding: 16px;
+    padding: var(--space-4);
   }
 }
 .project-code-dialogue {
-  margin-block: 24px;
-  padding: 20px;
+  margin-block: var(--space-6);
+  padding: var(--space-5);
   border: 1px solid var(--line);
   border-radius: 16px;
 }
@@ -635,7 +635,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .project-code-dialogue > summary > span {
   color: var(--muted);
@@ -645,16 +645,16 @@
 .project-code-dialogue > button,
 .project-code-dialogue > label,
 .project-code-dialogue > textarea {
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }
 .project-dialogue-turn {
-  padding: 20px;
-  margin-block: 20px;
+  padding: var(--space-5);
+  margin-block: var(--space-5);
   background: var(--surface-raised);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .project-dialogue-turn p {
-  margin-block: 12px 20px;
+  margin-block: var(--space-3) var(--space-5);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -668,7 +668,7 @@
 .project-page .project-history {
   position: relative;
   display: block;
-  padding: 16px 20px;
+  padding: var(--space-4) var(--space-5);
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--surface);
@@ -697,21 +697,21 @@
 }
 .project-page .project-history-count {
   padding: 2px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-small);
   background: var(--surface-hover);
   font-variant-numeric: tabular-nums;
 }
 .project-page .project-history-items {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
-  padding-top: 16px;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
   max-height: 360px;
   overflow-y: auto;
 }
 .project-page .project-history-items > button:not(.secondary-button) {
   grid-template-columns: minmax(0, 1fr) auto auto 16px;
-  gap: 12px 20px;
+  gap: var(--space-3) var(--space-5);
   align-items: center;
   padding: 16px 18px;
   font-weight: 400;
@@ -725,7 +725,7 @@
 .project-page .project-history-identity {
   display: grid;
   min-width: 0;
-  gap: 4px;
+  gap: var(--space-1);
 }
 .project-page .project-history-identity strong {
   font-size: 15px;
@@ -739,7 +739,7 @@
 }
 .project-page .project-history-state {
   border-radius: 6px;
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
   background: light-dark(var(--light-blue-soft), #263b59);
   color: light-dark(var(--light-blue), #bed9ff);
   white-space: nowrap;
@@ -757,7 +757,7 @@
   padding: clamp(22px, 4vw, 40px);
 }
 .project-page .project-panel > p {
-  margin-block: 16px;
+  margin-block: var(--space-4);
   line-height: 1.85;
   word-break: keep-all;
   overflow-wrap: anywhere;
@@ -772,16 +772,16 @@
   overflow-wrap: anywhere;
 }
 .project-page .project-feedback-item {
-  margin-block: 12px;
+  margin-block: var(--space-3);
   padding: 18px 22px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .project-page .project-feedback-item > summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-4);
   padding: 0;
 }
 .project-page .project-feedback-item > summary > span {
@@ -792,14 +792,14 @@
   line-height: 1.85;
 }
 .project-page .verification-plan {
-  margin-block: 20px;
+  margin-block: var(--space-5);
 }
 .project-page .verification-plan li + li {
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 @media (max-width: 600px) {
   .project-page .project-history {
-    padding: 12px;
+    padding: var(--space-3);
   }
   .project-page .project-history > button {
     inset: 12px 12px auto auto;
@@ -816,7 +816,7 @@
   }
   .project-page .project-history-items > button:not(.secondary-button) {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 12px;
+    gap: var(--space-3);
     padding: 14px;
   }
   .project-page .project-history-items > button > svg {
@@ -826,7 +826,7 @@
     grid-column: 1 / -1;
   }
   .project-page .project-feedback-item {
-    padding: 16px;
+    padding: var(--space-4);
   }
 }
 .project-history-list[open] .project-history-chevron {
@@ -850,7 +850,7 @@
   .project-page .project-history {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-3);
   }
   .project-page .project-history > button {
     position: static;
@@ -872,7 +872,7 @@
 
 .repository-reading-guide {
   display: grid;
-  gap: 20px;
+  gap: var(--space-5);
   padding: clamp(16px, 3vw, 28px);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
@@ -881,7 +881,7 @@
 }
 .repository-reading-guide h3,
 .repository-reading-guide h4 {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
 }
 .repository-reading-guide > div {
   min-width: 0;
@@ -893,7 +893,7 @@
 .project-renew {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--space-4);
   min-width: 0;
   padding: clamp(22px, 4vw, 36px);
 }
@@ -935,12 +935,12 @@
 .review-area-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
   margin: 0;
 }
 .analysis-facts > div {
-  padding: 16px;
-  border-radius: 12px;
+  padding: var(--space-4);
+  border-radius: var(--radius-control);
   background: var(--surface-raised);
 }
 .analysis-facts dt {
@@ -948,16 +948,16 @@
   color: var(--muted);
 }
 .analysis-facts dd {
-  margin: 8px 0 0;
+  margin: var(--space-2) 0 0;
   font-weight: 700;
   overflow-wrap: anywhere;
 }
 .analysis-journey > a {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 18px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   color: var(--text);
   text-decoration: none;
 }
@@ -976,7 +976,7 @@
 .question-study-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 24px;
+  gap: var(--space-6);
   min-width: 0;
 }
 .question-context {
@@ -988,7 +988,7 @@
 .question-context h3,
 .question-writing-guide h3 {
   font-size: 1rem;
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
 }
 .question-context p {
   line-height: 1.8;
@@ -1019,7 +1019,7 @@
 }
 .question-terms dl {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   margin: 0;
 }
 .question-terms dt {
@@ -1031,13 +1031,13 @@
 }
 .question-learning-goal {
   border-left: 3px solid var(--accent);
-  padding: 16px 20px;
+  padding: var(--space-4) var(--space-5);
   background: var(--surface-raised);
   border-radius: 0 12px 12px 0;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .question-writing-guide {
-  gap: 4px;
+  gap: var(--space-1);
   padding-bottom: 6px;
 }
 .question-writing-guide ol {
@@ -1056,9 +1056,9 @@
   display: grid;
   align-content: start;
   gap: 10px;
-  padding: 16px;
+  padding: var(--space-4);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .review-area-grid span,
 .review-area-grid small {
@@ -1066,7 +1066,7 @@
   font-size: 0.8rem;
 }
 .project-results .project-feedback-list {
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 .project-page .project-summary {
   gap: 22px;
@@ -1074,25 +1074,25 @@
 @media (min-width: 1200px) {
   .question-study-layout {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    gap: 32px;
+    gap: var(--space-8);
   }
 }
 @media (max-width: 650px) {
   .analysis-facts {
     grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
+    gap: var(--space-2);
   }
   .analysis-facts > div {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-3);
   }
   .analysis-facts dd {
     margin: 0;
   }
   .analysis-journey > a {
-    padding: 12px 8px;
+    padding: var(--space-3) var(--space-2);
     gap: 6px;
     font-size: 0.85rem;
   }
@@ -1105,12 +1105,12 @@
 }
 .question-study-layout {
   align-items: start;
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 
 .analysis-activity {
   position: fixed;
-  z-index: 80;
+  z-index: var(--z-floating-panel);
   left: 20px;
   bottom: max(20px, env(safe-area-inset-bottom));
   width: min(340px, calc(100vw - 40px));
@@ -1152,7 +1152,7 @@
   line-height: 1.7;
 }
 .analysis-activity-item p {
-  margin: 8px 0;
+  margin: var(--space-2) 0;
 }
 .analysis-activity-item > a {
   display: inline-flex;
@@ -1167,7 +1167,7 @@
   top: 2px;
   width: 36px;
   height: 36px;
-  padding: 8px;
+  padding: var(--space-2);
 }
 .analysis-spinner {
   animation: analysis-spin 1s linear infinite;
@@ -1203,11 +1203,11 @@
   justify-self: start;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   min-height: 44px;
-  padding: 8px 16px;
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface);
   box-shadow: 0 6px 20px #0002;
   color: var(--text);
@@ -1241,10 +1241,10 @@
 /* Section index: the locked step is plain text, not a link. */
 .analysis-journey > .analysis-journey-locked {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 18px;
   border: 1px dashed var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   color: var(--muted);
 }
 .analysis-journey > .analysis-journey-locked > span {
@@ -1255,8 +1255,8 @@
 .allowance-cost {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
-  margin: 12px 0 8px;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-3) 0 var(--space-2);
   color: var(--muted);
   font-size: 0.85rem;
   line-height: 1.6;
@@ -1272,7 +1272,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 12px;
+  gap: var(--space-2) var(--space-3);
 }
 .export-buttons-label {
   font-weight: 600;
@@ -1285,12 +1285,12 @@
 .revision-timeline {
   display: grid;
   gap: 10px;
-  margin: 16px 0;
+  margin: var(--space-4) 0;
 }
 .revision-timeline ol {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1301,7 +1301,7 @@
   min-height: 44px;
   padding: 8px 14px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   text-align: left;
 }
 .ui-button.revision-timeline-item[aria-current] {
@@ -1316,7 +1316,7 @@
 .analysis-material > summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
+  gap: var(--space-1) var(--space-3);
   align-items: baseline;
 }
 .analysis-material > summary span {
@@ -1325,26 +1325,26 @@
 }
 .analysis-material > section,
 .analysis-material > .evidence-review {
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 
 /* New analysis: one disclosure for details, cost right above the button. */
 .project-form-details {
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }
 .project-form-details ul {
   display: grid;
   gap: 6px;
-  margin: 12px 0 0;
+  margin: var(--space-3) 0 0;
   padding-left: 1.2em;
 }
 .project-analysis-progress {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .project-recovery[data-state] .project-error {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: flex-start;
 }
 .guest-records-notice {
@@ -1357,7 +1357,7 @@
 /* Project settings: re-check and the danger zone at the end of the page. */
 .project-settings {
   display: grid;
-  gap: 20px;
+  gap: var(--space-5);
 }
 .project-danger-zone {
   display: grid;
@@ -1365,7 +1365,7 @@
   justify-items: start;
   padding: 18px;
   border: 1px solid var(--danger);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .project-danger-zone h3 {
   margin: 0;
@@ -1386,7 +1386,7 @@
 
 .question-context .project-evidence > strong {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 .question-context .project-evidence > .repository-evidence {
@@ -1395,12 +1395,12 @@
 
 @media (max-width: 650px) {
   .question-study-layout {
-    gap: 20px;
+    gap: var(--space-5);
   }
 }
 
 .question-context section + section {
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 
 .ui-button.analysis-activity-dismiss:focus-visible {
@@ -1409,7 +1409,7 @@
 }
 
 .analysis-activity-item > .ui-button:not(.analysis-activity-dismiss) {
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 
 [role="tabpanel"],
@@ -1419,15 +1419,15 @@
 }
 
 .project-panel.ui-status + .project-layout {
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 
 .project-panel > hr {
-  margin-block: 28px;
+  margin-block: var(--space-7);
 }
 
 .project-page .guest-trial-notice {
-  margin-top: 28px;
+  margin-top: var(--space-7);
 }
 
 .project-form .ui-label > span {

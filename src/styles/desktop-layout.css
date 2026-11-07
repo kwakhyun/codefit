@@ -6,12 +6,12 @@
   }
   .sidebar {
     width: var(--shell-sidebar-width);
-    padding: 24px 16px 16px;
+    padding: var(--space-6) var(--space-4) var(--space-4);
   }
   .sidebar .brand-logo {
     font-size: 22px;
     min-height: 48px;
-    margin-bottom: 28px;
+    margin-bottom: var(--space-7);
   }
   .sidebar .brand-logo small {
     font: 400 12px/1.5 var(--sans);
@@ -19,7 +19,7 @@
   }
   .sidebar > nav {
     order: 1;
-    margin-bottom: 12px;
+    margin-bottom: var(--space-3);
   }
   .sidebar .nav-caption {
     font: 500 12px/1.5 var(--sans);
@@ -45,7 +45,7 @@
   .sidebar-workspace {
     order: 2;
     margin: 0;
-    padding: 12px;
+    padding: var(--space-3);
     gap: 6px;
     border-radius: 10px;
     background: transparent;
@@ -62,8 +62,8 @@
   }
   .sidebar-bottom {
     order: 3;
-    margin-top: 12px;
-    padding-top: 8px;
+    margin-top: var(--space-3);
+    padding-top: var(--space-2);
   }
   .sidebar .sidebar-note {
     display: none;
@@ -97,7 +97,7 @@
   .page-frame .practice-page-intro,
   .page-frame .ai-learning-hero {
     margin-top: 0;
-    margin-bottom: 28px;
+    margin-bottom: var(--space-7);
   }
   .page-frame h1,
   .workspace-welcome > h1 {
@@ -112,23 +112,23 @@
     line-height: 1.75;
   }
   .page-frame .visual-intro {
-    padding: 24px 28px;
+    padding: var(--space-6) var(--space-7);
     grid-template-columns: minmax(0, 1fr) 180px;
-    gap: 24px;
+    gap: var(--space-6);
   }
   .workspace-welcome > h1 {
-    margin: 12px 0 24px;
+    margin: var(--space-3) 0 var(--space-6);
   }
   .workspace-welcome .project-quick-start {
-    padding: 28px;
-    gap: 20px;
+    padding: var(--space-7);
+    gap: var(--space-5);
     border: 1px solid var(--line);
     border-radius: 18px;
     background: var(--surface);
   }
   .page-frame .class-empty {
-    padding: 32px;
-    gap: 16px;
+    padding: var(--space-8);
+    gap: var(--space-4);
   }
   .page-frame .class-empty h2 {
     margin: 0;
@@ -143,7 +143,7 @@
   }
   .page-frame .class-empty > .primary-button {
     align-self: flex-start;
-    margin-top: 8px;
+    margin-top: var(--space-2);
   }
   .main-shell > .app-footer {
     padding-inline: var(--desktop-content-gutter);
@@ -158,10 +158,10 @@
   font-weight: 500;
 }
 .class-tracks > .ui-card {
-  gap: 16px;
+  gap: var(--space-4);
 }
 .practice-prediction fieldset > .muted {
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
 }
 .project-page .project-summary > :is(h2, p, div, a, details, button) {
   margin-block: 0;
@@ -192,12 +192,12 @@
 }
 
 .modal > .class-edit {
-  padding: 24px;
+  padding: var(--space-6);
 }
 
 @media (max-width: 650px) {
   .modal > .class-edit {
-    padding: 20px;
+    padding: var(--space-5);
   }
 }
 

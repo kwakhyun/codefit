@@ -1,5 +1,12 @@
-/* Theme roles: light values are shared; light-dark pairs preserve the dark palette.
-   Use these roles for new UI. Keep intentional image colors and overlay shadows fixed. */
+/* Design tokens. Only this file defines shared custom properties (layer "tokens").
+   Theme roles: light values are shared; light-dark pairs preserve the dark palette.
+   Use these roles for new UI. Keep intentional image colors and overlay shadows fixed.
+
+   Breakpoints (media queries cannot read custom properties, so they are listed here):
+   - 1024px: app shell. >= 1024px shows the 240px sidebar; below it the menu opens as a dialog.
+   - 760px: compact header (logo only, quick actions dialog) and narrow-screen tokens below.
+   - Page layouts also use 1000/1001, 900, 700, 650, 640, 600, 540, 480, 440, 420 and 360px;
+     reuse one of these before adding a new width. */
 :root {
   --light-canvas: #f5f7fb;
   --light-panel: #ffffff;
@@ -28,12 +35,50 @@
   --sidebar: light-dark(var(--light-panel), #121722);
   /* Containers use the softer hairline; buttons and inputs keep the stronger --light-line. */
   --line: light-dark(var(--light-hairline), #343e4e);
-  --surface: light-dark(var(--light-panel), #171d28);
+  /* --panel is the fixed card fill; --surface is the same colour but learning pages retint it. */
+  --panel: light-dark(var(--light-panel), #171d28);
+  --surface: var(--panel);
   --surface-raised: light-dark(var(--light-raised), #202938);
   --surface-hover: light-dark(var(--light-hover), #283448);
-  --radius-control: 12px;
+  /* Deepest backdrop (editor and previews): black in dark mode, the white panel in light. */
+  --surface-deep: light-dark(var(--light-panel), #000000);
+  /* Artwork frames behind illustrations. */
+  --art-surface: light-dark(var(--light-panel), #101318);
+  /* Buttons keep the stronger light line; containers use --line. */
+  --control-line: light-dark(var(--light-line), #343e4e);
+  /* Neutral divider of the coding workspace. */
+  --editor-line: light-dark(var(--light-line), #414141);
+
+  /* Radius: cards and panels, buttons and inputs, small chips, fully rounded pills. */
   --radius-panel: 22px;
+  --radius-control: 12px;
   --radius-small: 8px;
+  --radius-pill: 999px;
+
+  /* Spacing scale (4px steps). Off-scale values (2, 6, 10, 14, 18px ...) remain literal. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+
+  /* Global stacking order. Stacking inside one component uses --z-raised (or 2). */
+  --z-raised: 1;
+  --z-sticky: 10;
+  --z-header: 30;
+  --z-floating: 35;
+  --z-drawer: 40;
+  --z-floating-panel: 80;
+  --z-overlay: 90;
+  --z-toast: 100;
+  --z-progress: 120;
   --text: light-dark(var(--light-text), #f0f3f8);
   --muted: light-dark(var(--light-muted), #b3bdcc);
   --accent: light-dark(var(--light-blue), #99c5ff);
@@ -54,8 +99,8 @@
   --control-size: 44px;
   --motion-fast: 160ms;
   --motion-enter: 220ms;
-  --black: light-dark(var(--light-panel), #000000);
-  --white: light-dark(var(--light-text), #ffffff);
+  /* Highest-contrast text: white in dark mode, the body text colour in light mode. */
+  --text-strong: light-dark(var(--light-text), #ffffff);
   --action-soft: light-dark(var(--light-blue), #bfdbfe);
   --handoff-border: light-dark(var(--light-line), #34373d);
   --handoff-surface: light-dark(var(--light-canvas), #14161a);
@@ -67,6 +112,14 @@
   --handoff-placeholder: light-dark(var(--light-muted), #858b97);
   --handoff-outline: light-dark(var(--light-strong-line), #45515b);
   --handoff-focus: light-dark(var(--light-cyan), #87cfe0);
+
+  /* Simulated product screens (service missions and samples). */
+  --sample-text: light-dark(var(--light-text), #e2e9f4);
+  --sample-muted: light-dark(var(--light-muted), #afbdd1);
+  --sample-line: light-dark(var(--light-line), #3d4b61);
+  --sample-strong-line: light-dark(var(--light-strong-line), #829fd7);
+  --sample-surface: light-dark(var(--light-blue-soft), #161e2b);
+  --sample-surface-raised: light-dark(var(--light-blue-soft), #202c3d);
 }
 
 /* Narrow screens keep inputs at reading size and controls at the touch target. */
@@ -85,8 +138,8 @@
   --surface: light-dark(var(--light-canvas), #171d28);
 }
 .sample-app {
-  --text: light-dark(var(--light-text), #e2e9f4);
-  --muted: light-dark(var(--light-muted), #afbdd1);
+  --text: var(--sample-text);
+  --muted: var(--sample-muted);
 }
 
 :root[data-theme="light"] {

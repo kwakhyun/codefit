@@ -7,8 +7,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 64px;
+  gap: var(--space-5);
+  margin-bottom: var(--space-16);
 }
 .account-page > header .brand-logo {
   padding: 0;
@@ -56,7 +56,7 @@
   font-size: clamp(25px, 4vw, 34px);
   line-height: 1.5;
   letter-spacing: -1.3px;
-  margin: 12px 0 16px;
+  margin: var(--space-3) 0 var(--space-4);
 }
 .auth-card-content > p,
 .auth-public-note p {
@@ -66,8 +66,8 @@
 }
 .oauth-providers {
   display: grid;
-  gap: 12px;
-  margin: 28px 0 20px;
+  gap: var(--space-3);
+  margin: var(--space-7) 0 var(--space-5);
 }
 .oauth-button {
   width: 100%;
@@ -90,8 +90,8 @@
 /* Allowance figures come from src/lib/ai-access.ts. */
 .auth-benefits {
   display: grid;
-  gap: 8px;
-  margin: 20px 0 0;
+  gap: var(--space-2);
+  margin: var(--space-5) 0 0;
   padding: 16px 18px;
   list-style: none;
   border: 1px solid var(--line);
@@ -127,21 +127,21 @@
   text-align: center;
   margin: 30px auto 0;
   max-width: 520px;
-  padding: 0 20px;
+  padding: 0 var(--space-5);
 }
 .auth-public-note strong {
   font-size: var(--text-body);
 }
 .profile-stats {
   display: flex;
-  gap: 40px;
+  gap: var(--space-10);
   padding: 25px 0;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
   border-bottom: 1px solid light-dark(var(--light-line), #2b2b30);
 }
 .profile-stats > div {
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .profile-stats strong {
   font: 600 30px/1 var(--mono);
@@ -158,7 +158,7 @@
 .profile-panel {
   background: light-dark(var(--light-panel), #101012);
   border: 1px solid light-dark(var(--light-line), #303036);
-  border-radius: 8px;
+  border-radius: var(--radius-small);
   padding: 25px;
 }
 .profile-panel h2 {
@@ -169,7 +169,7 @@
   display: grid;
   gap: 9px;
   font-size: var(--text-body);
-  margin-bottom: 20px;
+  margin-bottom: var(--space-5);
 }
 .profile-panel input,
 .profile-panel textarea {
@@ -196,7 +196,7 @@
   font-size: var(--text-ui);
 }
 .profile-content .usage-panel {
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 .profile-content > .muted {
   overflow-wrap: anywhere;
@@ -204,7 +204,7 @@
 .profile-signout {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: var(--space-6);
   margin-top: 30px;
 }
 .privacy-copy {
@@ -224,7 +224,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   border: 1px solid light-dark(var(--light-line), #353544);
   border-radius: 6px;
   padding: 12px 15px;
@@ -260,7 +260,7 @@
     gap: 25px;
   }
   .profile-signout {
-    gap: 16px;
+    gap: var(--space-4);
     flex-wrap: wrap;
   }
   .generation-allowance {
@@ -302,7 +302,7 @@
 .guest-login-link {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   color: light-dark(var(--light-text), #f4f4f5);
   font-size: 15px;
   font-weight: 600;
@@ -316,7 +316,7 @@
 .guest-login-providers > span {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .guest-login-providers {
   gap: 18px;
@@ -324,11 +324,11 @@
   color: light-dark(var(--light-muted), #b8bec8);
 }
 .learn-progress + .guest-login {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 @media (max-width: 480px) {
   .guest-login {
-    padding: 16px;
+    padding: var(--space-4);
   }
   .guest-login-link {
     font-size: 14px;
@@ -346,7 +346,7 @@
   )
   > :is(h2, h3, summary, p, ul, ol)
   + :is(p, ul, ol) {
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }
 
 :is(
@@ -360,5 +360,5 @@
   > p
   + a {
   display: inline-flex;
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }

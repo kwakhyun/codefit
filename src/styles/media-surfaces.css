@@ -24,11 +24,11 @@
   --domain-glow: light-dark(color-mix(in srgb, var(--light-green) 10.98%, transparent), #a8d2c71c);
 }
 .learn-catalog-filters {
-  margin-top: 40px;
-  padding-top: 8px;
+  margin-top: var(--space-10);
+  padding-top: var(--space-2);
 }
 .learn-catalog-filters h2 {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   font-size: clamp(21px, 2.2vw, 27px);
   line-height: 1.5;
 }
@@ -38,7 +38,7 @@
 }
 .learn-progress {
   align-items: center;
-  gap: 12px 32px;
+  gap: var(--space-3) var(--space-8);
 }
 .learn-progress strong {
   flex-shrink: 0;
@@ -46,22 +46,21 @@
 .domain-filters {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
   margin: 26px 0 28px;
 }
 .domain-filters button {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--space-3);
   position: relative;
   padding: 18px 16px;
   min-height: 116px;
   border: 1px solid light-dark(var(--light-line), #333b47);
   border-radius: 14px;
   background:
-    radial-gradient(ellipse at 15% 0%, var(--domain-glow), transparent 80%),
-    light-dark(var(--light-panel), #101318);
+    radial-gradient(ellipse at 15% 0%, var(--domain-glow), transparent 80%), var(--art-surface);
   color: light-dark(var(--light-muted), #c0c8d3);
   text-align: left;
   transition:
@@ -75,7 +74,7 @@
   background:
     radial-gradient(ellipse at 10% 0%, var(--domain-glow), transparent 95%),
     light-dark(var(--light-raised), #1c222c);
-  color: light-dark(var(--light-text), #fff);
+  color: var(--text-strong);
   border-color: var(--domain-tint);
   box-shadow: inset 0 0 0 1px var(--domain-tint);
 }
@@ -115,18 +114,18 @@
   color: light-dark(var(--light-muted), #bac4d2);
 }
 .learn-filter-row {
-  gap: 16px 24px;
-  margin-bottom: 8px;
+  gap: var(--space-4) var(--space-6);
+  margin-bottom: var(--space-2);
 }
 .learn-filter-row p {
   align-self: center;
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 .learn-cards {
-  gap: 20px;
+  gap: var(--space-5);
 }
 .learn-card {
-  --card-base: light-dark(var(--light-panel), #101318);
+  --card-base: var(--art-surface);
   overflow: hidden;
   background: var(--card-base);
 }
@@ -166,7 +165,7 @@
   opacity: 0.8;
 }
 .learn-card .service-card-art > strong {
-  z-index: 1;
+  z-index: var(--z-raised);
   left: 24px;
   top: 18px;
   bottom: auto;
@@ -217,7 +216,7 @@
 }
 .learn-card > p {
   line-height: 1.85;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 /* Matching dark artwork needs compositing, not a replacement raster. */
 .feature-banner {
@@ -227,14 +226,14 @@
       color-mix(in srgb, var(--feature) 9%, transparent),
       transparent 65%
     ),
-    light-dark(var(--light-panel), #101318);
+    var(--art-surface);
 }
 .handoff-card {
   overflow: hidden;
 }
 .handoff-card > .scenario-thumbnail {
   width: 100%;
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
   background: radial-gradient(
     ellipse at 50% 10%,
     light-dark(color-mix(in srgb, var(--light-blue) 9.41%, transparent), #a4bbde18),
@@ -248,7 +247,7 @@
   background: transparent;
   mask-image: radial-gradient(
     ellipse 66% 65% at 50% 44%,
-    light-dark(var(--light-panel), #000) 28%,
+    var(--surface-deep) 28%,
     #000b 60%,
     transparent 96%
   );
@@ -264,7 +263,7 @@
 @media (max-width: 760px) {
   .learn-catalog-filters {
     margin-top: 30px;
-    padding-top: 4px;
+    padding-top: var(--space-1);
   }
   .learn-catalog-filters h2 {
     margin-bottom: 10px;

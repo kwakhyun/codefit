@@ -78,13 +78,13 @@ h3 {
 /* Reading defaults survive the reset; component layouts can override them.
    Keep these at element specificity so flex/grid cards retain their own rhythm. */
 :where(main, dialog, [role="dialog"]) :where(h1, h2, h3, h4) + p {
-  margin-block-start: 12px;
+  margin-block-start: var(--space-3);
 }
 :where(main, dialog, [role="dialog"]) :where(p) + p {
-  margin-block-start: 12px;
+  margin-block-start: var(--space-3);
 }
 :where(details[open]) > :where(summary) + :is(p, div, ul, ol) {
-  margin-block-start: 16px;
+  margin-block-start: var(--space-4);
 }
 
 input,

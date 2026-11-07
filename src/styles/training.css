@@ -16,13 +16,13 @@
   background: light-dark(var(--light-blue-soft), #131c29);
   border: 1px solid light-dark(var(--light-line), #344b68);
   color: var(--action-soft);
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   font-size: var(--text-ui);
   line-height: 1.7;
 }
 
 .draft-notice {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
   flex-wrap: wrap;
 }
 
@@ -49,11 +49,11 @@
   background: none;
   border: 0;
   cursor: pointer;
-  padding: 4px;
+  padding: var(--space-1);
 }
 
 .review-strengths {
-  margin: 20px 0;
+  margin: var(--space-5) 0;
   color: var(--success);
   font-size: var(--text-ui);
   line-height: 1.9;
@@ -64,18 +64,18 @@
 }
 
 .submitted-code > .secondary-button {
-  margin: 12px 0;
+  margin: var(--space-3) 0;
 }
 
 .training-overview {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: var(--space-6);
   background: var(--surface);
   border: 1px solid var(--line);
-  padding: 24px;
-  margin: 24px 0 32px;
+  padding: var(--space-6);
+  margin: var(--space-6) 0 var(--space-8);
   border-radius: var(--radius-panel);
 }
 
@@ -87,7 +87,7 @@
 .training-overview p {
   font-size: var(--text-ui);
   color: light-dark(var(--light-muted), #b0b0b0);
-  margin: 8px 0;
+  margin: var(--space-2) 0;
 }
 
 .training-overview small {
@@ -106,12 +106,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .training-week svg {
   box-sizing: content-box;
-  padding: 12px;
+  padding: var(--space-3);
   border: 1px solid light-dark(var(--light-line), #333);
   border-radius: var(--radius-small);
   background: light-dark(var(--light-panel), #151515);
@@ -151,7 +151,7 @@
     width: 100%;
     max-width: 40px;
     height: auto;
-    padding: 8px;
+    padding: var(--space-2);
   }
   .editor-filebar > span {
     min-width: 0;
@@ -184,11 +184,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
 }
 .history-filters button {
   min-height: 40px;
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--line);
   border-radius: var(--radius-small);
   color: var(--muted);
@@ -204,7 +204,7 @@
   outline-offset: 2px;
 }
 .history-filter-note {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   color: var(--muted);
   font-size: var(--text-small);
 }
