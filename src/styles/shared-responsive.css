@@ -1,19 +1,5 @@
 /* shared layout at supported breakpoints. Keep media queries in source order. */
 
-@media (max-width: 1230px) {
-  .brand-symbol {
-    width: 30px;
-    height: 32px;
-  }
-}
-
-@media (max-width: 1000px) {
-  .brand-symbol {
-    width: 29px;
-    height: 30px;
-  }
-}
-
 @media (max-width: 760px) {
   .skip-link {
     left: 20px;
@@ -37,13 +23,21 @@
 
 /* Preserve readable inputs and generous controls at narrow widths. */
 @media (max-width: 760px) {
-  :root {
-    --control-size: 44px;
-    --text-input: var(--text-reading);
-  }
   .primary-button,
   .primary-button.small,
   .secondary-button {
     min-height: 44px;
   }
+}
+
+.secondary-button {
+  background: var(--surface);
+  border-color: light-dark(var(--light-line), #48515f);
+  color: light-dark(var(--light-text), #d0d0d0);
+}
+
+.primary-button {
+  background: var(--action);
+  border-color: var(--action);
+  color: light-dark(var(--light-on-accent), #080808);
 }

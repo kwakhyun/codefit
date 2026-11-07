@@ -10,7 +10,6 @@ export function FitMascot({ size = 64 }: { size?: number }) {
       alt=""
       aria-hidden="true"
       className="fit-mascot"
-      unoptimized
     />
   );
 }

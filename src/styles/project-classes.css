@@ -4,13 +4,13 @@
   padding: 24px clamp(20px, 4vw, 56px) 100px;
 }
 .project-classes-page > :not(.site-header) + * {
-  margin-top: 28px;
+  margin-top: var(--space-7);
 }
 .class-toolbar {
   display: flex;
   align-items: end;
   justify-content: space-between;
-  gap: 24px;
+  gap: var(--space-6);
 }
 .class-toolbar > div {
   flex: 1;
@@ -25,14 +25,14 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .class-search-status p {
   margin: 0;
   color: var(--muted);
 }
 .class-next-step {
-  padding: 20px;
+  padding: var(--space-5);
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--surface);
@@ -54,11 +54,11 @@
   display: flex;
   flex-direction: column;
   align-items: start;
-  gap: 20px;
+  gap: var(--space-5);
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: 24px;
-  padding: 28px;
+  padding: var(--space-7);
   color: inherit;
   text-decoration: none;
   min-width: 0;
@@ -80,7 +80,7 @@
   overflow-wrap: anywhere;
 }
 .class-card-icon {
-  padding: 12px;
+  padding: var(--space-3);
   border-radius: 16px;
   background: light-dark(color-mix(in srgb, var(--light-blue) 9.41%, transparent), #86baff18);
   color: light-dark(var(--light-blue), #a6cbff);
@@ -88,7 +88,7 @@
 .class-open {
   margin-top: auto;
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: center;
 }
 .class-hero,
@@ -99,7 +99,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 20px;
+  gap: var(--space-5);
 }
 .class-hero h2 {
   font-size: clamp(26px, 4vw, 36px);
@@ -129,13 +129,13 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .class-hero > .class-actions > .ui-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-2);
   min-height: 44px;
   white-space: nowrap;
 }
@@ -153,26 +153,26 @@
 }
 .class-section-heading {
   justify-content: space-between;
-  gap: 20px;
+  gap: var(--space-5);
 }
 .class-section-heading h2 {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 .class-edit {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 24px 0;
+  gap: var(--space-5);
+  padding: var(--space-6) 0;
 }
 .class-options {
   border: 0;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .class-options legend {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
   font-weight: 600;
 }
 .class-options label {
@@ -192,7 +192,7 @@
   display: grid;
   gap: 14px;
   background: light-dark(color-mix(in srgb, var(--light-blue) 7.06%, transparent), #86baff12);
-  padding: 24px;
+  padding: var(--space-6);
   border-radius: 16px;
   line-height: 1.8;
 }
@@ -219,27 +219,60 @@
     flex: 1;
   }
   .class-hero {
-    padding: 24px;
+    padding: var(--space-6);
   }
 }
 
 .class-versions > p {
-  margin-block: 12px 20px;
+  margin-block: var(--space-3) var(--space-5);
 }
 .class-versions ul {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   list-style: none;
   padding: 0;
-  margin-block: 20px;
+  margin-block: var(--space-5);
 }
 .class-versions li {
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--surface);
   overflow-wrap: anywhere;
   line-height: 1.6;
 }
 .class-versions a {
   display: block;
+}
+
+.class-edit .class-actions {
+  margin-top: var(--space-1);
+}
+
+@media (max-width: 650px) {
+  .class-list-card {
+    padding: var(--space-5);
+  }
+}
+
+/* Keep text rhythm explicit inside project cards and disclosure content. */
+.class-card-link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
+  width: 100%;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.class-delete-button {
+  align-self: flex-end;
+}
+
+@media (max-width: 650px) {
+  .class-card-link {
+    gap: var(--space-4);
+  }
 }

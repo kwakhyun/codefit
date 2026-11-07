@@ -2,7 +2,7 @@
   padding: 14px 18px;
   display: flex;
   align-items: start;
-  gap: 12px;
+  gap: var(--space-3);
   background: light-dark(var(--light-blue-soft), #19283b);
   color: light-dark(var(--light-text), #e0ebfa);
   border-bottom: 1px solid light-dark(var(--light-line), #455f83);
@@ -26,14 +26,14 @@
   background: transparent;
   border: 1px solid light-dark(var(--light-strong-line), #7890b2);
   border-radius: 6px;
-  padding: 8px;
+  padding: var(--space-2);
   min-height: 40px;
   font-size: 12px;
 }
 .experiment-spotlight {
   position: fixed;
   inset: 0;
-  z-index: 90;
+  z-index: var(--z-overlay);
   pointer-events: none;
 }
 .experiment-spotlight-ring {
@@ -56,11 +56,11 @@
   position: fixed;
   right: 16px;
   width: min(370px, calc(100vw - 32px));
-  padding: 16px;
+  padding: var(--space-4);
   background: light-dark(var(--light-blue-soft), #152237);
   color: light-dark(var(--light-text), #edf4ff);
   border: 1px solid light-dark(var(--light-strong-line), #81a6dc);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   box-shadow: 0 12px 40px #0008;
   pointer-events: auto;
   font: 13px/1.65 var(--sans);
@@ -78,8 +78,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
   color: light-dark(var(--light-blue), #b9d3f8);
   font-size: 12px;
 }
@@ -88,7 +88,7 @@
   background: none;
   border: 0;
   min-height: 32px;
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
 }
 .experiment-spotlight-card strong {
   display: block;
@@ -96,7 +96,7 @@
   line-height: 1.5;
 }
 .experiment-spotlight-card p {
-  margin: 8px 0;
+  margin: var(--space-2) 0;
 }
 .experiment-spotlight-card b {
   color: light-dark(var(--light-blue), #aecdff);
@@ -104,14 +104,14 @@
 }
 .experiment-last-result {
   border-top: 1px solid light-dark(var(--light-line), #425776);
-  padding-top: 8px;
+  padding-top: var(--space-2);
   color: light-dark(var(--light-text), #c6d5e9);
 }
 .experiment-locate {
   color: light-dark(var(--light-text), #e3eeff);
   background: light-dark(var(--light-blue-soft), #283f60);
   border: 1px solid light-dark(var(--light-strong-line), #7d9fcf);
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   min-height: 40px;
   border-radius: 6px;
 }
@@ -146,7 +146,7 @@
   .experiment-spotlight-card {
     right: 8px;
     width: calc(100vw - 16px);
-    padding: 12px;
+    padding: var(--space-3);
   }
   .experiment-spotlight-card.at-bottom {
     bottom: 8px;

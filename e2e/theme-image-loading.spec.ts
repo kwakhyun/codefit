@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
 
+// Artwork is served through /_next/image; the file path is its url parameter.
+const artwork = (file: string) => (url: URL) =>
+  (url.searchParams.get("url") ?? url.pathname) === file;
+
 test("image skeleton covers initial and theme loading, then stops on success or error", async ({
   page,
 }) => {
@@ -14,7 +18,7 @@ test("image skeleton covers initial and theme loading, then stops on success or 
   const pending = new Promise<void>((resolve) => {
     release = resolve;
   });
-  await page.route("**/images/light/experience/project.webp", async (route) => {
+  await page.route(artwork("/images/light/experience/project.webp"), async (route) => {
     await pending;
     await route.continue();
   });
@@ -36,7 +40,7 @@ test("image skeleton covers initial and theme loading, then stops on success or 
   const blocked = new Promise<void>((resolve) => {
     fail = resolve;
   });
-  await page.route("**/images/experience/project.webp", async (route) => {
+  await page.route(artwork("/images/experience/project.webp"), async (route) => {
     await blocked;
     await route.abort();
   });
@@ -50,7 +54,9 @@ test("image skeleton covers initial and theme loading, then stops on success or 
 
 test("visible artwork prepares the alternate theme before a toggle", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
-  const alternate = page.waitForRequest("**/images/experience/project.webp");
+  const alternate = page.waitForRequest((request) =>
+    artwork("/images/experience/project.webp")(new URL(request.url())),
+  );
   await page.goto("/project-check");
   const picture = page.locator(".section-artwork .theme-picture").first();
   await picture.scrollIntoViewIfNeeded();

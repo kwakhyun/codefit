@@ -1,5 +1,5 @@
 .persona-picker {
-  margin: 24px 0 32px;
+  margin: var(--space-6) 0 var(--space-8);
 }
 .persona-picker h2 {
   font-size: 20px;
@@ -21,7 +21,7 @@
   min-width: 0;
   border: 1px solid light-dark(var(--light-line), #414952);
   border-radius: 16px;
-  background: light-dark(var(--light-panel), #101318);
+  background: var(--art-surface);
   overflow: hidden;
   cursor: pointer;
   margin: 0;
@@ -34,7 +34,7 @@
   height: 100%;
   margin: 0;
   opacity: 0;
-  z-index: 1;
+  z-index: var(--z-raised);
   cursor: pointer;
 }
 .persona-cards .persona-card:hover {
@@ -57,6 +57,7 @@
   aspect-ratio: 3/2;
   overflow: hidden;
   background: light-dark(var(--light-panel), #0d1013);
+  border-radius: 0;
 }
 .persona-art img {
   width: 100%;
@@ -70,8 +71,8 @@
 .persona-copy {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 16px 16px 12px;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-4) var(--space-3);
 }
 .persona-copy small {
   color: light-dark(var(--light-muted), #aebcc6);
@@ -91,7 +92,7 @@
   align-items: center;
   gap: 6px;
   margin-top: auto;
-  padding: 0 16px 16px;
+  padding: 0 var(--space-4) var(--space-4);
   color: light-dark(var(--light-muted), #b5c0ca);
   font-size: 12px;
 }
@@ -105,7 +106,7 @@
   visibility: visible;
 }
 .persona-storage {
-  margin-top: 16px;
+  margin-top: var(--space-4);
   font-size: 12px;
   line-height: 1.8;
   color: light-dark(var(--light-muted), #abb7c0);
@@ -130,117 +131,26 @@
 }
 .persona-change strong {
   color: light-dark(var(--light-green), #a0edc9);
+  /* `bolder` inside this semibold label asks for 900. The variable Noto Sans KR face draws it;
+     the previous per-weight @font-face list ended at 800, so it rendered at 800. Keep that. */
+  font-weight: 800;
 }
 .persona-modal.modal {
   width: min(1050px, calc(100vw - 32px));
   max-width: none;
-  padding: 24px;
+  padding: var(--space-6);
 }
 .persona-modal .persona-picker {
-  margin-top: 20px;
-}
-.persona-done {
-  display: flex;
-  margin-left: auto;
-}
-.persona-home-primary {
-  display: grid;
-  gap: 20px;
-}
-.persona-home-primary .resume-card {
-  margin-bottom: 0;
-}
-.persona-project-resume,
-.persona-security-start {
-  padding: 28px;
-  border: 1px solid light-dark(var(--light-line), #415267);
-  border-radius: 16px;
-  background: light-dark(var(--light-blue-soft), #121d28);
-}
-.persona-security-start {
-  background: light-dark(var(--light-canvas), #15221e);
-  border-color: light-dark(var(--light-line), #456454);
-}
-.persona-project-resume h2,
-.persona-security-start h2 {
-  margin: 12px 0;
-  font-size: 23px;
-}
-.persona-project-resume p,
-.persona-security-start p {
-  color: light-dark(var(--light-muted), #bccbd5);
-  line-height: 1.8;
-  margin-bottom: 20px;
-}
-.persona-project-resume small {
-  display: block;
-  margin-top: 14px;
-  color: light-dark(var(--light-muted), #b8c6d1);
-}
-.persona-next-steps,
-.persona-other-records {
-  margin-top: 32px;
-}
-.persona-next-steps h2,
-.persona-other-records h2,
-.home-domain-explorer h2 {
-  font-size: 19px;
-}
-.persona-next-steps > div {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 16px;
-}
-.persona-next-steps a {
-  display: block;
-  padding: 22px;
-  border: 1px solid light-dark(var(--light-line), #3a444e);
-  border-radius: 12px;
-  background: light-dark(var(--light-canvas), #13191f);
-}
-.persona-next-steps p {
-  margin-top: 12px;
-  color: light-dark(var(--light-muted), #b6c2cd);
-  line-height: 1.75;
-}
-.persona-other-records > p {
-  color: var(--muted);
-  font-size: 13px;
-}
-.persona-other-records .section-heading {
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.home-domain-explorer {
-  margin: 32px 0;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
-}
-.home-domain-explorer .section-heading {
-  flex-wrap: wrap;
-  gap: 16px;
-}
-.home-domain-explorer > div:last-child {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 20px;
-}
-.home-domain-explorer > div:last-child a {
-  border: 1px solid light-dark(var(--light-line), #3a444e);
-  border-radius: 9px;
-  padding: 14px;
+  margin-top: var(--space-5);
 }
 .domain-list {
-  margin-top: 24px;
+  margin-top: var(--space-6);
 }
 .domain-list h2 {
   font-size: 12px;
 }
 .sidebar .nav-caption {
-  margin-top: 16px;
+  margin-top: var(--space-4);
 }
 @media (max-width: 1100px) {
   .persona-cards {
@@ -252,7 +162,7 @@
   .topbar {
     flex-wrap: wrap;
     height: auto;
-    gap: 12px;
+    gap: var(--space-3);
   }
   .topbar-actions {
     flex-wrap: wrap;
@@ -260,10 +170,10 @@
 }
 @media (max-width: 600px) {
   .persona-cards {
-    gap: 12px;
+    gap: var(--space-3);
   }
   .persona-copy {
-    padding: 12px;
+    padding: var(--space-3);
   }
   .persona-copy strong {
     font-size: 17px;
@@ -272,7 +182,7 @@
     min-height: 36px;
   }
   .persona-selected {
-    padding: 0 12px 12px;
+    padding: 0 var(--space-3) var(--space-3);
   }
   .persona-modal.modal {
     padding: 18px;
@@ -281,16 +191,6 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
-  }
-  .persona-project-resume,
-  .persona-security-start {
-    padding: 20px;
-  }
-  .persona-next-steps > div {
-    grid-template-columns: 1fr;
-  }
-  .home-domain-explorer > div:last-child {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .topbar .persona-change {
     padding: 5px 9px;
@@ -302,31 +202,6 @@
 }
 
 /* Compact destinations: distinguish actions instead of repeating decorative artwork. */
-.persona-next-steps > .practice-link-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
-  overflow: hidden;
-  background: var(--surface);
-}
-.persona-next-steps a.practice-link {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 24px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-.persona-next-steps a.practice-link + a {
-  border-top: 1px solid var(--line);
-}
-.persona-next-steps a.practice-link:hover {
-  background: var(--surface-hover);
-}
-.practice-link-icon,
 .learning-resume-icon {
   display: grid;
   place-items: center;
@@ -337,40 +212,19 @@
   background: light-dark(var(--light-blue-soft), #23334c);
   color: light-dark(var(--light-blue), #a5ccff);
 }
-.practice-link-icon[data-tone="1"] {
-  background: light-dark(var(--light-hover), #302c48);
-  color: light-dark(var(--light-blue), #cec0ff);
-}
-.practice-link-copy {
-  flex: 1;
-  min-width: 0;
-}
-.practice-link-copy h3 {
-  font-size: 19px;
-  line-height: 1.5;
-}
-.persona-next-steps .practice-link-copy p {
-  margin: 8px 0 0;
-  font-size: 15px;
-  line-height: 1.7;
-}
-.practice-link-arrow {
-  color: var(--muted);
-  flex-shrink: 0;
-}
 .learning-resume-row {
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 24px;
-  margin-block: 20px;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  margin-block: var(--space-5);
 }
 .learning-resume-copy {
   flex: 1;
   min-width: 0;
 }
 .learning-resume-copy h2 {
-  margin: 8px 0;
+  margin: var(--space-2) 0;
   font-size: 20px;
   line-height: 1.5;
 }
@@ -410,24 +264,16 @@
   white-space: nowrap;
 }
 @media (max-width: 700px) {
-  .persona-next-steps a.practice-link {
-    gap: 14px;
-    padding: 20px 16px;
-  }
-  .practice-link-icon,
   .learning-resume-icon {
     width: 44px;
     height: 44px;
-    border-radius: 12px;
-  }
-  .practice-link-copy h3 {
-    font-size: 17px;
+    border-radius: var(--radius-control);
   }
   .learning-resume-row {
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr);
-    gap: 16px;
-    padding: 20px;
+    gap: var(--space-4);
+    padding: var(--space-5);
   }
   .learning-resume-copy h2 {
     font-size: 18px;
@@ -439,4 +285,39 @@
     grid-column: 1 / -1;
     justify-content: center;
   }
+}
+
+/* First-visit home: one heading for the workspace choice, with room after the project card. */
+.workspace-welcome > .persona-picker {
+  margin-top: var(--space-12);
+}
+
+.persona-cards .persona-selected svg {
+  visibility: visible;
+}
+
+.persona-cards .is-selected .persona-selected {
+  color: light-dark(var(--light-green), #a0edc9);
+}
+
+/* Blue indicates selection; green is reserved for successful outcomes. */
+.persona-change strong,
+.is-selected .persona-selected {
+  color: var(--action-soft);
+}
+
+.persona-cards label.persona-card.is-selected {
+  border-color: var(--action);
+  box-shadow: inset 0 0 0 1px var(--action);
+}
+
+.repair-next-step .primary-button {
+  min-height: 48px;
+  white-space: normal;
+}
+
+.persona-cards .persona-selected {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
 }

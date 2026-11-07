@@ -1,72 +1,45 @@
-/* Import order preserves base, responsive, then final palette and training styles. */
-@import "../styles/tokens.css";
-@import "../styles/foundation.css";
-@import "../styles/shell.css";
-@import "../styles/library.css";
-@import "../styles/workspace.css";
-@import "../styles/dialogs.css";
-@import "../styles/shared-responsive.css";
-@import "../styles/shell-responsive.css";
-@import "../styles/library-responsive.css";
-@import "../styles/workspace-responsive.css";
-@import "../styles/dialogs-responsive.css";
-@import "../styles/palette.css";
-@import "../styles/training.css";
-@import "../styles/ai-usage.css";
-@import "../styles/account.css";
-
-@import "../styles/handoff.css";
-
-@import "../styles/learning-lab.css";
-
-@import "../styles/beginner.css";
-
-@import "../styles/navigation.css";
-
-@import "../styles/scenario-visuals.css";
-@import "../styles/guide.css";
-@import "../styles/simulation.css";
-
-@import "../styles/service-examples.css";
-
-@import "../styles/media-surfaces.css";
-
-@import "../styles/project-check.css";
-@import "../styles/project-evidence.css";
-@import "../styles/project-classes.css";
-@import "../styles/project-learning.css";
-
-@import "../styles/select.css";
-
-@import "../styles/experiment-guide.css";
-
-@import "../styles/security-check.css";
-
-@import "../styles/personalization.css";
-
-@import "../styles/experience.css";
-
-@import "../styles/workbench.css";
-
-@import "../styles/terminal-system.css";
-@import "../styles/ai-learning.css";
-
-@import "../styles/reading-rhythm.css";
-
-@import "../styles/workspace-homes.css";
-
-@import "../styles/skeleton.css";
-
-@import "../styles/project-practice.css";
-
-@import "../styles/project-ai-workshop.css";
-
-@import "../styles/desktop-layout.css";
-
-@import "../styles/workspace-spacing.css";
-
-@import "../styles/design-consistency.css";
-
-@import "../styles/design-polish.css";
-
-@import "../styles/design-clarity.css";
+/* Cascade layers: later layers win regardless of selector specificity. Unlayered styles
+   (Monaco's injected editor CSS, next/font declarations) sit above every layer. Within
+   "components", files keep their import order, so later files override earlier ones. */
+@layer tokens, base, components;
+@import "../styles/tokens.css" layer(tokens);
+@import "../styles/base.css" layer(base);
+@import "../styles/foundation.css" layer(components);
+@import "../styles/shell.css" layer(components);
+@import "../styles/library.css" layer(components);
+@import "../styles/workspace.css" layer(components);
+@import "../styles/dialogs.css" layer(components);
+@import "../styles/shared-responsive.css" layer(components);
+@import "../styles/shell-responsive.css" layer(components);
+@import "../styles/library-responsive.css" layer(components);
+@import "../styles/workspace-responsive.css" layer(components);
+@import "../styles/dialogs-responsive.css" layer(components);
+@import "../styles/training.css" layer(components);
+@import "../styles/ai-usage.css" layer(components);
+@import "../styles/account.css" layer(components);
+@import "../styles/handoff.css" layer(components);
+@import "../styles/learning-lab.css" layer(components);
+@import "../styles/beginner.css" layer(components);
+@import "../styles/navigation.css" layer(components);
+@import "../styles/scenario-visuals.css" layer(components);
+@import "../styles/guide.css" layer(components);
+@import "../styles/simulation.css" layer(components);
+@import "../styles/service-examples.css" layer(components);
+@import "../styles/media-surfaces.css" layer(components);
+@import "../styles/project-check.css" layer(components);
+@import "../styles/project-evidence.css" layer(components);
+@import "../styles/project-classes.css" layer(components);
+@import "../styles/project-learning.css" layer(components);
+@import "../styles/select.css" layer(components);
+@import "../styles/experiment-guide.css" layer(components);
+@import "../styles/security-check.css" layer(components);
+@import "../styles/personalization.css" layer(components);
+@import "../styles/experience.css" layer(components);
+@import "../styles/workbench.css" layer(components);
+@import "../styles/terminal-system.css" layer(components);
+@import "../styles/ai-learning.css" layer(components);
+@import "../styles/workspace-homes.css" layer(components);
+@import "../styles/skeleton.css" layer(components);
+@import "../styles/project-practice.css" layer(components);
+@import "../styles/project-ai-workshop.css" layer(components);
+@import "../styles/desktop-layout.css" layer(components);

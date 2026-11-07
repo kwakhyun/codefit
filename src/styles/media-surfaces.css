@@ -24,11 +24,11 @@
   --domain-glow: light-dark(color-mix(in srgb, var(--light-green) 10.98%, transparent), #a8d2c71c);
 }
 .learn-catalog-filters {
-  margin-top: 40px;
-  padding-top: 8px;
+  margin-top: var(--space-10);
+  padding-top: var(--space-2);
 }
 .learn-catalog-filters h2 {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   font-size: clamp(21px, 2.2vw, 27px);
   line-height: 1.5;
 }
@@ -38,7 +38,7 @@
 }
 .learn-progress {
   align-items: center;
-  gap: 12px 32px;
+  gap: var(--space-3) var(--space-8);
 }
 .learn-progress strong {
   flex-shrink: 0;
@@ -46,22 +46,21 @@
 .domain-filters {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
   margin: 26px 0 28px;
 }
 .domain-filters button {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--space-3);
   position: relative;
   padding: 18px 16px;
   min-height: 116px;
   border: 1px solid light-dark(var(--light-line), #333b47);
   border-radius: 14px;
   background:
-    radial-gradient(ellipse at 15% 0%, var(--domain-glow), transparent 80%),
-    light-dark(var(--light-panel), #101318);
+    radial-gradient(ellipse at 15% 0%, var(--domain-glow), transparent 80%), var(--art-surface);
   color: light-dark(var(--light-muted), #c0c8d3);
   text-align: left;
   transition:
@@ -75,7 +74,7 @@
   background:
     radial-gradient(ellipse at 10% 0%, var(--domain-glow), transparent 95%),
     light-dark(var(--light-raised), #1c222c);
-  color: light-dark(var(--light-text), #fff);
+  color: var(--text-strong);
   border-color: var(--domain-tint);
   box-shadow: inset 0 0 0 1px var(--domain-tint);
 }
@@ -115,18 +114,18 @@
   color: light-dark(var(--light-muted), #bac4d2);
 }
 .learn-filter-row {
-  gap: 16px 24px;
-  margin-bottom: 8px;
+  gap: var(--space-4) var(--space-6);
+  margin-bottom: var(--space-2);
 }
 .learn-filter-row p {
   align-self: center;
-  margin-top: 20px;
+  margin-top: var(--space-5);
 }
 .learn-cards {
-  gap: 20px;
+  gap: var(--space-5);
 }
 .learn-card {
-  --card-base: light-dark(var(--light-panel), #101318);
+  --card-base: var(--art-surface);
   overflow: hidden;
   background: var(--card-base);
 }
@@ -166,7 +165,7 @@
   opacity: 0.8;
 }
 .learn-card .service-card-art > strong {
-  z-index: 1;
+  z-index: var(--z-raised);
   left: 24px;
   top: 18px;
   bottom: auto;
@@ -217,7 +216,7 @@
 }
 .learn-card > p {
   line-height: 1.85;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 /* Matching dark artwork needs compositing, not a replacement raster. */
 .feature-banner {
@@ -227,89 +226,14 @@
       color-mix(in srgb, var(--feature) 9%, transparent),
       transparent 65%
     ),
-    light-dark(var(--light-panel), #101318);
-}
-.feature-banner-top {
-  padding: 18px 28px;
-  border-bottom-color: light-dark(
-    color-mix(in srgb, var(--light-strong-line) 4.71%, transparent),
-    #ffffff0c
-  );
-}
-.feature-slide {
-  padding: 30px 28px;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-  gap: 8px;
-  min-height: 280px;
-}
-.feature-copy {
-  position: relative;
-  z-index: 1;
-}
-.feature-copy p {
-  max-width: 550px;
-  margin-bottom: 24px;
-}
-.feature-art {
-  height: 260px;
-  margin: -22px -28px -22px -30px;
-  width: calc(100% + 58px);
-  mix-blend-mode: var(--art-blend);
-  mask-image: radial-gradient(
-    ellipse 66% 62% at 54% 48%,
-    light-dark(var(--light-panel), #000) 28%,
-    #000b 62%,
-    transparent 97%
-  );
-}
-.feature-art img {
-  object-fit: contain;
-  border-radius: 0;
-  mix-blend-mode: var(--art-blend);
-}
-.feature-banner-controls {
-  padding: 12px 24px;
-  border-top-color: light-dark(
-    color-mix(in srgb, var(--light-strong-line) 4.71%, transparent),
-    #ffffff0c
-  );
-  background: light-dark(var(--light-raised), #10131855);
-}
-.training-paths {
-  gap: 20px;
-  margin-bottom: 28px;
-}
-.training-paths > a {
-  overflow: hidden;
-  background:
-    radial-gradient(
-      ellipse at 65% 0%,
-      color-mix(in srgb, var(--path-color, var(--action)) 9%, transparent),
-      transparent 70%
-    ),
-    light-dark(var(--light-panel), #101318);
-}
-.training-paths > a > .scenario-art {
-  width: 190px;
-  margin: -18px auto -4px;
-  background: transparent;
-  border-radius: 0;
-  mask-image: radial-gradient(
-    ellipse 67% 65% at 50% 43%,
-    light-dark(var(--light-panel), #000) 26%,
-    #000d 55%,
-    transparent 95%
-  );
-}
-.training-paths > a > .scenario-art img {
-  mix-blend-mode: var(--art-blend);
+    var(--art-surface);
 }
 .handoff-card {
   overflow: hidden;
 }
 .handoff-card > .scenario-thumbnail {
   width: 100%;
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
   background: radial-gradient(
     ellipse at 50% 10%,
     light-dark(color-mix(in srgb, var(--light-blue) 9.41%, transparent), #a4bbde18),
@@ -323,7 +247,7 @@
   background: transparent;
   mask-image: radial-gradient(
     ellipse 66% 65% at 50% 44%,
-    light-dark(var(--light-panel), #000) 28%,
+    var(--surface-deep) 28%,
     #000b 60%,
     transparent 96%
   );
@@ -339,7 +263,7 @@
 @media (max-width: 760px) {
   .learn-catalog-filters {
     margin-top: 30px;
-    padding-top: 4px;
+    padding-top: var(--space-1);
   }
   .learn-catalog-filters h2 {
     margin-bottom: 10px;
@@ -373,48 +297,6 @@
     width: calc(100% + 44px);
     margin: -22px -22px 12px;
   }
-  .feature-banner-top {
-    padding: 14px 18px;
-  }
-  .feature-slide {
-    display: flex;
-    flex-direction: column-reverse;
-    align-items: stretch;
-    gap: 4px;
-    padding: 0 20px 24px;
-    min-height: 0;
-  }
-  .feature-art {
-    width: calc(100% + 40px);
-    height: 160px;
-    margin: -6px -20px -16px;
-    mask-image: radial-gradient(
-      ellipse 58% 66% at 50% 40%,
-      light-dark(var(--light-panel), #000) 25%,
-      #000a 65%,
-      transparent 98%
-    );
-  }
-  .feature-art img {
-    object-fit: contain;
-  }
-  .feature-copy h2 {
-    margin: 12px 0;
-    font-size: 22px;
-  }
-  .feature-copy p {
-    margin-bottom: 20px;
-  }
-  .feature-banner-controls {
-    padding: 10px 14px;
-  }
-  .training-paths > a > .scenario-art {
-    width: 96px;
-    margin: 0 -4px;
-  }
-  .training-paths {
-    gap: 14px;
-  }
   .learn-cards {
     gap: 18px;
   }
@@ -426,43 +308,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .domain-filters button {
-    transition: none;
-  }
-}
-
-/* Paint the image's blend backdrop inside the animated stacking context.
-   Otherwise transforms temporarily blend the source's black rectangle against transparency. */
-.feature-slide {
-  background:
-    radial-gradient(
-      ellipse at 92% 45%,
-      color-mix(in srgb, var(--feature) 9%, transparent),
-      transparent 65%
-    ),
-    light-dark(var(--light-panel), #101318);
-}
-.feature-banner[data-direction="backward"] {
-  --feature-enter-x: -40px;
-}
-.feature-time-track {
-  height: 1px;
-  background: light-dark(color-mix(in srgb, var(--light-hover) 6.27%, transparent), #ffffff10);
-  overflow: hidden;
-}
-.feature-time-track > span {
-  display: block;
-  height: 100%;
-  background: var(--feature);
-  transform-origin: left;
-  transition: transform 100ms linear;
-}
-@media (max-width: 760px) {
-  .feature-banner-controls {
-    flex-wrap: wrap;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .feature-time-track > span {
     transition: none;
   }
 }

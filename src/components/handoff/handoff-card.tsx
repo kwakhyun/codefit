@@ -22,7 +22,7 @@ export function HandoffCard({
   return (
     <Card as="article" className="handoff-card">
       <span className="scenario-thumbnail">
-        <ScenarioImage scene={scenarioFor(handoffId(track.key))!} />
+        <ScenarioImage scene={scenarioFor(handoffId(track.key))!} sizes="410px" />
       </span>
       <span className="eyebrow">
         {String(index + 1).padStart(2, "0")} /{" "}

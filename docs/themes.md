@@ -22,7 +22,7 @@
 CODEFIT_E2E_EXTERNAL_SERVER=1 CODEFIT_E2E_BASE_URL=http://127.0.0.1:3012 npx playwright test e2e/theme.spec.ts --project=chromium --reporter=list --output=artifacts/theme-verification
 ```
 
-브라우저는 CSS `light-dark()` 지원이 필요하다. 새 색상이나 선택/호버 상태를 추가할 때 두 테마에서 전경과 배경을 함께 확인하고, 작은 보조 글자에 불필요한 투명도를 적용하지 않는다.
+새 색상이나 선택/호버 상태를 추가할 때 두 테마에서 전경과 배경을 함께 확인하고, 작은 보조 글자에 불필요한 투명도를 적용하지 않는다. 같은 다크 값의 `light-dark()` 쌍이 반복되면 `tokens.css`의 역할 토큰(`--panel`, `--art-surface`, `--sample-*` 등)을 먼저 쓴다.
 
 2026-09-21 로컬 검증: 주요 경로 18개 × 테마 2개 × 너비 2개에서 글자 대비와 가로 넘침 검사를 통과했다. Chromium의 테마 관련 47개 시나리오와 Firefox/WebKit의 설정·편집기·메뉴·초기 표시 관련 14개 시나리오를 수정 영향별로 나누어 검증했다. 변경된 TypeScript 진입점의 타입 검사, ESLint 및 Prettier 검사도 통과했다.
 
@@ -33,3 +33,9 @@ CODEFIT_E2E_EXTERNAL_SERVER=1 CODEFIT_E2E_BASE_URL=http://127.0.0.1:3012 npx pla
 이미지 로딩 중에는 원래 이미지 영역에 테마 색상의 스켈레톤을 표시한다. 이미지 표시가 준비되면 해제하고, 오류 시에는 애니메이션을 멈춘 정적 영역을 유지한다. 동작 줄이기 설정에서는 애니메이션을 사용하지 않는다. 현재 이미지 로딩 후 화면에 보이는 이미지의 반대 테마 파일을 낮은 우선순위로 다운로드하고 디코딩한다. 동일 파일의 사전 요청을 공유하며 데이터 절약 설정에서는 생략한다. 사전 요청 실패는 테마 전환을 차단하지 않는다.
 
 `e2e/theme-image-loading.spec.ts`는 지연된 응답의 스켈레톤, 영역 높이 유지, 오류와 재전환 복구, 반대 테마 사전 요청을 검증한다. Chromium, Firefox, WebKit에서 총 6개 검사를 통과했다. 네트워크와 브라우저 캐시에 따라 실제 전환 지연은 달라질 수 있다.
+
+## 지원 브라우저
+
+`package.json`의 `browserslist`는 Chrome·Edge 114, Firefox 125, Safari·iOS Safari 17 이상이다. 선택 메뉴가 쓰는 `popover`(Chrome 114, Safari 17, Firefox 125)가 가장 높은 기준이고, `:has()`(Firefox 121)와 `color-mix()`, `@layer`, `dvh`도 이 범위에서 지원된다.
+
+`light-dark()`를 기본 지원하지 않는 대상(Chrome 114–122, Safari 17.0–17.4)은 빌드가 처리한다. Turbopack의 Lightning CSS가 `browserslist`에 맞춰 모든 `light-dark(라이트, 다크)`를 `var(--lightningcss-light, 라이트) var(--lightningcss-dark, 다크)`로 바꾸고, `color-scheme`을 선언한 규칙(`:root`, `[data-theme]`, 운영체제 다크 미디어 쿼리)에 두 변수의 전환을 추가한다. 그래서 토큰 파일에 별도의 라이트 대체값이나 `@supports` 분기를 두지 않는다. 2026-11-07 개발 서버 출력과 `next build` 결과 CSS에서 `light-dark(` 문자열이 0개임을 확인했다. 이 범위보다 오래된 브라우저는 확인하지 않았다.

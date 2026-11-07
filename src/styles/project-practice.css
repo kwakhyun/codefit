@@ -22,25 +22,41 @@
 .practice-samples,
 .practice-runner {
   display: grid;
-  gap: 28px;
+  gap: var(--space-7);
   min-width: 0;
 }
 .practice-entry {
-  margin-block: 32px;
+  margin-block: var(--space-8);
 }
 .practice-origin {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--space-3);
+}
+
+/* Segmented choices: one track with a raised thumb for the selected option. */
+.type-filters,
+.segmented {
+  gap: 2px;
+  padding: 3px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: light-dark(var(--light-raised), #0b0f15);
 }
 .practice-origin > :is(button, a) {
   display: inline-flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
   padding: 12px 18px;
   min-height: 46px;
   border-radius: 14px;
+}
+.practice-switch-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
 }
 .practice-origin > [aria-pressed="true"],
 .practice-origin > [aria-current] {
@@ -48,13 +64,17 @@
   background: color-mix(in srgb, var(--accent) 12%, var(--surface));
   border: 1px solid var(--accent);
 }
+.class-loading-card:hover {
+  transform: none;
+  border-color: var(--line);
+}
 .practice-entry-card,
 .practice-connect,
 .practice-exercise,
 .practice-complete {
   padding: clamp(22px, 4vw, 36px);
   display: grid;
-  gap: 20px;
+  gap: var(--space-5);
   min-width: 0;
 }
 :is(.practice-entry-card, .practice-connect, .practice-exercise, .practice-complete)
@@ -70,34 +90,21 @@
 }
 .practice-entry-card ol {
   display: grid;
-  gap: 12px;
-  padding-left: 24px;
+  gap: var(--space-3);
+  padding-left: var(--space-6);
   margin: 0;
   color: var(--muted);
 }
 .practice-connect form {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .practice-connect form > label:not(.practice-consent) {
   margin-top: 10px;
 }
-.practice-consent {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  line-height: 1.8;
-  margin-top: 8px;
-}
-.practice-consent input {
-  flex: 0 0 20px;
-  width: 20px;
-  height: 20px;
-  margin-top: 4px;
-}
 .practice-project {
   display: flex;
-  gap: 20px;
+  gap: var(--space-5);
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
@@ -111,7 +118,7 @@
 }
 .practice-stepbar {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .practice-stepbar progress {
   width: 100%;
@@ -134,12 +141,21 @@
   font: 0.9rem var(--mono);
   color: var(--accent);
 }
+
+/* Counts line up as they change. */
+.stats-row strong,
+.table-footer,
+.pagination,
+.row-time,
+.notes-progress {
+  font-variant-numeric: tabular-nums;
+}
 .practice-exercise fieldset {
   border: 0;
   padding: 0;
-  margin: 8px 0;
+  margin: var(--space-2) 0;
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
   min-width: 0;
 }
 .practice-exercise legend {
@@ -166,7 +182,7 @@
   flex: 0 0 20px;
   width: 20px;
   height: 20px;
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 .practice-explanation {
   display: grid;
@@ -176,16 +192,16 @@
 }
 .practice-walkthrough {
   display: grid;
-  gap: 20px;
-  padding-left: 28px;
+  gap: var(--space-5);
+  padding-left: var(--space-7);
   margin: 0;
 }
 .practice-walkthrough li {
-  padding-left: 8px;
+  padding-left: var(--space-2);
   line-height: 1.8;
 }
 .practice-walkthrough li p {
-  margin-top: 8px;
+  margin-top: var(--space-2);
   color: var(--muted);
 }
 .practice-complete {
@@ -206,7 +222,7 @@
 }
 @media (max-width: 600px) {
   .project-practice-page {
-    padding-inline: 16px;
+    padding-inline: var(--space-4);
   }
   .practice-origin > :is(button, a) {
     flex: 1 1 auto;
@@ -229,7 +245,7 @@
 }
 .practice-sources {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
   min-width: 0;
 }
 .practice-sources summary {
@@ -238,7 +254,7 @@
 .project-quick-start {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 24px;
+  gap: var(--space-6);
   padding: clamp(24px, 4vw, 40px);
   background: linear-gradient(
     115deg,
@@ -249,7 +265,7 @@
 }
 .quick-start-heading {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .quick-start-heading > p {
   display: flex;
@@ -270,7 +286,7 @@
 .quick-start-outcomes {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 28px;
+  gap: var(--space-2) var(--space-7);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -280,7 +296,7 @@
 .quick-start-outcomes li {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 .quick-start-outcomes svg {
   color: var(--muted);
@@ -293,11 +309,11 @@
   display: grid;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+  gap: var(--space-3);
 }
 .quick-start-input {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .quick-start-input input {
   flex: 1;
@@ -316,7 +332,7 @@
 .quick-start-results {
   display: grid;
   gap: 18px;
-  padding-top: 20px;
+  padding-top: var(--space-5);
   border-top: 1px solid var(--line);
 }
 .quick-start-results > strong {
@@ -342,7 +358,7 @@
 .service-home-connected {
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
   gap: clamp(24px, 4vw, 56px);
-  padding-block: 32px 48px;
+  padding-block: var(--space-8) var(--space-12);
 }
 .service-home-connected .workspace-art {
   align-self: start;
@@ -354,12 +370,12 @@
   border-radius: 0;
   background: none;
   box-shadow: none;
-  gap: 20px;
+  gap: var(--space-5);
 }
 .quick-start-embedded .quick-start-input {
   align-items: stretch;
   padding: 6px;
-  gap: 4px;
+  gap: var(--space-1);
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--surface);
@@ -375,20 +391,20 @@
   background: transparent;
   border: 0;
   box-shadow: none;
-  padding-inline: 12px;
+  padding-inline: var(--space-3);
 }
 .quick-start-embedded .quick-start-input input:focus-visible {
   outline: none;
 }
 .quick-start-embedded .quick-start-input button {
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   font-size: 14px;
   white-space: nowrap;
-  padding-inline: 16px;
+  padding-inline: var(--space-4);
 }
 .quick-start-note {
   display: grid;
-  gap: 4px;
+  gap: var(--space-1);
   font-size: 13px;
   color: var(--muted);
 }
@@ -397,26 +413,34 @@
   padding: 0;
   background: none;
 }
+
+/* Expandable cards: a trailing chevron replaces the small native triangle and the whole
+   title row, not just the text, is the target. */
+details.audit-method,
+.security-exercises details.ui-disclosure,
+details.project-example-disclosure {
+  padding: var(--space-5) var(--space-6);
+}
 .quick-start-note summary {
   width: fit-content;
-  padding-block: 8px;
+  padding-block: var(--space-2);
   cursor: pointer;
 }
 .quick-start-note details p {
-  padding-block: 4px 8px;
+  padding-block: var(--space-1) var(--space-2);
   max-width: 56ch;
 }
 .quick-start-embedded .quick-start-alternatives {
-  gap: 8px 24px;
+  gap: var(--space-2) var(--space-6);
   font-size: 14px;
 }
 .quick-start-embedded .quick-start-alternatives a {
-  padding-block: 8px;
+  padding-block: var(--space-2);
 }
 @media (max-width: 1100px) {
   .service-home-connected {
     grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
-    gap: 24px;
+    gap: var(--space-6);
   }
   .quick-start-embedded .quick-start-input {
     flex-direction: column;
@@ -429,7 +453,7 @@
 @media (max-width: 760px) {
   .service-home-connected {
     grid-template-columns: minmax(0, 1fr);
-    padding-top: 12px;
+    padding-top: var(--space-3);
   }
   .service-home-connected .workspace-art {
     max-width: 240px;
@@ -460,7 +484,7 @@
 .practice-reading-guide,
 .practice-glossary {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .practice-learning-goal {
   padding: 18px 20px;
@@ -474,11 +498,11 @@
 }
 .practice-glossary dl {
   display: grid;
-  gap: 12px;
+  gap: var(--space-3);
 }
 .practice-glossary dl > div {
   display: grid;
-  gap: 4px;
+  gap: var(--space-1);
 }
 .practice-glossary dt {
   font-weight: 700;
@@ -490,7 +514,7 @@
   line-height: 1.7;
 }
 .practice-reading-guide ol {
-  padding-left: 24px;
+  padding-left: var(--space-6);
   line-height: 1.8;
 }
 .practice-exercise h2,
@@ -518,61 +542,6 @@
 .practice-answer > input {
   flex-shrink: 0;
 }
-
-.practice-stages {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  overflow: hidden;
-}
-.practice-stages > button {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-  min-width: 0;
-  padding: 16px;
-  border: 0;
-  border-radius: 0;
-  text-align: left;
-  background: transparent;
-  overflow-wrap: anywhere;
-}
-.practice-stages > button + button {
-  border-left: 1px solid var(--line);
-}
-.practice-stages > button[aria-current] {
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-  box-shadow: inset 0 -3px var(--accent);
-}
-.practice-stages strong,
-.practice-stages small {
-  display: block;
-}
-.practice-stages small {
-  margin-top: 6px;
-  font-size: 0.8rem;
-  line-height: 1.6;
-}
-.practice-stage-number {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  flex-shrink: 0;
-  font: 700 1rem var(--mono);
-}
-.practice-stages > button:disabled {
-  opacity: 1;
-  color: var(--muted);
-}
-.practice-stages > button[aria-current] .practice-stage-number {
-  border-color: currentColor;
-}
 .practice-stage-heading,
 .practice-study-work,
 .practice-study-layout,
@@ -583,11 +552,11 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-width: 0;
-  gap: 20px;
+  gap: var(--space-5);
   align-content: start;
 }
 .practice-study-source {
-  padding: 20px;
+  padding: var(--space-5);
   border: 1px solid var(--line);
   border-radius: 14px;
 }
@@ -595,7 +564,7 @@
   font-size: 1rem;
 }
 .practice-study-source .repository-code {
-  margin-block: 12px;
+  margin-block: var(--space-3);
 }
 .practice-study-source .repository-evidence > summary {
   color: var(--muted);
@@ -604,10 +573,10 @@
 .practice-study-source .repository-evidence a {
   color: var(--accent);
   font-size: 0.85rem;
-  padding: 8px 0;
+  padding: var(--space-2) 0;
 }
 .practice-study-source .practice-scenario {
-  padding: 16px;
+  padding: var(--space-4);
 }
 .practice-study-source .practice-glossary dl > div {
   gap: 2px;
@@ -625,7 +594,7 @@
   display: grid;
   gap: 10px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-control);
 }
 .practice-result-pair > div:last-child {
   background: var(--surface-raised);
@@ -637,26 +606,17 @@
   }
   .practice-study-layout {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 28px;
+    gap: var(--space-7);
   }
 }
 @media (max-width: 600px) {
-  .practice-stages > button {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 12px 8px;
-  }
-  .practice-stages small {
-    display: none;
-  }
   .practice-study-source {
     padding: 14px;
   }
 }
 .practice-service-scene {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
   padding: 22px;
   border: 1px solid var(--accent);
   border-radius: 16px;
@@ -665,7 +625,7 @@
 .practice-service-scene dl {
   margin: 0;
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .practice-service-scene dl > div {
   display: grid;
@@ -692,7 +652,7 @@
 }
 .practice-service-scene dl > div {
   grid-template-columns: 112px minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--space-4);
 }
 @media (max-width: 650px) {
   .practice-service-scene dl > div {
@@ -707,9 +667,9 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 14px;
-  margin: 12px 0;
+  margin: var(--space-3) 0;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-control);
   background: var(--surface-raised);
 }
 .practice-progress-line > span {
@@ -723,7 +683,7 @@
 .practice-record-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
 }
 .practice-record-row > select {
@@ -733,5 +693,155 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  margin-top: 12px;
+  margin-top: var(--space-3);
+}
+
+/* Buttons keep the previous crisper outline so they do not fade into cards. */
+.ui-button {
+  border-color: var(--control-line);
+}
+
+@media (max-width: 650px) {
+  details.audit-method,
+  .security-exercises details.ui-disclosure,
+  details.project-example-disclosure {
+    padding: 16px 18px;
+  }
+}
+
+/* Learning pages tint --surface to the page colour, which left this entry card with neither
+   fill nor outline in light mode. It gets the panel fill and hairline other cards use. */
+.practice-entry-card.ui-card {
+  border: 1px solid var(--line);
+  background-color: var(--panel);
+}
+
+/* Leaving the page is a link beside the switch, not another segment. */
+.practice-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+}
+.practice-switch-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-5);
+  font-size: var(--text-ui);
+}
+
+.practice-reading-guide li + li,
+.question-writing-guide li + li {
+  margin-top: 6px;
+}
+
+.practice-study-source .practice-glossary,
+.practice-study-source .practice-reading-guide {
+  gap: 10px;
+}
+
+.practice-stepbar + .practice-origin {
+  align-items: stretch;
+}
+
+.practice-stepbar + .practice-origin > button {
+  text-align: left;
+  line-height: 1.6;
+}
+
+@media (max-width: 650px) {
+  .project-page .project-panel,
+  .practice-exercise,
+  .practice-complete,
+  .project-renew {
+    padding: var(--space-5);
+  }
+  .question-context,
+  .practice-service-scene,
+  .practice-learning-goal {
+    padding: var(--space-4);
+  }
+}
+
+.practice-reading-guide > strong,
+.practice-glossary > strong {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.practice-reading-guide > ol,
+.practice-glossary > dl {
+  margin-block: 10px 0;
+}
+
+.ui-button.analysis-activity-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+}
+
+.ui-button.analysis-activity-dismiss:hover {
+  background: var(--line);
+  color: var(--text);
+}
+
+@media (pointer: coarse) {
+  .ui-button.analysis-activity-dismiss {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
+.type-filters > .ui-button:hover:not(.selected),
+.segmented > .ui-button:hover:not(.selected) {
+  border-color: transparent;
+  color: var(--text);
+}
+
+.type-filters > .ui-button.selected,
+.segmented > .ui-button.selected {
+  border-color: transparent;
+  background: light-dark(var(--light-panel), #283448);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow:
+    0 1px 3px light-dark(rgb(15 23 42 / 12%), rgb(0 0 0 / 40%)),
+    0 0 0 1px light-dark(rgb(15 23 42 / 4%), rgb(255 255 255 / 6%));
+}
+
+/* Practice source and practice kind are one choice each, so they share the segmented track
+   used by the problem type filter instead of two separately outlined buttons. */
+.practice-origin.segmented {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.practice-origin.segmented > :is(button, a):hover:not([aria-pressed="true"], [aria-current]) {
+  background: transparent;
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .practice-origin.segmented {
+    width: 100%;
+  }
+}
+
+.project-page .ui-native-select {
+  background-color: light-dark(var(--light-panel), #080b10);
 }

@@ -49,7 +49,7 @@ export function LearningPreferencePicker({
                 width={1200}
                 height={800}
                 alt=""
-                sizes="(max-width: 600px) 85vw, 320px"
+                sizes="(max-width: 600px) 72px, (max-width: 1100px) 50vw, 360px"
               />
             </span>
             <span className="persona-copy">

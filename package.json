@@ -70,5 +70,12 @@
   },
   "engines": {
     "node": "22.x"
-  }
+  },
+  "browserslist": [
+    "chrome >= 114",
+    "edge >= 114",
+    "firefox >= 125",
+    "safari >= 17",
+    "ios_saf >= 17"
+  ]
 }

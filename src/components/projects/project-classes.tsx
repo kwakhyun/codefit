@@ -507,7 +507,13 @@ function ClassDetail({
           {tracks.map((track) => (
             <Card key={track.title}>
               <div className="class-track-preview" aria-hidden="true">
-                <ThemedImage src={track.image} alt="" width={800} height={420} />
+                <ThemedImage
+                  src={track.image}
+                  alt=""
+                  width={800}
+                  height={420}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1023px) 50vw, 560px"
+                />
               </div>
               <h3>{track.title}</h3>
               <p>{track.description}</p>

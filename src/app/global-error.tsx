@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { applyStoredTheme, themeInitScript } from "@/lib/theme-init";
 import { siteTitle } from "@/lib/site";
 import "./globals.css";
+import { fontVariables } from "./fonts";
 
 /** Replaces the root layout when it fails, so it brings its own document, styles and theme. */
 export default function GlobalError({
@@ -17,7 +18,7 @@ export default function GlobalError({
     console.error(error);
   }, [error]);
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko" className={fontVariables} suppressHydrationWarning>
       <head>
         <title>{siteTitle("오류가 발생했습니다")}</title>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />

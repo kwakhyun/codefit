@@ -22,9 +22,6 @@
 }
 
 @media (max-width: 1023px) {
-  :root {
-    --shell-sidebar-width: 0px;
-  }
   .sidebar {
     display: none;
   }
@@ -37,7 +34,7 @@
     display: none;
   }
   .main-shell > .app-footer {
-    padding-inline: 20px;
+    padding-inline: var(--space-5);
   }
 }
 
@@ -75,11 +72,8 @@
     margin: 0;
     width: var(--control-size);
   }
-  .new-label {
-    display: none;
-  }
   .connection-banner {
-    padding-inline: 16px;
+    padding-inline: var(--space-4);
   }
 }
 
@@ -88,7 +82,7 @@
     padding: 0 13px;
     position: sticky;
     top: 0;
-    z-index: 30;
+    z-index: var(--z-header);
     backdrop-filter: blur(12px);
   }
   .topbar-actions {
@@ -111,7 +105,7 @@
     display: none;
   }
   .sidebar-workspace {
-    margin-block: 24px 20px;
+    margin-block: var(--space-6) var(--space-5);
   }
 }
 @media (max-height: 500px) {
@@ -165,10 +159,10 @@
 }
 .drawer-content > .brand-logo {
   font-size: 22px;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 .drawer-content .sidebar-workspace {
-  margin: 24px 0 20px;
+  margin: var(--space-6) 0 var(--space-5);
 }
 .drawer-content .sidebar-note {
   display: flex;
@@ -183,4 +177,15 @@
     transform: translateX(-24px);
     opacity: 0.6;
   }
+}
+
+.topbar {
+  backdrop-filter: none;
+  background: var(--bg);
+  border-bottom-color: var(--line);
+}
+
+.modal[open]::backdrop {
+  background: rgb(0 0 0 / 76%);
+  backdrop-filter: blur(4px);
 }

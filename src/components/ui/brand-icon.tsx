@@ -11,7 +11,6 @@ export function BrandIcon({ size = 34 }: { size?: number }) {
       alt=""
       aria-hidden="true"
       className="brand-icon"
-      unoptimized
     />
   );
 }
