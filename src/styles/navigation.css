@@ -1,42 +1,4 @@
-/* Shared public navigation and task entry. Keep the terminal identity, with a clear action hierarchy. */
-.site-header.site-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  min-height: 76px;
-  margin: 0 0 24px;
-  padding: 0 0 18px;
-  border-bottom: 1px solid var(--line);
-}
-.site-header .brand-logo {
-  font-size: 22px;
-  padding: 0;
-}
-.site-navigation {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.site-navigation a {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  min-height: 44px;
-  padding: 8px 14px;
-  color: var(--muted);
-  border-radius: var(--radius-control);
-  font-size: var(--text-ui);
-}
-.site-navigation a:hover {
-  background: light-dark(var(--light-canvas), #191b20);
-  color: var(--text);
-}
-.site-navigation [aria-current] {
-  color: var(--action-soft);
-  background: light-dark(var(--light-blue-soft), #18212f);
-}
+/* Home sections, filters and header controls shared by every route. */
 .home-heading {
   display: flex;
   flex-wrap: wrap;
@@ -162,24 +124,6 @@
   scroll-margin-top: 85px;
 }
 @media (max-width: 760px) {
-  .site-header.site-header {
-    gap: 16px;
-    margin-bottom: 12px;
-    padding-bottom: 14px;
-  }
-  .site-navigation {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
-  }
-  .site-navigation a {
-    font-size: 12px;
-    white-space: normal;
-    text-align: center;
-    justify-content: center;
-    padding: 8px 4px;
-  }
   .resume-card {
     padding: 18px;
     align-items: flex-start;
@@ -270,21 +214,6 @@
   background: light-dark(var(--light-blue-soft), #192334);
 }
 @media (max-width: 760px) {
-  .feature-slide p {
-    font-size: var(--text-ui);
-    line-height: 1.75;
-  }
-  .feature-slide h2 {
-    white-space: normal;
-    margin: 10px 0;
-  }
-  .feature-slide .primary-button {
-    font-size: var(--text-small);
-    padding: 9px 10px;
-  }
-  .feature-slide > div:first-child {
-    min-width: 0;
-  }
   .library-stats.stats-row {
     grid-template-columns: 1fr 1fr;
   }
@@ -402,63 +331,6 @@
   }
 }
 
-/* Keep the mobile task visible; navigation lives in an accessible dialog. */
-.site-menu-button.ui-button {
-  display: none;
-}
-.site-menu-dialog.modal {
-  width: min(460px, calc(100vw - 32px));
-  padding: 24px;
-}
-.site-menu-links {
-  display: grid;
-  gap: 6px;
-  margin: 20px 0;
-}
-.site-menu-links a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 52px;
-  padding: 12px 16px;
-  border-radius: var(--radius-control);
-  color: var(--text);
-  font-size: 16px;
-}
-.site-menu-links a:hover,
-.site-menu-links [aria-current="page"] {
-  background: var(--surface-raised);
-  color: var(--action-soft);
-}
-.site-menu-preference {
-  border-top: 1px solid var(--line);
-  padding-top: 20px;
-}
-@media (max-width: 760px) {
-  .site-header.site-header {
-    min-height: 64px;
-    gap: 12px;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-  }
-  .site-header.site-header > .site-preference,
-  .site-header.site-header > .site-navigation {
-    display: none;
-  }
-  .site-menu-button.ui-button {
-    display: inline-flex;
-  }
-}
-.site-menu-dialog .modal-heading {
-  background: transparent;
-  padding: 0 0 16px;
-}
-
-/* One theme action in each header; the detailed preference stays in settings. */
-.site-header > .site-preference {
-  margin-left: auto;
-}
 .theme-picture {
   display: block;
   position: relative;
@@ -535,20 +407,6 @@
     display: block;
   }
 }
-@media (max-width: 760px) {
-  .site-header > .theme-toggle {
-    margin-left: auto;
-  }
-}
-@media (max-width: 400px) {
-  .site-menu-label {
-    display: none;
-  }
-  .site-menu-button.ui-button {
-    width: 44px;
-    padding: 10px;
-  }
-}
 
 @media (max-width: 600px) {
   .topbar .topbar-actions {
@@ -566,4 +424,65 @@
   .topbar .topbar-actions > .persona-change > span {
     display: none;
   }
+}
+
+/* First-visit home: a still overview of the other tools, named as in the menu. */
+.feature-overview {
+  margin-top: 48px;
+}
+.feature-overview > h2 {
+  font-size: 20px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.feature-overview > ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.feature-overview li > :is(a, button) {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 16px;
+  align-items: start;
+  justify-content: stretch;
+  gap: 4px 12px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+}
+.feature-overview li > :is(a, button):hover {
+  border-color: var(--action);
+  background: var(--surface-hover);
+}
+.feature-overview li > * > svg:first-child {
+  grid-row: 1 / 3;
+  color: var(--action);
+}
+.feature-overview li strong {
+  font-size: var(--text-ui);
+  font-weight: 650;
+  line-height: 1.5;
+}
+.feature-overview li span {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: var(--text-small);
+  line-height: 1.65;
+}
+.feature-overview li > * > svg:last-child {
+  grid-column: 3;
+  grid-row: 1;
+  margin-top: 3px;
+  color: var(--muted);
 }

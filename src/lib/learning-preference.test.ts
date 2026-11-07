@@ -1,5 +1,11 @@
 import { expect, it } from "vitest";
-import { defaultPreference, parsePreference, preferredDestinations } from "./learning-preference";
+import {
+  defaultPreference,
+  navigationGroups,
+  parsePreference,
+  preferenceSeed,
+  preferredDestinations,
+} from "./learning-preference";
 import { learnerTypes, learnerType, preferenceForType } from "./learner-types";
 it("rejects invalid browser settings", () => {
   for (const raw of [null, "oops", "{}", '{"version":3,"type":"admin"}'])
@@ -22,12 +28,30 @@ it("restores every new workspace without changing its purpose", () => {
       preferenceForType(item.id),
     );
 });
-it("gives each workspace its own first destination, with basic lessons last", () => {
+it("gives each workspace its own first destination and keeps every destination", () => {
   const first = { service: "/project-check", ai: "/learn/ai", code: "/?view=browse" };
   for (const item of learnerTypes) {
     const result = preferredDestinations(preferenceForType(item.id));
     expect(result[0].href).toBe(first[item.id]);
-    expect(result.at(-1)?.href).toBe("/learn");
-    expect(new Set(result.map((d) => d.href)).size).toBe(6);
+    expect(new Set(result.map((d) => d.href)).size).toBe(7);
   }
+});
+it("groups destinations by meaning and leads with the chosen workspace", () => {
+  const lead = { service: "내 서비스 점검", ai: "AI 활용", code: "코드와 원리" };
+  const members: Record<string, string[]> = {
+    "내 서비스 점검": ["/project-check", "/security-check"],
+    "AI 활용": ["/learn/ai", "/learn/ai/project"],
+    "코드와 원리": ["/handoff", "/?view=browse", "/learn"],
+  };
+  for (const item of learnerTypes) {
+    const groups = navigationGroups(preferenceForType(item.id));
+    expect(groups[0].caption).toBe(lead[item.id]);
+    for (const group of groups)
+      expect(group.items.map((d) => d.href).sort()).toEqual([...members[group.caption]].sort());
+  }
+});
+it("seeds the server render only from a known workspace cookie", () => {
+  expect(parsePreference(preferenceSeed("ai"))).toEqual(preferenceForType("ai"));
+  for (const value of [undefined, "", "admin", '{"type":"ai"}'])
+    expect(preferenceSeed(value)).toBe(null);
 });

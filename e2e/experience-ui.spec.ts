@@ -7,12 +7,20 @@ test("first visit offers three workspaces and a complete feature overview", asyn
   await expect(
     page.getByRole("region", { name: "나에게 맞는 시작점" }).getByRole("radio"),
   ).toHaveCount(3);
-  const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
-  await expect(banner).toBeVisible();
-  await expect(banner.locator(".feature-topic-rail button")).toHaveCount(7);
+  const overview = page.getByRole("region", { name: "이런 기능도 있어요" });
+  await expect(overview).toBeVisible();
+  // The other tools use the menu names; the project check itself is the hero above.
+  for (const name of [
+    "서비스 보안 점검",
+    "AI 실무 배우기",
+    "AI 코드 이해 훈련",
+    "서비스 원리 배우기",
+    "분야별 코딩 연습",
+  ])
+    await expect(overview.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
   await page.getByRole("radio", { name: "AI 워크숍", exact: true }).check();
   await expect(page.locator(".ai-home-grid")).toBeVisible();
-  await expect(banner).toHaveCount(0);
+  await expect(overview).toHaveCount(0);
 });
 
 test("illustrated menus work on narrow screens and expose keyboard step previews", async ({

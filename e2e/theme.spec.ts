@@ -132,13 +132,12 @@ for (const theme of ["light", "dark"] as const) {
     expect(
       (await new AxeBuilder({ page }).withRules(["color-contrast"]).analyze()).violations,
     ).toEqual([]);
+    // Tab wraps inside the menu dialog instead of leaving it.
     await page.getByRole("button", { name: "환경 설정", exact: true }).focus();
     await page.keyboard.press("Tab");
-    await expect(
-      page.getByRole("link", { name: "CODE:FIT_ 배우고, 이해하고, 검증하기" }),
-    ).toBeFocused();
+    await expect(page.getByRole("button", { name: "메뉴 닫기", exact: true })).toBeFocused();
     await page.goto("/project-check");
-    await page.getByRole("button", { name: "메뉴", exact: true }).click();
+    await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
     await waitForUiTransitions(page);
     expect(
       (await new AxeBuilder({ page }).withRules(["color-contrast"]).analyze()).violations,
@@ -181,26 +180,20 @@ for (const theme of ["light", "dark"] as const) {
 }
 
 for (const theme of ["light", "dark"] as const) {
-  test(`${theme} banner actions retain contrast on hover and focus`, async ({ page }) => {
+  test(`${theme} feature overview links retain contrast on hover and focus`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
     await page.goto("/");
-    const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
-    await expect(banner).toBeVisible();
-    const tabs = banner.locator(".feature-topic-rail button");
-    for (let index = 0; index < (await tabs.count()); index++) {
-      await tabs.nth(index).click();
-      const action = banner.locator(".feature-slide.is-active .primary-button");
-      await expect(banner.locator(".feature-slide.is-active .feature-art img")).toHaveCSS(
-        "mix-blend-mode",
-        theme === "light" ? "normal" : "lighten",
-      );
-      await action.hover();
-      await action.focus();
+    const overview = page.getByRole("region", { name: "이런 기능도 있어요" });
+    await expect(overview).toBeVisible();
+    const actions = overview.locator("li > :is(a, button)");
+    for (let index = 0; index < (await actions.count()); index++) {
+      await actions.nth(index).hover();
+      await actions.nth(index).focus();
       await waitForUiTransitions(page);
       expect(
         (
           await new AxeBuilder({ page })
-            .include(".feature-slide.is-active")
+            .include(".feature-overview")
             .withRules(["color-contrast"])
             .analyze()
         ).violations,

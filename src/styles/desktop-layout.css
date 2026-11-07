@@ -1,15 +1,11 @@
-/* Shared desktop geometry; existing small-screen menus keep their own focus handling. */
-.desktop-sidebar,
-.desktop-location {
-  display: none;
-}
+/* Shared desktop geometry for the one app shell. Content pages (.page-frame) get the same
+   width and gutters; the coding screens (.practice-frame) keep their own layout. */
 @media (min-width: 1024px) {
   :root {
-    --desktop-sidebar-width: 240px;
     --desktop-content-gutter: clamp(28px, 3vw, 48px);
   }
   .sidebar {
-    width: var(--desktop-sidebar-width);
+    width: var(--shell-sidebar-width);
     padding: 24px 16px 16px;
   }
   .sidebar .brand-logo {
@@ -54,7 +50,7 @@
     border-radius: 10px;
     background: transparent;
   }
-  .sidebar-workspace small {
+  .sidebar .sidebar-workspace small {
     display: none;
   }
   .sidebar-workspace strong {
@@ -69,57 +65,27 @@
     margin-top: 12px;
     padding-top: 8px;
   }
-  .sidebar-note {
+  .sidebar .sidebar-note {
     display: none;
   }
-  .main-shell,
-  .desktop-content {
-    margin-left: var(--desktop-sidebar-width);
+  .main-shell {
     min-width: 0;
   }
-  .desktop-sidebar {
-    display: flex;
-  }
-  .desktop-content > main {
-    width: 100%;
-    max-width: 1320px;
-    min-height: 100vh;
-    margin: 0 auto;
-    padding: 0 var(--desktop-content-gutter) 80px;
-  }
-  .desktop-content .site-header {
+  .app-header.topbar {
+    height: 72px;
     min-height: 72px;
-    height: 72px;
-    padding: 0;
-    margin: 0 0 32px;
-    gap: 16px;
-    flex-wrap: nowrap;
-    border-bottom: 1px solid var(--line);
-  }
-  .desktop-content .site-header > .brand-logo,
-  .desktop-content .site-header > .site-navigation,
-  .desktop-content .site-header > .site-menu-button {
-    display: none;
-  }
-  .desktop-content .desktop-location {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: var(--muted);
-    font-size: 13px;
-    white-space: nowrap;
-  }
-  .desktop-location strong {
-    color: var(--text);
-    font-weight: 550;
-  }
-  .lab-shell:has(.library-main) .topbar {
-    height: 72px;
     padding: 0 var(--desktop-content-gutter);
     flex-wrap: nowrap;
   }
-  .lab-shell:has(.library-main) .topbar-actions {
+  .app-header .topbar-actions {
     flex-wrap: nowrap;
+    width: auto;
+  }
+  .page-frame > main:not(.status-page) {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 32px var(--desktop-content-gutter) 80px;
   }
   .library-main {
     padding: 32px var(--desktop-content-gutter) 56px;
@@ -127,25 +93,25 @@
     max-width: 1320px;
     margin: 0 auto;
   }
-  .desktop-content .visual-intro,
-  .desktop-content .practice-page-intro,
-  .desktop-content .ai-learning-hero {
+  .page-frame .visual-intro,
+  .page-frame .practice-page-intro,
+  .page-frame .ai-learning-hero {
     margin-top: 0;
     margin-bottom: 28px;
   }
-  .desktop-content h1,
+  .page-frame h1,
   .workspace-welcome > h1 {
     font-size: clamp(28px, 2.5vw, 36px);
     line-height: 1.35;
     letter-spacing: -0.035em;
   }
-  .desktop-content .practice-page-intro p {
-    margin-top: 14px;
+  .page-frame .practice-page-intro p {
+    margin-top: 0;
     max-width: 68ch;
     color: var(--muted);
     line-height: 1.75;
   }
-  .desktop-content .visual-intro {
+  .page-frame .visual-intro {
     padding: 24px 28px;
     grid-template-columns: minmax(0, 1fr) 180px;
     gap: 24px;
@@ -160,23 +126,26 @@
     border-radius: 18px;
     background: var(--surface);
   }
-  .desktop-content .class-empty {
+  .page-frame .class-empty {
     padding: 32px;
     gap: 16px;
   }
-  .desktop-content .class-empty h2 {
+  .page-frame .class-empty h2 {
     margin: 0;
     font-size: 22px;
     line-height: 1.45;
   }
-  .desktop-content .class-empty p {
+  .page-frame .class-empty p {
     margin: 0;
     max-width: 68ch;
     line-height: 1.75;
     color: var(--muted);
   }
-  .desktop-content .class-empty > .primary-button {
+  .page-frame .class-empty > .primary-button {
     align-self: flex-start;
     margin-top: 8px;
+  }
+  .main-shell > .app-footer {
+    padding-inline: var(--desktop-content-gutter);
   }
 }

@@ -5,25 +5,17 @@ import { ProjectQuickStart } from "@/components/project-practice/project-quick-s
 import { useRef, useState } from "react";
 import { Modal } from "@/components/ui/modal";
 import { ProjectExample } from "@/components/project-check/project-example";
-import {
-  ArrowRight,
-  ShieldCheck,
-  ClipboardCheck,
-  Workflow,
-  Code2,
-  Sparkles,
-  BookOpen,
-} from "lucide-react";
+import { ArrowRight, ShieldCheck, ClipboardCheck, Workflow, Code2, Sparkles } from "lucide-react";
 import { AppLink as Link, Button, Card, Status } from "@/components/ui/primitives";
 import { LearningPreferencePicker } from "./learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { useAiLearningProgress } from "@/hooks/use-ai-learning-progress";
-import { AI_LESSONS } from "@/lib/ai-learning/catalog";
+import { AI_LESSONS, AI_TRACKS } from "@/lib/ai-learning/catalog";
 import { DOMAINS } from "@/lib/catalog";
 import { DomainIcon } from "@/components/ui/problem-badges";
 import { problemUrl } from "@/lib/library-state";
 import type { ProblemSummary, ProgressSummary } from "@/lib/problem";
-import { FeatureBanner } from "./feature-banner";
+import { FeatureOverview } from "./feature-banner";
 import { ProjectResume } from "./project-resume";
 import { LearningResume } from "@/components/learn/learning-resume";
 interface TrainingHeroProps {
@@ -55,7 +47,7 @@ export function TrainingHero({
             requestAnimationFrame(() => home.current?.querySelector<HTMLElement>("h1")?.focus())
           }
         />
-        <FeatureBanner onGenerate={onGenerate} />
+        <FeatureOverview onGenerate={onGenerate} />
       </div>
     );
   return (
@@ -138,7 +130,7 @@ export function TrainingHero({
           <section className="workspace-secondary">
             <div className="section-heading">
               <h2>더 알아보고 싶은 서비스 원리</h2>
-              <Link href="/learn">서비스 원리 배우기 →</Link>
+              <Link href="/learn?source=sample">서비스 원리 배우기 →</Link>
             </div>
             <LearningResume scope={scope} />
             <div className="workspace-inline-links">
@@ -195,11 +187,14 @@ export function TrainingHero({
               ))}
             </div>
           </section>
-          <Link className="code-reading-link" href="/handoff">
+          <Link className="code-reading-link" href="/handoff?source=sample">
             <Code2 />
             <div>
               <h2>AI 코드, 실행 전에 읽어보기</h2>
-              <p>내 프로젝트 코드로 연습하거나 준비된 샘플 12개를 체험해 보세요.</p>
+              <p>
+                준비된 샘플로 실행 결과를 예상하고 코드를 고쳐 보세요. 내 프로젝트 코드로도 연습할
+                수 있어요.
+              </p>
             </div>
             <ArrowRight />
           </Link>
@@ -233,7 +228,9 @@ function AiWorkshop({ image, title }: { image: string; title: string }) {
     <>
       <section className="ai-home-hero" aria-label="AI 실무 학습 시작">
         <div className="workspace-hero-copy">
-          <span className="eyebrow">AI 워크숍 / 15개 분야, 32개 수업</span>
+          <span className="eyebrow">
+            AI 워크숍 / {AI_TRACKS.length}개 분야, {AI_LESSONS.length}개 수업
+          </span>
           <h1 tabIndex={-1}>{title}</h1>
           <p>
             내 프로젝트에는 어떤 AI가 어울릴까요? <br />
@@ -251,7 +248,7 @@ function AiWorkshop({ image, title }: { image: string; title: string }) {
           <span className="eyebrow">내 학습 현황</span>
           <div className="ai-home-count">
             <strong>{ready ? completed : "—"}</strong>
-            <span>/ 32개 수업 완료</span>
+            <span>/ {AI_LESSONS.length}개 수업 완료</span>
           </div>
           <h2>{ready ? next?.title || "모든 수업을 마쳤어요" : "학습 기록 확인 중"}</h2>
           <p>
@@ -312,10 +309,10 @@ function AiWorkshop({ image, title }: { image: string; title: string }) {
         </div>
       </section>
       <Link className="workspace-tool" href="/project-check">
-        <BookOpen />
+        <ClipboardCheck />
         <div>
           <h3>배운 내용을 내 서비스에 적용해 볼까요?</h3>
-          <p>프로젝트 점검에서 설계를 설명하고 확인할 일을 찾아보세요.</p>
+          <p>내 프로젝트 점검에서 설계를 설명하고 확인할 일을 찾아보세요.</p>
         </div>
         <ArrowRight />
       </Link>

@@ -1,13 +1,16 @@
-import { DOMAIN_IDS, LANGUAGES } from "@/lib/catalog";
+import { AppLink as Link } from "@/components/ui/primitives";
 
 export function AppFooter() {
   return (
     <footer className="app-footer">
-      <span className="mono">CODE:FIT</span>
-      <span>
-        {DOMAIN_IDS.length}개 분야<span>/</span>
-        {Object.keys(LANGUAGES).length}개 언어와 기술
-      </span>
+      <p>
+        <span className="mono">CODE:FIT</span>
+        <span>
+          학습용 연습 서비스입니다. AI 피드백은 실제 서비스의 검증이나 보안 인증을 대신하지
+          않습니다.
+        </span>
+      </p>
+      <Link href="/privacy">개인정보 안내</Link>
     </footer>
   );
 }

@@ -122,7 +122,11 @@ test("queued saves and an offline retry retain the latest code", async ({ page, 
   await context.setOffline(true);
   await setCode(page, "print('offline draft survives')");
   await expect(page.getByText(/오프라인 보관/).first()).toBeVisible();
+  await expect(page.locator(".connection-banner.is-offline")).toContainText(
+    "인터넷 연결이 끊겼습니다",
+  );
   await context.setOffline(false);
+  await expect(page.locator(".connection-banner.is-online")).toContainText("다시 연결");
   await expect
     .poll(
       async () =>

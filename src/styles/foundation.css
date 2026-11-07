@@ -184,7 +184,7 @@ small {
 
 .skip-link {
   position: fixed;
-  left: 240px;
+  left: calc(var(--shell-sidebar-width, 0px) + 16px);
   top: -80px;
   z-index: 100;
   padding: 12px 20px;

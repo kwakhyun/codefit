@@ -9,8 +9,6 @@ export const learnerTypes = [
     purpose: "project",
     image: "persona-service",
     title: "내 서비스의 설계와 동작을 점검해 보세요",
-    group: "내 서비스 점검",
-    secondary: "배우며 보완하기",
   },
   {
     id: "ai",
@@ -21,20 +19,16 @@ export const learnerTypes = [
     purpose: "ai",
     image: "persona-ai",
     title: "내 업무에 맞는 AI 활용법을 배워보세요",
-    group: "AI 실무 학습",
-    secondary: "프로젝트로 확장하기",
   },
   {
     id: "code",
     name: "코딩 트레이닝",
     audience: "직접 코드를 읽고 고친다면",
-    description: "분야별 문제를 풀고, 실행 결과를 비교하며 코드를 개선해요.",
+    description: "분야별 문제를 풀고, AI 검토와 예시 테스트로 코드를 개선해요.",
     experience: "developer",
     purpose: "learn",
     image: "persona-code",
     title: "문제를 풀며 코딩 실력을 키워보세요",
-    group: "코딩 연습",
-    secondary: "실제 서비스에 적용하기",
   },
 ] as const;
 export type LearnerType = (typeof learnerTypes)[number]["id"];

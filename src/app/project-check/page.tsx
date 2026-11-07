@@ -2,17 +2,15 @@ import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { ExperienceJourney } from "@/components/experience/experience-journey";
 import { Suspense } from "react";
-import { SiteHeader } from "@/components/navigation/site-header";
 import { ProjectCheckApp } from "@/components/project-check/project-check";
 export const metadata = {
-  title: "내 프로젝트 이해도 점검 | CODE:FIT",
+  title: "내 프로젝트 이해도 점검",
   description:
     "서비스나 소스 저장소 링크로 설계 질문을 받아보세요. 데이터 흐름과 설계 선택을 설명하고 보완할 부분을 확인합니다.",
 };
 export default function ProjectCheckPage() {
   return (
     <main id="main-content" className="learn-page project-page">
-      <SiteHeader />
       <VisualIntro topic="project" className="learn-intro project-task-intro">
         <span className="eyebrow">내 서비스로 연습하는 설계 설명</span>
         <h1>내 서비스에서 놓친 부분을 찾아보세요</h1>

@@ -7,7 +7,7 @@ const change = (page: import("@playwright/test").Page) =>
 test("three workspaces expose distinct home sections and navigation", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "지금 필요한 연습부터 시작하세요",
+    "내 프로젝트로 배우고, 직접 확인하세요",
   );
   const picker = page.getByRole("region", { name: "나에게 맞는 시작점" });
   await expect(picker.getByRole("radio")).toHaveCount(3);

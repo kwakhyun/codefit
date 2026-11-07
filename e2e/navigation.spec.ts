@@ -56,14 +56,12 @@ test("new code learners get one consistent first recommendation; public navigati
   await next.getByRole("link").click();
   await expect(page.getByRole("heading", { name: "1. 예측하기" })).toBeVisible();
   await page.goto("/learn");
-  const navigation = page.getByRole("navigation", { name: "서비스 메뉴" });
+  const navigation = page.getByRole("navigation", { name: "작업 공간 메뉴" });
   await navigation.getByRole("link", { name: "AI 코드 이해 훈련", exact: true }).focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/handoff$/);
   await expect(
-    page
-      .getByRole("navigation", { name: "서비스 메뉴" })
-      .getByRole("link", { name: "AI 코드 이해 훈련" }),
+    navigation.getByRole("link", { name: "AI 코드 이해 훈련", exact: true }),
   ).toHaveAttribute("aria-current", "page");
 });
 
@@ -71,11 +69,9 @@ test("mobile filters preserve selection when folded and reset cleanly", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await page.getByRole("button", { name: "메뉴 열기" }).click();
-  await page
-    .getByRole("complementary", { name: "주 메뉴" })
-    .getByRole("link", { name: /전체 문제 탐색/ })
-    .click();
-  await expect(page.locator(".sidebar")).not.toHaveClass(/open/);
+  const menu = page.getByRole("dialog", { name: "메뉴", exact: true });
+  await menu.getByRole("link", { name: "분야별 코딩 연습", exact: true }).click();
+  await expect(menu).toBeHidden();
   await expect(page.locator("#problem-library")).toBeVisible();
   const toggle = page.getByRole("button", { name: /상세 필터/ });
   await expect(page.getByRole("combobox", { name: "난이도 필터", exact: true })).toBeHidden();

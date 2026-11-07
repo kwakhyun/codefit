@@ -1,5 +1,18 @@
+/* One shell for every route. Below 1024px the sidebar becomes the menu dialog. */
+:root {
+  --shell-sidebar-width: 240px;
+  /* Room below the last content so fixed widgets (start guide) never cover it. */
+  --floating-safe-area: 88px;
+}
+:root:has(.lab-shell[data-route="problem"]) {
+  --floating-safe-area: 0px;
+}
+/* Editor focus mode hides the sidebar; centred notices follow the full width. */
+:root:has(.lab-shell.focus-mode) {
+  --shell-sidebar-width: 0px;
+}
 .sidebar {
-  width: 240px;
+  width: var(--shell-sidebar-width);
   flex-shrink: 0;
   position: fixed;
   left: 0;
@@ -135,6 +148,15 @@
   opacity: 1;
 }
 
+/* The menu item that contains the current screen (a lesson, a mission, a problem). */
+.nav-item.is-section {
+  color: var(--text);
+}
+.nav-item.is-section svg {
+  color: var(--accent);
+  opacity: 1;
+}
+
 .domains-caption {
   margin-top: 31px;
   margin-bottom: 9px;
@@ -205,7 +227,7 @@
 }
 
 .main-shell {
-  margin-left: 240px;
+  margin-left: var(--shell-sidebar-width);
   flex: 1;
   min-width: 0;
   display: flex;
@@ -276,8 +298,7 @@
   margin-right: -5px;
 }
 
-.mobile-menu,
-.sidebar-close {
+.mobile-menu {
   display: none;
 }
 
@@ -293,4 +314,159 @@
 }
 .sidebar-workspace {
   flex-shrink: 0;
+}
+
+/* Shared header: breadcrumb, then common actions, then actions a page adds. */
+.topbar-breadcrumb {
+  min-width: 0;
+}
+.topbar-breadcrumb ol {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.topbar-breadcrumb li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: var(--text-small);
+}
+.topbar-breadcrumb li a:hover {
+  color: var(--text);
+}
+.topbar-breadcrumb [aria-current="page"] {
+  color: var(--text);
+  font-weight: 550;
+}
+.header-page-actions {
+  display: contents;
+}
+.header-page-actions > .icon-button.desktop-header-action {
+  border-color: transparent;
+  background: transparent;
+}
+.header-page-actions > .icon-button.desktop-header-action:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.topbar-actions > .header-help {
+  margin-right: 0;
+}
+
+/* The page area grows so the footer stays at the bottom of short screens. */
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.app-content > main {
+  flex: 1;
+  width: 100%;
+}
+.app-content > main:focus {
+  outline: none;
+}
+.app-content > .route-loading {
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.sidebar-account-placeholder {
+  display: block;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--surface-hover);
+}
+
+/* Lost and restored connection notice, announced once each. */
+.connection-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--text-small);
+  line-height: 1.6;
+}
+.connection-banner.is-offline {
+  background: light-dark(var(--light-amber-soft), #2b2414);
+  color: var(--text);
+}
+.connection-banner.is-offline svg {
+  color: var(--warning);
+  flex-shrink: 0;
+}
+.connection-banner.is-online {
+  background: var(--surface);
+}
+.connection-banner.is-online svg {
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+/* 404 and error screens keep the menu and offer the next step. */
+.status-page {
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 16px;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 24px 80px;
+}
+.status-page h1 {
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.35;
+  letter-spacing: -0.03em;
+}
+.status-page > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.status-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+.global-status-page {
+  min-height: 100vh;
+  align-content: center;
+}
+
+/* Two classes so later library footer rules do not drop the floating-widget room. */
+.main-shell > .app-footer {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  border-top: 1px solid var(--line);
+  padding: 20px 28px calc(20px + var(--floating-safe-area));
+}
+.app-footer > p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  line-height: 1.6;
+}
+.app-footer > p > .mono {
+  font-size: var(--text-caption);
+  letter-spacing: 0.8px;
+}
+.app-footer > a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.app-footer > a:hover {
+  color: var(--text);
 }

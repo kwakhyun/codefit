@@ -22,7 +22,7 @@
 
 - 홈은 프로젝트 점검 배너를 먼저 보여줍니다. 타입 선택은 처음 방문한 경우에만 배너 아래에 표시하며, 기록이 없는 사용자에게 별도의 동일한 프로젝트 안내 카드를 반복하지 않습니다.
 - 저장된 프로젝트가 있으면 제목과 이어하기 링크를 간결한 카드로 표시합니다. 기록 조회에 실패하면 재확인 링크를 표시합니다.
-- 모바일 공개 페이지의 메뉴는 공통 모달에서 열립니다. 현재 위치를 표시하고, Escape로 닫으면 메뉴 버튼으로 초점이 돌아옵니다. 타입 변경도 메뉴 안에서 가능합니다.
+- 1024px 미만의 메뉴는 공통 모달에서 열립니다. 사이드바와 같은 메뉴, 현재 이용 상태와 환경 설정을 담고 현재 위치를 표시합니다. Escape나 ‘메뉴 닫기’로 닫으면 메뉴 버튼으로 초점이 돌아옵니다. 작업 공간 변경은 헤더에 있습니다.
 - 새 프로젝트의 입력 화면에서는 비어 있는 기록 목록을 생략합니다. 이용 횟수와 분석 가능 상태는 폼 위에, 로그인 혜택은 폼 아래에 표시합니다.
 - 모바일 배너는 시작 버튼을 이미지보다 먼저 보여줍니다. 프로젝트 점검의 장식 이미지는 모바일에서 생략해 입력 공간을 확보합니다.
 
@@ -116,5 +116,34 @@
 | 보완 답변                                 | 후속 점검                                   | 평가 후 같은 질문에 다시 답하기                       |
 | 예상하기                                  | 예측하기                                    | 실행 전에 결과를 고르는 단계                          |
 | 북마크                                    | 나중에 풀 문제, 다시 풀 문제                | 저장한 문제                                           |
+| AI 문제 생성                              | —                                           | 분야와 난이도를 골라 AI로 코딩 문제를 만드는 기능     |
 
 AI 이용 횟수는 문구에 숫자를 직접 쓰지 않고 `src/lib/ai-access.ts`의 `allowanceSummary`, `guestAllowance`, `memberAllowance`로 표시합니다.
+
+## 앱 셸 — 2026-11-07
+
+모든 경로가 루트 레이아웃의 `AppShell`(`src/components/shell/app-shell.tsx`) 안에서 렌더링됩니다. 이전에는 홈과 문제 풀이가 `PracticeApp`의 사이드바와 헤더를, 나머지 9개 경로가 `DesktopFrame`과 페이지마다 `<main>` 안에 넣은 `SiteHeader`를 써서 메뉴, 로그인 상태, 환경 설정, 중단점(760px와 1024px)이 경로마다 달랐습니다.
+
+- 순서: 본문으로 이동 링크 → 사이드바(`aside` ‘주 메뉴’: 작업 공간 메뉴, 현재 이용 상태, 환경 설정) → 헤더(`header.app-header`: 메뉴 열기, ‘현재 위치’ 이동 경로, 작업 공간 변경, 테마, 사용 안내, 화면별 버튼) → 연결 상태 안내 → 페이지의 `<main id="main-content">` → 바닥글(짧은 안내, 개인정보 안내). 헤더는 `<main>` 밖에 있으며, 본문으로 이동 링크는 `<main>`에 `tabindex="-1"`을 두고 초점을 옮깁니다.
+- 중단점은 1024px 하나입니다. 1024px 이상은 240px 사이드바를, 미만은 헤더의 ‘메뉴 열기’(`aria-expanded`, `aria-haspopup="dialog"`)가 같은 내용을 공통 모달로 엽니다. 창을 1024px 이상으로 넓히면 메뉴 대화상자를 닫습니다.
+- 현재 이용 상태는 루트 레이아웃이 서버 세션을 읽어 스트리밍합니다. 로그인하면 이름과 ‘내 프로필’, 로그인 전에는 ‘로그인 / 가입’(현재 경로로 돌아오는 `returnTo` 포함)을 표시합니다.
+- 메뉴는 나의 연습실(홈, 내 프로젝트), 내 서비스 점검(내 프로젝트 점검, 서비스 보안 점검), AI 활용(AI 실무 배우기, 내 프로젝트 AI 워크숍), 코드와 원리(AI 코드 이해 훈련, 분야별 코딩 연습, 서비스 원리 배우기), 내 기록(북마크, 내 학습 기록)으로 묶습니다. 현재 화면인 항목에만 `aria-current="page"`를, 수업·미션·문제처럼 하위 화면에서는 상위 항목에 `aria-current="true"`를 붙입니다. 규칙은 `src/lib/shell-location.ts`의 `navCurrent`입니다.
+- 이동 경로는 `<nav aria-label="현재 위치"><ol>` 구조입니다. 마지막 항목에 `aria-current="page"`를 붙이고 구분선 `/`은 `aria-hidden`입니다. 이름은 `locationTrail`이 경로와 검색 매개변수로 정합니다. 알 수 없는 경로는 ‘페이지를 찾을 수 없음’으로 표시합니다. 760px 이하에서는 로고만 표시합니다.
+- 코딩 홈과 문제 풀이(`PracticeApp`)는 `HeaderActions`로 새로고침과 AI 문제 생성 버튼을 헤더에 더합니다. 760px 이하에서는 두 버튼을 ‘빠른 작업’ 대화상자로 모읍니다. 문제 풀이의 집중 모드는 `useFocusMode`로 사이드바를 숨깁니다.
+- 홈의 보기 전환(홈, 북마크, 내 학습 기록, 분야별 코딩 연습, 분야)은 `PracticeApp`을 다시 마운트하지 않습니다. 불러온 작업 공간 데이터를 유지하고 목록만 새로 받습니다. 작업 공간 데이터는 계속 클라이언트에서 `/api/workspace`로 불러옵니다.
+- 고정 위젯 여백: `--floating-safe-area`(기본 88px, 시작 가이드가 없는 문제 풀이 화면은 0px)만큼 바닥글 아래와 휴대폰 알림 위치를 띄웁니다.
+- 루트 `not-found.tsx`(홈, 내 프로젝트, 이전 페이지), `error.tsx`(Next 16의 `retry`로 다시 시도), `global-error.tsx`(자체 `<html>`·`<body>`, 저장된 테마 적용)를 제공합니다. 404와 페이지 오류는 셸 안에 표시됩니다. `/learn/[id]`의 `notFound()`도 루트 404 화면을 씁니다.
+- 각 `loading.tsx`는 `RouteLoading`으로 본문 영역만 채우고 헤더와 메뉴는 그대로 둡니다. 홈(`/`)은 `loading.tsx` 없이 이전 화면을 유지한 뒤 바뀝니다.
+
+### 공통 피드백
+
+- 알림: 루트 `ToastProvider`(`src/components/ui/toast.tsx`)의 `useToast().show(message, tone)`. 성공 알림은 4.5초 뒤 사라지고 오류 알림은 닫을 때까지 남습니다. 성공은 `role="status"`, 오류는 `role="alert"` 영역에 추가하며 두 영역은 항상 마운트되어 있습니다. 위치는 `--shell-sidebar-width`를 기준으로 본문 가운데입니다.
+- 진행 막대: `api()`의 추적 요청이 400ms 넘게 대기할 때만 표시합니다. 자동 저장, 폴링과 배경 새로고침은 `track: false`로 제외합니다. 화면에 보이지 않는 polite 영역 하나가 긴 대기의 시작과, 그 대기가 실패로 끝난 경우만 알립니다. 호출한 화면이 취소한 요청은 실패로 세지 않습니다.
+- 네트워크 오류: `errorMessage()`는 브라우저 원문(Failed to fetch, Load failed, NetworkError…)을 한국어 안내로 바꾸고, 오프라인이면 ‘인터넷 연결이 끊겼습니다’ 안내를 씁니다. 헤더 아래 연결 상태 안내는 연결이 끊긴 동안 표시하고, 다시 연결되면 4초간 알립니다.
+- 대화상자: `Modal`은 제목을 `h2`로 렌더링하고 `aria-labelledby`로 연결합니다. Tab과 Shift+Tab은 대화상자 안에서 순환합니다. 닫기 버튼 이름은 `closeLabel`로 바꿀 수 있습니다.
+- 키보드: 입력 중이 아닐 때 `?`는 사용 안내를, `/`는 분야별 코딩 연습의 문제 검색을 엽니다. 둘 다 IME 조합 중에는 동작하지 않습니다. 사용 안내는 편집기의 ⌘/Ctrl+Enter(AI 풀이 검토), ⌘/Ctrl+S(지금 저장), Ctrl+M(Tab 초점 이동 전환, macOS는 Ctrl+Shift+M), Alt+F1(접근성 도움말)도 안내합니다.
+- 메타데이터: 루트 제목 템플릿은 `%s | CODE:FIT`(`src/lib/site.ts`)이며 페이지는 자기 이름만 정합니다. 내장 문제는 `/problems/[id]` 제목에 문제 이름을 씁니다. `metadataBase`는 `APP_ORIGIN`, `AUTH_BASE_URL`, `VERCEL_PROJECT_PRODUCTION_URL` 순서로 정합니다. `sitemap.xml`은 공개 경로, AI 수업, 미션과 내장 문제를, `robots.txt`는 `/api/`와 `/profile` 제외를 담습니다.
+
+### 검증
+
+단위 테스트: `src/lib/shell-location.test.ts`(이동 경로, 메뉴 현재 위치), `src/lib/learning-preference.test.ts`(메뉴 묶음, 작업 공간 쿠키), `src/lib/request-progress.test.ts`(실패 집계, 400ms 기준), `src/lib/client-api.test.ts`(네트워크 오류 문구, 취소와 실패 구분), `src/lib/site.test.ts`, `src/lib/sitemap-paths.test.ts`, `src/lib/theme-init.test.ts`. 셸 구조에 맞춰 `e2e/desktop-navigation`, `navigation`, `anchor-navigation`, `terminal-system`, `design-refresh`, `theme`, `theme-artwork`, `experience-ui`, `beginner`, `practice`, `project-first`, `project-history`, `learner-types`, `workspace-backup`의 기대값을 고쳤습니다. 이 변경 작업 중에는 브라우저 테스트와 프로덕션 빌드를 실행하지 않았습니다.

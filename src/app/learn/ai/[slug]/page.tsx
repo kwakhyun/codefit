@@ -3,7 +3,6 @@ import { AppLink } from "@/components/ui/primitives";
 import { z } from "zod";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SiteHeader } from "@/components/navigation/site-header";
 import { AiLesson } from "@/components/ai-learning/ai-lesson";
 import { aiLessonById, AI_LESSONS } from "@/lib/ai-learning/catalog";
 import { AI_CONTENT } from "@/lib/ai-learning/content";
@@ -18,7 +17,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lesson = aiLessonById((await params).slug);
   return {
-    title: lesson ? `${lesson.title} | CODE:FIT` : "수업을 찾을 수 없습니다 | CODE:FIT",
+    title: lesson ? lesson.title : "수업을 찾을 수 없습니다",
     description: lesson?.summary,
   };
 }
@@ -36,7 +35,6 @@ export default async function AiLessonPage({
   if (!lesson) notFound();
   return (
     <main id="main-content" className="learn-page ai-learning-page">
-      <SiteHeader />
       {project.success && (
         <aside className="project-ai-return">
           <p>이 수업을 마치면 내 프로젝트의 적용 계획과 확인 기록을 이어서 작성하세요.</p>

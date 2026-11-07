@@ -10,7 +10,7 @@ export function AiUsage() {
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
-    api<Usage>("/api/usage", { signal: controller.signal })
+    api<Usage>("/api/usage", { signal: controller.signal, track: false })
       .then((value) => {
         setUsage(value);
         setError("");

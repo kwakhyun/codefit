@@ -1,11 +1,45 @@
 "use client";
-import { useEffect, useSyncExternalStore } from "react";
-import { parsePreference, type LearningPreference } from "@/lib/learning-preference";
+import {
+  createContext,
+  createElement,
+  useContext,
+  useEffect,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import {
+  parsePreference,
+  preferenceSeed,
+  WORKSPACE_COOKIE,
+  type LearningPreference,
+} from "@/lib/learning-preference";
 import { learnerType, type LearnerType } from "@/lib/learner-types";
 const key = "codefit-learning-preference-v2";
 const legacyKey = "codefit-learning-preference-v1";
 let fallback: string | null = null;
 let memoryOnly = false;
+/** The server reads the workspace cookie so the first paint already has the right menu order. */
+const SeedContext = createContext<string | null>(null);
+export function LearningPreferenceSeed({
+  value,
+  children,
+}: {
+  value: string | null;
+  children: ReactNode;
+}) {
+  return createElement(SeedContext.Provider, { value }, children);
+}
+function readCookie() {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${WORKSPACE_COOKIE}=([^;]*)`));
+  return match?.[1];
+}
+function writeCookie(type: LearnerType) {
+  try {
+    document.cookie = `${WORKSPACE_COOKIE}=${type}; Path=/; Max-Age=31536000; SameSite=Lax`;
+  } catch {
+    /* The browser choice still applies; only the server's first paint falls back. */
+  }
+}
 function subscribe(listener: () => void) {
   const onStorage = (event: StorageEvent) => {
     if (event.key && event.key !== key && event.key !== legacyKey) return;
@@ -23,9 +57,12 @@ function subscribe(listener: () => void) {
 function snapshot() {
   if (memoryOnly) return fallback;
   try {
-    return localStorage.getItem(key) || localStorage.getItem(legacyKey);
+    // Browser storage stays the source of truth; the cookie covers cleared or blocked storage.
+    return (
+      localStorage.getItem(key) || localStorage.getItem(legacyKey) || preferenceSeed(readCookie())
+    );
   } catch {
-    return fallback;
+    return fallback ?? preferenceSeed(readCookie());
   }
 }
 function save(type: LearnerType) {
@@ -36,21 +73,24 @@ function save(type: LearnerType) {
   } catch {
     memoryOnly = true;
   }
+  writeCookie(type);
   window.dispatchEvent(new Event(key));
 }
-const serverSnapshot = () => null;
 export function useLearningPreference() {
-  const raw = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+  const seed = useContext(SeedContext);
+  const raw = useSyncExternalStore(subscribe, snapshot, () => seed);
   const preference = parsePreference(raw);
   const profile = learnerType(preference);
   useEffect(() => {
     if (!raw || memoryOnly) return;
     try {
       if (JSON.parse(raw)?.version !== 3) save(learnerType(parsePreference(raw)).id);
+      // Choices saved before the cookie existed reach the server from the next visit on.
+      else if (readCookie() !== profile.id) writeCookie(profile.id);
     } catch {
       /* Selection still works without persistent browser storage. */
     }
-  }, [raw]);
+  }, [raw, profile.id]);
   return {
     preference,
     profile,

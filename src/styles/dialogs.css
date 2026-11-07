@@ -34,6 +34,13 @@
   letter-spacing: 1.3px;
 }
 
+/* The dialog name is a real heading referenced by aria-labelledby. */
+.modal-heading > .modal-title {
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
 .modal-heading .icon-button {
   width: var(--control-size);
   height: var(--control-size);
@@ -456,22 +463,58 @@
   flex-wrap: wrap;
 }
 
-.shortcut-help > span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+.shortcut-title {
+  margin-top: 28px;
+  padding-top: 17px;
+  border-top: 1px solid light-dark(var(--light-line), #444444);
+  font-size: var(--text-ui);
+  font-weight: 600;
+}
+dl.shortcut-help {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 16px;
+  padding: 0;
+  border: 0;
+}
+.shortcut-help > div {
+  display: grid;
+  grid-template-columns: minmax(120px, auto) 1fr;
+  align-items: baseline;
+  gap: 12px;
+}
+.shortcut-help dt,
+.shortcut-help dd {
+  margin: 0;
+}
+.shortcut-help dd {
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .shortcut-help kbd {
   font-size: var(--text-caption);
 }
 
-.toast {
+/* App-wide notices, centred on the content area beside the sidebar. */
+.toast-viewport {
   position: fixed;
-  bottom: 26px;
-  left: calc(50% + 108px);
+  z-index: 100;
+  bottom: 24px;
+  left: calc(50% + var(--shell-sidebar-width, 0px) / 2);
   transform: translateX(-50%);
-  max-width: calc(100vw - 36px);
+  display: grid;
+  gap: 8px;
+  width: max-content;
+  max-width: min(560px, calc(100vw - var(--shell-sidebar-width, 0px) - 32px));
+  pointer-events: none;
+}
+.toast-stack {
+  display: grid;
+  gap: 8px;
+}
+.toast {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -491,8 +534,4 @@
 
 .toast > svg {
   flex-shrink: 0;
-}
-
-.sidebar-backdrop {
-  display: none;
 }

@@ -21,12 +21,6 @@ export default async function Home({
     params.view === "bookmarks" || params.view === "history" || params.view === "browse"
       ? params.view
       : "library";
-  return (
-    <PracticeApp
-      key={`${domain}:${view}`}
-      initialDomain={domain}
-      initialView={view}
-      initialFilters={filters}
-    />
-  );
+  // No key: switching views keeps the loaded workspace and only refetches the list.
+  return <PracticeApp initialDomain={domain} initialView={view} initialFilters={filters} />;
 }
