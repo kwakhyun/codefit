@@ -22,9 +22,6 @@
 }
 
 @media (max-width: 1023px) {
-  :root {
-    --shell-sidebar-width: 0px;
-  }
   .sidebar {
     display: none;
   }

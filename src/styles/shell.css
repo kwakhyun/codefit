@@ -1,16 +1,5 @@
-/* One shell for every route. Below 1024px the sidebar becomes the menu dialog. */
-:root {
-  --shell-sidebar-width: 240px;
-  /* Room below the last content so fixed widgets (start guide) never cover it. */
-  --floating-safe-area: 88px;
-}
-:root:has(.lab-shell[data-route="problem"]) {
-  --floating-safe-area: 0px;
-}
-/* Editor focus mode hides the sidebar; centred notices follow the full width. */
-:root:has(.lab-shell.focus-mode) {
-  --shell-sidebar-width: 0px;
-}
+/* One shell for every route. Below 1024px the sidebar becomes the menu dialog; the shell
+   geometry variables live in tokens.css. */
 .sidebar {
   width: var(--shell-sidebar-width);
   flex-shrink: 0;

@@ -132,6 +132,29 @@
   }
 }
 
+/* Shell geometry. The sidebar is 240px wide from 1024px up and hidden below it (and in the
+   editor focus mode); fixed widgets keep --floating-safe-area clear below the content. */
+:root {
+  --shell-sidebar-width: 240px;
+  --floating-safe-area: 88px;
+}
+:root:has(.lab-shell[data-route="problem"]) {
+  --floating-safe-area: 0px;
+}
+:root:has(.lab-shell.focus-mode) {
+  --shell-sidebar-width: 0px;
+}
+@media (max-width: 1023px) {
+  :root {
+    --shell-sidebar-width: 0px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --desktop-content-gutter: clamp(28px, 3vw, 48px);
+  }
+}
+
 /* Scoped role overrides. Learning pages tint --surface to the page colour; the simulated
    product screens use their own text colours. */
 .learn-page,

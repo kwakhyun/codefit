@@ -809,8 +809,6 @@ html {
 :root[data-theme="light"]
   :is(
     .section-artwork img,
-    .feature-art,
-    .feature-art img,
     .auth-artwork img,
     .persona-art img,
     .scenario-art,
@@ -824,8 +822,6 @@ html {
   :root:not([data-theme])
     :is(
       .section-artwork img,
-      .feature-art,
-      .feature-art img,
       .auth-artwork img,
       .persona-art img,
       .scenario-art,

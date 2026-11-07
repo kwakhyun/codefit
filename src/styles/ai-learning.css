@@ -929,7 +929,7 @@
 }
 
 /* Section titles need more room than compact labels and metadata. */
-:is(.ai-group-title, .section-heading, .learn-section-title) h2 + p {
+:is(.section-heading, .learn-section-title) h2 + p {
   margin-block-start: var(--space-3);
 }
 .ui-disclosure > p + p {
@@ -1100,7 +1100,7 @@
 }
 
 /* Explanations following evidence boxes are separate reading blocks. */
-:is(.checkpoint-evidence, .checkpoint-expected, .lab-comparison, .training-feedback) + p {
+:is(.checkpoint-evidence, .checkpoint-expected, .lab-comparison) + p {
   margin-block-start: var(--space-4);
 }
 .ai-review-list ul {

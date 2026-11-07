@@ -1,9 +1,6 @@
 /* Shared desktop geometry for the one app shell. Content pages (.page-frame) get the same
    width and gutters; the coding screens (.practice-frame) keep their own layout. */
 @media (min-width: 1024px) {
-  :root {
-    --desktop-content-gutter: clamp(28px, 3vw, 48px);
-  }
   .sidebar {
     width: var(--shell-sidebar-width);
     padding: var(--space-6) var(--space-4) var(--space-4);
