@@ -51,11 +51,11 @@ for (const signedIn of [false, true]) {
     const note = page.locator("#project-follow-up textarea").first();
     await note.fill("다른 화면으로 이동해도 남겨둘 실제 확인 결과");
     await page
-      .getByRole("navigation", { name: "서비스 메뉴" })
+      .getByRole("navigation", { name: "작업 공간 메뉴" })
       .getByRole("link", { name: "서비스 원리 배우기", exact: true })
       .click();
     await page
-      .getByRole("navigation", { name: "서비스 메뉴" })
+      .getByRole("navigation", { name: "작업 공간 메뉴" })
       .getByRole("link", { name: "내 프로젝트 점검", exact: true })
       .click();
     await expect(page).toHaveURL(new RegExp(`check=${check.id}`));

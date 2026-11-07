@@ -1,29 +1,25 @@
 "use client";
 import { LoadingState } from "@/components/ui/loading-state";
-import { Anchor, Button } from "@/components/ui/primitives";
-
+import { Button, Status } from "@/components/ui/primitives";
+import { Modal } from "@/components/ui/modal";
 import { useEditorPreferences } from "@/hooks/use-editor-preferences";
-
 import { LearningHistory } from "@/components/library/learning-history";
 import { ProblemLibrary } from "@/components/library/problem-library";
-import { AppFooter } from "@/components/shell/app-footer";
-import { AppHeader } from "@/components/shell/app-header";
-import { HelpDialog } from "@/components/shell/help-dialog";
-import { SettingsDialog } from "@/components/shell/settings-dialog";
-import { Sidebar } from "@/components/shell/sidebar";
+import { HeaderActions, useFocusMode, useNavInfo } from "@/components/shell/shell-context";
 import { usePracticeSession } from "@/hooks/use-practice-session";
 import { useWorkspaceActions } from "@/hooks/use-workspace-actions";
-
+import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { type DomainId } from "@/lib/catalog";
 import { defaultFilters, libraryUrl, problemUrl, type LibraryFilters } from "@/lib/library-state";
-import { AlertCircle, Check, RotateCcw, X } from "lucide-react";
+import { AlertCircle, MoreHorizontal, RefreshCw, RotateCcw, Sparkles } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Generator } from "./library/problem-generator";
 import { ProblemWorkspace } from "./workspace/problem-workspace";
-
 import { useLibraryController } from "@/hooks/use-library-controller";
 import type { LibraryView } from "@/lib/library-state";
+
+/** Coding home, its list views and the problem workspace. The app shell surrounds it. */
 export function PracticeApp({
   initialProblemId,
   initialDomain = "all",
@@ -41,64 +37,47 @@ export function PracticeApp({
 }) {
   const router = useRouter();
   const params = useSearchParams();
+  const { type } = useLearningPreference();
 
   const [generatorOpen, setGeneratorOpen] = useState(params.get("generate") === "1");
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
-  const [mobileMenu, setMobileMenu] = useState(false);
   const [focus, setFocus] = useState(false);
-  const { fontSize, changeFontSize: setFontSize } = useEditorPreferences();
+  const { fontSize } = useEditorPreferences();
+  useFocusMode(focus && Boolean(initialProblemId));
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
+      if (event.key !== "/" || event.isComposing || event.ctrlKey || event.metaKey || event.altKey)
+        return;
       const target = event.target as HTMLElement;
       const typing =
         target.matches("input, textarea, select") ||
         target.isContentEditable ||
         document.querySelector("dialog[open]");
-      if (event.key === "/" && !typing && !initialProblemId) {
-        event.preventDefault();
-        document.getElementById("problem-search")?.focus();
-      }
-      if (event.key === "Escape") setMobileMenu(false);
+      if (typing || initialProblemId) return;
+      const search = document.getElementById("problem-search");
+      if (!search) return;
+      event.preventDefault();
+      search.focus();
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [initialProblemId]);
-  useEffect(() => {
-    if (!mobileMenu) return;
-    const before = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const frame = requestAnimationFrame(() =>
-      document.querySelector<HTMLElement>(".sidebar a")?.focus(),
-    );
-    return () => {
-      cancelAnimationFrame(frame);
-      document.body.style.overflow = overflow;
-      before?.focus({ preventScroll: true });
-    };
-  }, [mobileMenu]);
 
   const { data, loadError, refreshing, load, onProgress } = usePracticeSession(
     initialProblemId,
     libraryUrl(initialFilters, initialDomain, initialView),
     initialAttemptId,
   );
-  const actions = useWorkspaceActions({ load, onProgress, scope: data?.scope });
-  const {
-    toast,
-    setToast,
-    toastError,
-    settingsNotice,
-    exporting,
-    importing,
-    importFile,
-    bookmarking,
-    bookmark,
-    exportData,
-    importBackup,
-  } = actions;
+  useEffect(() => {
+    // A restored backup changes problems, progress and history at once.
+    const refresh = () => void load({ background: true });
+    window.addEventListener("codefit:backup-imported", refresh);
+    return () => window.removeEventListener("codefit:backup-imported", refresh);
+  }, [load]);
+  const { bookmarking, bookmark, exportData, exporting } = useWorkspaceActions({
+    onProgress,
+    scope: data?.scope,
+  });
   const library = useLibraryController({
     data,
     initialFilters,
@@ -106,89 +85,78 @@ export function PracticeApp({
     initialView,
     initialProblemId,
   });
-  const { libraryHref, saved, title } = library;
+  const { libraryHref, saved } = library;
   const activeProblem = data?.activeProblem || undefined;
+  useNavInfo(data ? saved : undefined, activeProblem?.domain);
   return (
-    <div className={`lab-shell ${focus && initialProblemId ? "focus-mode" : ""}`}>
-      <Anchor className="skip-link" href="#main-content">
-        본문으로 이동
-      </Anchor>
-      {mobileMenu && (
-        <Button
-          className="sidebar-backdrop"
-          aria-label="메뉴 닫기"
-          onClick={() => setMobileMenu(false)}
-        />
-      )}
-      <Sidebar
-        mobileMenu={mobileMenu}
-        setMobileMenu={setMobileMenu}
-        initialProblemId={initialProblemId}
-        initialView={initialView}
-        initialDomain={initialDomain}
-        data={data}
-        saved={saved}
-        activeProblem={activeProblem}
-        setSettingsOpen={setSettingsOpen}
+    <>
+      <PracticeHeaderActions
+        problemPage={Boolean(initialProblemId)}
+        canGenerate={type === "code"}
+        ready={Boolean(data)}
+        refreshing={refreshing}
+        onRefresh={() => void load()}
+        onGenerate={() => setGeneratorOpen(true)}
       />
-      <div className="main-shell">
-        <AppHeader
-          setMobileMenu={setMobileMenu}
-          initialProblemId={initialProblemId}
-          title={title}
-          data={data}
-          refreshing={refreshing}
-          load={load}
-          setHelpOpen={setHelpOpen}
-          setGeneratorOpen={setGeneratorOpen}
-        />
-        <main id="main-content" className={initialProblemId ? "practice-main" : "library-main"}>
-          {loadError ? (
-            <div className="empty-state">
-              <AlertCircle size={32} />
-              <h1>문제와 학습 기록을 불러오지 못했습니다.</h1>
-              <p>{loadError}</p>
-              <Button className="secondary-button" onClick={load}>
-                <RotateCcw size={16} />
-                다시 연결
-              </Button>
-            </div>
-          ) : !data ? (
-            <LoadingState>문제와 학습 기록을 불러오는 중입니다.</LoadingState>
-          ) : initialProblemId ? (
-            <ProblemWorkspace
-              key={`${data.scope}:${initialProblemId}:${initialAttemptId || ""}`}
-              initialDetail={data.bootstrap?.detail}
-              id={initialProblemId}
-              scope={data.scope}
-              returnTo={returnTo}
-              initialAttemptId={initialAttemptId}
-              onProgress={onProgress}
-              fontSize={fontSize}
-              focus={focus}
-              setFocus={setFocus}
-              aiReady={data.aiReady}
-            />
-          ) : initialView === "history" ? (
-            <LearningHistory data={data} library={library} />
-          ) : (
-            <ProblemLibrary
-              initialView={initialView}
-              initialDomain={initialDomain}
-              data={data}
-              library={library}
-              onGenerate={() => setGeneratorOpen(true)}
-              bookmarking={bookmarking}
-              bookmark={(problem, bookmarked) =>
-                bookmark(problem, bookmarked, (value) => library.setBookmarked(problem.id, value))
-              }
-              exportData={exportData}
-              exporting={exporting}
-            />
-          )}
-        </main>
-        <AppFooter />
-      </div>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className={initialProblemId ? "practice-main" : "library-main"}
+      >
+        {loadError && data && (
+          <Status className="inline-error" role="alert">
+            {loadError}{" "}
+            <Button className="text-button" onClick={() => void load()}>
+              다시 연결
+            </Button>
+          </Status>
+        )}
+        {loadError && !data ? (
+          <div className="empty-state">
+            <AlertCircle size={32} aria-hidden="true" />
+            <h1>문제와 학습 기록을 불러오지 못했습니다.</h1>
+            <p>{loadError}</p>
+            <Button className="secondary-button" onClick={() => void load()}>
+              <RotateCcw size={16} aria-hidden="true" />
+              다시 연결
+            </Button>
+          </div>
+        ) : !data ? (
+          <LoadingState variant={initialProblemId ? "editor" : "cards"}>
+            문제와 학습 기록을 불러오는 중입니다.
+          </LoadingState>
+        ) : initialProblemId ? (
+          <ProblemWorkspace
+            key={`${data.scope}:${initialProblemId}:${initialAttemptId || ""}`}
+            initialDetail={data.bootstrap?.detail}
+            id={initialProblemId}
+            scope={data.scope}
+            returnTo={returnTo}
+            initialAttemptId={initialAttemptId}
+            onProgress={onProgress}
+            fontSize={fontSize}
+            focus={focus}
+            setFocus={setFocus}
+            aiReady={data.aiReady}
+          />
+        ) : initialView === "history" ? (
+          <LearningHistory data={data} library={library} />
+        ) : (
+          <ProblemLibrary
+            initialView={initialView}
+            initialDomain={initialDomain}
+            data={data}
+            library={library}
+            onGenerate={() => setGeneratorOpen(true)}
+            bookmarking={bookmarking}
+            bookmark={(problem, bookmarked) =>
+              bookmark(problem, bookmarked, (value) => library.setBookmarked(problem.id, value))
+            }
+            exportData={exportData}
+            exporting={exporting}
+          />
+        )}
+      </main>
       <Generator
         key={`${data?.scope}:${initialDomain}:${activeProblem?.domain || "frontend"}`}
         open={generatorOpen && Boolean(data)}
@@ -199,37 +167,107 @@ export function PracticeApp({
         account={data?.account || { user: null, providers: [] }}
         aiReady={Boolean(data?.aiReady)}
         onCreated={(problem) => {
-          void load();
+          void load({ background: true });
           setGeneratorOpen(false);
           router.push(problemUrl(problem.id, initialProblemId ? returnTo : libraryHref));
         }}
       />
-      <SettingsDialog
-        settingsOpen={settingsOpen}
-        setSettingsOpen={setSettingsOpen}
-        fontSize={fontSize}
-        setFontSize={setFontSize}
-        data={data}
-        exportData={exportData}
-        exporting={exporting}
-        importFile={importFile}
-        importBackup={importBackup}
-        importing={importing}
-        settingsNotice={settingsNotice}
-      />
-      <HelpDialog helpOpen={helpOpen} setHelpOpen={setHelpOpen} />
-      {toast && (
-        <div
-          className={`toast ${toastError ? "toast-error" : ""}`}
-          role={toastError ? "alert" : "status"}
-        >
-          {toastError ? <AlertCircle size={16} /> : <Check size={16} />}
-          <span>{toast}</span>
-          <Button className="icon-button" aria-label="알림 닫기" onClick={() => setToast("")}>
-            <X size={14} />
-          </Button>
+    </>
+  );
+}
+
+/** Refresh and AI generation join the shared header; on phones they move into one menu. */
+function PracticeHeaderActions({
+  problemPage,
+  canGenerate,
+  ready,
+  refreshing,
+  onRefresh,
+  onGenerate,
+}: {
+  problemPage: boolean;
+  canGenerate: boolean;
+  ready: boolean;
+  refreshing: boolean;
+  onRefresh: () => void;
+  onGenerate: () => void;
+}) {
+  const [quickOpen, setQuickOpen] = useState(false);
+  const quickTrigger = useRef<HTMLButtonElement>(null);
+  if (problemPage && !canGenerate) return null;
+  function closeQuick() {
+    setQuickOpen(false);
+    requestAnimationFrame(() => quickTrigger.current?.focus());
+  }
+  return (
+    <HeaderActions>
+      <Button
+        ref={quickTrigger}
+        className="icon-button mobile-header-more"
+        aria-label="빠른 작업"
+        aria-haspopup="dialog"
+        aria-expanded={quickOpen}
+        onClick={() => setQuickOpen(true)}
+      >
+        <MoreHorizontal size={22} aria-hidden="true" />
+      </Button>
+      <Modal
+        open={quickOpen}
+        onClose={closeQuick}
+        title="빠른 작업"
+        className="header-quick-dialog"
+      >
+        <div className="header-quick-actions">
+          {canGenerate && (
+            <Button
+              disabled={!ready}
+              onClick={() => {
+                closeQuick();
+                onGenerate();
+              }}
+            >
+              <Sparkles size={20} aria-hidden="true" /> AI 문제 생성
+            </Button>
+          )}
+          {!problemPage && (
+            <Button
+              disabled={refreshing}
+              onClick={() => {
+                closeQuick();
+                onRefresh();
+              }}
+            >
+              <RefreshCw size={20} aria-hidden="true" /> 문제와 기록 새로고침
+            </Button>
+          )}
         </div>
+      </Modal>
+      {!problemPage && (
+        <Button
+          className="icon-button desktop-header-action"
+          aria-label="문제와 기록 새로고침"
+          title="문제와 기록 새로고침"
+          disabled={refreshing}
+          onClick={onRefresh}
+        >
+          <RefreshCw size={17} className={refreshing ? "spin" : ""} aria-hidden="true" />
+        </Button>
       )}
-    </div>
+      {canGenerate && (
+        <Button
+          className="secondary-button small desktop-header-action"
+          aria-haspopup="dialog"
+          onClick={(event) => {
+            // Safari does not focus buttons on pointer activation; retain a dialog return target.
+            event.currentTarget.focus();
+            onGenerate();
+          }}
+          disabled={!ready}
+        >
+          <Sparkles size={15} aria-hidden="true" />
+          AI 문제 생성
+        </Button>
+      )}
+    </HeaderActions>
   );
 }

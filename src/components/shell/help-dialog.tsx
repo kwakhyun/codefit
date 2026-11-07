@@ -1,14 +1,21 @@
 "use client";
-import type { Dispatch, SetStateAction } from "react";
-
 import { Modal } from "@/components/ui/modal";
-interface HelpDialogProps {
-  helpOpen: boolean;
-  setHelpOpen: Dispatch<SetStateAction<boolean>>;
-}
-export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
+
+const shortcuts: [keys: string, action: string][] = [
+  ["?", "사용 안내 열기"],
+  ["/", "분야별 코딩 연습에서 문제 검색"],
+  ["⌘ / Ctrl + Enter", "코드 편집기에서 AI 풀이 검토"],
+  ["⌘ / Ctrl + S", "코드 편집기에서 지금 저장"],
+  [
+    "Ctrl + M",
+    "코드 편집기의 Tab 키를 들여쓰기와 초점 이동 사이에서 전환 (macOS: Ctrl + Shift + M)",
+  ],
+  ["Alt + F1", "코드 편집기 접근성 도움말 (macOS: Option + F1)"],
+];
+
+export function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
-    <Modal open={helpOpen} onClose={() => setHelpOpen(false)} title="사용 안내">
+    <Modal open={open} onClose={onClose} title="사용 안내">
       <div className="help-content">
         <span className="eyebrow">CODE:FIT</span>
         <h2>코드핏 시작하기</h2>
@@ -19,7 +26,8 @@ export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
               <strong>지금 나에게 맞는 출발점을 고르세요.</strong>
               <p>
                 만든 서비스가 있다면 내 프로젝트 점검에 주소를 넣으세요. 질문에 답하고 실제로 확인할
-                일을 정리할 수 있습니다. 원리가 궁금할 때는 보조 실습을 이용하세요.
+                일을 정리할 수 있습니다. 원리가 궁금할 때는 서비스 원리 배우기나 AI 코드 이해 훈련을
+                이용하세요.
               </p>
             </div>
           </li>
@@ -44,14 +52,20 @@ export function HelpDialog({ helpOpen, setHelpOpen }: HelpDialogProps) {
             </div>
           </li>
         </ol>
-        <div className="shortcut-help">
-          <span>
-            <kbd>/</kbd> 문제 검색
-          </span>
-          <span>
-            <kbd>⌘ / Ctrl + Enter</kbd> AI 풀이 검토
-          </span>
-        </div>
+        <h3 className="shortcut-title">키보드 단축키</h3>
+        <dl className="shortcut-help">
+          {shortcuts.map(([keys, action]) => (
+            <div key={keys}>
+              <dt>
+                <kbd>{keys}</kbd>
+              </dt>
+              <dd>{action}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="muted">
+          입력란이나 코드 편집기에서 글자를 입력하는 중에는 ?와 / 단축키가 동작하지 않습니다.
+        </p>
       </div>
     </Modal>
   );

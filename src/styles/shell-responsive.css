@@ -1,4 +1,5 @@
-/* shell layout at supported breakpoints. Keep media queries in source order. */
+/* Shell layout. One breakpoint for every route: below 1024px the sidebar becomes the menu
+   dialog opened from the header. Keep media queries in source order. */
 
 @media (min-width: 1550px) {
   .nav-item,
@@ -8,156 +9,39 @@
 }
 
 @media (max-width: 1230px) {
-  .sidebar {
-    width: 220px;
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-  .main-shell {
-    margin-left: 220px;
-  }
   .brand-logo {
     font-size: 21px;
     gap: 9px;
   }
-  .nav-item {
-    font-size: var(--text-ui);
-  }
-  .domain-nav {
-    font-size: var(--text-ui);
-  }
   .sidebar-workspace {
     padding: 10px 8px;
-  }
-  .sidebar-note {
-    font-size: var(--text-caption);
-  }
-  .sidebar-version {
-    font-size: var(--text-caption);
-  }
-  .sidebar-version > span:last-child {
-    font-size: var(--text-caption);
   }
   .topbar {
     padding: 0 25px;
   }
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1023px) {
+  :root {
+    --shell-sidebar-width: 0px;
+  }
   .sidebar {
-    width: 220px;
-    padding: 25px 10px 0;
-  }
-  .main-shell {
-    margin-left: 220px;
-  }
-  .sidebar .brand-logo {
-    font-size: 19px;
-    gap: 7px;
-  }
-  .brand-logo small {
-    font-size: var(--text-caption);
-    letter-spacing: 1.3px;
-  }
-  .sidebar-workspace {
-    margin-top: 28px;
-    font-size: var(--text-ui);
-    gap: 7px;
-  }
-  .sidebar-workspace small {
-    font-size: var(--text-caption);
-  }
-  .nav-caption {
-    font-size: var(--text-caption);
-    letter-spacing: 1px;
-    padding: 0 8px;
-  }
-  .nav-item {
-    padding: 10px 8px;
-    gap: 8px;
-  }
-  .nav-item svg {
-    width: 15px;
-  }
-  .domains-caption {
-    margin-top: 25px;
-  }
-  .sidebar-note {
-    padding: 11px 7px;
-    gap: 7px;
-  }
-  .sidebar-note svg {
-    width: 14px;
-  }
-  .connection {
     display: none;
-  }
-}
-
-@media (max-width: 760px) {
-  .sidebar {
-    transform: translateX(-100%);
-    width: min(280px, 88vw);
-    padding: 28px 17px 0;
-    transition: transform 0.2s;
-  }
-  .sidebar.open {
-    transform: translateX(0);
-  }
-  .sidebar .brand-logo {
-    font-size: 24px;
-    gap: 10px;
-  }
-  .brand-logo small {
-    font-size: var(--text-caption);
-    letter-spacing: 1.7px;
-  }
-  .sidebar .brand-symbol {
-    width: 34px;
-    height: 35px;
-  }
-  .sidebar-close {
-    display: flex;
-    position: absolute;
-    right: 8px;
-    top: 12px;
-    width: var(--control-size);
-    height: var(--control-size);
-  }
-  .sidebar .nav-item {
-    font-size: var(--text-ui);
-    padding: 10px 11px;
-  }
-  .sidebar .nav-caption {
-    font-size: var(--text-caption);
-    padding: 0 11px;
-  }
-  .sidebar .sidebar-workspace {
-    font-size: var(--text-ui);
-    gap: 10px;
-  }
-  .sidebar .sidebar-workspace small {
-    font-size: var(--text-caption);
-  }
-  .sidebar-note {
-    font-size: var(--text-caption);
-    padding: 12px;
-    gap: 10px;
-  }
-  .sidebar-version {
-    font-size: var(--text-caption);
-  }
-  .sidebar-version > span:last-child {
-    font-size: var(--text-caption);
-  }
-  .main-shell {
-    margin-left: 0;
   }
   .mobile-menu {
     display: flex;
     width: var(--control-size);
     height: var(--control-size);
   }
+  .connection {
+    display: none;
+  }
+  .main-shell > .app-footer {
+    padding-inline: 20px;
+  }
+}
+
+@media (max-width: 760px) {
   .topbar {
     height: 58px;
     padding: 0 18px;
@@ -180,7 +64,8 @@
   .path-root > span {
     display: none;
   }
-  .topbar-path > span:nth-child(3) {
+  /* Phones show the logo only; the menu dialog marks the current page. */
+  .topbar-breadcrumb li:not(:first-child) {
     display: none;
   }
   .topbar-actions {
@@ -193,21 +78,24 @@
   .new-label {
     display: none;
   }
+  .connection-banner {
+    padding-inline: 16px;
+  }
 }
 
 @media (max-width: 540px) {
   .topbar {
     padding: 0 13px;
-  }
-  .topbar-path strong {
-    font-size: var(--text-caption);
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    backdrop-filter: blur(12px);
   }
   .topbar-actions {
     gap: 5px;
   }
   .topbar-actions > .help-button {
     width: var(--control-size);
-    margin-right: 4px;
   }
 }
 
@@ -218,33 +106,12 @@
   }
 }
 
-@media (max-width: 540px) {
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    backdrop-filter: blur(12px);
-  }
-}
-
-@media (max-width: 760px) {
-  .sidebar {
-    visibility: hidden;
-  }
-  .sidebar.open {
-    visibility: visible;
-  }
-}
-
 @media (max-height: 850px) {
   .sidebar-note {
     display: none;
   }
   .sidebar-workspace {
     margin-block: 24px 20px;
-  }
-  .sidebar-version {
-    padding-block: 12px;
   }
 }
 @media (max-height: 500px) {
@@ -257,9 +124,6 @@
   }
 }
 @media (max-width: 420px) {
-  .topbar-path > strong {
-    display: none;
-  }
   .topbar-actions {
     margin-left: auto;
   }
@@ -272,4 +136,51 @@
 /* Preserve breathing room below settings at every sidebar breakpoint. */
 .sidebar {
   padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+/* Menu dialog: the same destinations as the sidebar, as a modal drawer from the left. */
+.sidebar-drawer.modal {
+  margin: 0;
+  inset: 0 auto 0 0;
+  width: min(300px, 88vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  border-width: 0 1px 0 0;
+  border-radius: 0 var(--radius-panel) var(--radius-panel) 0;
+  background: var(--sidebar);
+}
+.sidebar-drawer.modal::backdrop {
+  background: #00000088;
+  backdrop-filter: blur(3px);
+}
+.sidebar-drawer .modal-heading {
+  background: var(--sidebar);
+}
+.drawer-content {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100% - 69px);
+  padding: 16px 16px max(24px, env(safe-area-inset-bottom));
+}
+.drawer-content > .brand-logo {
+  font-size: 22px;
+  margin-bottom: 24px;
+}
+.drawer-content .sidebar-workspace {
+  margin: 24px 0 20px;
+}
+.drawer-content .sidebar-note {
+  display: flex;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sidebar-drawer.modal[open] {
+    animation: drawer-in var(--motion-enter) ease-out;
+  }
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(-24px);
+    opacity: 0.6;
+  }
 }

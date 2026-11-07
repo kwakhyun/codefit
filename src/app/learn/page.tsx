@@ -2,14 +2,13 @@ import { PracticeEntry } from "@/components/project-practice/practice-entry";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { ExperienceJourney } from "@/components/experience/experience-journey";
 import { MISSIONS } from "@/lib/learn/catalog";
-import { SiteHeader } from "@/components/navigation/site-header";
 import { AppLink as Link } from "@/components/ui/primitives";
 import type { Metadata } from "next";
 
 import { LearningDashboard } from "@/components/learn/learning-dashboard";
 import { AiLearningEntry } from "@/components/ai-learning/ai-learning-entry";
 export const metadata: Metadata = {
-  title: "서비스 원리 배우기 | CODE:FIT",
+  title: "서비스 원리 배우기",
   description:
     "내 GitHub 코드에서 서비스 동작 실습을 만들거나, 저장소 연결 없이 샘플 서비스로 원리를 체험하세요.",
 };
@@ -21,7 +20,6 @@ export default async function LearnPage({
   const sample = (await searchParams).source === "sample";
   return (
     <main id="main-content" className="learn-page">
-      <SiteHeader />
       <VisualIntro topic="principles" className="learn-intro">
         <span className="eyebrow">내 프로젝트 실습과 {MISSIONS.length}개 샘플 체험</span>
         <h1>서비스가 동작하는 이유를 확인해 보세요</h1>

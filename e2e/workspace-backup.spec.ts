@@ -82,7 +82,7 @@ test("download and restore coding, beginner and project learning through account
       .getByRole("dialog")
       .getByRole("status")
       .filter({ hasText: "백업을 가져왔습니다" });
-    await expect(status).toContainText("입문 실습 1개, 프로젝트 1개");
+    await expect(status).toContainText("서비스 원리 미션 1개, 프로젝트 1개");
     await page.setViewportSize({ width: 390, height: 844 });
     await status.scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
@@ -102,7 +102,7 @@ test("download and restore coding, beginner and project learning through account
     await page
       .getByLabel("학습 기록 백업 파일")
       .setInputFiles({ name: "backup.json", mimeType: "application/json", buffer: file });
-    await expect(status).toContainText("입문 실습 0개, 프로젝트 0개");
+    await expect(status).toContainText("서비스 원리 미션 0개, 프로젝트 0개");
     await page.goto(`/project-check?check=${restored}`);
     await expect(
       page.getByRole("heading", { name: fixtureCheck.analysis.title, exact: true }),

@@ -2,20 +2,18 @@ import { Suspense } from "react";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { ProjectAiEntry } from "@/components/ai-learning/project-ai-entry";
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/navigation/site-header";
 import { AiCatalog } from "@/components/ai-learning/ai-catalog";
 import { AI_LESSONS, AI_TRACKS } from "@/lib/ai-learning/catalog";
 import { Anchor } from "@/components/ui/primitives";
 
 export const metadata: Metadata = {
-  title: "AI 실무 배우기 | CODE:FIT",
+  title: "AI 실무 배우기",
   description:
     "LangChain, LangGraph, RAG, 로컬 AI, 업무 자동화부터 AI 평가와 모델 배포까지. 용어 설명과 모의 실습으로 배우는 AI 기술 입문.",
 };
 export default function AiLearningPage() {
   return (
     <main id="main-content" className="learn-page ai-learning-page">
-      <SiteHeader />
       <header className="ai-learning-hero">
         <span className="eyebrow">
           {AI_TRACKS.length}개 분야 / {AI_LESSONS.length}개 수업 / 설치 없이 시작

@@ -1,6 +1,15 @@
 import { ScreenSkeleton, type SkeletonVariant } from "./skeleton";
 import type { ReactNode } from "react";
 import { Progress } from "./primitives";
+
+/** Route loading fills only the page area; the shared header and menu stay in place. */
+export function RouteLoading({ variant, label }: { variant: SkeletonVariant; label?: ReactNode }) {
+  return (
+    <main id="main-content" tabIndex={-1} className="route-loading" aria-busy="true">
+      <ScreenSkeleton variant={variant} label={label} />
+    </main>
+  );
+}
 export function LoadingState({
   children = "불러오는 중입니다",
   value,

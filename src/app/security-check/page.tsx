@@ -1,17 +1,15 @@
 import { Anchor } from "@/components/ui/primitives";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { ExperienceJourney } from "@/components/experience/experience-journey";
-import { SiteHeader } from "@/components/navigation/site-header";
 import { SecurityCheck } from "@/components/security/security-check";
 export const metadata = {
-  title: "서비스 보안 점검 | CODE:FIT",
+  title: "서비스 보안 점검",
   description:
     "공개 보안 설정과 소유한 주소의 CORS 응답을 확인하고 ZAP 보고서를 수정과 재검사 기록으로 정리합니다.",
 };
 export default function SecurityPage() {
   return (
     <main id="main-content" className="learn-page">
-      <SiteHeader />
       <VisualIntro topic="security" className="learn-intro">
         <span className="eyebrow">공개 설정부터 실제 응답 비교까지</span>
         <h1>서비스 보안 점검</h1>

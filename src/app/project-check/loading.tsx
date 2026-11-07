@@ -1,8 +1,4 @@
-import { ScreenSkeleton } from "@/components/ui/skeleton";
+import { RouteLoading } from "@/components/ui/loading-state";
 export default function Loading() {
-  return (
-    <main className="route-loading">
-      <ScreenSkeleton variant="form" />
-    </main>
-  );
+  return <RouteLoading variant="form" />;
 }

@@ -1,12 +1,11 @@
 import { PracticeEntry } from "@/components/project-practice/practice-entry";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { ExperienceJourney } from "@/components/experience/experience-journey";
-import { SiteHeader } from "@/components/navigation/site-header";
 import type { Metadata } from "next";
 
 import { HandoffDashboard } from "@/components/handoff/handoff-dashboard";
 export const metadata: Metadata = {
-  title: "AI 코드 이해 훈련 | CODE:FIT",
+  title: "AI 코드 이해 훈련",
   description:
     "실제 GitHub 코드로 맞춤 이해 훈련을 만들거나, 저장소 연결 없이 JavaScript 샘플을 실행하고 수정하며 연습하세요.",
 };
@@ -18,7 +17,6 @@ export default async function HandoffPage({
   const sample = (await searchParams).source === "sample";
   return (
     <main id="main-content" className="handoff-page">
-      <SiteHeader />
       <VisualIntro topic="code" className="handoff-intro">
         <span className="eyebrow">읽고, 실행하고, 내 말로 설명하기</span>
         <h1>내 코드가 어떻게 동작하는지 이해해 보세요</h1>

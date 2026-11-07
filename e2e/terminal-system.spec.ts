@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { fixtureCheck, fixtureAssessment } from "../src/lib/project-check/fixtures";
 import { publicCheck } from "../src/lib/server/project-check-store";
 import type { CheckOverview } from "../src/lib/project-check/types";
+import { editor, readCode } from "./editor-helpers";
 
 test("first visit offers a direct guest start and responsive menu controls retain visibility", async ({
   page,
@@ -10,15 +11,15 @@ test("first visit offers a direct guest start and responsive menu controls retai
   const start = page.getByRole("region", { name: "처음 방문한 분의 시작점" });
   await expect(start).toBeVisible();
   await expect(page.getByRole("button", { name: "메뉴 열기", exact: true })).toBeHidden();
-  await expect(page.locator(".sidebar-close")).toBeHidden();
   await start.getByRole("link", { name: "내 프로젝트 점검", exact: true }).click();
   await expect(page.getByLabel("서비스 링크", { exact: true })).toBeVisible();
   await expect(page.locator(".guest-trial-notice")).toContainText("분석 2회");
   await page.goto("/");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
-  await expect(page.locator(".sidebar-close")).toBeVisible();
-  await page.locator(".sidebar-close").click();
+  const close = page.getByRole("button", { name: "메뉴 닫기", exact: true });
+  await expect(close).toBeVisible();
+  await close.click();
   await expect(page.getByRole("button", { name: "메뉴 열기", exact: true })).toBeFocused();
 });
 
@@ -108,6 +109,39 @@ test("pending data shows an indeterminate progress bar and clears when the respo
   await expect(page.getByLabel("서비스 링크", { exact: true })).toBeVisible();
 });
 
+test("typing with autosave never flashes the shared progress bar; ? opens help outside the editor", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    new MutationObserver(() => {
+      if (document.querySelector(".ui-network-progress"))
+        document.documentElement.dataset.progressShown = "1";
+    }).observe(document, { childList: true, subtree: true });
+  });
+  await editor(page);
+  await page.evaluate(() => delete document.documentElement.dataset.progressShown);
+  await page.locator(".monaco-editor .view-lines").first().click();
+  // Python comments: no suggestion widget can swallow the Enter keys.
+  await page.keyboard.type("# one\n# two\n# three?\n", { delay: 40 });
+  await expect(page.getByRole("dialog", { name: "사용 안내" })).toHaveCount(0);
+  await expect
+    .poll(
+      async () =>
+        (await (await page.request.get("/api/problems/be-pagination")).json()).progress?.code,
+    )
+    .toContain("# three?");
+  expect(await readCode(page)).toContain("# two");
+  await expect(page.locator("html")).not.toHaveAttribute("data-progress-shown", "1");
+  await page.getByRole("heading", { level: 1 }).click();
+  await page.keyboard.press("?");
+  const help = page.getByRole("dialog", { name: "사용 안내" });
+  await expect(help).toBeVisible();
+  await expect(help.getByText("Ctrl + M", { exact: true })).toBeVisible();
+  await expect(help.getByText("Alt + F1", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(help).toBeHidden();
+});
+
 test("neutral surfaces and useful labels stay consistent; type and route changes fade without moving", async ({
   page,
 }) => {
@@ -128,7 +162,7 @@ test("neutral surfaces and useful labels stay consistent; type and route changes
   await expect(page.getByText("저장소 연결됨", { exact: true })).toHaveCount(0);
   await expect(page.locator(".sidebar-version")).toHaveCount(0);
   const start = page.getByRole("region", { name: "처음 방문한 분의 시작점" });
-  await expect(start.locator(".feature-banner")).toBeVisible();
+  await expect(start.locator(".feature-overview")).toBeVisible();
   await expect(start.getByRole("link", { name: "내 프로젝트 점검", exact: true })).toHaveCSS(
     "background-color",
     "rgb(147, 197, 253)",

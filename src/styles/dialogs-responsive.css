@@ -1,31 +1,5 @@
 /* dialogs layout at supported breakpoints. Keep media queries in source order. */
 
-@media (max-width: 1230px) {
-  .toast {
-    left: calc(50% + 97px);
-  }
-}
-
-@media (max-width: 1000px) {
-  .toast {
-    left: calc(50% + 90px);
-  }
-}
-
-@media (max-width: 760px) {
-  .sidebar-backdrop {
-    position: fixed;
-    inset: 0;
-    background: #00000088;
-    backdrop-filter: blur(3px);
-    z-index: 39;
-    display: block;
-  }
-  .toast {
-    left: 50%;
-  }
-}
-
 @media (max-width: 540px) {
   .modal {
     max-height: calc(100dvh - 24px);
@@ -166,12 +140,13 @@
     font-size: var(--text-caption);
   }
   .toast {
-    bottom: 16px;
     font-size: var(--text-small);
     padding: 10px 10px 10px 13px;
     min-width: 250px;
-    width: max-content;
-    max-width: calc(100vw - 25px);
+  }
+  /* Stay above the start guide button in the bottom corner. */
+  .toast-viewport {
+    bottom: calc(12px + var(--floating-safe-area));
   }
 }
 

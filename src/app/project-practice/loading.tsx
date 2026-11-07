@@ -1,4 +1,4 @@
-import { ScreenSkeleton } from "@/components/ui/skeleton";
+import { RouteLoading } from "@/components/ui/loading-state";
 export default function Loading() {
-  return <ScreenSkeleton variant="lesson" label="프로젝트 연습 준비 중" />;
+  return <RouteLoading variant="lesson" label="프로젝트 연습 준비 중" />;
 }

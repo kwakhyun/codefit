@@ -66,10 +66,10 @@ test("dialogs retain readable controls and keyboard dismissal", async ({ page })
 test("mobile task navigation closes, restores focus and follows links", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/project-check");
-  const trigger = page.getByRole("button", { name: "메뉴", exact: true });
-  await expect(page.getByRole("navigation", { name: "서비스 메뉴", exact: true })).toBeHidden();
+  const trigger = page.getByRole("button", { name: "메뉴 열기", exact: true });
+  await expect(page.getByRole("navigation", { name: "작업 공간 메뉴", exact: true })).toBeHidden();
   await trigger.click();
-  const menu = page.getByRole("dialog", { name: "어디로 이동할까요?" });
+  const menu = page.getByRole("dialog", { name: "메뉴", exact: true });
   await expect(menu).toBeVisible();
   await expect(menu.getByRole("link", { name: "내 프로젝트 점검", exact: true })).toHaveAttribute(
     "aria-current",

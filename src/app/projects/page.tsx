@@ -1,16 +1,14 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/navigation/site-header";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { ProjectClasses } from "@/components/projects/project-classes";
 export const metadata: Metadata = {
-  title: "내 프로젝트 | CODE:FIT",
+  title: "내 프로젝트",
   description: "내 프로젝트 학습 클래스를 관리하고 점검, 실습, AI 학습과 복습을 이어가세요.",
 };
 export default function ProjectsPage() {
   return (
     <main id="main-content" className="project-classes-page">
-      <SiteHeader />
       <header className="practice-page-intro">
         <span className="eyebrow">한 번 분석하고, 나만의 수업으로</span>
         <h1>내 프로젝트</h1>
