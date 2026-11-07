@@ -202,6 +202,36 @@ test("guide API requires current scope, validates input, blocks cross-origin and
   ).toBe(403);
 });
 
+test("the invitation appears once per browser and steps aside on scroll", async ({ page }) => {
+  await page.goto("/");
+  const invitation = page.getByRole("button", { name: "처음이라면? 시작할 곳을 찾아드려요" });
+  await expect(invitation).toBeVisible();
+  await page.mouse.wheel(0, 600);
+  await expect(invitation).toHaveCount(0);
+  await expect(page.locator(".guide-launcher")).toHaveClass(/is-compact/);
+  await page.reload();
+  await expect(page.locator(".guide-launcher")).toHaveClass(/is-compact/);
+  await expect(invitation).toHaveCount(0);
+});
+
+test("the AI goal recommends a lesson in its path and can match the workspace", async ({
+  page,
+}) => {
+  await page.goto("/learn/ai");
+  const dialog = await openGuide(page);
+  await choose(page, "코딩은 처음이에요", "AI 도구 활용 배우기", "15분 정도");
+  await dialog.getByRole("button", { name: "AI 없이 선택한 답변으로 추천받기" }).click();
+  await expect(dialog.getByText("핏 · 선택 기반 안내")).toBeVisible();
+  await expect(dialog.getByRole("link", { name: "이 수업 시작하기" })).toHaveAttribute(
+    "href",
+    "/learn/ai/prompt-context?path=beginner",
+  );
+  await dialog.getByRole("button", { name: "이 목표로 작업 공간 맞추기" }).click();
+  await expect(dialog.getByText("홈 작업 공간을 ‘AI 워크숍’으로 맞췄어요.")).toBeVisible();
+  const saved = await page.evaluate(() => localStorage.getItem("codefit-learning-preference-v2"));
+  expect(JSON.parse(saved || "null")).toMatchObject({ type: "ai" });
+});
+
 test("practice starts with a compact guide and restores focus after closing", async ({ page }) => {
   await page.goto("/learn/where-data-lives");
   const launcher = page.getByRole("button", { name: "핏 시작 가이드 열기" });

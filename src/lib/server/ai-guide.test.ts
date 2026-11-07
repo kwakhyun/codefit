@@ -107,6 +107,26 @@ it.each(["https://attacker.example", "missing-mission", "handoff-cart"])(
     });
   },
 );
+it("recommends AI lessons for the AI goal and the project workshop only to project owners", () => {
+  expect(basicGuide({ experience: "new", goal: "ai", minutes: 30 }).recommendation).toMatchObject({
+    id: "ai:prompt-context",
+    href: "/learn/ai/prompt-context?path=beginner",
+  });
+  expect(basicGuide({ experience: "builder", goal: "ai", minutes: 15 }).recommendation.id).toBe(
+    "ai-workshop",
+  );
+  expect(basicGuide({ experience: "builder", goal: "ai", minutes: 5 }).recommendation.id).toBe(
+    "ai:prompt-context",
+  );
+  expect(basicGuide({ experience: "developer", goal: "ai", minutes: 5 }).recommendation.id).toBe(
+    "ai:local-start",
+  );
+  const ids = (experience: "new" | "builder") =>
+    guideCandidates({ experience, goal: "ai", minutes: 15 }).map((entry) => entry.id);
+  expect(ids("new")).toContain("ai:llamaindex");
+  expect(ids("new")).not.toContain("ai-workshop");
+  expect(ids("builder")).toContain("ai-workshop");
+});
 it("rejects malformed replies instead of presenting them as a valid recommendation", async () => {
   parse.mockResolvedValue({
     output_parsed: { message: "", recommendationId: GUIDE_CATALOG[0].id },

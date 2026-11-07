@@ -3,8 +3,17 @@ import { Status, Button, FieldLabel, Input, Textarea } from "@/components/ui/pri
 import { AppLink as Link } from "@/components/ui/primitives";
 import { ArrowRight, RotateCcw, Send, Square } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { EXPERIENCE_OPTIONS, GOAL_OPTIONS, TIME_OPTIONS, type GuideProfile } from "@/lib/guide";
+import {
+  EXPERIENCE_OPTIONS,
+  GOAL_OPTIONS,
+  TIME_OPTIONS,
+  goalWorkspace,
+  type GuideProfile,
+} from "@/lib/guide";
+import { allowanceSummary } from "@/lib/ai-access";
+import { learnerTypes } from "@/lib/learner-types";
 import { useStartGuide } from "@/hooks/use-start-guide";
+import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { Modal } from "@/components/ui/modal";
 import { FitMascot } from "./fit-mascot";
 
@@ -71,7 +80,7 @@ function GuideConversation({
           </div>
         </div>
         <p className="guide-lead">
-          경험과 목표에 맞는 첫 미션을 골라드려요.
+          경험과 목표에 맞는 첫 학습을 골라드려요.
           <br />
           로그인 없이 바로 시작할 수 있어요.
         </p>
@@ -95,7 +104,7 @@ function GuideConversation({
                     if ((step === 0 && experience) || (step === 1 && goal)) moveStep(step + 1);
                     return;
                   }
-                  void submit("선택한 경험과 목표, 시간에 맞는 첫 미션을 추천해 줘.");
+                  void submit("선택한 경험과 목표, 시간에 맞는 첫 학습을 추천해 줘.");
                 }}
               >
                 <div className="guide-steps" role="group" aria-label={`3단계 중 ${step + 1}단계`}>
@@ -176,7 +185,7 @@ function GuideConversation({
                   {step < 2
                     ? "다음"
                     : guide.busy
-                      ? "첫 미션을 고르고 있어요…"
+                      ? "시작점을 고르고 있어요…"
                       : "내 시작점 추천받기"}
                   <ArrowRight size={17} />
                 </Button>
@@ -264,6 +273,7 @@ function GuideConversation({
                     </Link>
                   </article>
                 )}
+                {last && goal && <WorkspaceMatch goal={goal} />}
                 {guide.status.aiReady ? (
                   <div className="guide-followups" role="group" aria-label="이어서 물어보기">
                     {["무엇을 먼저 살펴보면 좋을까?", "이 연습이 왜 도움이 될까?"].map((text) => (
@@ -349,9 +359,46 @@ function GuideConversation({
         </form>
       )}
       <p className="guide-footer">
-        AI는 잘못 안내할 수 있어요. AI 안내는 24시간에 비로그인 2회, 로그인 20회이며, 대화는
+        AI는 잘못 안내할 수 있어요. AI 안내는 {allowanceSummary("guide")} 이용할 수 있고, 대화는
         새로고침하면 지워져요.
       </p>
     </>
+  );
+}
+
+/** Offers to put the goal's activities first on home by switching the workspace. */
+function WorkspaceMatch({ goal }: { goal: GuideProfile["goal"] }) {
+  const { type, hasChosen, setType, storageError } = useLearningPreference();
+  const [notice, setNotice] = useState("");
+  const target = learnerTypes.find((item) => item.id === goalWorkspace(goal))!;
+  const matched = hasChosen && type === target.id;
+  return (
+    <div className="guide-workspace">
+      {matched ? (
+        <p>
+          지금 작업 공간이 이 목표와 같은 <strong>{target.name}</strong>이에요.
+        </p>
+      ) : (
+        <>
+          <p>
+            홈 화면을 <strong>{target.name}</strong>으로 바꾸면 이 목표에 맞는 학습이 먼저 보여요.
+            언제든 다시 바꿀 수 있어요.
+          </p>
+          <Button
+            className="guide-text-button"
+            onClick={() => {
+              setType(target.id);
+              setNotice(`홈 작업 공간을 ‘${target.name}’으로 맞췄어요.`);
+            }}
+          >
+            이 목표로 작업 공간 맞추기
+          </Button>
+        </>
+      )}
+      <p role="status">
+        {notice}
+        {notice && storageError ? " 이 브라우저에 저장하지 못해 현재 화면에만 적용돼요." : ""}
+      </p>
+    </div>
   );
 }
