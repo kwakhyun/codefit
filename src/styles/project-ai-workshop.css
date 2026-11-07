@@ -81,6 +81,15 @@
 .project-ai-connect .ui-label + :is(input, select, textarea) {
   margin-top: -6px;
 }
+
+/* Native consent checkbox gets a visible, on-brand target next to its label. */
+.security-consent input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--action);
+}
 .project-ai-source {
   display: flex;
   align-items: center;
@@ -263,4 +272,9 @@
   border: 1px solid var(--warning);
   border-radius: var(--radius-small);
   font-size: 14px;
+}
+
+/* Project form: optional marker stays on the label line; helper text sits close to its field. */
+.project-form .ui-label:has(> span) {
+  display: block;
 }

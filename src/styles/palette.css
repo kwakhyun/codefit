@@ -104,15 +104,6 @@
 
 /* Functional color accents over the DOS black and graphite surfaces. */
 
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-summary:focus-visible {
-  outline-color: var(--action);
-}
-
 ::selection {
   background: light-dark(var(--light-blue-soft), #244363);
   color: var(--white);

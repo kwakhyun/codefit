@@ -601,3 +601,9 @@
     min-height: var(--control-size);
   }
 }
+
+/* Korean source labels read better in the UI font than in spaced monospace. */
+.workspace-breadcrumb .workspace-id {
+  font-family: var(--sans);
+  letter-spacing: 0;
+}

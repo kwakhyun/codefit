@@ -8,6 +8,7 @@
   --light-text: #182334;
   --light-muted: #4b5c73;
   --light-line: #bac6d5;
+  --light-hairline: #d5dde8;
   --light-strong-line: #738399;
   --light-blue: #1d4f9e;
   --light-green: #196347;
@@ -25,7 +26,8 @@
   color-scheme: light dark;
   --bg: light-dark(var(--light-canvas), #0e1219);
   --sidebar: light-dark(var(--light-panel), #121722);
-  --line: light-dark(var(--light-line), #343e4e);
+  /* Containers use the softer hairline; buttons and inputs keep the stronger --light-line. */
+  --line: light-dark(var(--light-hairline), #343e4e);
   --surface: light-dark(var(--light-panel), #171d28);
   --surface-raised: light-dark(var(--light-raised), #202938);
   --surface-hover: light-dark(var(--light-hover), #283448);

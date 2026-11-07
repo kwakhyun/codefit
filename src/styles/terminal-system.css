@@ -41,7 +41,7 @@ body {
   border-color: light-dark(var(--light-line), #52637a);
 }
 .ui-button:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: scale(0.98);
 }
 .ui-button:disabled {
   cursor: not-allowed;
@@ -91,7 +91,7 @@ body {
 .ui-textarea:focus-visible,
 .ui-native-select:focus-visible,
 .ui-disclosure-summary:focus-visible {
-  outline: 2px solid var(--action);
+  /* Same ring as base.css, slightly closer to the primitive. */
   outline-offset: 3px;
 }
 .ui-card,
@@ -179,6 +179,21 @@ body {
 }
 .ui-status {
   line-height: 1.8;
+}
+
+/* Availability notices: a tinted callout with an icon instead of an empty-looking card. */
+.ui-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px solid light-dark(#ecd6a4, #66502d);
+  border-radius: var(--radius-control);
+  background: light-dark(var(--light-amber-soft), #211c12);
+  color: light-dark(#6b4300, #f2c879);
+  font-size: var(--text-ui);
+  line-height: 1.7;
 }
 .ui-status[role="alert"] {
   border-left: 2px solid light-dark(var(--light-strong-line), #eda88f);
@@ -914,10 +929,6 @@ html {
   letter-spacing: 0;
   line-height: 1.6;
 }
-.visual-intro {
-  border-color: var(--line);
-  background: var(--surface);
-}
 .visual-intro .visual-intro-copy p {
   font-size: 16px;
 }
@@ -1113,4 +1124,70 @@ html {
     border-radius: 16px;
     overflow: hidden;
   }
+}
+
+.persona-cards .persona-selected {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.project-form .ui-label > span {
+  display: inline;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.ui-card {
+  box-shadow: 0 1px 2px light-dark(rgb(15 23 42 / 5%), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Disabled primary actions turn neutral instead of a faded brand color, so they are not
+   mistaken for an active button that is still loading. */
+.ui-button.primary-button:disabled {
+  opacity: 1;
+  background: light-dark(var(--light-hover), #283448);
+  border-color: transparent;
+  color: light-dark(#6b7a8f, #8d99ab);
+}
+
+.ui-notice > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.ui-notice + .project-layout {
+  margin-top: 24px;
+}
+
+/* Fields in one form share one surface and corner: the project form mixed white inputs with
+   a grey select, and 9px corners with 12px buttons. */
+.project-page :is(input:not([type="checkbox"]), textarea, .ui-native-select) {
+  border-radius: var(--radius-control);
+}
+
+/* Page intro artwork stays decorative on phones: smaller, so the page's first choice is
+   reached sooner. */
+@media (max-width: 700px) {
+  .visual-intro > .section-artwork {
+    width: min(100%, 176px);
+    margin-top: 4px;
+  }
+}
+
+/* History shortcuts are cards like the resume card above them, grouped closer together. */
+.ui-link.history-track-link {
+  margin-bottom: 12px;
+  border-radius: var(--radius-panel);
+  text-decoration: none;
+}
+
+.history-track-link + .history-coding-title {
+  margin-top: 44px;
 }

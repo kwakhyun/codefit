@@ -58,7 +58,8 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {
-  outline: 2px solid var(--accent);
+  /* The only outline definition; components adjust the offset or use a stronger ring. */
+  outline: 2px solid var(--action);
   outline-offset: 4px;
 }
 

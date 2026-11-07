@@ -181,3 +181,13 @@ select {
   min-height: 100vh;
   display: flex;
 }
+
+/* Korean copy already breaks between words; balanced headings and paragraphs without a lone
+   last word read better than hard-coded <br> breaks, which misfire at other widths. */
+:is(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}

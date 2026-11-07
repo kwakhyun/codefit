@@ -282,3 +282,16 @@
     justify-content: center;
   }
 }
+
+/* First-visit home: one heading for the workspace choice, with room after the project card. */
+.workspace-welcome > .persona-picker {
+  margin-top: 48px;
+}
+
+.persona-cards .persona-selected svg {
+  visibility: visible;
+}
+
+.persona-cards .is-selected .persona-selected {
+  color: light-dark(var(--light-green), #a0edc9);
+}

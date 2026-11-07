@@ -42,6 +42,12 @@
   min-height: 46px;
   border-radius: 14px;
 }
+.practice-switch-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
+}
 .practice-origin > [aria-pressed="true"],
 .practice-origin > [aria-current] {
   color: var(--accent);
@@ -120,6 +126,15 @@
   overflow-wrap: anywhere;
   font: 0.9rem var(--mono);
   color: var(--accent);
+}
+
+/* Counts line up as they change. */
+.stats-row strong,
+.table-footer,
+.pagination,
+.row-time,
+.notes-progress {
+  font-variant-numeric: tabular-nums;
 }
 .practice-exercise fieldset {
   border: 0;
@@ -383,6 +398,14 @@
   border: 0;
   padding: 0;
   background: none;
+}
+
+/* Expandable cards: a trailing chevron replaces the small native triangle and the whole
+   title row, not just the text, is the target. */
+details.audit-method,
+.security-exercises details.ui-disclosure,
+details.project-example-disclosure {
+  padding: 20px 24px;
 }
 .quick-start-note summary {
   width: fit-content;
@@ -657,4 +680,39 @@
   gap: 10px;
   align-items: flex-start;
   margin-top: 12px;
+}
+
+/* Buttons keep the previous crisper outline so they do not fade into cards. */
+.ui-button {
+  border-color: light-dark(var(--light-line), #343e4e);
+}
+
+@media (max-width: 650px) {
+  details.audit-method,
+  .security-exercises details.ui-disclosure,
+  details.project-example-disclosure {
+    padding: 16px 18px;
+  }
+}
+
+/* Learning pages tint --surface to the page colour, which left this entry card with neither
+   fill nor outline in light mode. It gets the panel fill and hairline other cards use. */
+.practice-entry-card.ui-card {
+  border: 1px solid var(--line);
+  background-color: light-dark(var(--light-panel), #171d28);
+}
+
+/* Leaving the page is a link beside the switch, not another segment. */
+.practice-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+.practice-switch-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+  font-size: var(--text-ui);
 }

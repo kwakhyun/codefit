@@ -116,6 +116,17 @@
   border-radius: 6px;
   background: var(--line);
 }
+
+/* Problem rows: tags become quiet filled chips and the bookmark is a plain icon target. */
+.row-tags > span {
+  border: 0;
+  border-radius: 6px;
+  padding: 2px 7px;
+  background: light-dark(var(--light-raised), #202938);
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 12px;
+}
 .class-loading-lines span:last-child {
   width: 65%;
 }
@@ -252,4 +263,97 @@
   .modal > .class-edit {
     padding: 20px;
   }
+}
+
+/* Segmented choices: one track with a raised thumb for the selected option. */
+.type-filters,
+.segmented {
+  gap: 2px;
+  padding: 3px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: light-dark(var(--light-raised), #0b0f15);
+}
+
+.type-filters > .ui-button,
+.segmented > .ui-button {
+  border-color: transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.type-filters > .ui-button:hover:not(.selected),
+.segmented > .ui-button:hover:not(.selected) {
+  border-color: transparent;
+  color: var(--text);
+}
+
+.type-filters > .ui-button.selected,
+.segmented > .ui-button.selected {
+  border-color: transparent;
+  background: light-dark(var(--light-panel), #283448);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow:
+    0 1px 3px light-dark(rgb(15 23 42 / 12%), rgb(0 0 0 / 40%)),
+    0 0 0 1px light-dark(rgb(15 23 42 / 4%), rgb(255 255 255 / 6%));
+}
+
+/* Practice source and practice kind are one choice each, so they share the segmented track
+   used by the problem type filter instead of two separately outlined buttons. */
+.practice-origin.segmented {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.practice-origin.segmented > :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+  text-decoration: none;
+}
+.practice-switch-links a:hover {
+  color: var(--text);
+}
+
+.practice-origin.segmented > :is(button, a):hover:not([aria-pressed="true"], [aria-current]) {
+  background: transparent;
+  color: var(--text);
+}
+
+.practice-origin.segmented > :is([aria-pressed="true"], [aria-current]) {
+  border: 0;
+  background: light-dark(var(--light-panel), #283448);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow:
+    0 1px 3px light-dark(rgb(15 23 42 / 12%), rgb(0 0 0 / 40%)),
+    0 0 0 1px light-dark(rgb(15 23 42 / 4%), rgb(255 255 255 / 6%));
+}
+
+@media (max-width: 600px) {
+  .practice-origin.segmented {
+    width: 100%;
+  }
+  .practice-origin.segmented > :is(button, a) {
+    flex: 1 1 0;
+    padding-inline: 8px;
+  }
+}
+
+.project-page .ui-native-select {
+  background-color: light-dark(var(--light-panel), #080b10);
 }

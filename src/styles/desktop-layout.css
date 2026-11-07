@@ -149,3 +149,18 @@
     padding-inline: var(--desktop-content-gutter);
   }
 }
+.project-form > p.project-help {
+  margin: 0;
+}
+
+.bookmark-button.icon-button,
+.topbar-actions > .icon-button.desktop-header-action {
+  border-color: transparent;
+  background: transparent;
+}
+
+.bookmark-button.icon-button:hover:not(:disabled),
+.topbar-actions > .icon-button.desktop-header-action:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--surface-hover);
+}

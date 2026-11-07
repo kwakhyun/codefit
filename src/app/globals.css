@@ -46,6 +46,3 @@
 @import "../styles/project-ai-workshop.css" layer(components);
 @import "../styles/desktop-layout.css" layer(components);
 @import "../styles/workspace-spacing.css" layer(components);
-@import "../styles/design-consistency.css" layer(components);
-@import "../styles/design-polish.css" layer(components);
-@import "../styles/design-clarity.css" layer(components);
