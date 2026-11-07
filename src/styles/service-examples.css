@@ -550,3 +550,20 @@
   color: light-dark(var(--light-amber), #f2c5ad);
   border-color: light-dark(var(--light-strong-line), #90624c);
 }
+
+.service-app .service-header small {
+  margin: 0 0 8px;
+}
+
+.service-app .service-records b {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.service-app .service-records small {
+  font-size: 13px;
+}
+
+.service-app .service-result b {
+  font-size: 14px;
+}

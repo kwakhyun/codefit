@@ -576,3 +576,33 @@
 .lab-experiment-reflection p {
   margin: 0;
 }
+
+.lab-input-context {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  line-height: 1.8;
+}
+
+.lab-next-action {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+}
+
+.lab-next-action .primary-button {
+  justify-self: start;
+}
+
+.lab-optional-tools[open] > summary {
+  margin-bottom: 20px;
+}
+
+.lab-test-next {
+  margin: 20px 0 12px;
+  line-height: 1.8;
+}
+
+.lab-workbench:is(.lab-stage-0, .lab-stage-1) .editor-topbar {
+  display: none;
+}

@@ -1,4 +1,6 @@
-/* Shared controls, surfaces and motion. Native keyboard semantics are preserved. */
+/* Shared control states: UI primitives (.ui-*) and their variants, plus the cross-page
+   adjustments that must follow the page stylesheets imported before this file. Rules that only
+   style one page belong in that page's stylesheet. Native keyboard semantics are preserved. */
 body {
   background: var(--bg);
 }
@@ -156,19 +158,6 @@ body {
 .ui-disclosure[open] > :not(summary) {
   animation: terminal-enter var(--motion-enter) ease-out;
 }
-.ui-select-options:popover-open,
-.modal[open] {
-  animation: terminal-enter var(--motion-enter) ease-out;
-}
-.modal[open]::backdrop {
-  background: rgb(0 0 0 / 76%);
-  backdrop-filter: blur(4px);
-}
-.modal-heading {
-  padding-bottom: 16px;
-  margin-bottom: 22px;
-  border-bottom: 1px solid var(--line);
-}
 .ui-select-options [role="option"] {
   padding: 12px 14px;
   border-radius: 3px;
@@ -205,41 +194,6 @@ body {
   background: transparent;
   box-shadow: none;
   border-radius: 0;
-}
-.section-artwork img,
-.auth-artwork img,
-.persona-art img,
-.scenario-art,
-.service-card-art > img {
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  mask-image:
-    linear-gradient(to right, transparent, black 13%, black 87%, transparent),
-    linear-gradient(to bottom, transparent, black 13%, black 87%, transparent);
-  mask-composite: intersect;
-}
-/* Mask the artwork itself, not the empty letterbox around a contained image. */
-.section-artwork img,
-.visual-intro > .section-artwork img {
-  aspect-ratio: 3 / 2;
-  height: auto;
-  object-fit: cover;
-}
-.feature-banner {
-  border-radius: var(--radius-panel);
-  border-color: var(--line);
-}
-.visual-intro h1 {
-  letter-spacing: -0.035em;
-}
-.eyebrow {
-  letter-spacing: 0.035em;
-}
-.learn-page,
-.handoff-page,
-.profile-content {
-  --surface: light-dark(var(--light-canvas), #171d28);
 }
 .ui-progress {
   display: block;
@@ -315,11 +269,6 @@ body {
 .learn-fineprint > .ui-progress {
   margin-block: 12px;
 }
-.route-loading {
-  max-width: 1120px;
-  margin: 80px auto;
-  padding: 24px;
-}
 .guest-trial-notice {
   padding: 20px 24px;
   border: 1px solid light-dark(var(--light-line), #55555e);
@@ -336,11 +285,6 @@ body {
   margin: 28px 0;
   padding: 18px;
   border: 1px solid var(--line);
-}
-[role="tabpanel"],
-.project-questions,
-.project-feedback-list {
-  animation: terminal-enter var(--motion-enter) ease-out;
 }
 @keyframes terminal-enter {
   from {
@@ -391,15 +335,6 @@ body {
   border-radius: var(--radius-control);
   border-color: var(--line);
   background: var(--surface);
-}
-.persona-art,
-.scenario-visual,
-.service-card-art {
-  border: 0;
-  background: transparent;
-}
-.persona-art {
-  border-radius: 0;
 }
 .ui-button.primary-button:hover:not(:disabled) {
   background: var(--action-soft);
@@ -499,25 +434,6 @@ html {
 .lab-learning-summary {
   animation: terminal-enter var(--motion-enter) ease-out;
 }
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Blue indicates selection; green is reserved for successful outcomes. */
-.persona-change strong,
-.is-selected .persona-selected {
-  color: var(--action-soft);
-}
-.persona-cards label.persona-card.is-selected {
-  border-color: var(--action);
-  box-shadow: inset 0 0 0 1px var(--action);
-}
 .learn-steps .ui-button[aria-current],
 .project-question-nav .ui-button[aria-current],
 .learn-option:has(input:checked) {
@@ -525,13 +441,6 @@ html {
   border-color: light-dark(var(--light-strong-line), #6e9bda);
   color: light-dark(var(--light-text), #e5efff);
   box-shadow: none;
-}
-.learn-option {
-  background: var(--surface);
-  border-color: var(--line);
-}
-.project-panel.ui-status + .project-layout {
-  margin-top: 24px;
 }
 .empty-state {
   animation: terminal-enter var(--motion-enter) ease-out;
@@ -603,20 +512,9 @@ html {
   display: block;
   margin-top: 8px;
 }
-.observation-prediction {
-  border-left: 2px solid var(--line);
-  padding-left: 18px;
-}
 .observation-prediction > p {
   margin-top: 12px;
   line-height: 1.8;
-}
-@media (min-width: 1001px) {
-  .learn-observations {
-    position: sticky;
-    top: 24px;
-    align-self: start;
-  }
 }
 @media (max-width: 700px) {
   .observation-checkpoint.ui-card {
@@ -635,19 +533,9 @@ html {
   border: 0;
   background: transparent;
 }
-/* Reserve two label lines so feature navigation does not jump on resize or selection. */
-.repair-next-step {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
-}
 .repair-next-step p {
   margin: 0 0 16px;
   line-height: 1.8;
-}
-.repair-next-step .primary-button {
-  min-height: 48px;
-  white-space: normal;
 }
 
 /* Space between complete sections belongs to the parent, not the last text node. */
@@ -657,60 +545,13 @@ html {
 .security-audit > p {
   margin-block: 12px 24px;
 }
-.project-panel > hr {
-  margin-block: 28px;
-}
 .project-panel > h3 + p {
   margin-top: 12px;
-}
-/* Shared reading rhythm for explanatory panels, including expanded disclosures. */
-:is(
-    .learn-limits,
-    .handoff-quality,
-    .handoff-measurement,
-    .auth-public-note,
-    .privacy-copy,
-    .privacy-copy > section
-  )
-  > :is(h2, h3, summary, p, ul, ol)
-  + :is(p, ul, ol) {
-  margin-top: 16px;
-}
-:is(
-    .learn-limits,
-    .handoff-quality,
-    .handoff-measurement,
-    .auth-public-note,
-    .privacy-copy,
-    .privacy-copy > section
-  )
-  > p
-  + a {
-  display: inline-flex;
-  margin-top: 16px;
-}
-/* Learning screens: the test input and contract take precedence over storefront decoration. */
-.mission-brief,
-.lab-purpose,
-.lab-target {
-  display: grid;
-  align-content: start;
-  gap: 16px;
-  padding: clamp(18px, 3vw, 28px);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  line-height: 1.8;
 }
 .mission-brief :is(h3, h4, p),
 .lab-purpose p,
 .lab-target :is(h3, p) {
   margin: 0;
-}
-.mission-rule {
-  display: grid;
-  gap: 10px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
 }
 .mission-rule dl {
   display: grid;
@@ -733,9 +574,6 @@ html {
 .service-app .service-header strong {
   font-size: 20px;
   line-height: 1.5;
-}
-.service-app .service-header small {
-  margin: 0 0 8px;
 }
 .service-app .service-result {
   display: grid;
@@ -771,59 +609,25 @@ html {
   margin-top: 20px;
   font-size: 15px;
 }
-.learn-observations {
-  scroll-margin-top: 110px;
-}
-.lab-purpose,
-.lab-target {
-  margin-bottom: 24px;
-}
 .lab-target ul {
   margin: 0;
   padding-left: 22px;
 }
-.lab-target li + li {
-  margin-top: 12px;
-}
-.lab-input-context {
-  padding: 16px;
-  border-bottom: 1px solid var(--line);
-  line-height: 1.8;
-}
 .lab-input-context p {
   margin-top: 8px;
-}
-.lab-next-action {
-  display: grid;
-  gap: 16px;
-  padding: 20px;
-  border: 1px solid var(--line);
 }
 .lab-next-action p {
   margin: 0;
   line-height: 1.8;
-}
-.lab-next-action .primary-button {
-  justify-self: start;
 }
 .lab-optional-tools {
   margin-top: 24px;
   padding: 16px;
   border: 1px solid var(--line);
 }
-.lab-optional-tools[open] > summary {
-  margin-bottom: 20px;
-}
-.lab-runtime-details {
-  margin: 20px 0;
-}
 .lab-runtime-details small {
   display: block;
   margin-top: 12px;
-  line-height: 1.8;
-}
-.lab-test-next {
-  margin: 20px 0 12px;
   line-height: 1.8;
 }
 @media (max-width: 700px) {
@@ -840,20 +644,8 @@ html {
     padding: 8px 12px;
   }
 }
-
-.observation-checkpoint {
-  scroll-margin-top: 108px;
-}
 .lab-next-action + .secondary-button {
   margin-top: 16px;
-}
-.lab-workbench:is(.lab-stage-0, .lab-stage-1) .editor-topbar {
-  display: none;
-}
-@media (min-width: 1001px) {
-  .learn-observations {
-    top: 108px;
-  }
 }
 
 .service-app .service-policy :is(summary, p),
@@ -861,25 +653,6 @@ html {
 .service-app .service-result p {
   font-size: 14px;
   line-height: 1.8;
-}
-.service-app .service-records b {
-  font-size: 14px;
-  line-height: 1.6;
-}
-.service-app .service-records small {
-  font-size: 12px;
-}
-.service-app .service-result b {
-  font-size: 14px;
-}
-
-/* Reading hierarchy and roomy surfaces across the app. Code keeps its monospace face. */
-.topbar {
-  background: var(--bg);
-  border-bottom-color: var(--line);
-}
-.sidebar {
-  background: var(--sidebar);
 }
 .ui-button,
 .ui-link.primary-button {
@@ -907,43 +680,14 @@ html {
   box-shadow: 0 20px 70px #00000066;
   border-color: light-dark(var(--light-line), #536078);
 }
-.modal-heading {
-  padding: 14px 20px;
-  background: var(--surface-raised);
-  gap: 16px;
-  margin-bottom: 0;
-}
-.modal-heading > .mono {
-  font-family: var(--sans);
-  font-size: var(--text-ui);
-  letter-spacing: 0;
-  min-width: 0;
-  line-height: 1.6;
-}
 .ui-select-options [role="option"] {
   border-radius: var(--radius-small);
 }
 .ui-badge {
   padding: 4px 9px;
 }
-.eyebrow,
-.journey-label {
-  font-family: var(--sans);
-  font-size: var(--text-small);
-  letter-spacing: 0;
-  line-height: 1.6;
-}
 .visual-intro .visual-intro-copy p {
   font-size: 16px;
-}
-.feature-banner {
-  --feature: light-dark(var(--light-blue), #a3cbff);
-  overflow: hidden;
-}
-.section-artwork img {
-  mask-image:
-    linear-gradient(to right, transparent, black 10%, black 90%, transparent),
-    linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
 }
 .nav-item {
   min-height: 46px;
@@ -956,17 +700,6 @@ html {
   width: 20px;
   height: 20px;
 }
-.project-panel h2 {
-  font-size: 26px;
-}
-.project-panel,
-.learn-observations {
-  line-height: 1.8;
-}
-.project-panel :is(label, textarea, input),
-.learn-option {
-  font-size: 16px;
-}
 .project-question-nav .ui-button,
 .learn-steps .ui-button {
   border-radius: var(--radius-control);
@@ -975,9 +708,6 @@ html {
   background: light-dark(var(--light-blue-soft), #223754);
   color: light-dark(var(--light-blue), #d4e6ff);
   border-color: light-dark(var(--light-strong-line), #6e9bda);
-}
-.journey-detail {
-  border-left-color: var(--action);
 }
 .observation-checkpoint.ui-card {
   border-color: light-dark(var(--light-line), #435672);
@@ -1005,9 +735,6 @@ html {
 .service-app .service-records b {
   font-size: 15px;
 }
-.service-app .service-records small {
-  font-size: 13px;
-}
 .ui-progress {
   height: 6px;
   border-radius: 6px;
@@ -1015,12 +742,6 @@ html {
 @media (max-width: 700px) {
   .ui-button {
     min-height: 44px;
-  }
-  .visual-intro .visual-intro-copy h1 {
-    font-size: 28px;
-  }
-  .project-panel {
-    padding: 24px 20px;
   }
 }
 
@@ -1052,13 +773,6 @@ html {
   padding: 24px 28px;
   margin-bottom: 20px;
 }
-.project-task-intro .section-artwork {
-  width: 100%;
-  max-height: 170px;
-}
-.project-task-intro h1 {
-  font-size: clamp(26px, 2.7vw, 34px);
-}
 .project-page .project-usage {
   padding: 12px 20px;
   margin: 20px 0;
@@ -1070,23 +784,14 @@ html {
 .project-history[hidden] {
   display: none;
 }
-.project-page .guest-trial-notice {
-  margin-top: 28px;
-}
 @media (max-width: 760px) {
   .project-page .project-task-intro {
     grid-template-columns: 1fr;
     padding: 24px;
   }
-  .project-task-intro > .section-artwork {
-    display: none;
-  }
   .project-page .project-usage {
     padding: 12px 16px;
     gap: 8px 16px;
-  }
-  .project-usage button {
-    margin-left: 0;
   }
   .project-resume-strip.ui-card {
     padding: 20px;
@@ -1132,18 +837,6 @@ html {
   }
 }
 
-.persona-cards .persona-selected {
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.project-form .ui-label > span {
-  display: inline;
-  color: var(--muted);
-  font-weight: 400;
-}
-
 .ui-card {
   box-shadow: 0 1px 2px light-dark(rgb(15 23 42 / 5%), transparent);
 }
@@ -1172,20 +865,8 @@ html {
   margin-top: 24px;
 }
 
-/* Fields in one form share one surface and corner: the project form mixed white inputs with
-   a grey select, and 9px corners with 12px buttons. */
-.project-page :is(input:not([type="checkbox"]), textarea, .ui-native-select) {
-  border-radius: var(--radius-control);
-}
-
 /* Page intro artwork stays decorative on phones: smaller, so the page's first choice is
    reached sooner. */
-@media (max-width: 700px) {
-  .visual-intro > .section-artwork {
-    width: min(100%, 176px);
-    margin-top: 4px;
-  }
-}
 
 /* History shortcuts are cards like the resume card above them, grouped closer together. */
 .ui-link.history-track-link {
@@ -1210,58 +891,4 @@ html {
 /* The prediction helper belongs above the answer group, not against its border. */
 .lab-prediction fieldset > .learn-fineprint {
   margin-block: 12px 20px;
-}
-
-:is(.audit-method, .security-exercises details, .project-example-disclosure)
-  > .ui-disclosure-summary {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0 36px 0 0;
-  list-style: none;
-}
-
-:is(.audit-method, .security-exercises details, .project-example-disclosure)
-  > .ui-disclosure-summary::-webkit-details-marker {
-  display: none;
-}
-
-:is(.audit-method, .security-exercises details, .project-example-disclosure)
-  > .ui-disclosure-summary::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 0;
-  width: 20px;
-  height: 20px;
-  margin-top: -10px;
-  background: var(--muted);
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
-    center / contain no-repeat;
-  transition: transform var(--motion-fast);
-}
-
-:is(.audit-method, .security-exercises details, .project-example-disclosure)[open]
-  > .ui-disclosure-summary::after {
-  transform: rotate(180deg);
-}
-
-.audit-method > .ui-disclosure-summary > span {
-  margin-left: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :is(.audit-method, .security-exercises details, .project-example-disclosure)
-    > .ui-disclosure-summary::after {
-    transition: none;
-  }
-}
-
-@media (max-width: 650px) {
-  .modal-heading {
-    padding: 12px 16px;
-    gap: 12px;
-  }
 }

@@ -68,6 +68,7 @@
   padding: 4px 0 4px 14px;
   background: none;
   border-color: light-dark(var(--light-strong-line), #68849b);
+  border-left-color: var(--action);
 }
 .journey-detail strong {
   font-size: 14px;
@@ -119,7 +120,8 @@
   background: var(--surface);
 }
 .feature-banner {
-  border-radius: 12px;
+  border-radius: var(--radius-panel);
+  border-color: var(--line);
 }
 .learn-page :is(h2, h3) {
   text-wrap: balance;
@@ -168,7 +170,7 @@
     object-fit: contain;
   }
   .visual-intro .visual-intro-copy h1 {
-    font-size: 25px;
+    font-size: 28px;
   }
   .visual-intro .visual-intro-copy p {
     font-size: 14px;
@@ -194,7 +196,7 @@
     min-height: 0;
   }
   .project-panel {
-    padding: 22px 18px;
+    padding: 24px 20px;
   }
 }
 .project-task-toolbar {
@@ -355,5 +357,99 @@
   .project-task-toolbar button {
     width: 100%;
     white-space: normal;
+  }
+}
+
+/* Mask the artwork itself, not the empty letterbox around a contained image. */
+.section-artwork img,
+.visual-intro > .section-artwork img {
+  aspect-ratio: 3 / 2;
+  height: auto;
+  object-fit: cover;
+}
+
+.eyebrow,
+.journey-label {
+  font-family: var(--sans);
+  font-size: var(--text-small);
+  letter-spacing: 0;
+  line-height: 1.6;
+}
+
+.project-panel h2 {
+  font-size: 26px;
+}
+
+.project-panel :is(label, textarea, input),
+.learn-option {
+  font-size: 16px;
+}
+
+.project-task-intro .section-artwork {
+  width: 100%;
+  max-height: 170px;
+}
+
+.project-task-intro h1 {
+  font-size: clamp(26px, 2.7vw, 34px);
+}
+
+@media (max-width: 760px) {
+  .project-task-intro > .section-artwork {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .visual-intro > .section-artwork {
+    width: min(100%, 176px);
+    margin-top: 4px;
+  }
+}
+
+:is(.audit-method, .security-exercises details, .project-example-disclosure)
+  > .ui-disclosure-summary {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 36px 0 0;
+  list-style: none;
+}
+
+:is(.audit-method, .security-exercises details, .project-example-disclosure)
+  > .ui-disclosure-summary::-webkit-details-marker {
+  display: none;
+}
+
+:is(.audit-method, .security-exercises details, .project-example-disclosure)
+  > .ui-disclosure-summary::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  background: var(--muted);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transition: transform var(--motion-fast);
+}
+
+:is(.audit-method, .security-exercises details, .project-example-disclosure)[open]
+  > .ui-disclosure-summary::after {
+  transform: rotate(180deg);
+}
+
+.audit-method > .ui-disclosure-summary > span {
+  margin-left: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.audit-method, .security-exercises details, .project-example-disclosure)
+    > .ui-disclosure-summary::after {
+    transition: none;
   }
 }

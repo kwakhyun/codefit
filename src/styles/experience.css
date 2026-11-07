@@ -346,3 +346,34 @@
     grid-column: 1 / -1;
   }
 }
+
+.section-artwork img,
+.auth-artwork img,
+.persona-art img,
+.scenario-art,
+.service-card-art > img {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  mask-image:
+    linear-gradient(to right, transparent, black 13%, black 87%, transparent),
+    linear-gradient(to bottom, transparent, black 13%, black 87%, transparent);
+  mask-composite: intersect;
+}
+
+.visual-intro h1 {
+  letter-spacing: -0.035em;
+}
+
+.persona-art,
+.scenario-visual,
+.service-card-art {
+  border: 0;
+  background: transparent;
+}
+
+.section-artwork img {
+  mask-image:
+    linear-gradient(to right, transparent, black 10%, black 90%, transparent),
+    linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+}

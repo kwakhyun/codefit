@@ -1158,3 +1158,7 @@
 .save-indicator .lucide-check {
   color: var(--success);
 }
+
+.lab-runtime-details {
+  margin: 20px 0;
+}

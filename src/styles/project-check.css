@@ -1411,3 +1411,33 @@
 .analysis-activity-item > .ui-button:not(.analysis-activity-dismiss) {
   margin-top: 8px;
 }
+
+[role="tabpanel"],
+.project-questions,
+.project-feedback-list {
+  animation: terminal-enter var(--motion-enter) ease-out;
+}
+
+.project-panel.ui-status + .project-layout {
+  margin-top: 24px;
+}
+
+.project-panel > hr {
+  margin-block: 28px;
+}
+
+.project-page .guest-trial-notice {
+  margin-top: 28px;
+}
+
+.project-form .ui-label > span {
+  display: inline;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* Fields in one form share one surface and corner: the project form mixed white inputs with
+   a grey select, and 9px corners with 12px buttons. */
+.project-page :is(input:not([type="checkbox"]), textarea, .ui-native-select) {
+  border-radius: var(--radius-control);
+}

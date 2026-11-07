@@ -1,7 +1,7 @@
 /* Product literacy track: prose and app behavior first, code on demand. */
 .feature-banner {
   border-radius: var(--radius-panel);
-  --feature: var(--success);
+  --feature: light-dark(var(--light-blue), #a3cbff);
   border: 1px solid light-dark(var(--light-line), #3c4944);
   background: var(--surface);
   margin-bottom: 18px;
@@ -249,10 +249,11 @@
   align-items: flex-start;
   gap: 12px;
   padding: 16px;
-  background: light-dark(var(--light-panel), #111512);
+  background: var(--surface);
   border: 1px solid light-dark(var(--light-line), #404a43);
   margin: 10px 0;
   cursor: pointer;
+  border-color: var(--line);
 }
 .learn-option:has(input:checked) {
   background: light-dark(var(--light-canvas), #1a2a20);
@@ -290,6 +291,7 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--surface);
+  scroll-margin-top: 110px;
 }
 .learn-observations > h3:not(:first-child) {
   margin-top: 24px;
@@ -646,4 +648,55 @@
   align-items: center;
   gap: 6px;
   min-height: 44px;
+}
+
+.observation-prediction {
+  border-left: 2px solid var(--line);
+  padding-left: 18px;
+}
+
+@media (min-width: 1001px) {
+  .learn-observations {
+    position: sticky;
+    top: 108px;
+    align-self: start;
+  }
+}
+
+/* Learning screens: the test input and contract take precedence over storefront decoration. */
+.mission-brief,
+.lab-purpose,
+.lab-target {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  line-height: 1.8;
+}
+
+.mission-rule {
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.lab-purpose,
+.lab-target {
+  margin-bottom: 24px;
+}
+
+.lab-target li + li {
+  margin-top: 12px;
+}
+
+.observation-checkpoint {
+  scroll-margin-top: 108px;
+}
+
+.project-panel,
+.learn-observations {
+  line-height: 1.8;
 }

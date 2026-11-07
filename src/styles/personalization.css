@@ -57,6 +57,7 @@
   aspect-ratio: 3/2;
   overflow: hidden;
   background: light-dark(var(--light-panel), #0d1013);
+  border-radius: 0;
 }
 .persona-art img {
   width: 100%;
@@ -294,4 +295,26 @@
 
 .persona-cards .is-selected .persona-selected {
   color: light-dark(var(--light-green), #a0edc9);
+}
+
+/* Blue indicates selection; green is reserved for successful outcomes. */
+.persona-change strong,
+.is-selected .persona-selected {
+  color: var(--action-soft);
+}
+
+.persona-cards label.persona-card.is-selected {
+  border-color: var(--action);
+  box-shadow: inset 0 0 0 1px var(--action);
+}
+
+.repair-next-step .primary-button {
+  min-height: 48px;
+  white-space: normal;
+}
+
+.persona-cards .persona-selected {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
 }

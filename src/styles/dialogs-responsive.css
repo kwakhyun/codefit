@@ -222,3 +222,27 @@
     padding-inline: 8px;
   }
 }
+
+.modal-heading {
+  padding-bottom: 16px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 14px 20px;
+  background: var(--surface-raised);
+  gap: 16px;
+}
+
+.modal-heading > .mono {
+  font-family: var(--sans);
+  font-size: var(--text-ui);
+  letter-spacing: 0;
+  min-width: 0;
+  line-height: 1.6;
+}
+
+@media (max-width: 650px) {
+  .modal-heading {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+}

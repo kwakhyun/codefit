@@ -83,3 +83,10 @@
     padding: 12px;
   }
 }
+
+/* Reserve two label lines so feature navigation does not jump on resize or selection. */
+.repair-next-step {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}

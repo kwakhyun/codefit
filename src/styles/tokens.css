@@ -69,6 +69,26 @@
   --handoff-focus: light-dark(var(--light-cyan), #87cfe0);
 }
 
+/* Narrow screens keep inputs at reading size and controls at the touch target. */
+@media (max-width: 760px) {
+  :root {
+    --control-size: 44px;
+    --text-input: var(--text-reading);
+  }
+}
+
+/* Scoped role overrides. Learning pages tint --surface to the page colour; the simulated
+   product screens use their own text colours. */
+.learn-page,
+.handoff-page,
+.profile-content {
+  --surface: light-dark(var(--light-canvas), #171d28);
+}
+.sample-app {
+  --text: light-dark(var(--light-text), #e2e9f4);
+  --muted: light-dark(var(--light-muted), #afbdd1);
+}
+
 :root[data-theme="light"] {
   color-scheme: light;
 }

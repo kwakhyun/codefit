@@ -334,3 +334,31 @@
     font-size: 14px;
   }
 }
+
+/* Shared reading rhythm for explanatory panels, including expanded disclosures. */
+:is(
+    .learn-limits,
+    .handoff-quality,
+    .handoff-measurement,
+    .auth-public-note,
+    .privacy-copy,
+    .privacy-copy > section
+  )
+  > :is(h2, h3, summary, p, ul, ol)
+  + :is(p, ul, ol) {
+  margin-top: 16px;
+}
+
+:is(
+    .learn-limits,
+    .handoff-quality,
+    .handoff-measurement,
+    .auth-public-note,
+    .privacy-copy,
+    .privacy-copy > section
+  )
+  > p
+  + a {
+  display: inline-flex;
+  margin-top: 16px;
+}

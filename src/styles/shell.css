@@ -452,3 +452,9 @@
   color: var(--white);
   border-left-color: var(--action);
 }
+
+.route-loading {
+  max-width: 1120px;
+  margin: 80px auto;
+  padding: 24px;
+}

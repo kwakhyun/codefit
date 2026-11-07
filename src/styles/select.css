@@ -92,3 +92,8 @@
     max-width: none;
   }
 }
+
+.ui-select-options:popover-open,
+.modal[open] {
+  animation: terminal-enter var(--motion-enter) ease-out;
+}

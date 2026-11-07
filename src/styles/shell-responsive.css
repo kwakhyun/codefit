@@ -184,4 +184,11 @@
 
 .topbar {
   backdrop-filter: none;
+  background: var(--bg);
+  border-bottom-color: var(--line);
+}
+
+.modal[open]::backdrop {
+  background: rgb(0 0 0 / 76%);
+  backdrop-filter: blur(4px);
 }
