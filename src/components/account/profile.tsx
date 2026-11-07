@@ -80,10 +80,11 @@ export function Profile({
   return (
     <div className="profile-content">
       <VisualIntro topic="progress" className="compact-visual-intro">
-        <span className="eyebrow">MY TRAINING PROFILE</span>
+        <span className="eyebrow">내 계정</span>
         <h1>내 프로필과 학습 현황</h1>
         <p className="muted">
-          {initialUser.email} / 가입일 {new Date(initialUser.createdAt).toLocaleDateString("ko-KR")}
+          {initialUser.email} / 가입일{" "}
+          {new Date(initialUser.createdAt).toLocaleDateString("ko-KR", { timeZone: "Asia/Seoul" })}
         </p>
       </VisualIntro>
       {!data && !error && <ScreenSkeleton variant="profile" label="내 학습 현황을 불러오는 중…" />}
