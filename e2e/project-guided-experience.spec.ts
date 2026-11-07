@@ -94,7 +94,8 @@ for (const width of [1440, 390]) {
             .analyze()
         ).violations,
       ).toEqual([]);
-      await page.locator(".project-questions h2").focus();
+      // Role lookup skips the closed confirmation dialog the code dialogue keeps in the DOM.
+      await page.locator(".project-questions").getByRole("heading", { level: 2 }).focus();
       await page
         .locator(".project-questions")
         .screenshot({ path: `artifacts/guided-analysis-${width}-${theme}.png` });

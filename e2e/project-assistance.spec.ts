@@ -16,7 +16,9 @@ const overview = (): CheckOverview => ({
   nextCursor: null,
 });
 async function enterProject(page: Page) {
-  await page.getByLabel("서비스 링크", { exact: true }).fill("https://example.com/");
+  await page
+    .getByLabel("서비스 또는 공개 저장소 링크", { exact: true })
+    .fill("https://example.com/");
   await page.getByLabel("서비스와 구현 방식 설명").fill("직접 만든 예약 서비스입니다.");
 }
 
@@ -42,7 +44,9 @@ test("analysis drafts survive reload and retry the same request, without an extr
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
   await expect(failed).toBeVisible();
   await page.reload();
-  await expect(page.getByLabel("서비스 링크", { exact: true })).toHaveValue("https://example.com/");
+  await expect(page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true })).toHaveValue(
+    "https://example.com/",
+  );
   await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue(
     "직접 만든 예약 서비스입니다.",
   );
@@ -58,7 +62,7 @@ test("analysis drafts survive reload and retry the same request, without an extr
   data = { ...overview(), scope: "user:other-assistance-test" };
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue("");
-  await expect(page.getByLabel("서비스 링크", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true })).toHaveValue("");
   await expect(failed).toHaveCount(0);
 });
 

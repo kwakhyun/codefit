@@ -1,12 +1,18 @@
 import { expect, test } from "@playwright/test";
 import { fixtureCheck } from "../src/lib/project-check/fixtures";
 import { publicCheck } from "../src/lib/server/project-check-store";
-import { checkListItem } from "../src/lib/project-check/types";
+import { checkListItem, type CheckOverview } from "../src/lib/project-check/types";
 const check = publicCheck(fixtureCheck);
 const id = check.id;
-const overview = {
+// The full list response: project details also show the re-check cost from `usage`.
+const overview: CheckOverview = {
   scope: "visitor:continuity",
   signedIn: false,
+  aiReady: true,
+  usage: {
+    analysis: { limit: 2, remaining: 2, resetsAt: null },
+    review: { limit: 4, remaining: 4, resetsAt: null },
+  },
   checks: [checkListItem(check)],
   nextCursor: null,
 };

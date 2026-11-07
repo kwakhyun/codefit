@@ -46,6 +46,7 @@ for (const kind of ["practice", "workshop"]) {
     page,
   }) => {
     let renewed: typeof check | undefined;
+    let replenished = false;
     let analyses = 0;
     let generations = 0;
     await page.route("**/api/project-check", (route) => {
@@ -61,7 +62,7 @@ for (const kind of ["practice", "workshop"]) {
           aiReady: true,
           checks: renewed ? [renewed, check] : [check],
           usage: {
-            analysis: { limit: 5, remaining: renewed ? 2 : 0 },
+            analysis: { limit: 5, remaining: renewed ? 2 : replenished ? 1 : 0 },
             review: { limit: 12, remaining: 12 },
           },
         },
@@ -100,14 +101,22 @@ for (const kind of ["practice", "workshop"]) {
       name: kind === "practice" ? "맞춤 연습 6개 만들기" : "AI 워크숍 만들기",
       exact: true,
     });
-    await expect(
-      page.getByRole("button", { name: "최신 코드로 새로 점검", exact: true }),
-    ).toBeVisible();
+    const renew = page.getByRole("button", { name: "최신 코드로 새로 점검", exact: true });
+    await expect(renew).toBeVisible();
+    // With no analysis left the re-check is disabled before any request is sent.
+    await expect(renew).toBeDisabled();
     // The account allowance changed externally while this page was open.
-    await page.getByRole("button", { name: "최신 코드로 새로 점검", exact: true }).click();
+    replenished = true;
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(renew).toBeEnabled();
+    await renew.click();
     await expect.poll(() => renewed?.id).toBeTruthy();
     await expect(page).toHaveURL(new RegExp(`check=${renewed!.id}`));
     await expect(generate).toBeEnabled();
+    // The allowance is read again after renewing, so the cost shows the server's new count.
+    await expect(
+      page.getByText(kind === "practice" ? "분석 횟수 1회 사용 · 남은 2회" : /1회 사용 · 2회 남음/),
+    ).toBeVisible();
     await expect(page.getByText("프로젝트 분석이 완료됐어요", { exact: true })).toHaveCount(0);
     expect(analyses).toBe(1);
     expect(generations).toBe(0);

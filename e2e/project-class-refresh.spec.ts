@@ -70,7 +70,9 @@ test("focus preserves search and loaded pages while refreshing changed and delet
   await expect(page.getByRole("heading", { name: "갱신된 예약 클래스" })).toBeVisible();
   await expect(search).toHaveValue("예약");
   await expect(page.getByRole("heading", { name: "이전 예약 클래스" })).toHaveCount(0);
-  expect(secondPageReads).toBeGreaterThanOrEqual(2);
+  // Focus re-reads the first page (and the active search) only; pages already shown are kept
+  // instead of being fetched again (docs/project-classes.md).
+  expect(secondPageReads).toBe(1);
   await expect(page.getByRole("button", { name: "이전 프로젝트 더 보기" })).toHaveCount(0);
 });
 
@@ -83,6 +85,13 @@ test("detail refreshes on focus without replacing edit drafts or accepting stale
     route.fulfill({
       json: {
         scope: "visitor:refresh",
+        signedIn: false,
+        aiReady: true,
+        // Project details show the re-check cost from the account allowance.
+        usage: {
+          analysis: { limit: 2, remaining: 2, resetsAt: null },
+          review: { limit: 4, remaining: 4, resetsAt: null },
+        },
         checks: [checkListItem(publicCheck(fixtureCheck))],
         nextCursor: null,
       },
@@ -128,5 +137,6 @@ test("detail refreshes on focus without replacing edit drafts or accepting stale
   );
   expect(submittedRevision).toBe(0);
   await page.getByRole("button", { name: "최신 정보 다시 불러오기" }).click();
-  await expect(page.getByText("1/5 완료", { exact: true })).toBeVisible();
+  // The check track counts a saved evaluation, not answered questions.
+  await expect(page.getByText("평가 완료", { exact: true })).toBeVisible();
 });
