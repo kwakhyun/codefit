@@ -14,6 +14,7 @@ import { ExecutionWait } from "./execution-wait";
 import { VoiceInput } from "@/components/ui/voice-input";
 import { ArrowRight, Check, LoaderCircle, Play, Sparkles } from "lucide-react";
 import { sameOutput } from "@/lib/handoff/training";
+import { allowanceSummary } from "@/lib/ai-access";
 import type { LearningLabController } from "@/hooks/use-learning-lab";
 import { LearningCoachQuestion } from "./learning-coach-question";
 import { LearningExperiment } from "./learning-experiment";
@@ -43,7 +44,7 @@ const situations: Record<string, string> = {
     "청구 내역 화면의 결제·대기 합계는 이미 쓰이고 있습니다. 기존 합계를 바꾸지 않고 취소된 청구 금액을 따로 보여 주도록 확장합니다.",
 };
 const steps = [
-  { title: "예측하기", description: "실행 전에 내 생각 남기기" },
+  { title: "예상하기", description: "실행 전에 내 생각 남기기" },
   { title: "비교하기", description: "예상과 실제 동작 비교" },
   { title: "수정하기", description: "코드를 고치고 테스트" },
   { title: "설명하기", description: "이유를 정리하고 응용" },
@@ -76,7 +77,7 @@ export function LearningLab({
   return (
     <section ref={fade} className="learning-lab" aria-label="코드 이해 훈련">
       <div className="lab-intro">
-        <span className="eyebrow">예상하고, 실행하고, 비교하기</span>
+        <span className="eyebrow">예상하기, 실행하기, 비교하기</span>
         <span>교육용 JavaScript · 틀린 예상도 좋은 출발점입니다.</span>
       </div>
       <nav className="lab-steps" aria-label="코드 이해 훈련 단계">
@@ -154,7 +155,7 @@ export function LearningLab({
               <span>인수받은 원본</span>
               <span>JavaScript</span>
             </div>
-            <pre tabIndex={0} aria-label="예측할 원본 코드">
+            <pre tabIndex={0} aria-label="예상할 원본 코드">
               <code>{starterCode}</code>
             </pre>
             <div className="lab-input-context">
@@ -236,7 +237,7 @@ export function LearningLab({
             />
             {t.prediction.locked && (
               <p className="lab-saved-prediction">
-                <Check size={14} /> 첫 예측을 보관했습니다. 달라진 생각은 마지막 분석 메모에
+                <Check size={14} /> 첫 예상을 보관했습니다. 달라진 생각은 마지막 분석 메모에
                 남기세요.
               </p>
             )}
@@ -262,7 +263,7 @@ export function LearningLab({
                   ? "비교 결과 다시 보기"
                   : t.prediction.locked
                     ? "원본 다시 실행"
-                    : "예측을 남기고 원본 실행"}
+                    : "예상을 남기고 원본 실행"}
             </Button>
           </div>
         </div>
@@ -273,7 +274,7 @@ export function LearningLab({
             <div className="lab-empty">
               <p>첫 예상과 실제 결과를 나란히 확인할 수 있습니다.</p>
               <Button className="secondary-button" onClick={() => move(0)}>
-                먼저 예측하기
+                먼저 예상하기
               </Button>
             </div>
           ) : (
@@ -281,7 +282,7 @@ export function LearningLab({
               <div className="lab-comparison">
                 <div>
                   <span>내가 예상한 결과</span>
-                  <strong>{choice?.label || "예측 기록 없음"}</strong>
+                  <strong>{choice?.label || "예상 기록 없음"}</strong>
                   <p>{t.prediction.reason}</p>
                 </div>
                 <div className={!c.observationStale && correct ? "matches" : "differs"}>
@@ -369,8 +370,7 @@ export function LearningLab({
                         : "내 예상에 맞는 AI 질문 받기"}
                   </Button>
                   <small>
-                    선택 사항 · 로그인 없이 2회, 로그인하면 24시간 30회 · AI 질문 사용은 도움 기록에
-                    포함됩니다.
+                    선택 사항 · {allowanceSummary("coach")} · AI 질문 사용은 도움 기록에 포함됩니다.
                     {!aiReady && " AI 연결 전에도 실행과 수정은 가능합니다."}
                     {blocked && " 저장 충돌을 먼저 해결해 주세요."}
                   </small>
@@ -384,10 +384,10 @@ export function LearningLab({
       {stage === 3 && (
         <div className="lab-learning-summary" aria-label="이번 훈련의 근거">
           <div>
-            <span>첫 예측</span>
+            <span>첫 예상</span>
             <strong>{t.prediction.locked ? "기록함" : "아직 남기지 않음"}</strong>
             <Button className="text-button" onClick={() => move(0)}>
-              예측 보기 →
+              예상 보기 →
             </Button>
           </div>
           <div>
@@ -505,7 +505,7 @@ export function LabTests({ controller: c }: { controller: LearningLabController 
           프로토타입은 변경할 수 없습니다.
         </small>
       </Disclosure>
-      <p className="lab-test-next" role="status">
+      <p className="lab-test-next">
         {!t.run
           ? "코드를 수정한 뒤 테스트를 한 번 실행하면 결과를 바탕으로 설명을 정리할 수 있습니다."
           : stale

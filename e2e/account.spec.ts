@@ -135,7 +135,10 @@ test("queued drafts and stale profiles cannot cross an account switch", async ({
     await setCode(page, "print('second queued account draft')");
     await page.getByRole("button", { name: "지금 저장", exact: true }).first().click();
     await login(second.cookie);
-    await page.locator(".workspace-breadcrumb").getByRole("link", { name: "문제 보관함" }).click();
+    await page
+      .locator(".workspace-breadcrumb")
+      .getByRole("link", { name: "분야별 코딩 연습" })
+      .click();
     await expect(
       page.getByRole("button", { name: "문제와 기록 새로고침", exact: true }),
     ).toBeEnabled();

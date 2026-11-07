@@ -32,7 +32,10 @@ test("anonymous entry, paged search, URL restoration, and home accessibility", a
   await expect(page.locator(".problem-row")).toHaveCount(1);
   await page.locator(".problem-link").click();
   await expect(page).toHaveURL(/\/problems\/net-framing/);
-  await page.locator(".workspace-breadcrumb").getByRole("link", { name: "문제 보관함" }).click();
+  await page
+    .locator(".workspace-breadcrumb")
+    .getByRole("link", { name: "분야별 코딩 연습" })
+    .click();
   await expect(page.getByRole("textbox", { name: "문제 검색" })).toHaveValue("TCP");
   expect(errors).toEqual([]);
 });

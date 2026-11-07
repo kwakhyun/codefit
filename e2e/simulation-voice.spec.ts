@@ -167,6 +167,6 @@ test("unsupported voice keeps typing available; code understanding also accepts 
   await expect(page.getByRole("button", { name: "음성으로 입력", exact: true })).toBeDisabled();
   await expect(page.getByLabel("왜 그렇게 생각했나요?")).toBeEditable();
   await page.getByRole("radio").first().check();
-  await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await page.getByRole("button", { name: "예상을 남기고 원본 실행" }).click();
   await expect(page.locator(".lab-comparison")).toContainText("[3,3]");
 });

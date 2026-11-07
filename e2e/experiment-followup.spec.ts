@@ -32,7 +32,7 @@ async function begin(page: Page) {
   await page.goto("/problems/handoff-cart");
   await page.getByRole("radio", { name: "원본 2, 반환값 3" }).check();
   await page.getByLabel("왜 그렇게 생각했나요?").fill(initialReason);
-  await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await page.getByRole("button", { name: "예상을 남기고 원본 실행" }).click();
   await openLabTools(page);
   await page.locator(".lab-experiment-editor summary").click();
   await page.getByLabel("실험 코드", { exact: true }).fill(expression);

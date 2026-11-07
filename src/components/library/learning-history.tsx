@@ -43,7 +43,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
         </div>
         <ArrowRight size={18} aria-hidden="true" />
       </Link>
-      <Link className="history-track-link" href="/handoff">
+      <Link className="history-track-link" href="/handoff?source=sample">
         <div>
           <strong>AI 코드 이해 훈련 기록</strong>
           <p>분석한 과제와 복습할 내용을 확인하세요.</p>
@@ -85,7 +85,7 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
         <div>
           <span>
             <Bookmark size={16} />
-            다시 풀 문제
+            북마크
           </span>
           <strong>
             {saved}

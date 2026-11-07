@@ -42,7 +42,7 @@ test("coaching focus preserves exact learner text, escapes HTML and restores leg
   await page.goto("/problems/handoff-cart");
   await page.getByRole("radio", { name: "원본 3, 반환값 3" }).check();
   await page.getByLabel("왜 그렇게 생각했나요?").fill(reason);
-  await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await page.getByRole("button", { name: "예상을 남기고 원본 실행" }).click();
   await openLabTools(page);
   await page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" }).click();
   const focus = page.getByLabel("질문의 초점");

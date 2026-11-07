@@ -124,11 +124,9 @@ export function useLibraryController({
       ? "북마크"
       : initialView === "history"
         ? "학습 기록"
-        : initialView === "browse"
-          ? "전체 문제 탐색"
-          : initialDomain === "all"
-            ? "문제 보관함"
-            : domainLabel(initialDomain);
+        : initialView === "browse" || initialDomain === "all"
+          ? "분야별 코딩 연습"
+          : domainLabel(initialDomain);
   function setBookmarked(problemId: string, bookmarked: boolean) {
     setResult((current) => {
       const previous = current?.value.progress[problemId];

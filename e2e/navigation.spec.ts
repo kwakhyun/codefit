@@ -54,7 +54,7 @@ test("new code learners get one consistent first recommendation; public navigati
     "/problems/handoff-cart?from=%2Fhandoff",
   );
   await next.getByRole("link").click();
-  await expect(page.getByRole("heading", { name: "1. 예측하기" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "1. 예상하기" })).toBeVisible();
   await page.goto("/learn");
   const navigation = page.getByRole("navigation", { name: "서비스 메뉴" });
   await navigation.getByRole("link", { name: "AI 코드 이해 훈련", exact: true }).focus();

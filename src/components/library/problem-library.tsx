@@ -89,13 +89,13 @@ export function ProblemLibrary({
       ) : (
         <div className="page-title">
           <span className="eyebrow">
-            {initialView === "bookmarks" ? "나중에 풀 문제" : "분야별 코딩 연습"}
+            {initialView === "bookmarks" ? "북마크" : "분야별 코딩 연습"}
           </span>
           <h1>
             {initialView === "bookmarks"
               ? "북마크한 문제"
               : initialDomain === "all"
-                ? "전체 문제 탐색"
+                ? "모든 분야의 코딩 문제"
                 : `${domainLabel(initialDomain as DomainId)} 코딩 문제`}
           </h1>
           <p>

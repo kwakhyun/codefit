@@ -107,7 +107,7 @@ export function ReviewPanel({
           )}
           {handoff && (
             <p>
-              <Link href="/handoff">과제별 피드백과 복습할 문제 보기 →</Link>
+              <Link href="/handoff?source=sample">과제별 피드백과 복습할 문제 보기 →</Link>
             </p>
           )}
           <Disclosure className="submitted-code">

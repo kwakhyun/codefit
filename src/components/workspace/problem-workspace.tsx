@@ -26,6 +26,7 @@ import {
   formatHandoffDraft,
 } from "@/lib/handoff/draft";
 import { DraftConflict } from "./draft-conflict";
+import { SaveStatus } from "./save-status";
 import { ProblemMaterials } from "@/components/workspace/problem-materials";
 import { ReviewPanel } from "@/components/workspace/review-panel";
 import { WorkspaceConfirmation } from "@/components/workspace/workspace-confirmation";
@@ -39,7 +40,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Bookmark,
-  Check,
   ChevronRight,
   Clock3,
   LoaderCircle,
@@ -149,7 +149,7 @@ export function ProblemWorkspace({
         <p>주소가 잘못되었거나 더 이상 제공하지 않는 문제입니다.</p>
         <Link className="secondary-button" href={returnTo}>
           <ArrowLeft size={16} />
-          {returnTo.startsWith("/handoff") ? "AI 코드 이해 훈련으로" : "문제 보관함으로"}
+          {returnTo.startsWith("/handoff") ? "AI 코드 이해 훈련으로" : "분야별 코딩 연습으로"}
         </Link>
       </div>
     );
@@ -169,7 +169,9 @@ export function ProblemWorkspace({
         >
           다시 시도
         </Button>
-        <Link href={returnTo}>문제 보관함으로</Link>
+        <Link href={returnTo}>
+          {returnTo.startsWith("/handoff") ? "AI 코드 이해 훈련으로" : "분야별 코딩 연습으로"}
+        </Link>
       </div>
     );
   const { problem, hints, solution, attempts, progress } = detail;
@@ -199,7 +201,7 @@ export function ProblemWorkspace({
       <div className="workspace-breadcrumb">
         <Link href={returnTo}>
           <ArrowLeft size={15} />{" "}
-          {returnTo.startsWith("/handoff") ? "AI 코드 이해 훈련" : "문제 보관함"}
+          {returnTo.startsWith("/handoff") ? "AI 코드 이해 훈련" : "분야별 코딩 연습"}
         </Link>
         <ChevronRight size={13} />
         <span>{domainLabel(problem.domain)}</span>
@@ -310,29 +312,7 @@ export function ProblemWorkspace({
           <div className="editor-topbar">
             <span>코드 작성</span>
             <div>
-              <span
-                className={`save-indicator ${saveState === "failed" ? "failed" : ""}`}
-                role="status"
-              >
-                {saveState === "saving" ? (
-                  <LoaderCircle size={12} className="spin" />
-                ) : saveState === "saved" ? (
-                  <Check size={12} />
-                ) : (
-                  <Save size={12} />
-                )}
-                {!localSaved
-                  ? "브라우저 보관 실패"
-                  : {
-                      saved: "저장됨",
-                      saving: "저장 중",
-                      local: "저장 대기",
-                      failed: "저장 실패",
-                      offline: "오프라인 보관",
-                      conflict: "충돌 · 초안 보관",
-                      resolving: "충돌 확인 중",
-                    }[saveState]}
-              </span>
+              <SaveStatus state={saveState} localSaved={localSaved} />
               {(saveState === "failed" || saveState === "local" || saveState === "offline") && (
                 <Button className="text-button" onClick={() => void saveNow()}>
                   지금 저장
@@ -522,8 +502,8 @@ export function ProblemWorkspace({
                   className="secondary-button"
                   href={
                     problem.handoff.variant
-                      ? "/handoff"
-                      : problemUrl(handoffId(problem.handoff.track, true), "/handoff")
+                      ? "/handoff?source=sample"
+                      : problemUrl(handoffId(problem.handoff.track, true), "/handoff?source=sample")
                   }
                 >
                   {problem.handoff.variant ? "훈련 목록으로" : "새 상황에서 응용하기"}{" "}

@@ -2,7 +2,7 @@
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { Card, Status, Button, Disclosure, DisclosureSummary } from "@/components/ui/primitives";
 import { SectionArtwork } from "@/components/experience/section-artwork";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppLink as Link } from "@/components/ui/primitives";
 import { api, ApiError, errorMessage } from "@/lib/client-api";
 import { HANDOFF_TRACKS } from "@/lib/handoff/catalog";
@@ -15,34 +15,41 @@ export function HandoffDashboard() {
   const [error, setError] = useState("");
   const [accountChanged, setAccountChanged] = useState(false);
   const [reload, setReload] = useState(0);
+  // Background refreshes keep the last records on screen instead of flashing a skeleton.
+  const shown = useRef(false);
   useEffect(() => {
     const controller = new AbortController();
     let version = 0;
-    async function load() {
+    async function load(background = false) {
       const current = ++version;
       try {
         const next = await api<Dashboard>("/api/handoff", {
           signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
+          track: !background,
         });
         if (!controller.signal.aborted && current === version) {
+          shown.current = true;
           setData(next);
           setError("");
           setAccountChanged(false);
         }
       } catch (e) {
         if (!controller.signal.aborted && current === version) {
-          setData(null);
-          setError(errorMessage(e));
-          setAccountChanged(e instanceof ApiError && e.status === 409);
+          const changed = e instanceof ApiError && e.status === 409;
+          // Another account's records must not stay visible; a failed refresh otherwise keeps them.
+          if (changed || !shown.current) {
+            shown.current = false;
+            setData(null);
+            setError(errorMessage(e));
+            setAccountChanged(changed);
+          }
         }
       }
     }
     void load();
     const refresh = () => {
-      if (document.visibilityState === "visible") {
-        setData(null);
-        void load();
-      }
+      // The metrics are announced again only when their text actually changes.
+      if (document.visibilityState === "visible") void load(true);
     };
     document.addEventListener("visibilitychange", refresh);
     return () => {

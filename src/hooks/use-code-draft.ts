@@ -60,6 +60,8 @@ export function useCodeDraft({
                 scope,
                 body: { code, baseRevision },
                 keepalive: new TextEncoder().encode(code).length < 45000,
+                // Autosave runs on every pause; it stays out of the global progress bar.
+                track: false,
               },
             );
             return { saved: progress };
