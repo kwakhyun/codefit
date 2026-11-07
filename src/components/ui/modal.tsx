@@ -11,7 +11,8 @@ const FOCUSABLE =
 function trapFocus(event: KeyboardEvent<HTMLDialogElement>) {
   if (event.key !== "Tab" || event.defaultPrevented) return;
   const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-    (element) => element.getClientRects().length > 0 && !element.closest("[inert]"),
+    (element) =>
+      element.tabIndex >= 0 && element.getClientRects().length > 0 && !element.closest("[inert]"),
   );
   const first = controls[0],
     last = controls[controls.length - 1];
