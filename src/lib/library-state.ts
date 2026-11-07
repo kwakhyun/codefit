@@ -1,4 +1,5 @@
 import { DOMAIN_IDS, KINDS, LANGUAGES, LEVELS } from "./catalog";
+import type { LibraryFacets } from "./problem";
 export interface LibraryFilters {
   search: string;
   level: string;
@@ -61,3 +62,29 @@ export function problemUrl(id: string, returnTo: string, attempt?: string) {
 }
 
 export type LibraryView = "library" | "bookmarks" | "history" | "browse";
+
+type FilterOption = { value: string; label: string };
+/** Adds the number of matching problems to each filter option (other filters applied). With
+ * `hideEmpty`, options without problems are left out unless currently selected. */
+export function countedOptions(
+  facets: LibraryFacets | undefined,
+  facet: keyof LibraryFacets,
+  options: FilterOption[],
+  selected: string,
+  hideEmpty = false,
+): FilterOption[] {
+  if (!facets) return options;
+  return options
+    .filter(
+      (option) =>
+        option.value === "all" ||
+        !hideEmpty ||
+        option.value === selected ||
+        (facets[facet][option.value] ?? 0) > 0,
+    )
+    .map((option) =>
+      option.value === "all"
+        ? option
+        : { ...option, label: `${option.label} (${facets[facet][option.value] ?? 0})` },
+    );
+}

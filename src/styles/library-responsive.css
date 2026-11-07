@@ -718,3 +718,10 @@
     gap: 14px;
   }
 }
+
+/* Kind counts stay on wide layouts; narrow toggles keep their labels on one line. */
+@media (max-width: 540px) {
+  .type-filters .toggle-count {
+    display: none;
+  }
+}

@@ -1,10 +1,10 @@
 "use client";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
-import { Status, Button } from "@/components/ui/primitives";
+import { Status, Button, ToggleButton } from "@/components/ui/primitives";
 import { VisualIntro } from "@/components/experience/visual-intro";
 import { LearningResume } from "@/components/learn/learning-resume";
 
-import { useLearningHistory } from "@/hooks/use-learning-history";
+import { useLearningHistory, type HistoryFilter } from "@/hooks/use-learning-history";
 import type { LibraryController } from "@/hooks/use-library-controller";
 
 import { dateLabel } from "@/lib/client-api";
@@ -21,12 +21,23 @@ import {
   History,
 } from "lucide-react";
 import { AppLink as Link } from "@/components/ui/primitives";
+import { useState } from "react";
 interface LearningHistoryProps {
   data: Workspace;
   library: LibraryController;
 }
 export function LearningHistory({ data, library }: LearningHistoryProps) {
-  const history = useLearningHistory(data);
+  const [filter, setFilter] = useState<HistoryFilter>("all");
+  const history = useLearningHistory(data, filter);
+  const today = library.training.today;
+  const todayItems = today
+    ? [
+        ["코딩 문제 검토", today.coding, "회"],
+        ["코드 이해 훈련 검토", today.understanding, "회"],
+        ["서비스 원리 미션 완료", today.missions, "개"],
+        ["AI 실무 수업 완료", today.lessons, "개"],
+      ].filter(([, count]) => Number(count) > 0)
+    : [];
   const { solved, inProgress, saved, training, libraryHref } = library;
   return (
     <>
@@ -97,20 +108,33 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
         <div>
           <span className="eyebrow">최근 7일 연습 기록</span>
           <h2>
-            {training.streak ? `${training.streak}일 연속 훈련 중` : "오늘의 첫 풀이를 남겨 보세요"}
+            {training.streak
+              ? `${training.streak}일 연속 학습 중`
+              : "오늘의 첫 학습을 시작해 보세요"}
           </h2>
           <p>
-            최근 7일 중 {training.activeDays}일 훈련 · 도움 없이 해결한 문제{" "}
+            최근 7일 중 {training.activeDays}일 학습 · 도움 없이 해결한 문제{" "}
             {training.independentSolved}개
           </p>
-          <small>AI 검토를 완료한 날 기준 · 한국 시간</small>
+          {today && (
+            <p className="today-summary">
+              <strong>오늘의 학습</strong>{" "}
+              {todayItems.length
+                ? todayItems.map(([label, count, unit]) => `${label} ${count}${unit}`).join(" · ")
+                : "아직 완료한 학습이 없습니다."}
+            </p>
+          )}
+          <small>
+            코딩 문제 AI 검토, 코드 이해 훈련 검토, 서비스 원리 미션 완료, AI 실무 수업 완료 중
+            하나라도 있는 날을 셉니다 · 한국 시간
+          </small>
         </div>
         <div className="training-week">
           {training.week.map((day) => (
             <span
               key={day.label}
               className={day.active ? "active" : ""}
-              aria-label={`${day.label} ${day.active ? "훈련 완료" : "검토 기록 없음"}`}
+              aria-label={`${day.label} ${day.active ? "학습함" : "학습 기록 없음"}`}
             >
               <Check size={16} aria-hidden="true" />
               <small>{day.label}</small>
@@ -125,8 +149,36 @@ export function LearningHistory({ data, library }: LearningHistoryProps) {
           </h2>
           <span className="muted">최근 검토 순</span>
         </div>
+        <div className="history-filters" role="group" aria-label="풀이 기록 보기">
+          {(
+            [
+              ["all", "전체 기록"],
+              ["unsolved", "아직 해결하지 못한 문제"],
+            ] as const
+          ).map(([value, label]) => (
+            <ToggleButton
+              key={value}
+              className={filter === value ? "selected" : ""}
+              aria-pressed={filter === value}
+              onClick={() => setFilter(value)}
+            >
+              {label}
+            </ToggleButton>
+          ))}
+        </div>
+        {filter === "unsolved" && (
+          <p className="history-filter-note">
+            문제마다 가장 최근 검토만 보여 줍니다. AI 검토 기준을 모두 충족하면 목록에서 빠집니다.
+          </p>
+        )}
         {history.loading && !history.attempts.length ? (
           <ScreenSkeleton variant="list" label="풀이 기록을 불러오는 중입니다." />
+        ) : !history.error && filter === "unsolved" && !history.attempts.length ? (
+          <div className="empty-state bordered">
+            <CheckCircle2 size={36} />
+            <h2>검토 후 아직 해결하지 못한 문제가 없습니다.</h2>
+            <p>검토한 문제를 모두 해결했거나 아직 검토한 풀이가 없습니다.</p>
+          </div>
         ) : !history.error && data.stats.attempts === 0 ? (
           <div className="empty-state bordered">
             <History size={36} />

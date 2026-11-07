@@ -81,7 +81,7 @@ test("mobile filters preserve selection when folded and reset cleanly", async ({
   await expect(page.getByRole("combobox", { name: "난이도 필터", exact: true })).toBeHidden();
   await toggle.click();
   await page.getByRole("combobox", { name: "난이도 필터", exact: true }).click();
-  await page.getByRole("option", { name: "난이도 하", exact: true }).click();
+  await page.getByRole("option", { name: /^난이도 하 \(\d+\)$/ }).click();
   await expect(page).toHaveURL(/level=/);
   await toggle.click();
   await expect(page.locator(".filter-summary")).toContainText("난이도 하");
@@ -116,7 +116,11 @@ test("all public page families remain readable on mobile and have accessible nav
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(url);
     await expect(page.locator("h1")).toBeVisible();
-    if (url.includes("problems")) await expect(page.locator(".monaco-editor")).toBeVisible();
+    if (url.includes("problems")) {
+      // Phone-width coding problems open on the 문제 tab; the editor is on the 코드 tab.
+      await page.getByRole("tab", { name: "코드", exact: true }).click();
+      await expect(page.locator(".monaco-editor")).toBeVisible();
+    }
     expect(
       (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
         .violations,
