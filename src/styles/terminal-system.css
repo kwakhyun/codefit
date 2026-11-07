@@ -522,6 +522,12 @@ html {
 .confirmation-modal .ui-dialog-actions {
   margin: 0 24px 24px;
 }
+.confirmation-modal .confirmation-details {
+  margin: -12px 24px 24px;
+  padding-left: 20px;
+  line-height: 1.7;
+  color: var(--muted);
+}
 
 /* Surface transitions use opacity only, preserving layout and input focus. */
 .ui-card,
