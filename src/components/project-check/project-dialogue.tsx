@@ -124,7 +124,7 @@ export function ProjectCodeDialogue({
       <Modal
         open={lastUseOpen}
         onClose={() => setLastUseOpen(false)}
-        title="남은 평가 1회를 어디에 사용할까요?"
+        title="남은 평가 횟수 1회를 어디에 사용할까요?"
       >
         <p>
           코드 대화에 사용하면 전체 답변 평가는 평가 횟수가 다시 채워진 뒤에 받을 수 있습니다. 지금

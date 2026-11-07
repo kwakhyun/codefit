@@ -26,6 +26,7 @@ import {
   subscribeAnalysis,
 } from "@/lib/project-analysis-tasks";
 import { detectSource } from "@/lib/project-check/display";
+import { allowanceSummary } from "@/lib/ai-access";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import type { useProjectDraft } from "@/hooks/use-project-draft";
 import { AllowanceCost } from "./allowance-cost";
@@ -136,7 +137,8 @@ export function NewProjectForm({
             <h3>지금은 새 프로젝트를 분석할 수 없습니다</h3>
             <p>
               분석, 실습 생성, AI 워크숍 생성이 함께 쓰는 분석 횟수 {data.usage.analysis.limit}회를
-              모두 사용했습니다. {resetLabel} 주소와 설명은 미리 작성해 둘 수 있습니다.
+              모두 사용했습니다. {resetLabel} 분석 횟수는 {allowanceSummary("analysis")}입니다.
+              주소와 설명은 미리 작성해 둘 수 있습니다.
             </p>
             <p>
               {data.usage.review.remaining > 0

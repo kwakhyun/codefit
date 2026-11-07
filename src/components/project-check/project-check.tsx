@@ -12,7 +12,7 @@ import { RefreshCw, CircleAlert } from "lucide-react";
 import { useProjectHistory } from "@/hooks/use-project-history";
 import { useProjectDraft } from "@/hooks/use-project-draft";
 import { useProjectOverview } from "@/hooks/use-project-overview";
-import { allowanceWindow, memberAllowance } from "@/lib/ai-access";
+import { allowanceWindow, guestAllowance, memberAllowance } from "@/lib/ai-access";
 import { api, dateLabel, errorMessage } from "@/lib/client-api";
 import { displayName, projectDeletion } from "@/lib/project-check/display";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
@@ -54,10 +54,11 @@ export function ProjectCheckApp() {
             <Card as="aside" className="guest-trial-notice">
               <strong>로그인 없이 실제 프로젝트를 점검해 보세요</strong>
               <p>
-                {allowanceWindow("analysis")} 기준 분석 횟수 {data.usage.analysis.limit}회와 평가
-                횟수 {data.usage.review.limit}회를 사용할 수 있습니다. 분석, 실습 생성, AI 워크숍
-                생성이 분석 횟수를 함께 씁니다. 로그인하면 분석 횟수 {memberAllowance("analysis")}
-                회, 평가 횟수 {memberAllowance("projectReview")}회를 사용할 수 있습니다.
+                {allowanceWindow("analysis")} 기준 분석 횟수 {guestAllowance("analysis")}회와 평가
+                횟수 {guestAllowance("projectReview")}회를 사용할 수 있습니다. 분석, 실습 생성, AI
+                워크숍 생성이 분석 횟수를 함께 씁니다. 로그인하면 분석 횟수{" "}
+                {memberAllowance("analysis")}회, 평가 횟수 {memberAllowance("projectReview")}회를
+                사용할 수 있습니다.
               </p>
               <p className="guest-records-notice">
                 <strong>기록은 이 브라우저에 남습니다.</strong> 로그인해도 지금 만든 기록이 계정으로

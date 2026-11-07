@@ -89,7 +89,7 @@ export async function readReviewStatus(
       return {
         state: "failed",
         message:
-          "접수된 평가 요청을 찾지 못했습니다. 답변을 확인한 뒤 다시 요청해 주세요. 이용 횟수는 차감되지 않았습니다.",
+          "접수된 평가 요청을 찾지 못했습니다. 답변을 확인한 뒤 다시 요청해 주세요. 평가 횟수는 차감되지 않았습니다.",
       };
     if (error instanceof ApiError && [401, 403].includes(error.status))
       return { state: "unknown", message: error.message };

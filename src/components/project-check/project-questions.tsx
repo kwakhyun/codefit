@@ -576,7 +576,7 @@ export function ProjectQuestions({
             </Button>
           )}
           <p className="project-help">
-            상태 확인은 AI를 다시 호출하거나 이용 횟수를 차감하지 않습니다. 분석당 평가는 한 번만
+            상태 확인은 AI를 다시 호출하거나 평가 횟수를 차감하지 않습니다. 분석당 평가는 한 번만
             저장됩니다.
           </p>
         </div>

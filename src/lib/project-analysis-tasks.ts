@@ -53,14 +53,6 @@ export function analysisState(task: Pick<AnalysisTask, "status" | "code">): Anal
     return task.status;
   return task.code === 400 || task.code === 422 ? "input" : "failed";
 }
-export const analysisStateLabel: Record<AnalysisState, string> = {
-  running: "분석 진행 중",
-  input: "입력 확인 필요",
-  disconnected: "연결 끊김",
-  failed: "분석 실패",
-  done: "분석 완료",
-  cancelled: "분석 중단됨",
-};
 export const analysisServerSnapshot = () => empty;
 export function subscribeAnalysis(listener: () => void) {
   listeners.add(listener);

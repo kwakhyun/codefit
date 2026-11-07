@@ -432,7 +432,7 @@ function ClassDetail({
             title: "내 프로젝트 AI 워크숍",
             description:
               workshop && !workshop.plan.topics.length
-                ? "이 코드에서는 추가로 제안할 AI 학습 주제를 찾지 못했습니다."
+                ? "이 코드에서는 추가로 제안할 AI 워크숍 주제를 찾지 못했습니다."
                 : "이미 쓰는 AI와 새롭게 적용할 방법을 배웁니다.",
             href: `/learn/ai/project?check=${id}`,
             done: aiDone,
