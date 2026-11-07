@@ -603,9 +603,15 @@ body:has(.guide-panel[open]) {
   pointer-events: none;
   transform: translateY(8px);
 }
-.guide-launcher[data-tucked]:not(:focus-within, :hover) {
+/* Tucked: a 32px handle stays visible at the edge and its centre stays clickable. */
+.guide-launcher[data-tucked]:not(:focus-within) {
   opacity: 0.85;
-  transform: translateX(calc(100% - 4px));
+  transform: translateX(38px);
+}
+@media (max-width: 600px) {
+  .guide-launcher[data-tucked]:not(:focus-within) {
+    transform: translateX(32px);
+  }
 }
 body:has(dialog[open]:not(.guide-panel), [role="dialog"][aria-modal="true"]) .guide-launcher {
   visibility: hidden;
