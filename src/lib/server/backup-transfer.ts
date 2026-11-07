@@ -65,7 +65,11 @@ export function buildBackupParts(rows: Record<string, unknown>[][], exportedAt: 
       current.problems.length + (included.problems?.length ?? 0) > BACKUP_MAX_PROBLEMS ||
       current.attempts.length + (unit.attempts?.length ?? 0) > 10000 ||
       current.learning.length + (unit.learning?.length ?? 0) > 500 ||
-      current.projects.length + (unit.projects?.length ?? 0) > 500
+      current.projects.length + (unit.projects?.length ?? 0) > 500 ||
+      (current.problemChecks?.length ?? 0) + (unit.problemChecks?.length ?? 0) >
+        BACKUP_MAX_PROBLEMS ||
+      (current.hiddenProblems?.length ?? 0) + (unit.hiddenProblems?.length ?? 0) >
+        BACKUP_MAX_PROBLEMS
     ) {
       included = unit;
       bytes = Buffer.byteLength(JSON.stringify(unit)) + 16;
@@ -84,6 +88,9 @@ export function buildBackupParts(rows: Record<string, unknown>[][], exportedAt: 
     current.attempts.push(...(included.attempts ?? []));
     current.learning.push(...(included.learning ?? []));
     current.projects.push(...(included.projects ?? []));
+    // Optional fields stay absent from parts that have none, like a single-file export.
+    if (included.problemChecks) (current.problemChecks ??= []).push(...included.problemChecks);
+    if (included.hiddenProblems) (current.hiddenProblems ??= []).push(...included.hiddenProblems);
     if ("legacy" in included) current.legacy = included.legacy;
     currentBytes += bytes;
   };
@@ -97,6 +104,13 @@ export function buildBackupParts(rows: Record<string, unknown>[][], exportedAt: 
     if (!problem) throw new HttpError(500, "풀이가 참조하는 문제를 찾지 못해 백업을 중단했습니다.");
     add({ problems: [problem], attempts: [attempt] });
   }
+  for (const check of raw.problemChecks ?? []) {
+    const problem = problems.get(check.problemId);
+    if (!problem)
+      throw new HttpError(500, "확인 표시가 참조하는 문제를 찾지 못해 백업을 중단했습니다.");
+    add({ problems: [problem], problemChecks: [check] });
+  }
+  for (const hidden of raw.hiddenProblems ?? []) add({ hiddenProblems: [hidden] });
   for (const learning of raw.learning) add({ learning: [learning] });
   for (const project of raw.projects) add({ projects: [project] });
   if (raw.legacy != null) add({ legacy: raw.legacy });

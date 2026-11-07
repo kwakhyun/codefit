@@ -8,6 +8,8 @@ import { restoredProjectId } from "./workspace-backup";
 import { validateReview } from "../problem";
 import { fixtureCheck } from "../project-check/fixtures";
 import { validateBackupBundle } from "../backup-bundle";
+import { exampleTestsFor } from "../example-tests";
+import { digest } from "./backup-transfer";
 const context = vi.hoisted(() => ({ owner: "source" }));
 vi.mock("./session", () => ({ session: async () => ({ owner: context.owner }) }));
 let store: SqliteStore;
@@ -217,4 +219,48 @@ it("API rejects mismatched records before spending import allowance and reports 
   expect(response.status).toBe(500);
   expect((await response.json()).error).not.toContain("일치하지");
   importBackup.mockRestore();
+});
+it("API carries checks, hidden problems and test runs, and a malformed test run does not fail a v4 part", async () => {
+  const cart = seedProblems.find((p) => p.id === "fe-cart")!;
+  const total = exampleTestsFor(cart)!.length;
+  const hidden = { ...seedProblems[0], id: "ai-hidden-route", source: "ai" as const };
+  store.addProblem(hidden);
+  await store.queries.saveProblemCheck("source", cart.id, { kind: "tests", passed: total, total });
+  await store.queries.hideProblem("source", hidden.id);
+  const review = validateReview(
+    {
+      summary: "요구사항별로 코드를 검토했습니다.",
+      criteria: cart.requirements.map((_, requirementIndex) => ({
+        requirementIndex,
+        passed: false,
+        feedback: "코드의 동작을 확인했습니다.",
+      })),
+      strengths: [],
+      improvements: [],
+    },
+    cart,
+  );
+  store.saveAttempt("source", cart.id, "function total() {}", {
+    ...review,
+    exampleTests: { passed: 3, total },
+  });
+  const text = await (await GET(new Request("http://localhost/api/export"))).text();
+  context.owner = "single";
+  expect((await POST(request(JSON.parse(text)))).status).toBe(200);
+  expect(store.attempts("single")[0].review.exampleTests).toEqual({ passed: 3, total });
+  expect(await store.queries.problemCheck("single", cart.id)).toMatchObject({ kind: "tests" });
+  expect(await store.queries.isHidden("single", hidden.id)).toBe(true);
+  // The server keeps the value as sent, so the part hash still matches; only the field is dropped.
+  const backup = JSON.parse(text);
+  backup.attempts[0].review.exampleTests = { passed: "all", total };
+  const hashes = [digest(backup)];
+  context.owner = "bundle";
+  const response = await POST(
+    request({ version: 4, manifest: { id: digest(hashes), hashes }, index: 0, backup }),
+  );
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ attempts: 1 });
+  expect(store.attempts("bundle")[0].review).not.toHaveProperty("exampleTests");
+  expect(await store.queries.problemCheck("bundle", cart.id)).toMatchObject({ kind: "tests" });
+  expect(await store.queries.isHidden("bundle", hidden.id)).toBe(true);
 });

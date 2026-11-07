@@ -25,6 +25,10 @@ import {
   buildBackup,
   BackupMismatch,
   prepareBackup,
+  restoreCheckSql,
+  restoredCheckValues,
+  restoredHiddenValues,
+  restoreHiddenSql,
   restoredProblem,
   restoredReview,
   restoredProjectId,
@@ -434,6 +438,14 @@ export class SqliteStore implements ProblemStore {
             attempt.createdAt,
           );
         attempts += Number(result.changes);
+      }
+      for (const check of extra.problemChecks) {
+        const values = restoredCheckValues(owner, check, this.problem(check.problemId, owner));
+        if (values) this.db.prepare(restoreCheckSql).run(...values);
+      }
+      for (const hidden of extra.hiddenProblems) {
+        const values = restoredHiddenValues(owner, hidden, this.problem(hidden.problemId, owner));
+        if (values) this.db.prepare(restoreHiddenSql).run(...values);
       }
       let learning = 0,
         projects = 0;

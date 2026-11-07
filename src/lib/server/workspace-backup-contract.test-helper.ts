@@ -9,9 +9,239 @@ import { restoredProjectId } from "./workspace-backup";
 import type { ProblemStore } from "./store-contract";
 import { validateReferencedAssessment } from "./project-assessment-references";
 import type { Assessment } from "../project-check/types";
+import { validateReview, type Problem } from "../problem";
+import { exampleTestsFor } from "../example-tests";
 
-export function workspaceBackupContract(getStore: () => ProblemStore) {
+const reviewOf = (problem: Problem) =>
+  validateReview(
+    {
+      summary: "요구사항별로 코드를 검토했습니다.",
+      criteria: problem.requirements.map((_, requirementIndex) => ({
+        requirementIndex,
+        passed: false,
+        feedback: "코드의 동작을 확인했습니다.",
+      })),
+      strengths: [],
+      improvements: [],
+    },
+    problem,
+  );
+const cart = seedProblems.find((p) => p.id === "fe-cart")!;
+const cartTests = exampleTestsFor(cart)!.length;
+// A built-in problem reviewed by AI only, where "직접 확인함" applies.
+const plain = seedProblems.find((p) => !p.handoff && !exampleTestsFor(p))!;
+const aiProblem = (name: string): Problem => ({
+  ...plain,
+  id: `ai-${name}-${randomUUID()}`,
+  source: "ai",
+});
+const later = () => new Promise((resolve) => setTimeout(resolve, 5));
+
+export function workspaceBackupContract(
+  getStore: () => ProblemStore & { addProblem(p: Problem): unknown },
+) {
   backupTransferContract(getStore);
+  it("backup: carries checks, hidden AI problems and example-test results and keeps the newer check", async () => {
+    const store = getStore();
+    const owner = `user:${randomUUID()}`,
+      target = `user:${randomUUID()}`;
+    const checked = aiProblem("checked"),
+      hidden = aiProblem("hidden");
+    await store.addProblem(checked);
+    await store.addProblem(hidden);
+    const passed = await store.queries.saveProblemCheck(owner, cart.id, {
+      kind: "tests",
+      passed: cartTests,
+      total: cartTests,
+    });
+    await store.queries.saveProblemCheck(owner, checked.id, { kind: "self", passed: 0, total: 0 });
+    await store.queries.hideProblem(owner, hidden.id);
+    const exampleTests = { passed: 2, total: cartTests };
+    await store.saveAttempt(owner, cart.id, "function total() {}", {
+      ...reviewOf(cart),
+      exampleTests,
+    });
+    const file = backupSchema.parse(await store.exportBackup(owner));
+    if (file.version !== 3) throw new Error();
+    // A checked problem travels like one with progress; a hidden one is only referenced.
+    expect(file.problems.map((p) => p.id).sort()).toEqual([checked.id, cart.id].sort());
+    expect(file.problemChecks?.map((c) => [c.problemId, c.kind, c.passed, c.total])).toEqual(
+      [
+        [checked.id, "self", 0, 0],
+        [cart.id, "tests", cartTests, cartTests],
+      ].sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    );
+    expect(file.problemChecks?.find((c) => c.problemId === cart.id)?.updatedAt).toBe(
+      passed.updatedAt,
+    );
+    expect(file.hiddenProblems?.map((h) => h.problemId)).toEqual([hidden.id]);
+    expect(file.attempts[0].review.exampleTests).toEqual(exampleTests);
+
+    await store.importBackup(target, file);
+    expect(await store.queries.problemCheck(target, cart.id)).toEqual(passed);
+    expect(await store.queries.problemCheck(target, checked.id)).toMatchObject({ kind: "self" });
+    expect(await store.queries.isHidden(target, hidden.id)).toBe(true);
+    expect(await store.queries.isHidden(`user:${randomUUID()}`, hidden.id)).toBe(false);
+    expect((await store.attempts(target))[0].review.exampleTests).toEqual(exampleTests);
+    const roundtrip = await store.exportBackup(target);
+    if (roundtrip.version !== 3) throw new Error();
+    expect(roundtrip.problemChecks).toEqual(file.problemChecks);
+    expect(roundtrip.hiddenProblems?.map((h) => h.problemId)).toEqual([hidden.id]);
+    expect(roundtrip.attempts[0].review.exampleTests).toEqual(exampleTests);
+
+    // A newer local check stays; a newer check in the file replaces an older local one.
+    await later();
+    const local = await store.queries.saveProblemCheck(target, cart.id, {
+      kind: "tests",
+      passed: cartTests,
+      total: cartTests,
+    });
+    expect(await store.importBackup(target, file)).toMatchObject({ problems: 0, attempts: 0 });
+    expect(await store.queries.problemCheck(target, cart.id)).toEqual(local);
+    await later();
+    const newer = structuredClone(file);
+    const updatedAt = new Date().toISOString();
+    newer.problemChecks = newer.problemChecks?.map((c) => ({ ...c, updatedAt }));
+    await store.importBackup(target, newer);
+    expect((await store.queries.problemCheck(target, cart.id))?.updatedAt).toBe(updatedAt);
+    expect((await store.queries.problemCheck(target, checked.id))?.updatedAt).toBe(updatedAt);
+    expect(await store.attempts(target)).toHaveLength(1);
+  });
+  it("backup: skips checks and hidden marks the live API would refuse and drops a malformed example-test result", async () => {
+    const store = getStore();
+    const owner = `user:${randomUUID()}`,
+      target = `user:${randomUUID()}`;
+    const visible = aiProblem("visible"),
+      foreign = aiProblem("foreign");
+    await store.addProblem(visible);
+    // Restored privately by another account, so the target cannot see or hide it.
+    await store.importBackup(owner, {
+      version: 2,
+      problems: [foreign],
+      progress: {},
+      attempts: [],
+    });
+    const empty = await store.exportBackup(`user:${randomUUID()}`);
+    if (empty.version !== 3) throw new Error();
+    expect(Object.keys(empty)).not.toContain("problemChecks");
+    expect(Object.keys(empty)).not.toContain("hiddenProblems");
+    const handoff = seedProblems.find((p) => p.handoff)!;
+    const other = seedProblems.find((p) => p !== plain && !p.handoff && !exampleTestsFor(p))!;
+    const updatedAt = "2026-11-01T00:00:00.000Z";
+    const attempt = (id: string, problem: Problem, exampleTests: unknown) => ({
+      id,
+      problemId: problem.id,
+      code: "function total() {}",
+      review: { ...reviewOf(problem), exampleTests },
+      assisted: false,
+      createdAt: updatedAt,
+    });
+    const file = {
+      ...empty,
+      problemChecks: [
+        { problemId: cart.id, kind: "tests" as const, passed: 1, total: cartTests, updatedAt },
+        { problemId: plain.id, kind: "tests" as const, passed: 1, total: 1, updatedAt },
+        { problemId: handoff.id, kind: "self" as const, passed: 0, total: 0, updatedAt },
+        {
+          problemId: `absent-${randomUUID()}`,
+          kind: "self" as const,
+          passed: 0,
+          total: 0,
+          updatedAt,
+        },
+        // A self-check records no counts, like the check API.
+        { problemId: other.id, kind: "self" as const, passed: 3, total: 3, updatedAt },
+      ],
+      hiddenProblems: [
+        { problemId: cart.id, createdAt: updatedAt },
+        { problemId: foreign.id, createdAt: updatedAt },
+        { problemId: `absent-${randomUUID()}`, createdAt: updatedAt },
+        { problemId: visible.id, createdAt: "2999-01-01T00:00:00.000Z" },
+      ],
+      attempts: [
+        attempt("bad-type", cart, { passed: "all", total: cartTests }),
+        attempt("bad-count", cart, { passed: 1, total: cartTests + 1 }),
+        attempt("bad-pass", cart, { passed: cartTests + 1, total: cartTests }),
+        attempt("no-tests", plain, { passed: 1, total: 1 }),
+      ],
+    };
+    expect(await store.importBackup(target, file)).toMatchObject({ attempts: 4 });
+    for (const id of [cart.id, plain.id, handoff.id])
+      expect(await store.queries.problemCheck(target, id)).toBeNull();
+    expect(await store.queries.problemCheck(target, other.id)).toEqual({
+      kind: "self",
+      passed: 0,
+      total: 0,
+      updatedAt,
+    });
+    expect(await store.queries.isHidden(target, cart.id)).toBe(false);
+    expect(await store.queries.isHidden(target, foreign.id)).toBe(false);
+    expect(await store.queries.isHidden(target, visible.id)).toBe(true);
+    const restored = await store.exportBackup(target);
+    if (restored.version !== 3) throw new Error();
+    // A future time is lowered to the import time.
+    expect(Date.parse(restored.hiddenProblems![0].createdAt)).toBeLessThanOrEqual(Date.now());
+    const attempts = await store.attempts(target);
+    expect(attempts).toHaveLength(4);
+    for (const a of attempts) expect(a.review).not.toHaveProperty("exampleTests");
+    // Two records for one problem are a broken file, not a choice to make on import.
+    for (const duplicate of [
+      { ...file, problemChecks: [file.problemChecks[4], file.problemChecks[4]] },
+      { ...file, hiddenProblems: [file.hiddenProblems[3], file.hiddenProblems[3]] },
+    ]) {
+      const rejected = `user:${randomUUID()}`;
+      await expect(
+        Promise.resolve().then(() => store.importBackup(rejected, duplicate)),
+      ).rejects.toThrow();
+      expect(await store.attempts(rejected)).toEqual([]);
+    }
+  });
+  it("backup: imports files made before checks, hidden problems and example-test results were exported", async () => {
+    const store = getStore();
+    const owner = `user:${randomUUID()}`,
+      target = `user:${randomUUID()}`;
+    const hidden = aiProblem("old-hidden");
+    await store.addProblem(hidden);
+    await store.queries.saveProblemCheck(owner, cart.id, {
+      kind: "tests",
+      passed: cartTests,
+      total: cartTests,
+    });
+    await store.queries.hideProblem(owner, hidden.id);
+    await store.saveAttempt(owner, cart.id, "function total() {}", {
+      ...reviewOf(cart),
+      exampleTests: { passed: cartTests, total: cartTests },
+    });
+    const file = await store.exportBackup(owner);
+    if (file.version !== 3) throw new Error();
+    expect(file.problemChecks).toHaveLength(1);
+    expect(file.hiddenProblems).toHaveLength(1);
+    const older = structuredClone(file);
+    delete older.problemChecks;
+    delete older.hiddenProblems;
+    delete older.attempts[0].review.exampleTests;
+    expect(await store.importBackup(target, backupSchema.parse(older))).toMatchObject({
+      attempts: 1,
+    });
+    expect(await store.queries.problemCheck(target, cart.id)).toBeNull();
+    expect(await store.queries.isHidden(target, hidden.id)).toBe(false);
+    expect((await store.attempts(target))[0].review).not.toHaveProperty("exampleTests");
+    // A v2 file has no marks; a test run in its reviews is restored like in v3.
+    const legacyTarget = `user:${randomUUID()}`;
+    const v2 = {
+      version: 2 as const,
+      problems: file.problems,
+      progress: file.progress,
+      attempts: file.attempts,
+    };
+    expect(await store.importBackup(legacyTarget, backupSchema.parse(v2))).toMatchObject({
+      attempts: 1,
+    });
+    expect((await store.attempts(legacyTarget))[0].review.exampleTests).toEqual({
+      passed: cartTests,
+      total: cartTests,
+    });
+  });
   it("backup: preserves v3 issue evidence and rejects missing decisions, forged quotes or uncapped scores", async () => {
     const store = getStore();
     const { owner, id } = await learningFixture(store);

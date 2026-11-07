@@ -32,6 +32,7 @@ import { readCurriculumSnapshot, createCurriculumSnapshot } from "./project-curr
 import { validateGroundedAssessment } from "./project-assessment";
 import { toAttempt, toProgress } from "./store-records";
 import { validateReview, type Problem, type Review } from "../problem";
+import { acceptedExampleTests, problemCheckError } from "../example-tests";
 import { HttpError } from "./http";
 import { requestFingerprint } from "./write-conflicts";
 
@@ -39,7 +40,8 @@ type Row = Record<string, unknown>;
 // Both adapters execute these reads in a consistent snapshot. Public problems
 // unrelated to this owner must not inflate (or leak into) a personal backup.
 export const backupReads = [
-  `SELECT content FROM problems p WHERE EXISTS(SELECT 1 FROM progress g WHERE g.owner=? AND g.problem_id=p.id) OR EXISTS(SELECT 1 FROM attempts a WHERE a.owner=? AND a.problem_id=p.id) OR EXISTS(SELECT 1 FROM jobs j WHERE j.owner=? AND j.kind='generate' AND j.state='done' AND j.result=p.id) OR EXISTS(SELECT 1 FROM restored_problems b WHERE b.owner=? AND b.problem_id=p.id) ORDER BY p.id LIMIT ${BACKUP_MAX_PROBLEMS + 1}`,
+  // A problem with a check is carried like one with progress; hidden problems are not.
+  `SELECT content FROM problems p WHERE EXISTS(SELECT 1 FROM progress g WHERE g.owner=? AND g.problem_id=p.id) OR EXISTS(SELECT 1 FROM attempts a WHERE a.owner=? AND a.problem_id=p.id) OR EXISTS(SELECT 1 FROM jobs j WHERE j.owner=? AND j.kind='generate' AND j.state='done' AND j.result=p.id) OR EXISTS(SELECT 1 FROM restored_problems b WHERE b.owner=? AND b.problem_id=p.id) OR EXISTS(SELECT 1 FROM problem_checks k WHERE k.owner=? AND k.problem_id=p.id) ORDER BY p.id LIMIT ${BACKUP_MAX_PROBLEMS + 1}`,
   `SELECT * FROM progress WHERE owner=? ORDER BY problem_id LIMIT ${BACKUP_MAX_PROBLEMS + 1}`,
   "SELECT * FROM attempts WHERE owner=? ORDER BY created_at,id LIMIT 10001",
   "SELECT content FROM legacy WHERE owner=?",
@@ -48,9 +50,11 @@ export const backupReads = [
   "SELECT kind,result FROM jobs WHERE owner=? AND kind LIKE 'project-dialogue:%' AND state='done' ORDER BY expires,id",
   "SELECT kind,result FROM jobs WHERE owner=? AND kind LIKE 'project-practice:%' AND state='done' ORDER BY expires,id",
   "SELECT kind,result FROM jobs WHERE owner=? AND kind LIKE 'project-workshop:%' AND state='done' ORDER BY expires,id",
+  `SELECT problem_id,kind,passed,total,updated_at FROM problem_checks WHERE owner=? ORDER BY problem_id LIMIT ${BACKUP_MAX_PROBLEMS + 1}`,
+  `SELECT problem_id,created_at FROM hidden_problems WHERE owner=? ORDER BY problem_id LIMIT ${BACKUP_MAX_PROBLEMS + 1}`,
 ];
 export function backupParameters(index: number, owner: string) {
-  return index === 0 ? [owner, owner, owner, owner] : [owner];
+  return index === 0 ? [owner, owner, owner, owner, owner] : [owner];
 }
 export function backupData(rows: Row[][], exportedAt = new Date().toISOString()) {
   const [
@@ -63,6 +67,8 @@ export function backupData(rows: Row[][], exportedAt = new Date().toISOString())
     dialogues = [],
     practices = [],
     workshops = [],
+    checks = [],
+    hidden = [],
   ] = rows;
   const raw = {
     version: 3 as const,
@@ -96,6 +102,25 @@ export function backupData(rows: Row[][], exportedAt = new Date().toISOString())
         };
       })(),
     })),
+    ...(checks.length
+      ? {
+          problemChecks: checks.map((r) => ({
+            problemId: String(r.problem_id),
+            kind: String(r.kind) as "tests" | "self",
+            passed: Number(r.passed),
+            total: Number(r.total),
+            updatedAt: String(r.updated_at),
+          })),
+        }
+      : {}),
+    ...(hidden.length
+      ? {
+          hiddenProblems: hidden.map((r) => ({
+            problemId: String(r.problem_id),
+            createdAt: String(r.created_at),
+          })),
+        }
+      : {}),
   };
   return raw;
 }
@@ -211,7 +236,23 @@ export function prepareBackup(backup: Backup) {
     Object.entries(backup.progress).some(([id, p]) => id !== p.problemId)
   )
     throw new Error("Duplicate or inconsistent backup records");
-  if (backup.version === 2) return { learning: [], projects: [] };
+  if (backup.version === 2)
+    return { learning: [], projects: [], problemChecks: [], hiddenProblems: [] };
+  // Checks and hidden problems were added to v3 files on 2026-11-07; older files have none.
+  const now = Date.now();
+  const problemChecks = (backup.problemChecks ?? []).map((c) => ({
+    ...c,
+    updatedAt: pastTime(c.updatedAt, now),
+  }));
+  const hiddenProblems = (backup.hiddenProblems ?? []).map((h) => ({
+    ...h,
+    createdAt: pastTime(h.createdAt, now),
+  }));
+  if (
+    new Set(problemChecks.map((c) => c.problemId)).size !== problemChecks.length ||
+    new Set(hiddenProblems.map((h) => h.problemId)).size !== hiddenProblems.length
+  )
+    throw new Error("Duplicate problem checks or hidden problems");
   const learning = backup.learning.map((item) => {
     // AI lesson records (`ai:<lesson>`) were added to v3 files later; older files have none.
     const aiLesson = aiLessonFromKey(item.id);
@@ -353,7 +394,11 @@ export function prepareBackup(backup: Backup) {
     new Set(projects.map((p) => p.check.id)).size !== projects.length
   )
     throw new Error("Duplicate learning records");
-  return { learning, projects };
+  return { learning, projects, problemChecks, hiddenProblems };
+}
+/** Normalized so stored timestamps compare as text; a future time becomes the import time. */
+function pastTime(value: string, now: number) {
+  return new Date(Math.min(Date.parse(value), now)).toISOString();
 }
 /** A backup whose records do not match the problems the importing owner can see. */
 export class BackupMismatch extends Error {}
@@ -365,12 +410,50 @@ export function restoredProblem(problem: Problem, now = Date.now()): Problem {
   return { ...problem, source: "ai", createdAt };
 }
 
-export function restoredReview(review: Review, problem: Problem) {
+export function restoredReview(
+  review: Backup["attempts"][number]["review"],
+  problem: Problem,
+): Review {
+  let restored: Review;
   try {
-    return validateReview(review, problem);
+    restored = validateReview(review, problem);
   } catch {
     throw new BackupMismatch("Backup review does not match its problem");
   }
+  // A learner-reported run that is malformed or no longer matches the examples is dropped
+  // on its own; it never decides whether the attempt can be restored.
+  const exampleTests = acceptedExampleTests(problem, review.exampleTests);
+  return exampleTests ? { ...restored, exampleTests } : restored;
+}
+
+type Prepared = ReturnType<typeof prepareBackup>;
+/** Keeps the newer of a local and a restored check. Text comparison of ISO times works on both engines. */
+export const restoreCheckSql =
+  "INSERT INTO problem_checks(owner,problem_id,kind,passed,total,updated_at) VALUES (?,?,?,?,?,?) ON CONFLICT(owner,problem_id) DO UPDATE SET kind=excluded.kind,passed=excluded.passed,total=excluded.total,updated_at=excluded.updated_at WHERE problem_checks.updated_at<excluded.updated_at";
+export const restoreHiddenSql =
+  "INSERT INTO hidden_problems(owner,problem_id,created_at) VALUES (?,?,?) ON CONFLICT(owner,problem_id) DO NOTHING";
+/** Values for restoreCheckSql, or null when the problem is not visible to the owner after
+ * import or the check API would refuse this record. Such rows are skipped, not rejected. */
+export function restoredCheckValues(
+  owner: string,
+  check: Prepared["problemChecks"][number],
+  problem: Problem | null,
+) {
+  const record = {
+    kind: check.kind,
+    passed: check.kind === "tests" ? check.passed : 0,
+    total: check.kind === "tests" ? check.total : 0,
+  };
+  if (!problem || problemCheckError(problem, record)) return null;
+  return [owner, check.problemId, record.kind, record.passed, record.total, check.updatedAt];
+}
+/** Values for restoreHiddenSql. Like hiding in the library, only AI-generated problems qualify. */
+export function restoredHiddenValues(
+  owner: string,
+  hidden: Prepared["hiddenProblems"][number],
+  problem: Problem | null,
+) {
+  return problem?.source === "ai" ? [owner, hidden.problemId, hidden.createdAt] : null;
 }
 
 /** Check references before any quota is spent; stores repeat the checks inside their transaction. */

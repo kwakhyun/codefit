@@ -1,5 +1,5 @@
 import { getStore } from "@/lib/server/database";
-import { exampleTestsFor } from "@/lib/example-tests";
+import { problemCheckError } from "@/lib/example-tests";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
 import { requireProblem } from "@/lib/server/problem-access";
 import { session } from "@/lib/server/session";
@@ -19,26 +19,14 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const { id } = await context.params;
     const body = await readBody(request, input, 1000);
     const problem = await requireProblem(id, owner);
-    const tests = exampleTestsFor(problem);
-    if (body.kind === "tests") {
-      if (!tests) throw new HttpError(400, "이 문제에는 예시 테스트가 없습니다.");
-      if (body.total !== tests.length || body.passed !== body.total)
-        throw new HttpError(400, "모든 예시 테스트를 통과한 결과만 기록합니다.");
-    } else if (tests || problem.handoff) {
-      throw new HttpError(
-        400,
-        problem.handoff
-          ? "코드 이해 훈련은 직접 확인 표시를 지원하지 않습니다."
-          : "예시 테스트가 있는 문제는 테스트를 실행해 확인해 주세요.",
-      );
-    }
-    const check = await (
-      await getStore()
-    ).queries.saveProblemCheck(owner, id, {
+    const record = {
       kind: body.kind,
       passed: body.kind === "tests" ? body.passed : 0,
       total: body.kind === "tests" ? body.total : 0,
-    });
+    };
+    const error = problemCheckError(problem, record);
+    if (error) throw new HttpError(400, error);
+    const check = await (await getStore()).queries.saveProblemCheck(owner, id, record);
     return json({ check });
   } catch (error) {
     return failure(error);
