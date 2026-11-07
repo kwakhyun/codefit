@@ -1,19 +1,23 @@
 import { beforeEach, expect, it, vi } from "vitest";
-const { session, consume, refund, read } = vi.hoisted(() => ({
+const { session, consume, refund, read, usage } = vi.hoisted(() => ({
   session: vi.fn(),
   consume: vi.fn(),
   refund: vi.fn(),
   read: vi.fn(),
+  usage: vi.fn(),
 }));
 vi.mock("./session", () => ({ session }));
 vi.mock("./database", () => ({
-  getStore: async () => ({ consumeLimits: consume, queries: { refundLimits: refund } }),
+  getStore: async () => ({
+    consumeLimits: consume,
+    queries: { refundLimits: refund, projectChecks: { limitUsage: usage } },
+  }),
 }));
 vi.mock("./project-page", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./project-page")>()),
   readPublicDocument: read,
 }));
-import { POST } from "@/app/api/security-check/route";
+import { GET, POST } from "@/app/api/security-check/route";
 import { HttpError } from "./http";
 function request(body: unknown) {
   return new Request("https://codefit.test/api/security-check", {
@@ -43,8 +47,27 @@ it("rejects unauthorized inputs and internal URLs before fetching", async () => 
 });
 it("enforces budgets before any target request", async () => {
   consume.mockResolvedValue(false);
-  expect((await POST(request({ url: "https://example.com/", authorized: true }))).status).toBe(429);
+  usage.mockResolvedValue({ limit: 5, remaining: 2, resetsAt: null });
+  const busy = await POST(request({ url: "https://example.com/", authorized: true }));
+  expect(busy.status).toBe(429);
+  expect((await busy.json()).error).toContain("잠시 후");
   expect(read).not.toHaveBeenCalled();
+  // A full personal window names when it resets.
+  usage.mockResolvedValue({ limit: 5, remaining: 0, resetsAt: "2026-11-07T06:30:00.000Z" });
+  const full = await POST(request({ url: "https://example.com/", authorized: true }));
+  expect((await full.json()).error).toContain("15:30 이후");
+});
+it("reports the personal allowance without consuming it", async () => {
+  usage.mockResolvedValue({ limit: 5, remaining: 4, resetsAt: null });
+  const response = await GET(new Request("https://codefit.test/api/security-check"));
+  expect(await response.json()).toEqual({
+    window: "1시간",
+    limit: 5,
+    remaining: 4,
+    resetsAt: null,
+  });
+  expect(usage).toHaveBeenCalledWith("security:owner:guest", 5);
+  expect(consume).not.toHaveBeenCalled();
 });
 it("returns bounded observations with no raw HTML or cookies", async () => {
   const result = await POST(request({ url: "https://example.com/", authorized: true }));

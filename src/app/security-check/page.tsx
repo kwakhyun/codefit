@@ -20,8 +20,8 @@ export default function SecurityPage() {
           수정과 재검사 기록으로 이어갈 수 있습니다.
         </p>
       </VisualIntro>
-      <ExperienceJourney topic="security" />
       <SecurityCheck />
+      <ExperienceJourney topic="security" />
       <p className="muted">
         판정 기준:{" "}
         <Anchor href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy">

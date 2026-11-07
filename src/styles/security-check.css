@@ -191,3 +191,37 @@
     background-image: none;
   }
 }
+
+/* Results kept after an address edit say which address they belong to. */
+.security-stale-notice {
+  padding: 12px 14px;
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-small);
+  background: var(--surface-raised);
+}
+.security-compare ul,
+.security-history ul {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  padding-left: 1.2em;
+}
+.security-history ul {
+  padding-left: 0;
+  list-style: none;
+}
+.security-history li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.security-history .ui-button {
+  min-height: 44px;
+}
+.security-record-actions .export-buttons {
+  flex: 1 1 100%;
+}
