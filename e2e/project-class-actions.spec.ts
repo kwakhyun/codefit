@@ -84,7 +84,12 @@ for (const width of [1440, 390]) {
     await loading.getByRole("button", { name: "분석 중단", exact: true }).click();
     await cancel.getByRole("button", { name: "분석 중단하기" }).click();
     await expect(loading).toHaveCount(0);
-    await expect(page.getByText("분석을 중단했어요", { exact: true })).toBeVisible();
+    // Small screens show the activity as a chip first so it never covers the page.
+    const activity = page.getByRole("complementary", { name: "진행 중인 작업" });
+    const chip = activity.getByRole("button", { name: /^작업 1개/ });
+    await expect(chip).toHaveAttribute("aria-expanded", String(width > 650));
+    if (width <= 650) await chip.click();
+    await expect(activity.getByText("분석을 중단했어요", { exact: true })).toBeVisible();
     const card = page.locator("article.class-list-card");
     await card.getByRole("button", { name: /프로젝트 삭제/ }).click();
     const dialog = page.getByRole("dialog", { name: "프로젝트 삭제" });

@@ -750,10 +750,10 @@
   border-radius: var(--radius-small);
   color: var(--success);
 }
+/* Counts keep the label color: fading them drops small text below 4.5:1 contrast. */
 .type-filters .toggle-count {
   margin-left: 6px;
   font: var(--text-caption) var(--mono);
-  opacity: 0.8;
 }
 .hidden-problems-note {
   margin: 12px 0 0;
