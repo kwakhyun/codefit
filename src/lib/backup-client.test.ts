@@ -71,6 +71,52 @@ it("reports partial completion and retries the same immutable parts without chan
   expect(request.mock.calls[0]).toEqual(request.mock.calls[2]);
   expect(request.mock.calls[1]).toEqual(request.mock.calls[3]);
 });
+it("sends checks, hidden problems and test runs as written, even a malformed test run", async () => {
+  const review = {
+    summary: "요구사항별로 코드를 검토했습니다.",
+    criteria: [0, 1, 2].map((requirementIndex) => ({
+      requirementIndex,
+      passed: true,
+      feedback: "코드의 동작을 확인했습니다.",
+    })),
+    strengths: [],
+    improvements: [],
+    score: 100,
+    passed: true,
+  };
+  const attempt = {
+    id: "a",
+    problemId: "fe-cart",
+    code: "function total() {}",
+    assisted: false,
+    createdAt: part.exportedAt,
+  };
+  const marked: Backup = {
+    ...part,
+    attempts: [
+      { ...attempt, review: { ...review, exampleTests: { passed: 5, total: 5 } } },
+      // The server drops this field; the hash must still match what the file holds.
+      { ...attempt, id: "b", review: { ...review, exampleTests: { passed: "all" } } },
+    ],
+    problemChecks: [
+      { problemId: "fe-cart", kind: "tests", passed: 5, total: 5, updatedAt: part.exportedAt },
+    ],
+    hiddenProblems: [{ problemId: "ai-hidden", createdAt: part.exportedAt }],
+  };
+  const request = vi.fn().mockResolvedValue({ problems: 0, attempts: 2 });
+  await restoreBackup(marked, "user:a", vi.fn(), request as typeof api);
+  expect(request.mock.calls[0][1].body).toEqual(marked);
+  const hashes = [await backupDigest(marked)];
+  const data = {
+    version: 4,
+    exportedAt: part.exportedAt,
+    manifest: { id: await backupDigest(hashes), hashes },
+    parts: [marked],
+  };
+  await restoreBackup(data, "user:a", vi.fn(), request as typeof api);
+  expect(request.mock.calls[1][1].body.backup).toEqual(marked);
+  expect(await backupDigest(request.mock.calls[1][1].body.backup)).toBe(hashes[0]);
+});
 it("keeps small v2/v3 exports and restores unchanged", async () => {
   const request = vi
     .fn()

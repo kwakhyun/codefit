@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it } from "vitest";
-import { BACKUP_MAX_BYTES } from "../backup-limits";
+import { BACKUP_MAX_BYTES, BACKUP_MAX_PROBLEMS } from "../backup-limits";
 import { SqliteStore } from "./sqlite-store";
 import { workspaceBackupContract } from "./workspace-backup-contract.test-helper";
 import { seedProblems } from "../../data/problems";
@@ -69,6 +69,44 @@ it("backup excludes over 2500 unrelated public problems instead of creating an u
   store.saveProgress("owner", seedProblems[0].id, { code: "내 코드", baseRevision: 0 });
   expect(store.exportBackup("owner").problems).toHaveLength(1);
 });
+it("backup parts carry every check with its problem and every hidden mark within the row caps", () => {
+  const insertProblem = store.db.prepare(
+    "INSERT INTO problems (id,content,created_at) VALUES (?,?,?)",
+  );
+  const insertCheck = store.db.prepare(
+    "INSERT INTO problem_checks VALUES ('owner',?,'self',0,0,'2026-11-01T00:00:00.000Z')",
+  );
+  const insertHidden = store.db.prepare(
+    "INSERT INTO hidden_problems VALUES ('owner',?,'2026-11-01T00:00:00.000Z')",
+  );
+  // A curated problem without example tests accepts a self-check; hiding needs an AI problem.
+  const plain = seedProblems.find((p) => !p.handoff && p.language === "python")!;
+  store.db.exec("BEGIN");
+  for (let i = 0; i < BACKUP_MAX_PROBLEMS + 1; i++) {
+    const p = { ...plain, id: `checked-${i}`, source: "ai" };
+    insertProblem.run(p.id, JSON.stringify(p), p.createdAt);
+    insertCheck.run(p.id);
+    insertHidden.run(p.id);
+  }
+  store.db.exec("COMMIT");
+  expect(() => store.exportBackup("owner")).toThrow(expect.objectContaining({ status: 413 }));
+  const { parts, manifest } = store.exportBackupParts("owner", new Date().toISOString());
+  expect(parts.length).toBeGreaterThan(1);
+  for (const part of parts) {
+    const ids = new Set(part.problems.map((p) => p.id));
+    expect(part.problemChecks?.every((c) => ids.has(c.problemId)) ?? true).toBe(true);
+    expect(part.problemChecks?.length ?? 0).toBeLessThanOrEqual(BACKUP_MAX_PROBLEMS);
+    expect(part.hiddenProblems?.length ?? 0).toBeLessThanOrEqual(BACKUP_MAX_PROBLEMS);
+  }
+  expect(parts.flatMap((p) => p.problemChecks ?? [])).toHaveLength(BACKUP_MAX_PROBLEMS + 1);
+  expect(parts.flatMap((p) => p.hiddenProblems ?? [])).toHaveLength(BACKUP_MAX_PROBLEMS + 1);
+  for (const [index, backup] of parts.entries())
+    store.importBackupPart("target", { version: 4, manifest, index, backup }, "test");
+  const count = (table: string) =>
+    store.db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE owner='target'`).get()?.n;
+  expect(count("problem_checks")).toBe(BACKUP_MAX_PROBLEMS + 1);
+  expect(count("hidden_problems")).toBe(BACKUP_MAX_PROBLEMS + 1);
+}, 30000);
 it("backup rejects a file above the exact UTF-8 byte limit instead of silently truncating", () => {
   store.archiveLegacy("owner", "가".repeat(Math.ceil(BACKUP_MAX_BYTES / 3)));
   expect(() => store.exportBackup("owner")).toThrow(/4 MB/);

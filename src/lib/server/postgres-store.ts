@@ -23,6 +23,10 @@ import {
   buildBackup,
   BackupMismatch,
   prepareBackup,
+  restoreCheckSql,
+  restoredCheckValues,
+  restoredHiddenValues,
+  restoreHiddenSql,
   restoredProblem,
   restoredReview,
   restoredProjectId,
@@ -343,6 +347,16 @@ export class PostgresStore implements ProblemStore {
           await store.sql`INSERT INTO attempts VALUES(${id},${owner},${attempt.problemId},${attempt.code},${JSON.stringify(review)},${Number(attempt.assisted)},${attempt.createdAt}) ON CONFLICT(id) DO NOTHING RETURNING id`;
         attempts += rows.length;
       }
+      for (const check of extra.problemChecks) {
+        const problem = await store.problem(check.problemId, owner);
+        const values = restoredCheckValues(owner, check, problem);
+        if (values) await store.sql.unsafe(numbered(restoreCheckSql), values);
+      }
+      for (const hidden of extra.hiddenProblems) {
+        const problem = await store.problem(hidden.problemId, owner);
+        const values = restoredHiddenValues(owner, hidden, problem);
+        if (values) await store.sql.unsafe(numbered(restoreHiddenSql), values);
+      }
       let learning = 0,
         projects = 0;
       for (const item of extra.learning) {
@@ -372,6 +386,11 @@ export class PostgresStore implements ProblemStore {
     const [row] = await this.sql`SELECT content FROM legacy WHERE owner=${owner}`;
     return row ? JSON.parse(row.content) : null;
   }
+}
+/** Shared SQL uses `?` placeholders; PostgreSQL numbers them. */
+function numbered(text: string) {
+  let index = 0;
+  return text.replace(/\?/g, () => `$${++index}`);
 }
 export function connectPostgres(url: string) {
   return postgres(url, {

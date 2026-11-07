@@ -6,9 +6,11 @@ import { exampleTests } from "../data/example-tests";
 import { seedProblems } from "../data/problems";
 import { executeCase } from "./handoff/execute";
 import {
+  acceptedExampleTests,
   exampleTestsFor,
   gradeResults,
   hasImport,
+  problemCheckError,
   summarizeResults,
   toScript,
 } from "./example-tests";
@@ -93,5 +95,40 @@ describe("script preparation", () => {
   it("grades a missing result as a failure", () => {
     const [result] = gradeResults([{ id: "a", expression: "1", expected: 1, label: "" }], []);
     expect(result).toMatchObject({ id: "a", status: "error", passed: false });
+  });
+});
+
+describe("recorded results", () => {
+  const cart = seedProblems.find((p) => p.id === "fe-cart")!;
+  const total = exampleTestsFor(cart)!.length;
+  const python = seedProblems.find((p) => !p.handoff && !exampleTestsFor(p))!;
+  const handoff = seedProblems.find((p) => p.handoff)!;
+  it("keeps a review's test run only when it covers exactly the problem's examples", () => {
+    expect(acceptedExampleTests(cart, { passed: 2, total, extra: true })).toEqual({
+      passed: 2,
+      total,
+    });
+    for (const value of [
+      null,
+      "5/5",
+      { passed: "2", total },
+      { passed: 1.5, total },
+      { passed: -1, total },
+      { passed: total + 1, total },
+      { passed: 1, total: total + 1 },
+    ])
+      expect(acceptedExampleTests(cart, value)).toBeUndefined();
+    expect(acceptedExampleTests(python, { passed: 1, total: 1 })).toBeUndefined();
+  });
+  it("allows a full test pass where examples exist and a self-check elsewhere", () => {
+    const pass = { kind: "tests" as const, passed: total, total };
+    const self = { kind: "self" as const, passed: 0, total: 0 };
+    expect(problemCheckError(cart, pass)).toBeNull();
+    expect(problemCheckError(cart, { ...pass, passed: total - 1 })).toMatch("모든 예시");
+    expect(problemCheckError(cart, { ...pass, passed: 4, total: 4 })).toMatch("모든 예시");
+    expect(problemCheckError(cart, self)).toMatch("테스트를 실행");
+    expect(problemCheckError(python, self)).toBeNull();
+    expect(problemCheckError(python, pass)).toMatch("예시 테스트가 없습니다");
+    expect(problemCheckError(handoff, self)).toMatch("코드 이해 훈련");
   });
 });

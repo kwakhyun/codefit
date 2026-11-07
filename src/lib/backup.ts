@@ -1,6 +1,24 @@
 import { z } from "zod";
 import { problemSchema, reviewSchema } from "./problem";
 import { BACKUP_MAX_PROBLEMS } from "./backup-limits";
+const problemId = problemSchema.shape.id;
+// One row per problem, like progress. Restore re-applies the live API rules and skips the rest.
+const problemChecks = z
+  .array(
+    z
+      .object({
+        problemId,
+        kind: z.enum(["tests", "self"]),
+        passed: z.number().int().min(0).max(1000),
+        total: z.number().int().min(0).max(1000),
+        updatedAt: z.iso.datetime(),
+      })
+      .strict(),
+  )
+  .max(BACKUP_MAX_PROBLEMS);
+const hiddenProblems = z
+  .array(z.object({ problemId, createdAt: z.iso.datetime() }).strict())
+  .max(BACKUP_MAX_PROBLEMS);
 const legacyBackupSchema = z.object({
   version: z.literal(2),
   problems: z.array(problemSchema).max(BACKUP_MAX_PROBLEMS),
@@ -22,7 +40,12 @@ const legacyBackupSchema = z.object({
         id: z.string().min(1).max(100),
         problemId: z.string().max(100),
         code: z.string().max(30000),
-        review: reviewSchema.extend({ score: z.number().min(0).max(100), passed: z.boolean() }),
+        review: reviewSchema.extend({
+          score: z.number().min(0).max(100),
+          passed: z.boolean(),
+          // Kept as written so part hashes still match; restore drops a malformed value.
+          exampleTests: z.unknown().optional(),
+        }),
         assisted: z.boolean(),
         createdAt: z.iso.datetime(),
       }),
@@ -61,6 +84,9 @@ export const backupSchema = z.union([
             .strict(),
         )
         .max(500),
+      // Added on 2026-11-07. Omitted when empty, so files without these records keep their shape.
+      problemChecks: problemChecks.optional(),
+      hiddenProblems: hiddenProblems.optional(),
     })
     .strict(),
 ]);
