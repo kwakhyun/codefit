@@ -87,8 +87,10 @@
   --action: light-dark(var(--light-blue), #93c5fd);
   --success: light-dark(var(--light-green), #7dd3ac);
   --ai: light-dark(var(--light-purple), #c4b5fd);
-  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  --sans: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* next/font (src/app/fonts.ts) defines the font variables on <html>. */
+  --mono: var(--font-ibm-plex-mono, "IBM Plex Mono"), "SFMono-Regular", Consolas, monospace;
+  --sans:
+    var(--font-noto-sans-kr, "Noto Sans KR"), system-ui, -apple-system, "Segoe UI", sans-serif;
   /* Readable roles stay consistent across breakpoints; honor the browser text size. */
   --text-caption: 0.8125rem;
   --text-small: 0.875rem;

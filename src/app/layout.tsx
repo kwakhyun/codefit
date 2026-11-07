@@ -13,6 +13,7 @@ import { cookies, headers } from "next/headers";
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { fontVariables } from "./fonts";
 
 const description =
   "서비스 점검실, AI 워크숍, 코딩 트레이닝. 내 프로젝트를 점검하고, AI 실무를 배우고, 분야별 코딩 문제를 연습하세요. 로그인 없이 시작할 수 있습니다.";
@@ -39,7 +40,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // Streams into the sidebar; the page does not wait for the session lookup.
   const account = shellAccount(requestHeaders).catch(() => null);
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko" className={fontVariables} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
