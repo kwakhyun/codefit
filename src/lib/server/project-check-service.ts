@@ -21,7 +21,8 @@ import { discussProjectCode, analyzeProject, assessProject } from "./ai-project-
 import { publicUrl } from "./project-page";
 import { requestFingerprint } from "./write-conflicts";
 import { publicCheck, publicReview } from "./project-check-store";
-import { HttpError } from "./http";
+import OpenAI from "openai";
+import { failure, HttpError } from "./http";
 import { readProjectPages } from "./project-browser";
 import { githubTarget, readProjectRepository } from "./project-repository";
 import { withAiCallContext } from "./ai-telemetry";
@@ -46,14 +47,23 @@ export class ProjectCheckService {
     private store: ProblemStore,
     private ai = defaults,
   ) {}
-  private runAi<T>(owner: string, requestId: string, signal: AbortSignal, task: () => Promise<T>) {
+  private runAi<T>(
+    owner: string,
+    requestId: string,
+    signal: AbortSignal,
+    task: () => Promise<T>,
+    onRun?: (outcome: "success" | "error") => void,
+  ) {
     // The first call was reserved atomically with the personal allowance. Keep
     // that reservation on failure; every subsequent provider attempt needs its own.
     let reserved = true;
     return withAiCallContext(
       {
         requestId,
-        record: (run) => this.store.queries.recordAiRun(owner, run),
+        record: (run) => {
+          onRun?.(run.outcome === "success" ? "success" : "error");
+          return this.store.queries.recordAiRun(owner, run);
+        },
         beforeCall: async () => {
           signal.throwIfAborted();
           if (reserved) {
@@ -518,12 +528,8 @@ export class ProjectCheckService {
       throw error;
     }
   }
-  async review(
-    owner: string,
-    network: string,
-    input: z.infer<typeof reviewCheckSchema>,
-    signal: AbortSignal,
-  ) {
+  /** Claims the single review of an analysis; the background request runs `review` with it. */
+  async beginReview(owner: string, input: z.infer<typeof reviewCheckSchema>) {
     const check = await this.store.queries.projectChecks.get(owner, input.id);
     if (!check) throw new HttpError(404, "이 계정의 분석 기록을 찾지 못했습니다.");
     if (!input.answers.some((answer) => answer.trim()))
@@ -534,25 +540,64 @@ export class ProjectCheckService {
       `project-review-${input.id}`,
       `project-review:${input.id}`,
     );
-    const claim = await this.store.startJob(
+    return this.store.startJob(
       owner,
       `project-review-${input.id}`,
       `project-review:${input.id}`,
       requestFingerprint(...input.answers),
     );
+  }
+  async review(
+    owner: string,
+    network: string,
+    input: z.infer<typeof reviewCheckSchema>,
+    signal: AbortSignal,
+    reserved?: JobLease,
+  ) {
+    const q = this.store.queries.projectChecks;
+    const check = await q.get(owner, input.id);
+    if (!check) throw new HttpError(404, "이 계정의 분석 기록을 찾지 못했습니다.");
+    const claim = reserved
+      ? { state: "new" as const, lease: reserved }
+      : await this.beginReview(owner, input);
     if (claim.state === "done") return publicReview(claim.result);
     if (claim.state === "pending")
       throw new HttpError(409, "답변을 검토하고 있습니다. 잠시 후 기록을 새로고침해 주세요.");
+    let charges: { key: string; expires: number }[] = [];
+    let produced = false;
     try {
       await this.consume(owner, network, "review");
-      const assessment = await this.runAi(owner, claim.lease.id, signal, () =>
-        this.ai.assess(check, input.answers, signal),
+      charges = await q.allowanceCharges(owner, network, "review");
+      const assessment = await this.runAi(
+        owner,
+        claim.lease.id,
+        signal,
+        () => this.ai.assess(check, input.answers, signal),
+        (outcome) => {
+          if (outcome === "success") produced = true;
+        },
       );
       const result = { answers: input.answers, assessment };
-      await this.store.queries.projectChecks.complete(claim.lease, result);
+      await q.complete(claim.lease, result);
       return result;
     } catch (error) {
-      await this.store.failJob(claim.lease);
+      if (await this.store.failJob(claim.lease)) {
+        // The provider explicitly rejected the request before any output: return the personal
+        // unit. Lost responses, timeouts and invalid output stay counted (cost is unknown).
+        if (!produced && error instanceof OpenAI.APIError && typeof error.status === "number")
+          await q.refundPractice(claim.lease, charges).catch(() => {});
+        const response = failure(error);
+        const body = (await response.json().catch(() => null)) as { error?: unknown } | null;
+        await q
+          .recordFailure(
+            claim.lease,
+            error,
+            typeof body?.error === "string"
+              ? { error: body.error, code: response.status }
+              : undefined,
+          )
+          .catch(() => {});
+      }
       throw error;
     }
   }
