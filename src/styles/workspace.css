@@ -419,6 +419,24 @@
   gap: 14px;
 }
 
+.editor-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 0;
+}
+
+.editor-shortcuts kbd {
+  font: inherit;
+  color: light-dark(var(--light-text), #d4d4d4);
+}
+
+@media (pointer: coarse) and (max-width: 760px) {
+  .editor-shortcuts {
+    display: none;
+  }
+}
+
 .review-action {
   display: flex;
   flex-wrap: wrap;
