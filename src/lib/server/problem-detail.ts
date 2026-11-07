@@ -8,16 +8,20 @@ export async function problemDetail(
   id: string,
   attempt?: string | null,
 ): Promise<ProblemDetail> {
-  const [problem, progress, attempts] = await Promise.all([
+  const [problem, progress, attempts, check, hidden] = await Promise.all([
     store.problem(id, owner),
     store.progressFor(owner, id),
     store.queries.recentAttempts(owner, id, attempt),
+    store.queries.problemCheck(owner, id),
+    store.queries.isHidden(owner, id),
   ]);
   if (!problem) throw new HttpError(404, "문제를 찾을 수 없습니다.");
   return {
     problem: publicProblem(problem),
     progress,
     attempts,
+    check,
+    hidden,
     hints: problem.hints.slice(0, progress?.hintsViewed || 0),
     solution: progress?.solutionViewed
       ? { code: problem.solution, explanation: problem.explanation }

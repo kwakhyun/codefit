@@ -156,15 +156,15 @@ export function queryContract(getStore: () => ProblemStore & { addProblem(p: Pro
     });
     const first = await store.queries.library("query-a", params);
     expect(first.total).toBe(19);
-    expect(first.problems).toHaveLength(8);
+    expect(first.problems).toHaveLength(12);
     expect(first.problems[0]).not.toHaveProperty("solution");
     expect(first.problems[0]).not.toHaveProperty("starterCode");
     params.set("page", "2");
     const second = await store.queries.library("query-a", params);
-    expect(second.problems).toHaveLength(8);
-    expect(new Set([...first.problems, ...second.problems].map((p) => p.id)).size).toBe(16);
+    expect(second.problems).toHaveLength(7);
+    expect(new Set([...first.problems, ...second.problems].map((p) => p.id)).size).toBe(19);
     params.set("page", "999");
-    expect((await store.queries.library("query-a", params)).page).toBe(3);
+    expect((await store.queries.library("query-a", params)).page).toBe(2);
     expect(
       (await store.queries.library("query-a", new URLSearchParams({ q: "' OR 1=1 --" }))).total,
     ).toBe(0);
@@ -181,6 +181,153 @@ export function queryContract(getStore: () => ProblemStore & { addProblem(p: Pro
     ).toBe(0);
     expect(await store.progressFor("query-b", first.problems[0].id)).toBeNull();
   }, 30000);
+  it("counts matches per filter, lists built-in problems first and hides AI problems per owner", async () => {
+    const store = getStore();
+    const owner = `facets-${randomUUID()}`;
+    const marker = `facet${randomUUID().slice(0, 8)}`;
+    const ai = (language: "lua" | "javascript"): Problem => ({
+      ...seedProblems[0],
+      id: `ai-${marker}-${language}`,
+      title: `${marker} ${language} 문제`,
+      domain: "game",
+      language,
+      source: "ai",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+    await store.addProblem(ai("lua"));
+    await store.addProblem(ai("javascript"));
+    const found = await store.queries.library(owner, new URLSearchParams({ q: marker }));
+    expect(found.total).toBe(2);
+    expect(found.facets.language).toEqual({ lua: 1, javascript: 1 });
+    const lua = await store.queries.library(
+      owner,
+      new URLSearchParams({ q: marker, language: "lua" }),
+    );
+    expect(lua.total).toBe(1);
+    // A filter's own options keep their counts so the learner can switch between them.
+    expect(lua.facets.language).toEqual({ lua: 1, javascript: 1 });
+    expect(lua.facets.source).toEqual({ ai: 1 });
+    expect(lua.facets.status).toEqual({ new: 1 });
+    const game = await store.queries.library(owner, new URLSearchParams({ domain: "game" }));
+    const firstAi = game.problems.findIndex((p) => p.source === "ai");
+    expect(firstAi).toBeGreaterThan(0);
+    expect(game.problems.slice(firstAi).every((p) => p.source === "ai")).toBe(true);
+    const before = (await store.queries.workspace(owner)).stats.total;
+    await store.queries.hideProblem(owner, ai("lua").id);
+    await store.queries.hideProblem(owner, ai("lua").id);
+    const hidden = await store.queries.library(owner, new URLSearchParams({ q: marker }));
+    expect(hidden.total).toBe(1);
+    expect(hidden.hidden).toBe(1);
+    expect(await store.queries.isHidden(owner, ai("lua").id)).toBe(true);
+    expect(await store.queries.isHidden(`other-${owner}`, ai("lua").id)).toBe(false);
+    expect((await store.queries.workspace(owner)).stats.total).toBe(before - 1);
+    expect(
+      (await store.queries.library(`other-${owner}`, new URLSearchParams({ q: marker }))).total,
+    ).toBe(2);
+    await expect(store.queries.hideProblem(owner, "fe-cart")).rejects.toThrow("AI 생성 문제만");
+    await expect(store.queries.hideProblem(owner, "absent-problem")).rejects.toThrow();
+    await store.queries.unhideProblems(owner, ai("lua").id);
+    expect((await store.queries.library(owner, new URLSearchParams({ q: marker }))).total).toBe(2);
+    await store.queries.hideProblem(owner, ai("lua").id);
+    await store.queries.hideProblem(owner, ai("javascript").id);
+    await store.queries.unhideProblems(owner);
+    expect((await store.queries.library(owner, new URLSearchParams({ q: marker }))).hidden).toBe(0);
+  }, 30000);
+  it("keeps example-test and self-check status separate from solved", async () => {
+    const store = getStore();
+    const owner = `checks-${randomUUID()}`;
+    expect(await store.queries.problemCheck(owner, "fe-cart")).toBeNull();
+    await store.queries.saveProblemCheck(owner, "fe-cart", { kind: "tests", passed: 5, total: 5 });
+    expect(await store.queries.problemCheck(owner, "fe-cart")).toMatchObject({
+      kind: "tests",
+      passed: 5,
+      total: 5,
+    });
+    const page = await store.queries.library(owner, new URLSearchParams({ q: "장바구니 함수" }));
+    expect(page.checks["fe-cart"]).toBe("tests");
+    expect(page.progress["fe-cart"]).toBeUndefined();
+    await store.queries.clearSelfCheck(owner, "fe-cart");
+    expect((await store.queries.problemCheck(owner, "fe-cart"))?.kind).toBe("tests");
+    await store.queries.saveProblemCheck(owner, "be-pagination", {
+      kind: "self",
+      passed: 0,
+      total: 0,
+    });
+    expect((await store.queries.problemCheck(owner, "be-pagination"))?.kind).toBe("self");
+    await store.queries.clearSelfCheck(owner, "be-pagination");
+    expect(await store.queries.problemCheck(owner, "be-pagination")).toBeNull();
+    expect(await store.queries.problemCheck(`other-${owner}`, "fe-cart")).toBeNull();
+    expect((await store.queries.workspace(owner)).stats.solved).toBe(0);
+  });
+  it("lists the latest review of each unsolved problem", async () => {
+    const store = getStore();
+    const owner = `unsolved-${randomUUID()}`;
+    const review = (problem: Problem, passed: boolean): Review => ({
+      score: passed ? 100 : 0,
+      passed,
+      summary: "검토 결과입니다.",
+      criteria: problem.requirements.map((_, requirementIndex) => ({
+        requirementIndex,
+        passed,
+        feedback: "요구 조건을 확인했습니다.",
+      })),
+      strengths: [],
+      improvements: [],
+    });
+    const [paging, join] = ["be-pagination", "db-left-join"].map(
+      (id) => seedProblems.find((p) => p.id === id)!,
+    );
+    await store.saveAttempt(owner, paging.id, "first try", review(paging, false));
+    await store.saveAttempt(owner, paging.id, "second try", review(paging, false));
+    await store.saveAttempt(owner, join.id, "first try", review(join, false));
+    await store.saveAttempt(owner, join.id, "solved", review(join, true));
+    const all = await store.queries.history(owner);
+    expect(all.attempts).toHaveLength(4);
+    const unsolved = await store.queries.history(owner, null, "unsolved");
+    expect(unsolved.attempts.map((a) => a.id)).toEqual([
+      all.attempts.find((a) => a.problemId === paging.id)!.id,
+    ]);
+    expect(unsolved.attempts[0]).not.toHaveProperty("code");
+    expect(unsolved.nextCursor).toBeNull();
+    expect((await store.queries.history(`other-${owner}`, null, "unsolved")).attempts).toEqual([]);
+  });
+  it("offers the next unsolved coding problems after a review", async () => {
+    const store = getStore();
+    const owner = `next-${randomUUID()}`;
+    const first = await store.queries.nextProblems(owner, "net-framing");
+    expect(first.sameDomain?.id).toBe("net-backoff");
+    expect(first.recommended?.id).not.toBe("net-framing");
+    expect(first.recommended?.id.startsWith("handoff-")).toBe(false);
+    await store.saveProgress(owner, "net-checksum", { code: "/* 작성 중 */", baseRevision: 0 });
+    // A started problem is recommended first; the last problem in a domain wraps around.
+    expect((await store.queries.nextProblems(owner, "net-framing")).recommended?.id).toBe(
+      "net-checksum",
+    );
+    expect((await store.queries.nextProblems(owner, "net-checksum")).sameDomain?.id).toBe(
+      "net-framing",
+    );
+    await expect(store.queries.nextProblems(owner, "absent-problem")).rejects.toThrow();
+  });
+  it("counts completed missions and AI lessons as learning days", async () => {
+    const store = getStore();
+    const owner = `days-${randomUUID()}`;
+    expect((await store.queries.workspace(owner)).training.streak).toBe(0);
+    await store.queries.learning.save(owner, "where-data-lives", '{"completed":false}', 0);
+    expect((await store.queries.workspace(owner)).training).toMatchObject({
+      streak: 0,
+      today: { coding: 0, understanding: 0, missions: 0, lessons: 0 },
+    });
+    await store.queries.learning.save(owner, "ai:prompt-basics", '{"step":2,"completed":true}', 0);
+    await store.queries.learning.save(owner, "late-search", "not json", 0);
+    const workspace = await store.queries.workspace(owner);
+    expect(workspace.training.streak).toBe(1);
+    expect(workspace.training.today).toEqual({
+      coding: 0,
+      understanding: 0,
+      missions: 0,
+      lessons: 1,
+    });
+  });
   it("uses owner-scoped cursors and retains addressable old submissions", async () => {
     const store = getStore(),
       p = seedProblems[1],

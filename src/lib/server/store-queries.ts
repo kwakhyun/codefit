@@ -8,8 +8,16 @@ import { generationDay } from "./generation-quota";
 import { z } from "zod";
 import { DOMAIN_IDS } from "../catalog";
 import { readFilters } from "../library-state";
-import type { Attempt, HistoryPage, LibraryPage, ProblemSummary, Workspace } from "../problem";
-import { trainingFromDays } from "../training";
+import type {
+  Attempt,
+  HistoryPage,
+  LibraryFacets,
+  LibraryPage,
+  ProblemCheck,
+  ProblemSummary,
+  Workspace,
+} from "../problem";
+import { recommendProblem, trainingFromDays } from "../training";
 import { HttpError } from "./http";
 import { toAttempt, toProgress } from "./store-records";
 
@@ -40,6 +48,12 @@ export function decodeCursor(value?: string | null) {
 
 // Catalog rows restored privately from another owner's backup are not part of this library.
 const visible = "(c.owner IS NULL OR c.owner=?)";
+// Public AI-generated problems the owner chose to hide from their own list.
+const notHidden =
+  "NOT EXISTS (SELECT 1 FROM hidden_problems h WHERE h.owner=? AND h.problem_id=c.id)";
+// Mission and AI lesson records are stored as compact JSON with a top-level `completed` flag.
+const COMPLETED = '%"completed":true%';
+const LIBRARY_PAGE_SIZE = 12;
 
 /** Parameterized read models shared by both adapters. UI requests never load drafts or the entire bank. */
 export class StoreQueries {
@@ -77,51 +91,75 @@ export class StoreQueries {
 
   async library(owner: string, params: URLSearchParams): Promise<LibraryPage> {
     const f = readFilters(params);
-    const values: (string | number)[] = [owner, owner];
-    const where = [visible];
+    // Each clause keeps its bound values; facet counts drop only their own filter.
+    const clauses: { sql: string; values: string[]; facet?: keyof LibraryFacets }[] = [
+      { sql: visible, values: [owner] },
+      { sql: notHidden, values: [owner] },
+    ];
     const domain = params.get("domain");
-    if (DOMAIN_IDS.includes(domain as (typeof DOMAIN_IDS)[number])) {
-      where.push("c.domain=?");
-      values.push(domain!);
+    if (DOMAIN_IDS.includes(domain as (typeof DOMAIN_IDS)[number]))
+      clauses.push({ sql: "c.domain=?", values: [domain!] });
+    for (const [facet, column, value] of [
+      ["level", "difficulty", f.level],
+      ["kind", "kind", f.kind],
+      ["language", "language", f.language],
+      ["source", "source", f.source],
+    ] as const) {
+      if (value !== "all") clauses.push({ sql: `c.${column}=?`, values: [value], facet });
     }
-    for (const [column, value] of [
-      ["difficulty", f.level],
-      ["kind", f.kind],
-      ["language", f.language],
-      ["source", f.source],
-    ]) {
-      if (value !== "all") {
-        where.push(`c.${column}=?`);
-        values.push(value);
-      }
-    }
-    if (f.status !== "all") {
-      where.push("COALESCE(g.status,'new')=?");
-      values.push(f.status);
-    }
-    if (params.get("view") === "bookmarks") where.push("g.bookmarked=1");
-    if (f.search.trim()) {
-      where.push("c.search_text LIKE ? ESCAPE '!'");
-      values.push(`%${f.search.trim().toLowerCase().replace(/[!%_]/g, "!$&")}%`);
-    }
-    const from = `FROM problem_catalog c LEFT JOIN progress g ON g.problem_id=c.id AND g.owner=? WHERE ${where.join(" AND ")}`;
-    const [count] = await this.query(`SELECT COUNT(*) AS total ${from}`, values);
-    const total = Number(count.total),
-      pageSize = 8;
-    const page = Math.min(f.page, Math.max(1, Math.ceil(total / pageSize)));
+    if (f.status !== "all")
+      clauses.push({ sql: "COALESCE(g.status,'new')=?", values: [f.status], facet: "status" });
+    if (params.get("view") === "bookmarks") clauses.push({ sql: "g.bookmarked=1", values: [] });
+    if (f.search.trim())
+      clauses.push({
+        sql: "c.search_text LIKE ? ESCAPE '!'",
+        values: [`%${f.search.trim().toLowerCase().replace(/[!%_]/g, "!$&")}%`],
+      });
+    const from = (without?: keyof LibraryFacets, checks = false) => {
+      const used = clauses.filter((clause) => !without || clause.facet !== without);
+      const join = checks ? " LEFT JOIN problem_checks k ON k.problem_id=c.id AND k.owner=?" : "";
+      return {
+        sql: `FROM problem_catalog c LEFT JOIN progress g ON g.problem_id=c.id AND g.owner=?${join} WHERE ${used.map((c) => c.sql).join(" AND ")}`,
+        values: [owner, ...(checks ? [owner] : []), ...used.flatMap((c) => c.values)],
+      };
+    };
+    const facetColumns: Record<keyof LibraryFacets, string> = {
+      level: "c.difficulty",
+      kind: "c.kind",
+      language: "c.language",
+      source: "c.source",
+      status: "COALESCE(g.status,'new')",
+    };
+    const all = from();
+    const [[count], [hidden], ...facetRows] = await Promise.all([
+      this.query(`SELECT COUNT(*) AS total ${all.sql}`, all.values),
+      this.query("SELECT COUNT(*) AS count FROM hidden_problems WHERE owner=?", [owner]),
+      ...(Object.keys(facetColumns) as (keyof LibraryFacets)[]).map((facet) => {
+        const scoped = from(facet);
+        return this.query(
+          `SELECT ${facetColumns[facet]} AS value,COUNT(*) AS count ${scoped.sql} GROUP BY ${facetColumns[facet]}`,
+          scoped.values,
+        );
+      }),
+    ]);
+    const total = Number(count.total);
+    const page = Math.min(f.page, Math.max(1, Math.ceil(total / LIBRARY_PAGE_SIZE)));
     const orders: Record<string, string> = {
       newest: "c.created_at DESC,c.id DESC",
       easy: "CASE c.difficulty WHEN '하' THEN 0 WHEN '중' THEN 1 ELSE 2 END,c.created_at DESC,c.id DESC",
       short: "c.minutes,c.created_at DESC,c.id DESC",
+      // Reviewed built-in problems come before public AI-generated ones.
       recommended:
-        "CASE WHEN c.id='fe-search-race' THEN 0 WHEN c.source='ai' THEN 1 ELSE 2 END,c.created_at,c.id",
+        "CASE WHEN c.id='fe-search-race' THEN 0 WHEN c.source='curated' THEN 1 ELSE 2 END,c.created_at,c.id",
     };
+    const listed = from(undefined, true);
     const rows = await this.query(
-      `SELECT c.summary,${progressColumns} ${from} ORDER BY ${orders[f.sort]} LIMIT ? OFFSET ?`,
-      [...values, pageSize, (page - 1) * pageSize],
+      `SELECT c.summary,k.kind AS check_kind,${progressColumns} ${listed.sql} ORDER BY ${orders[f.sort]} LIMIT ? OFFSET ?`,
+      [...listed.values, LIBRARY_PAGE_SIZE, (page - 1) * LIBRARY_PAGE_SIZE],
     );
+    const problems = rows.map((r) => JSON.parse(String(r.summary)) as ProblemSummary);
     return {
-      problems: rows.map((r) => JSON.parse(String(r.summary)) as ProblemSummary),
+      problems,
       progress: Object.fromEntries(
         rows
           .filter((r) => r.problem_id)
@@ -131,9 +169,21 @@ export class StoreQueries {
             return [String(r.problem_id), summary];
           }),
       ),
+      checks: Object.fromEntries(
+        rows.flatMap((r, i) =>
+          r.check_kind ? [[problems[i].id, String(r.check_kind) as ProblemCheck["kind"]]] : [],
+        ),
+      ),
+      facets: Object.fromEntries(
+        (Object.keys(facetColumns) as (keyof LibraryFacets)[]).map((facet, i) => [
+          facet,
+          Object.fromEntries(facetRows[i].map((r) => [String(r.value), Number(r.count)])),
+        ]),
+      ) as LibraryFacets,
+      hidden: Number(hidden.count),
       total,
       page,
-      pageSize,
+      pageSize: LIBRARY_PAGE_SIZE,
     };
   }
 
@@ -145,33 +195,59 @@ export class StoreQueries {
       this.dialect === "sqlite"
         ? "json_extract(review,'$.passed')=1"
         : "(review::jsonb->>'passed')::boolean";
-    const day =
+    const day = (column: string) =>
       this.dialect === "sqlite"
-        ? "date(created_at,'+9 hours')"
-        : "((created_at::timestamptz AT TIME ZONE 'Asia/Seoul')::date)::text";
-    const todayEnd = new Date(
-      Math.floor((Date.now() + 9 * 3600000) / 86400000) * 86400000 + 15 * 3600000,
-    ).toISOString();
-    const [counts, progressCounts, recommendation, days, independent, active] = await Promise.all([
+        ? `date(${column},'+9 hours')`
+        : `((${column}::timestamptz AT TIME ZONE 'Asia/Seoul')::date)::text`;
+    const todayStart = Math.floor((Date.now() + 9 * 3600000) / 86400000) * 86400000 - 9 * 3600000;
+    const [start, todayEnd] = [todayStart, todayStart + 86400000].map((t) =>
+      new Date(t).toISOString(),
+    );
+    const [
+      counts,
+      progressCounts,
+      recommendation,
+      days,
+      learningDays,
+      independent,
+      todayAttempts,
+      todayLearning,
+      active,
+    ] = await Promise.all([
       this.query(
-        `SELECT COUNT(*) AS total, SUM(CASE WHEN source='ai' THEN 1 ELSE 0 END) AS ai FROM problem_catalog c WHERE ${visible}`,
-        [owner],
+        `SELECT COUNT(*) AS total, SUM(CASE WHEN source='ai' THEN 1 ELSE 0 END) AS ai FROM problem_catalog c WHERE ${visible} AND ${notHidden}`,
+        [owner, owner],
       ),
       this.query(
         "SELECT SUM(CASE WHEN status='solved' THEN 1 ELSE 0 END) AS solved,SUM(CASE WHEN status='in-progress' THEN 1 ELSE 0 END) AS in_progress,SUM(bookmarked) AS bookmarked FROM progress WHERE owner=?",
         [owner],
       ),
       this.query(
-        `SELECT c.summary,${progressColumns} FROM problem_catalog c LEFT JOIN progress g ON g.problem_id=c.id AND g.owner=? WHERE ${visible} ORDER BY CASE COALESCE(g.status,'new') WHEN 'in-progress' THEN 0 WHEN 'new' THEN 1 ELSE 2 END,CASE WHEN g.status='in-progress' THEN g.updated_at ELSE '' END DESC,c.minutes,c.id LIMIT 1`,
-        [owner, owner],
+        `SELECT c.summary,${progressColumns} FROM problem_catalog c LEFT JOIN progress g ON g.problem_id=c.id AND g.owner=? WHERE ${visible} AND ${notHidden} ORDER BY CASE COALESCE(g.status,'new') WHEN 'in-progress' THEN 0 WHEN 'new' THEN 1 ELSE 2 END,CASE WHEN g.status='in-progress' THEN g.updated_at ELSE '' END DESC,c.minutes,c.id LIMIT 1`,
+        [owner, owner, owner],
       ),
       this.query(
-        `SELECT ${day} AS day,COUNT(*) AS count FROM attempts WHERE owner=? GROUP BY ${day}`,
+        `SELECT ${day("created_at")} AS day,COUNT(*) AS count FROM attempts WHERE owner=? GROUP BY ${day("created_at")}`,
         [owner],
+      ),
+      // Missions and AI lessons saved as completed count as a learning day (the day of the
+      // completed record's last save). Matching the JSON text works for every dialect and
+      // never fails on a row that is not JSON.
+      this.query(
+        `SELECT DISTINCT ${day("updated_at")} AS day FROM learning_progress WHERE owner=? AND content LIKE ?`,
+        [owner, COMPLETED],
       ),
       this.query(
         `SELECT COUNT(DISTINCT problem_id) AS count FROM attempts WHERE owner=? AND assisted=0 AND ${passed} AND created_at<?`,
         [owner, todayEnd],
+      ),
+      this.query(
+        "SELECT SUM(CASE WHEN problem_id LIKE 'handoff-%' THEN 1 ELSE 0 END) AS understanding,SUM(CASE WHEN problem_id LIKE 'handoff-%' THEN 0 ELSE 1 END) AS coding FROM attempts WHERE owner=? AND created_at>=? AND created_at<?",
+        [owner, start, todayEnd],
+      ),
+      this.query(
+        "SELECT SUM(CASE WHEN lesson_id LIKE 'ai:%' THEN 1 ELSE 0 END) AS lessons,SUM(CASE WHEN lesson_id LIKE 'ai:%' THEN 0 ELSE 1 END) AS missions FROM learning_progress WHERE owner=? AND content LIKE ? AND updated_at>=? AND updated_at<?",
+        [owner, COMPLETED, start, todayEnd],
       ),
       activeId
         ? this.query(`SELECT summary FROM problem_catalog c WHERE id=? AND ${visible}`, [
@@ -195,19 +271,47 @@ export class StoreQueries {
       recommended: rec ? JSON.parse(String(rec.summary)) : null,
       resume,
       activeProblem: active[0] ? JSON.parse(String(active[0].summary)) : null,
-      training: trainingFromDays(
-        days.map((r) => Date.parse(String(r.day)) / 86400000),
-        Number(independent[0].count),
-      ),
+      training: {
+        ...trainingFromDays(
+          [...days, ...learningDays].map((r) => Date.parse(String(r.day)) / 86400000),
+          Number(independent[0].count),
+        ),
+        today: {
+          coding: Number(todayAttempts[0]?.coding || 0),
+          understanding: Number(todayAttempts[0]?.understanding || 0),
+          missions: Number(todayLearning[0]?.missions || 0),
+          lessons: Number(todayLearning[0]?.lessons || 0),
+        },
+      },
     };
   }
 
-  async history(owner: string, cursorValue?: string | null): Promise<HistoryPage> {
+  /** Newest reviews first. "unsolved" lists the latest review of each problem not yet solved. */
+  async history(
+    owner: string,
+    cursorValue?: string | null,
+    filter: "all" | "unsolved" = "all",
+  ): Promise<HistoryPage> {
     const cursor = decodeCursor(cursorValue);
-    const rows = await this.query(
-      `SELECT a.id,a.problem_id,a.review,a.assisted,a.created_at,c.title FROM attempts a JOIN problem_catalog c ON c.id=a.problem_id WHERE a.owner=? ${cursor ? "AND (a.created_at<? OR (a.created_at=? AND a.id<?))" : ""} ORDER BY a.created_at DESC,a.id DESC LIMIT 21`,
-      cursor ? [owner, cursor.date, cursor.date, cursor.id] : [owner],
-    );
+    const after = cursor ? "AND (a.created_at<? OR (a.created_at=? AND a.id<?))" : "";
+    const cursorValues = cursor ? [cursor.date, cursor.date, cursor.id] : [];
+    const rows =
+      filter === "unsolved"
+        ? await this.query(
+            `SELECT a.id,a.problem_id,a.review,a.assisted,a.created_at,c.title FROM (
+            SELECT id,problem_id,review,assisted,created_at,
+              ROW_NUMBER() OVER (PARTITION BY problem_id ORDER BY created_at DESC,id DESC) AS latest
+            FROM attempts WHERE owner=?
+          ) a JOIN problem_catalog c ON c.id=a.problem_id
+          LEFT JOIN progress g ON g.owner=? AND g.problem_id=a.problem_id
+          WHERE a.latest=1 AND COALESCE(g.status,'new')<>'solved' ${after}
+          ORDER BY a.created_at DESC,a.id DESC LIMIT 21`,
+            [owner, owner, ...cursorValues],
+          )
+        : await this.query(
+            `SELECT a.id,a.problem_id,a.review,a.assisted,a.created_at,c.title FROM attempts a JOIN problem_catalog c ON c.id=a.problem_id WHERE a.owner=? ${after} ORDER BY a.created_at DESC,a.id DESC LIMIT 21`,
+            [owner, ...cursorValues],
+          );
     const attempts = rows.slice(0, 20).map((row) => {
       const { code, ...summary } = toAttempt(row);
       void code;
@@ -220,6 +324,127 @@ export class StoreQueries {
         rows.length > 20 && last
           ? Buffer.from(JSON.stringify({ date: last.createdAt, id: last.id })).toString("base64url")
           : null,
+    };
+  }
+
+  /** A status separate from "solved". Example-test results are reported by the browser. */
+  async problemCheck(owner: string, problemId: string): Promise<ProblemCheck | null> {
+    const [row] = await this.query(
+      "SELECT kind,passed,total,updated_at FROM problem_checks WHERE owner=? AND problem_id=?",
+      [owner, problemId],
+    );
+    return row
+      ? {
+          kind: String(row.kind) as ProblemCheck["kind"],
+          passed: Number(row.passed),
+          total: Number(row.total),
+          updatedAt: String(row.updated_at),
+        }
+      : null;
+  }
+
+  async saveProblemCheck(
+    owner: string,
+    problemId: string,
+    check: Pick<ProblemCheck, "kind" | "passed" | "total">,
+  ): Promise<ProblemCheck> {
+    const updatedAt = new Date().toISOString();
+    await this.query(
+      "INSERT INTO problem_checks(owner,problem_id,kind,passed,total,updated_at) VALUES (?,?,?,?,?,?) ON CONFLICT(owner,problem_id) DO UPDATE SET kind=excluded.kind,passed=excluded.passed,total=excluded.total,updated_at=excluded.updated_at",
+      [owner, problemId, check.kind, check.passed, check.total, updatedAt],
+    );
+    return { ...check, updatedAt };
+  }
+
+  /** Only a self-check can be withdrawn; a recorded test pass stays like other history. */
+  async clearSelfCheck(owner: string, problemId: string) {
+    await this.query("DELETE FROM problem_checks WHERE owner=? AND problem_id=? AND kind='self'", [
+      owner,
+      problemId,
+    ]);
+  }
+
+  /** Hides a public AI-generated problem from this owner's list only. */
+  async hideProblem(owner: string, problemId: string) {
+    const [problem] = await this.query(
+      `SELECT c.source FROM problem_catalog c WHERE c.id=? AND ${visible}`,
+      [problemId, owner],
+    );
+    if (!problem) throw new HttpError(404, "문제를 찾을 수 없습니다.");
+    if (problem.source !== "ai")
+      throw new HttpError(400, "AI 생성 문제만 목록에서 숨길 수 있습니다.");
+    await this.query(
+      "INSERT INTO hidden_problems(owner,problem_id,created_at) VALUES (?,?,?) ON CONFLICT(owner,problem_id) DO NOTHING",
+      [owner, problemId, new Date().toISOString()],
+    );
+  }
+
+  async isHidden(owner: string, problemId: string) {
+    return (
+      (
+        await this.query("SELECT 1 AS hidden FROM hidden_problems WHERE owner=? AND problem_id=?", [
+          owner,
+          problemId,
+        ])
+      ).length > 0
+    );
+  }
+
+  async unhideProblems(owner: string, problemId?: string) {
+    if (problemId)
+      await this.query("DELETE FROM hidden_problems WHERE owner=? AND problem_id=?", [
+        owner,
+        problemId,
+      ]);
+    else await this.query("DELETE FROM hidden_problems WHERE owner=?", [owner]);
+  }
+
+  /** Coding problems to offer after one: the overall recommendation and the next unsolved
+   * problem of the same domain in list order. Understanding tasks keep their own flow. */
+  async nextProblems(
+    owner: string,
+    problemId: string,
+  ): Promise<{ recommended: ProblemSummary | null; sameDomain: ProblemSummary | null }> {
+    const [current] = await this.query(
+      `SELECT c.domain,c.source,c.created_at FROM problem_catalog c WHERE c.id=? AND ${visible}`,
+      [problemId, owner],
+    );
+    if (!current) throw new HttpError(404, "문제를 찾을 수 없습니다.");
+    const base = `FROM problem_catalog c LEFT JOIN progress g ON g.problem_id=c.id AND g.owner=? WHERE ${visible} AND ${notHidden} AND c.id<>? AND c.id NOT LIKE 'handoff-%' AND COALESCE(g.status,'new')<>'solved'`;
+    const [candidates, domainRows] = await Promise.all([
+      // Ordered like recommendProblem so its choice is within this bounded set.
+      this.query(
+        `SELECT c.summary,${progressColumns} ${base} ORDER BY CASE WHEN g.status='in-progress' THEN 0 ELSE 1 END,CASE WHEN g.status='in-progress' THEN g.updated_at ELSE '' END DESC,c.minutes,c.id LIMIT 20`,
+        [owner, owner, owner, problemId],
+      ),
+      this.query(
+        `SELECT c.summary,c.source,c.created_at ${base} AND c.domain=? ORDER BY CASE WHEN c.source='curated' THEN 0 ELSE 1 END,c.created_at,c.id LIMIT 50`,
+        [owner, owner, owner, problemId, String(current.domain)],
+      ),
+    ]);
+    const summaries = candidates.map((r) => JSON.parse(String(r.summary)) as ProblemSummary);
+    const progress = Object.fromEntries(
+      candidates
+        .filter((r) => r.problem_id)
+        .map((r) => {
+          const { code, ...summary } = toProgress(r);
+          void code;
+          return [String(r.problem_id), summary];
+        }),
+    );
+    const key = (row: Record<string, unknown>) =>
+      `${row.source === "curated" ? 0 : 1}|${String(row.created_at)}`;
+    const currentKey = key(current);
+    const after =
+      domainRows.find(
+        (r) =>
+          key(r) > currentKey ||
+          (key(r) === currentKey &&
+            (JSON.parse(String(r.summary)) as ProblemSummary).id > problemId),
+      ) ?? domainRows[0];
+    return {
+      recommended: recommendProblem(summaries, progress) ?? null,
+      sameDomain: after ? (JSON.parse(String(after.summary)) as ProblemSummary) : null,
     };
   }
 
