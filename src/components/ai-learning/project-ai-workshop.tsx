@@ -112,8 +112,13 @@ function Workspace({
       alive.current = false;
     };
   }, []);
+  // The load below also reruns when a generation finishes, including the one that just failed
+  // here. Only a recovered load error, another project or a manual reload clears the message.
+  const loadFailed = useRef(false);
+  const loadedKey = useRef("");
   useEffect(() => {
     if (!id) return;
+    const key = `${overview.scope}:${id}:${reload}`;
     const abort = new AbortController();
     const path = `/api/project-check/${encodeURIComponent(id)}`;
     Promise.all([
@@ -128,10 +133,13 @@ function Workspace({
         if (abort.signal.aborted) return;
         setSaved(w.result);
         setProgress(w);
-        setError("");
+        if (loadFailed.current || loadedKey.current !== key) setError("");
+        loadFailed.current = false;
+        loadedKey.current = key;
       })
       .catch((e) => {
         if (abort.signal.aborted) return;
+        loadFailed.current = true;
         // A deleted or mistyped record cannot be fixed by retrying the same link.
         setMissing(e instanceof ApiError && (e.status === 404 || e.status === 400));
         setError(errorMessage(e));
@@ -206,6 +214,7 @@ function Workspace({
       );
       refresh();
     } catch (e) {
+      loadFailed.current = false;
       setError(errorMessage(e));
       try {
         const status = await api<LearningStatus<ProjectWorkshop>>(
