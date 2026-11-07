@@ -5,9 +5,10 @@
   border-radius: 20%;
 }
 
-/* Keep the final page controls reachable above the fixed launcher. */
+/* Keep the final page controls reachable above the fixed launcher. The shell may reserve the
+   space with --floating-safe-area; the fallback fits the 48px launcher and its margin. */
 body:has(.guide-launcher) {
-  padding-bottom: 112px;
+  padding-bottom: var(--floating-safe-area, 80px);
 }
 .guide-steps {
   display: flex;
@@ -563,4 +564,81 @@ body:has(.guide-panel[open]) {
   .guide-launcher .guide-launch-button > span {
     display: none;
   }
+}
+
+/*
+ * The launcher is always icon-sized; the one-time invitation bubble carries the label. It sits
+ * above the device's bottom inset, fades out while the page scrolls, tucks to the edge when it
+ * would cover a control at rest, and hides behind other open dialogs.
+ */
+.guide-launcher {
+  bottom: max(16px, env(safe-area-inset-bottom));
+  transition:
+    opacity var(--motion-fast),
+    transform var(--motion-fast);
+}
+.guide-launcher .guide-launch-button,
+.guide-launcher.is-compact .guide-launch-button {
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  padding: 7px;
+  border-radius: 16px;
+}
+.guide-launcher .guide-launch-button .fit-mascot {
+  width: 32px;
+  height: 32px;
+}
+.guide-launcher .guide-intro-hint {
+  max-width: min(200px, calc(100vw - 96px));
+  padding: 6px 30px 6px 10px;
+}
+.guide-intro-hint > .ui-button:first-child {
+  min-height: 40px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.guide-launcher[data-scrolling]:not(:focus-within) {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+}
+/* Tucked: a 32px handle stays visible at the edge and its centre stays clickable. */
+.guide-launcher[data-tucked]:not(:focus-within) {
+  opacity: 0.85;
+  transform: translateX(38px);
+}
+@media (max-width: 600px) {
+  .guide-launcher[data-tucked]:not(:focus-within) {
+    transform: translateX(32px);
+  }
+}
+body:has(dialog[open]:not(.guide-panel), [role="dialog"][aria-modal="true"]) .guide-launcher {
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .guide-launcher {
+    transition: none;
+  }
+}
+
+/* Optional workspace switch under a recommendation. */
+.guide-workspace {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px dashed light-dark(var(--light-line), #4b4e56);
+  border-radius: 13px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.guide-workspace p {
+  margin: 0;
+}
+.guide-workspace .guide-text-button {
+  min-height: 44px;
+  margin-top: 4px;
+}
+.guide-workspace p[role="status"]:not(:empty) {
+  margin-top: 6px;
+  color: var(--success);
 }

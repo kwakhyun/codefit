@@ -399,5 +399,18 @@ const LESSON_TOOLS: Record<AiLessonId, string[]> = {
   "ai-demo": ["Gradio", "Streamlit"],
 };
 export const AI_LESSONS = LESSONS.map((lesson) => ({ ...lesson, tools: LESSON_TOOLS[lesson.id] }));
+/**
+ * Content version of each lesson's exercise and quiz. Version 1 records stored choice positions;
+ * version 2 introduced choice ids and the rewritten quizzes. Raise a lesson's version when a
+ * choice keeps its id but changes meaning, so saved selections for it are not shown as answers.
+ */
+const CONTENT_VERSIONS: Partial<Record<AiLessonId, number>> = {};
+export const aiContentVersion = (id: AiLessonId) => CONTENT_VERSIONS[id] ?? 2;
+/**
+ * An exercise choice without an explicit id uses the letter of its original (first published)
+ * position. Version 1 records stored those positions and map to the same letters, so give a
+ * choice an explicit id before reordering a lesson's exercise choices.
+ */
+export const exerciseChoiceId = (index: number) => "abcdefgh"[index];
 export const aiLessonById = (id: string) => AI_LESSONS.find((lesson) => lesson.id === id);
 export const AI_CONTENT_REVIEWED = "2026-09-21";

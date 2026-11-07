@@ -10,6 +10,7 @@ export const GOAL_OPTIONS = [
   { value: "fix", label: "서비스 오류를 찾고 수정 확인하기" },
   { value: "review", label: "AI가 만든 코드 이해하기" },
   { value: "practice", label: "직접 코딩하며 연습하기" },
+  { value: "ai", label: "AI 도구 활용 배우기" },
 ] as const;
 export const TIME_OPTIONS = [
   { value: 5, label: "5분 정도" },
@@ -19,7 +20,7 @@ export const TIME_OPTIONS = [
 const guideProfileSchema = z
   .object({
     experience: z.enum(["new", "builder", "developer"]),
-    goal: z.enum(["understand", "fix", "review", "practice"]),
+    goal: z.enum(["understand", "fix", "review", "practice", "ai"]),
     minutes: z.union([z.literal(5), z.literal(15), z.literal(30)]),
   })
   .strict();
@@ -55,3 +56,12 @@ export type GuideReply = {
   notice?: string;
 };
 export type GuideStatus = { scope: string; aiReady: boolean };
+
+/** Workspace (learner type) that puts a guide goal's activities first on home. */
+export function goalWorkspace(goal: GuideProfile["goal"]) {
+  return goal === "ai"
+    ? ("ai" as const)
+    : goal === "review" || goal === "practice"
+      ? ("code" as const)
+      : ("service" as const);
+}

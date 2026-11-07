@@ -12,7 +12,12 @@ import { MISSIONS } from "@/lib/learn/catalog";
 import { SERVICE_DOMAINS, domainFor } from "@/lib/learn/services/domains";
 import { AppLink as Link } from "@/components/ui/primitives";
 import { useLearningOverview } from "@/hooks/use-learning-overview";
-import { learningOverview, hasLearningDraft, LEARNING_STAGES } from "@/lib/learn/overview";
+import {
+  learningOverview,
+  hasLearningDraft,
+  LEARNING_STAGES,
+  MISSION_SECTIONS,
+} from "@/lib/learn/overview";
 export function LearningDashboard() {
   const [domain, setDomain] = useState("all");
   const [concept, setConcept] = useState("all");
@@ -89,7 +94,7 @@ export function LearningDashboard() {
         </strong>
         <span>{learningStorageDescription(Boolean(data?.signedIn))}</span>
       </div>
-      {data && !data.signedIn && <GuestLogin returnTo="/learn" />}
+      {data && !data.signedIn && <GuestLogin returnTo="/learn?source=sample" />}
       {error && (
         <Status role="alert">
           기록을 불러오지 못했습니다. {error}{" "}
@@ -98,7 +103,7 @@ export function LearningDashboard() {
           </Button>
         </Status>
       )}
-      <section aria-label="실습 찾기" className="learn-catalog-filters">
+      <section aria-label="미션 찾기" className="learn-catalog-filters">
         <h2>관심 있는 서비스부터 살펴보세요</h2>
         <div className="domain-filters" role="group" aria-label="서비스 분야">
           <ToggleButton
@@ -158,11 +163,11 @@ export function LearningDashboard() {
                   (concept === "all" || m.concept === concept),
               ).length
             }
-            개 실습
+            개 미션
           </Status>
         </div>
       </section>
-      {(["lab", "foundation"] as const).map((kind) => (
+      {MISSION_SECTIONS.map((kind) => (
         <section
           id={kind === "lab" ? "labs" : "basics"}
           className="learn-course"
@@ -178,14 +183,14 @@ export function LearningDashboard() {
         >
           <div className="learn-section-title">
             <span className="eyebrow">
-              {kind === "foundation" ? "02 / 필요한 개념 보충하기" : "01 / 실패 상황 확인하기"}
+              {kind === "foundation" ? "01 / 필요한 개념 먼저 익히기" : "02 / 실패 상황 확인하기"}
             </span>
             <h2>
               {kind === "foundation" ? "기초 개념과 조건 확인" : "권한, 저장 실패와 중복 요청"}
             </h2>
             <p>
               {kind === "foundation"
-                ? "설명이 필요한 개념만 골라 연습하세요. 모든 실습을 끝낼 필요는 없습니다."
+                ? "설명이 필요한 개념만 골라 연습하세요. 모든 미션을 끝낼 필요는 없습니다."
                 : "예제 서비스의 오류를 찾아 AI에게 보낼 수정 요청을 작성하고, 수정 결과를 확인합니다."}
             </p>
           </div>
@@ -200,7 +205,7 @@ export function LearningDashboard() {
               .map(({ mission: m, record: r, completed }) => {
                 return (
                   <Link
-                    href={`/learn/${m.id}`}
+                    href={`/learn/${m.id}${domain === "all" ? "" : `?domain=${domain}`}`}
                     className="learn-card"
                     data-service-domain={domainFor(m)}
                     key={m.id}

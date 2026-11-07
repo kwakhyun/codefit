@@ -28,6 +28,7 @@ export function MissionObservation({
   evidence,
   canRestore,
   onRestart,
+  onDownload,
   onRestore,
   onContinue,
 }: {
@@ -37,10 +38,12 @@ export function MissionObservation({
   evidence: boolean;
   canRestore: boolean;
   onRestart: () => void;
+  onDownload: () => void;
   onRestore: () => void;
   onContinue: () => void;
 }) {
   const summary = useRef<HTMLHeadingElement>(null);
+  const restore = useRef<HTMLButtonElement>(null);
   const previousEvidence = useRef(evidence);
   const observed = simulate(mission, record.actions);
   useEffect(() => {
@@ -77,8 +80,8 @@ export function MissionObservation({
       {record.actions.length >= 80 && (
         <Status role="status" className="learn-warning">
           관찰 기록은 80개까지 보관합니다. 지금부터 누르는 버튼은 기록되지 않습니다.{" "}
-          {evidence ? "다음 단계로 이동하거나 " : ""}‘기록 내려받고 관찰 다시 시작’을 누르면
-          지금까지의 기록을 내려받고 처음부터 다시 실험할 수 있습니다.
+          {evidence ? "다음 단계로 이동하거나 " : ""}‘관찰 다시 시작’을 누르면 처음부터 다시 실험할
+          수 있습니다. 지금까지의 기록은 ‘관찰 기록 내려받기’로 보관하세요.
         </Status>
       )}
       <div className="mission-columns">
@@ -112,7 +115,7 @@ export function MissionObservation({
                     `${observed.online ? "온라인" : "오프라인"} 상태에서 `}
                   {mission.app === "access" && `현재 사용자 ${observed.actor}: `}
                   {mission.service && !observed.service.result
-                    ? `입력을 바꿨습니다. 왼쪽에서 ‘${mission.service.operation}’ 버튼을 눌러 결과를 확인하세요.`
+                    ? `입력을 바꿨습니다. 예제 서비스에서 ‘${mission.service.operation}’ 버튼을 눌러 결과를 확인하세요.`
                     : observed.message}
                   {mission.app === "booking" && ` · 예약 ${observed.bookings.length}건`}
                 </p>
@@ -173,16 +176,28 @@ export function MissionObservation({
               <p>최근 12개 동작입니다. 전체 기록은 내려받을 수 있습니다.</p>
             )}
             {record.actions.length >= 80 && (
-              <p>관찰 기록 80개를 보관했습니다. 기록을 내려받고 다시 시작할 수 있습니다.</p>
+              <p>관찰 기록 80개를 보관했습니다. 기록을 내려받거나 다시 시작할 수 있습니다.</p>
             )}
           </Disclosure>
           {record.actions.length > 0 && (
-            <Button className="text-button" onClick={onRestart}>
-              기록 내려받고 관찰 다시 시작
-            </Button>
+            <div className="observation-actions">
+              <Button
+                className="text-button"
+                onClick={() => {
+                  onRestart();
+                  // The restart button disappears with the cleared actions; keep focus nearby.
+                  requestAnimationFrame(() => restore.current?.focus());
+                }}
+              >
+                관찰 다시 시작
+              </Button>
+              <Button className="text-button" onClick={onDownload}>
+                관찰 기록 내려받기
+              </Button>
+            </div>
           )}
           {canRestore && (
-            <Button className="text-button" onClick={onRestore}>
+            <Button ref={restore} className="text-button" onClick={onRestore}>
               이전 관찰 복구
             </Button>
           )}

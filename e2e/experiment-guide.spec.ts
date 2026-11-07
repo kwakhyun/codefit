@@ -112,8 +112,8 @@ test("mobile spotlight is dismissible, follows history tabs, survives reload and
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/experiment-guide-mobile.png" });
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "학습 기록 저장", exact: true }).click();
-  await expect(page.getByText("학습 기록 저장됨", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "지금 저장", exact: true }).click();
+  await expect(page.getByText("자동 저장됨", { exact: true })).toBeVisible();
   await page.reload();
   await expect(app.locator(".experiment-guide-bar")).toHaveAttribute("data-guide-step", "1");
   await app.locator('[data-sim-action="case-standard"]').click();

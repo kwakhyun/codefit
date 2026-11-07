@@ -10,6 +10,7 @@ import {
 } from "@/lib/learn/progress";
 import type { Mission } from "@/lib/learn/catalog";
 import { VoiceInput } from "@/components/ui/voice-input";
+import { allowanceSummary } from "@/lib/ai-access";
 export function MissionRequest({
   mission,
   record,
@@ -95,7 +96,7 @@ export function MissionRequest({
       </Button>
       <p className="learn-fineprint">
         {aiReady
-          ? "선택한 미션과 작성 내용을 AI에 보냅니다. 실습 AI 코치는 로그인 없이 24시간 2회, 로그인하면 30회 이용할 수 있습니다."
+          ? `선택한 미션과 작성 내용을 AI에 보냅니다. 실습 AI 코치는 ${allowanceSummary("learnCoach")} 이용할 수 있습니다.`
           : "AI 연결이 없어도 힌트와 동작 검사로 끝까지 연습할 수 있습니다."}
       </p>
       {record.coach && (

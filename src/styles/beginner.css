@@ -836,3 +836,55 @@
     width: 100%;
   }
 }
+
+/* Autosave status, optional save and record download in the mission header. */
+.learn-save .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.learn-save-state[data-state="failed"],
+.learn-save-state[data-state="offline"],
+.learn-save-state[data-state="conflict"] {
+  color: var(--warning);
+  font-weight: 600;
+}
+.observation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+/* Sample progress shown above the practice tabs on /learn and /handoff. */
+.practice-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin: 0 0 16px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+.practice-progress > div {
+  display: flex;
+  flex: 1 1 260px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  min-width: 0;
+}
+.practice-progress strong {
+  font-size: 17px;
+}
+.practice-progress .muted {
+  font-size: var(--text-caption);
+  overflow-wrap: anywhere;
+}
+.practice-progress .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+}

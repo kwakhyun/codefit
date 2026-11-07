@@ -20,8 +20,8 @@ async function noOverflow(page: Page) {
 test("home and all mission cards have loaded representative artwork", async ({ page }, info) => {
   for (const [url, selector, count] of [
     ["/", ".persona-art", 3],
-    ["/learn", ".learn-card .service-card-art", MISSIONS.length],
-    ["/handoff", ".handoff-card .scenario-art", 6],
+    ["/learn?source=sample", ".learn-card .service-card-art", MISSIONS.length],
+    ["/handoff?source=sample", ".handoff-card .scenario-art", 6],
   ] as const) {
     await page.goto(url);
     await expect(page.locator(selector)).toHaveCount(count);

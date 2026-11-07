@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { missionById } from "@/lib/learn/catalog";
 import { MissionLoader } from "@/components/learn/mission-loader";
+import { missionDomain } from "@/lib/learn/overview";
 export async function generateMetadata({
   params,
 }: {
@@ -19,11 +20,12 @@ export default async function MissionPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ project?: string }>;
+  searchParams: Promise<{ project?: string; domain?: string }>;
 }) {
   const m = missionById((await params).id);
   if (!m) notFound();
-  const project = z.uuid().safeParse((await searchParams).project);
+  const query = await searchParams;
+  const project = z.uuid().safeParse(query.project);
   return (
     <>
       {project.success && (
@@ -33,7 +35,7 @@ export default async function MissionPage({
           </Link>
         </nav>
       )}
-      <MissionLoader mission={m} />
+      <MissionLoader mission={m} domain={missionDomain(query.domain)} />
     </>
   );
 }

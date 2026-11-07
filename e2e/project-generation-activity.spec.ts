@@ -97,7 +97,7 @@ for (const kind of ["practice", "workshop"]) {
       kind === "practice" ? `/project-practice?check=${id}` : `/learn/ai/project?check=${id}`,
     );
     const generate = page.getByRole("button", {
-      name: kind === "practice" ? "맞춤 연습 6개 만들기" : "AI 활용 학습 만들기",
+      name: kind === "practice" ? "맞춤 연습 6개 만들기" : "AI 워크숍 만들기",
       exact: true,
     });
     await expect(
@@ -196,7 +196,7 @@ for (const kind of ["practice", "workshop"]) {
       );
       await page
         .getByRole("button", {
-          name: kind === "practice" ? "맞춤 연습 6개 만들기" : "AI 활용 학습 만들기",
+          name: kind === "practice" ? "맞춤 연습 6개 만들기" : "AI 워크숍 만들기",
           exact: true,
         })
         .click();
@@ -216,7 +216,7 @@ for (const kind of ["practice", "workshop"]) {
         await expect(activity).toHaveCount(0);
         await expect(
           page.getByRole("button", {
-            name: kind === "practice" ? "맞춤 연습 6개 만들기" : "AI 활용 학습 만들기",
+            name: kind === "practice" ? "맞춤 연습 6개 만들기" : "AI 워크숍 만들기",
             exact: true,
           }),
         ).toHaveCount(0);

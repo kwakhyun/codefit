@@ -89,8 +89,11 @@ export function LearningResume({
           </div>
         </div>
       )}
-      <Link className="primary-button" href={current ? `/learn/${current.mission.id}` : "/learn"}>
-        {current ? "이어서 연습하기" : "입문 학습 보기"}
+      <Link
+        className="primary-button"
+        href={current ? `/learn/${current.mission.id}` : "/learn?source=sample"}
+      >
+        {current ? "이어서 연습하기" : "미션 목록 보기"}
         <ArrowRight size={16} />
       </Link>
     </Card>

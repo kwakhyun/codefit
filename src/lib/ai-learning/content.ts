@@ -1,18 +1,51 @@
-import type { AiLessonId } from "./catalog";
+import { exerciseChoiceId, type AiLessonId } from "./catalog";
 import { EXTENDED_CONTENT } from "./extended-content";
 
-type Choice = { label: string; result: string; explanation: string };
+/** Saved progress refers to choices by id, so display order and wording can change safely. */
+type AiExerciseChoice = { id: string; label: string; result: string; explanation: string };
+type AiQuizChoice = { id: string; text: string };
+export type AiQuiz = {
+  question: string;
+  choices: AiQuizChoice[];
+  /** Id of the correct choice. */
+  answer: string;
+  explanation: string;
+};
 export type AiLessonContent = {
   goal: string;
   terms: { word: string; meaning: string }[];
   guide: { title: string; body: string }[];
   flow: string[];
   example: { title: string; language: string; code: string; note: string };
-  exercise: { situation: string; question: string; choices: Choice[] };
-  quiz: { question: string; choices: string[]; answer: number; explanation: string };
+  exercise: { situation: string; question: string; choices: AiExerciseChoice[] };
+  quiz: AiQuiz;
   takeaway: string;
   sources: { title: string; url: string }[];
 };
+/** Authored lessons may omit exercise choice ids; see `exerciseChoiceId`. */
+export type AiLessonInput = Omit<AiLessonContent, "exercise"> & {
+  exercise: {
+    situation: string;
+    question: string;
+    choices: (Omit<AiExerciseChoice, "id"> & { id?: string })[];
+  };
+};
+function lessonContent(input: AiLessonInput): AiLessonContent {
+  return {
+    ...input,
+    exercise: {
+      ...input.exercise,
+      choices: input.exercise.choices.map((choice, index) => ({
+        ...choice,
+        id: choice.id ?? exerciseChoiceId(index),
+      })),
+    },
+  };
+}
+/** Display position of the correct quiz choice. */
+export function correctQuizIndex(quiz: AiQuiz) {
+  return quiz.choices.findIndex((choice) => choice.id === quiz.answer);
+}
 const agentSource = {
   title: "Anthropic: 에이전트와 워크플로우",
   url: "https://www.anthropic.com/engineering/building-effective-agents",
@@ -23,8 +56,7 @@ const jevSource = {
   url: "https://docs.typesafe.ai/introduction",
 };
 
-export const AI_CONTENT: Record<AiLessonId, AiLessonContent> = {
-  ...EXTENDED_CONTENT,
+const AUTHORED: Record<Exclude<AiLessonId, keyof typeof EXTENDED_CONTENT>, AiLessonInput> = {
   "agent-workflow": {
     goal: "AI의 작업을 입력, 처리, 확인 단계로 나누고 언제 멈춰야 하는지 설명할 수 있습니다.",
     terms: [
@@ -86,11 +118,11 @@ export const AI_CONTENT: Record<AiLessonId, AiLessonContent> = {
     quiz: {
       question: "조회가 세 번 연속 실패한 워크플로우에는 어떤 규칙이 필요할까요?",
       choices: [
-        "답을 얻을 때까지 무제한 반복한다",
-        "조회 결과를 추측해 완료 처리한다",
-        "재시도를 멈추고 실패 내역과 함께 담당자에게 넘긴다",
+        { id: "a", text: "간격을 늘리며 성공할 때까지 계속 재시도한다" },
+        { id: "b", text: "마지막으로 조회된 값으로 답변을 작성해 완료한다" },
+        { id: "c", text: "재시도를 멈추고 실패 내역을 담당자에게 넘긴다" },
       ],
-      answer: 2,
+      answer: "c",
       explanation:
         "멈추는 조건과 인계할 정보를 정하면 실패가 반복돼도 시간과 비용을 제한할 수 있습니다.",
     },
@@ -159,11 +191,11 @@ export const AI_CONTENT: Record<AiLessonId, AiLessonContent> = {
     quiz: {
       question: "AI가 환불 도구에 올바른 형식의 입력값을 보냈습니다. 바로 실행해도 될까요?",
       choices: [
-        "형식이 맞으면 실행한다",
-        "접근 권한, 환불 규칙, 필요한 승인을 확인한 뒤 실행한다",
-        "AI가 선택한 도구는 검사하지 않는다",
+        { id: "a", text: "권한, 환불 규칙, 승인 여부를 확인한 뒤 실행한다" },
+        { id: "b", text: "형식 검증을 통과했으므로 바로 실행해도 괜찮다" },
+        { id: "c", text: "AI가 직접 고른 도구이니 실행 후 결과만 기록한다" },
       ],
-      answer: 1,
+      answer: "a",
       explanation:
         "입력 형식이 맞는 것과 실행할 권한이 있는 것은 다릅니다. 실제 변경 전에 두 가지를 모두 확인해야 합니다.",
     },
@@ -239,11 +271,11 @@ export const AI_CONTENT: Record<AiLessonId, AiLessonContent> = {
       question:
         "로컬 모델로 채팅하면서 외부 웹 검색 도구를 연결했습니다. 모든 처리가 내 컴퓨터 안에서만 이뤄질까요?",
       choices: [
-        "로컬 모델이므로 항상 그렇다",
-        "앱 이름만 알면 판단할 수 있다",
-        "아니다. 검색 도구가 보내는 정보와 연결 대상도 확인해야 한다",
+        { id: "a", text: "그렇다. 모델이 로컬에서 실행되면 처리도 로컬이다" },
+        { id: "b", text: "아니다. 검색 도구가 보내는 정보와 대상을 확인한다" },
+        { id: "c", text: "그렇다. 검색 결과만 받아 오므로 내보내는 정보는 없다" },
       ],
-      answer: 2,
+      answer: "b",
       explanation:
         "모델 실행 위치와 도구의 데이터 전송 경로는 별개입니다. 외부 도구까지 포함해 확인해야 합니다.",
     },
@@ -323,11 +355,11 @@ export const AI_CONTENT: Record<AiLessonId, AiLessonContent> = {
     quiz: {
       question: "서버 연결은 성공했지만 ‘model not found’가 나왔습니다. 다음 확인은 무엇일까요?",
       choices: [
-        "저장된 모델 목록과 요청한 모델 이름을 비교한다",
-        "인터넷 공유기를 초기화한다",
-        "같은 질문을 더 길게 보낸다",
+        { id: "a", text: "서버 주소와 포트 번호를 다시 입력해 연결한다" },
+        { id: "b", text: "모델 서버를 재시작하고 같은 요청을 다시 보낸다" },
+        { id: "c", text: "저장된 모델 목록과 요청한 모델 이름을 비교한다" },
       ],
-      answer: 0,
+      answer: "c",
       explanation:
         "연결과 모델 선택은 다른 단계입니다. 설치된 모델 이름과 태그를 확인하고, 없다면 필요한 모델을 받으세요.",
     },
@@ -399,11 +431,11 @@ export const AI_CONTENT: Record<AiLessonId, AiLessonContent> = {
     quiz: {
       question: "Jev가 허용된 선택지 중 하나를 반환했습니다. 무엇까지 확인된 걸까요?",
       choices: [
-        "업무 판단도 반드시 정확하다",
-        "결과를 정해진 형식으로 읽을 수 있다. 판단의 정확성은 별도로 확인한다",
-        "고객에게 보낼 답변도 작성됐다",
+        { id: "a", text: "형식은 확인됐고, 판단의 정확성은 따로 확인한다" },
+        { id: "b", text: "허용된 선택지 안에서 골랐으니 업무 판단도 정확하다" },
+        { id: "c", text: "선택한 결과에 맞는 고객 답변까지 함께 준비됐다" },
       ],
-      answer: 1,
+      answer: "a",
       explanation:
         "결과 형식과 판단의 정확성은 별개입니다. 실제 사례와 정답 기준으로 판단 품질을 확인해야 합니다.",
     },
@@ -480,11 +512,11 @@ export const AI_CONTENT: Record<AiLessonId, AiLessonContent> = {
       question:
         "일반 배송 문의의 모의 확신도가 0.62입니다. 이 수업의 기준인 0.80보다 낮다면 어떻게 할까요?",
       choices: [
-        "담당자 검토로 보내고 판단 결과를 기록한다",
-        "가장 높은 선택지이니 바로 전송한다",
-        "확신도를 1로 바꿔 저장한다",
+        { id: "a", text: "가장 높은 선택지이므로 그대로 자동 전송한다" },
+        { id: "b", text: "담당자 검토로 보내고 판단 결과를 기록한다" },
+        { id: "c", text: "기준을 0.60으로 낮춰 자동 처리를 늘린다" },
       ],
-      answer: 0,
+      answer: "b",
       explanation:
         "예시 규칙상 확신이 부족한 경우입니다. 검토한 결과를 쌓으면 어떤 문의에서 판단이 어려운지 확인할 수 있습니다.",
     },
@@ -492,3 +524,7 @@ export const AI_CONTENT: Record<AiLessonId, AiLessonContent> = {
     sources: [jevSource, { title: "TypeSafe: 확신도와 자동화", url: "https://typesafe.ai/" }],
   },
 };
+const INPUTS: Record<AiLessonId, AiLessonInput> = { ...EXTENDED_CONTENT, ...AUTHORED };
+export const AI_CONTENT = Object.fromEntries(
+  Object.entries(INPUTS).map(([id, input]) => [id, lessonContent(input)]),
+) as Record<AiLessonId, AiLessonContent>;

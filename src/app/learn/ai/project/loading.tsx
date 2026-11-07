@@ -1,4 +1,4 @@
 import { RouteLoading } from "@/components/ui/loading-state";
 export default function Loading() {
-  return <RouteLoading variant="lesson" label="프로젝트 AI 학습 불러오는 중" />;
+  return <RouteLoading variant="lesson" label="내 프로젝트 AI 워크숍 불러오는 중" />;
 }

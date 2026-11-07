@@ -34,11 +34,15 @@ export const workshopPlanSchema = z
   })
   .strict();
 export type WorkshopPlan = z.infer<typeof workshopPlanSchema>;
-const workshopResponseSchema = z
+const responseInputSchema = z
   .object({
     choice: z.number().int().min(0).max(3),
     note: z.string().max(2000),
   })
+  .strict();
+/** A saved answer keeps the first choice ever saved for the topic; earlier saves lack it. */
+const workshopResponseSchema = responseInputSchema
+  .extend({ firstChoice: z.number().int().min(0).max(3).optional() })
   .strict();
 export const workshopSchema = z
   .object({
@@ -49,13 +53,41 @@ export const workshopSchema = z
   })
   .strict();
 export type ProjectWorkshop = z.infer<typeof workshopSchema>;
-export const workshopSaveSchema = z
+/** What the browser sends; the server adds `firstChoice` from the saved record. */
+export const workshopSaveInputSchema = z
   .object({
     index: z.number().int().min(0).max(5),
     revision: z.number().int().nonnegative(),
-    response: workshopResponseSchema,
+    response: responseInputSchema,
   })
   .strict();
+export const workshopSaveSchema = workshopSaveInputSchema
+  .extend({ response: workshopResponseSchema })
+  .strict();
+export type WorkshopResponse = z.infer<typeof workshopResponseSchema>;
+/** Records the first saved choice once; later edits keep it, older records stay without it. */
+export function workshopResponse(
+  saved: ProjectWorkshop | null,
+  input: z.infer<typeof workshopSaveInputSchema>,
+): WorkshopResponse {
+  const previous = saved?.responses[input.index];
+  const firstChoice = previous ? previous.firstChoice : input.response.choice;
+  return { ...input.response, ...(firstChoice === undefined ? {} : { firstChoice }) };
+}
+/** Workshop progress: answered topics and how the first answer compared with the advice. */
+export function workshopProgress(value: ProjectWorkshop) {
+  const topics = value.plan.topics.map((topic, index) => {
+    const response = value.responses[index];
+    const first = response?.firstChoice;
+    return {
+      answered: Boolean(response),
+      firstCorrect: first === undefined ? null : first === topic.answer,
+      revised: Boolean(response && first !== undefined && first !== response.choice),
+      currentCorrect: response ? response.choice === topic.answer : null,
+    };
+  });
+  return { topics, answered: topics.filter((t) => t.answered).length, total: topics.length };
+}
 export function validWorkshop(plan: WorkshopPlan, repository: RepositorySnapshot) {
   return plan.topics.every(
     (t) =>
@@ -67,6 +99,11 @@ export function validWorkshop(plan: WorkshopPlan, repository: RepositorySnapshot
 export function validWorkshopResponses(value: ProjectWorkshop) {
   return (
     value.responses.length <= value.plan.topics.length &&
-    value.responses.every((r, i) => !r || r.choice < value.plan.topics[i].choices.length)
+    value.responses.every(
+      (r, i) =>
+        !r ||
+        (r.choice < value.plan.topics[i].choices.length &&
+          (r.firstChoice === undefined || r.firstChoice < value.plan.topics[i].choices.length)),
+    )
   );
 }

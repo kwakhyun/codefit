@@ -6,8 +6,9 @@ import { AppLink as Link } from "@/components/ui/primitives";
 import { api, errorMessage } from "@/lib/client-api";
 import type { Mission } from "@/lib/learn/catalog";
 import type { LearningSession } from "@/lib/learn/session";
+import type { ServiceDomain } from "@/lib/learn/services/types";
 import { MissionSession } from "./mission-session";
-export function MissionLoader({ mission }: { mission: Mission }) {
+export function MissionLoader({ mission, domain }: { mission: Mission; domain?: ServiceDomain }) {
   const [data, setData] = useState<LearningSession | null>(null),
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0);
@@ -40,5 +41,12 @@ export function MissionLoader({ mission }: { mission: Mission }) {
         )}
       </main>
     );
-  return <MissionSession key={`${data.scope}:${mission.id}`} mission={mission} session={data} />;
+  return (
+    <MissionSession
+      key={`${data.scope}:${mission.id}`}
+      mission={mission}
+      session={data}
+      domain={domain}
+    />
+  );
 }

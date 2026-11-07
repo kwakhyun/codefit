@@ -13,12 +13,15 @@ export function MissionTransfer({
   record,
   update,
   nextMission,
+  domain,
   onComplete,
 }: {
   mission: Mission;
   record: LearningRecord;
   update: LearningRecordUpdate;
+  /** Next mission in the same section (and service domain, when the list was filtered). */
   nextMission?: Mission;
+  domain?: string;
   onComplete: () => void;
 }) {
   return (
@@ -97,12 +100,18 @@ export function MissionTransfer({
           </p>
           <div>
             {nextMission && (
-              <Link className="primary-button" href={`/learn/${nextMission.id}`}>
-                다음 미션 →
+              <Link
+                className="primary-button"
+                href={`/learn/${nextMission.id}${domain ? `?domain=${domain}` : ""}`}
+              >
+                다음 미션: {nextMission.title} →
               </Link>
             )}
-            <Link className="secondary-button" href="/learn?source=sample">
-              전체 학습 보기
+            <Link
+              className={nextMission ? "secondary-button" : "primary-button"}
+              href={`/learn?source=sample#${mission.kind === "lab" ? "labs" : "basics"}`}
+            >
+              미션 목록 보기
             </Link>
           </div>
         </div>

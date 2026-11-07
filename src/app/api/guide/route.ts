@@ -1,4 +1,4 @@
-import { allowanceFor } from "@/lib/ai-access";
+import { allowanceFor, guestAllowance } from "@/lib/ai-access";
 import { guideInputSchema } from "@/lib/guide";
 import { askGuide } from "@/lib/server/ai-guide";
 import { basicGuide } from "@/lib/server/guide-catalog";
@@ -36,7 +36,13 @@ export async function POST(request: Request) {
     // Personal daily allowances are refunded when the provider call fails.
     const personal = [
       ...(!owner.startsWith("user:")
-        ? [{ key: `guide:guest-network:${network}`, max: 2, windowMs: 86_400_000 }]
+        ? [
+            {
+              key: `guide:guest-network:${network}`,
+              max: guestAllowance("guide"),
+              windowMs: 86_400_000,
+            },
+          ]
         : []),
       { key: `guide:owner:${owner}`, max: allowanceFor(owner).guide, windowMs: 86_400_000 },
     ];
