@@ -1,138 +1,109 @@
 "use client";
-import { usePathname } from "next/navigation";
+import { Suspense } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
-import { preferredDestinations } from "@/lib/learning-preference";
+import { navigationGroups } from "@/lib/learning-preference";
+import { navCurrent } from "@/lib/shell-location";
 import { AppLink as Link } from "@/components/ui/primitives";
 import { DomainIcon } from "@/components/ui/problem-badges";
-import { DOMAINS, type DomainId } from "@/lib/catalog";
-import type { LibraryView } from "@/lib/library-state";
-import type { ProblemSummary } from "@/lib/problem";
+import { DOMAINS } from "@/lib/catalog";
+import type { NavInfo } from "@/components/shell/shell-context";
 import {
-  ClipboardCheck,
-  BookOpen,
-  ShieldCheck,
   Bookmark,
+  BookOpen,
+  ClipboardCheck,
+  FolderKanban,
   History,
   Home,
   LayoutGrid,
+  ShieldCheck,
+  Sparkles,
   Terminal,
   Workflow,
+  type LucideIcon,
 } from "lucide-react";
 
-export function WorkspaceNavigation({
-  initialProblemId,
-  initialView = "library",
-  initialDomain = "all",
-  saved = 0,
-  activeProblem,
-  practiceMode,
-}: {
-  initialProblemId?: string;
-  initialView?: LibraryView;
-  initialDomain?: DomainId | "all";
-  saved?: number;
-  activeProblem?: ProblemSummary;
-  /** Project practice belongs to the track it was opened from: code reading or service behavior. */
-  practiceMode?: "code" | "service";
-}) {
-  const { preference, profile, type } = useLearningPreference();
+const icons: Record<string, LucideIcon> = {
+  "/project-check": ClipboardCheck,
+  "/security-check": ShieldCheck,
+  "/learn/ai": Workflow,
+  "/learn/ai/project": Sparkles,
+  "/handoff": Terminal,
+  "/?view=browse": LayoutGrid,
+  "/learn": BookOpen,
+};
+const emptyParams = new URLSearchParams();
+
+/** The one product menu for every screen. Search params are read under a Suspense boundary. */
+export function WorkspaceNavigation({ navInfo = {} }: { navInfo?: NavInfo }) {
+  return (
+    <Suspense fallback={<NavigationLinks navInfo={navInfo} params={emptyParams} />}>
+      <SearchAwareNavigation navInfo={navInfo} />
+    </Suspense>
+  );
+}
+function SearchAwareNavigation({ navInfo }: { navInfo: NavInfo }) {
+  const params = useSearchParams();
+  return <NavigationLinks navInfo={navInfo} params={params} />;
+}
+function NavigationLinks({ navInfo, params }: { navInfo: NavInfo; params: URLSearchParams }) {
+  const { preference, type } = useLearningPreference();
   const pathname = usePathname();
-  const isHome = pathname === "/";
-  function current(href: string) {
-    if (href === "/?view=browse") return isHome && initialView === "browse";
-    if (pathname === "/project-practice")
-      return href === (practiceMode === "service" ? "/learn" : practiceMode && "/handoff");
-    if (href === "/learn") return pathname === "/learn";
-    return pathname === href || pathname.startsWith(href + "/");
+  function item(href: string, label: string, Icon: LucideIcon, badge?: number) {
+    const current = navCurrent(href, pathname, params);
+    return (
+      <Link
+        className={`nav-item ${current === "page" ? "active" : current ? "is-section" : ""}`}
+        aria-current={current}
+        href={href}
+        key={href}
+      >
+        <Icon size={17} aria-hidden="true" />
+        <span>{label}</span>
+        {Boolean(badge) && <small>{badge}</small>}
+      </Link>
+    );
   }
+  const domain = pathname === "/" ? params.get("domain") : null;
   return (
     <nav aria-label="작업 공간 메뉴">
       <span className="nav-caption">나의 연습실</span>
-      <Link
-        className={`nav-item ${isHome && !initialProblemId && initialView === "library" && initialDomain === "all" ? "active" : ""}`}
-        aria-current={
-          isHome && !initialProblemId && initialView === "library" && initialDomain === "all"
-            ? "page"
-            : undefined
-        }
-        href="/"
-      >
-        <Home size={17} />
-        <span>홈</span>
-      </Link>
-      <Link
-        className={`nav-item ${current("/projects") ? "active" : ""}`}
-        aria-current={current("/projects") ? "page" : undefined}
-        href="/projects"
-      >
-        <BookOpen size={17} />
-        <span>내 프로젝트</span>
-      </Link>
-      {preferredDestinations(preference).map((item, index) => (
-        <div key={item.href}>
-          {(index === 0 || index === 2) && (
-            <span className="nav-caption">{index === 0 ? profile.group : profile.secondary}</span>
-          )}
-          <Link
-            className={`nav-item ${current(item.href) ? "active" : ""}`}
-            aria-current={current(item.href) ? "page" : undefined}
-            href={item.href}
-            key={item.href}
-          >
-            {item.href === "/?view=browse" ? (
-              <LayoutGrid size={17} aria-hidden="true" />
-            ) : item.href === "/learn/ai" ? (
-              <Workflow size={17} aria-hidden="true" />
-            ) : item.href === "/learn" ? (
-              <BookOpen size={17} />
-            ) : item.href === "/handoff" ? (
-              <Terminal size={17} />
-            ) : item.href === "/security-check" ? (
-              <ShieldCheck size={17} />
-            ) : (
-              <ClipboardCheck size={17} />
-            )}
-            <span>{item.label}</span>
-          </Link>
-          {type === "code" && index === 0 && (
-            <section
-              className="domain-list code-priority-domains"
-              aria-label="분야별 코딩 연습 바로가기"
-            >
-              <h2 className="nav-caption">바로 풀기</h2>
-              <div>
-                {DOMAINS.map((d) => (
-                  <Link
-                    key={d.id}
-                    href={`/?domain=${d.id}`}
-                    className={`nav-item domain-nav ${initialDomain === d.id || activeProblem?.domain === d.id ? "domain-active" : ""}`}
-                  >
-                    <DomainIcon domain={d.id} />
-                    <span>{d.label}</span>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+      {item("/", "홈", Home)}
+      {item("/projects", "내 프로젝트", FolderKanban)}
+      {navigationGroups(preference).map((group) => (
+        <div key={group.id} className="nav-group">
+          <span className="nav-caption">{group.caption}</span>
+          {group.items.map((destination) => (
+            <div key={destination.href}>
+              {item(destination.href, destination.label, icons[destination.href] || BookOpen)}
+              {type === "code" && destination.href === "/?view=browse" && (
+                <section
+                  className="domain-list code-priority-domains"
+                  aria-label="분야별 코딩 연습 바로가기"
+                >
+                  <h2 className="nav-caption">바로 풀기</h2>
+                  <div>
+                    {DOMAINS.map((d) => (
+                      <Link
+                        key={d.id}
+                        href={`/?domain=${d.id}`}
+                        aria-current={domain === d.id ? "page" : undefined}
+                        className={`nav-item domain-nav ${domain === d.id || navInfo.activeDomain === d.id ? "domain-active" : ""}`}
+                      >
+                        <DomainIcon domain={d.id} />
+                        <span>{d.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          ))}
         </div>
       ))}
-      <Link
-        className={`nav-item ${isHome && !initialProblemId && initialView === "bookmarks" ? "active" : ""}`}
-        aria-current={isHome && initialView === "bookmarks" ? "page" : undefined}
-        href="/?view=bookmarks"
-      >
-        <Bookmark size={17} />
-        <span>북마크</span>
-        {saved > 0 && <small>{saved}</small>}
-      </Link>
-      <Link
-        className={`nav-item ${isHome && !initialProblemId && initialView === "history" ? "active" : ""}`}
-        aria-current={isHome && initialView === "history" ? "page" : undefined}
-        href="/?view=history"
-      >
-        <History size={17} />
-        <span>내 학습 기록</span>
-      </Link>
+      <span className="nav-caption">내 기록</span>
+      {item("/?view=bookmarks", "북마크", Bookmark, navInfo.bookmarked)}
+      {item("/?view=history", "내 학습 기록", History)}
     </nav>
   );
 }

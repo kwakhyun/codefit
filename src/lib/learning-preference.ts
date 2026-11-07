@@ -1,3 +1,4 @@
+import { allowanceSummary } from "./ai-access";
 import { learnerTypes } from "./learner-types";
 export type LearningPreference = {
   experience: "beginner" | "developer";
@@ -42,6 +43,11 @@ const destinations = {
     label: "AI 실무 배우기",
     description: "AI 도구의 개념을 익히고 모의 실습으로 활용 방법을 확인하세요.",
   },
+  aiProject: {
+    href: "/learn/ai/project",
+    label: "내 프로젝트 AI 워크숍",
+    description: "저장소 코드에서 AI를 적용할 곳을 찾고 작은 실험으로 확인하세요.",
+  },
   learn: {
     href: "/learn",
     label: "서비스 원리 배우기",
@@ -56,8 +62,7 @@ const destinations = {
   project: {
     href: "/project-check",
     label: "내 프로젝트 점검",
-    description:
-      "내 서비스로 질문받고 설계 설명을 보완하세요. 로그인 없이 분석 3회, 로그인하면 24시간에 5회 이용할 수 있습니다.",
+    description: `내 서비스로 질문받고 설계 설명을 보완하세요. 분석 횟수는 ${allowanceSummary("analysis")}입니다.`,
   },
   security: {
     href: "/security-check",
@@ -65,12 +70,34 @@ const destinations = {
     description: "공개 링크의 보안 설정을 확인하고 내 서비스에서 검증할 항목을 정리하세요.",
   },
 };
-export function preferredDestinations(preference: LearningPreference) {
-  const order: (keyof typeof destinations)[] =
+type DestinationKey = keyof typeof destinations;
+/** Menu groups follow what the tools do; the chosen workspace only decides which group leads. */
+const groups = {
+  service: { caption: "내 서비스 점검", items: ["project", "security"] },
+  ai: { caption: "AI 활용", items: ["ai", "aiProject"] },
+  code: { caption: "코드와 원리", items: ["handoff", "browse", "learn"] },
+} satisfies Record<string, { caption: string; items: DestinationKey[] }>;
+export function navigationGroups(preference: LearningPreference) {
+  const order: (keyof typeof groups)[] =
     preference.purpose === "ai"
-      ? ["ai", "handoff", "project", "security", "browse", "learn"]
+      ? ["ai", "code", "service"]
       : preference.purpose === "learn"
-        ? ["browse", "handoff", "ai", "project", "security", "learn"]
-        : ["project", "security", "ai", "handoff", "browse", "learn"];
-  return order.map((key) => destinations[key]);
+        ? ["code", "ai", "service"]
+        : ["service", "ai", "code"];
+  return order.map((id) => {
+    const items: DestinationKey[] =
+      id === "code" && preference.purpose === "learn"
+        ? ["browse", "handoff", "learn"]
+        : groups[id].items;
+    return { id, caption: groups[id].caption, items: items.map((key) => destinations[key]) };
+  });
+}
+export function preferredDestinations(preference: LearningPreference) {
+  return navigationGroups(preference).flatMap((group) => group.items);
+}
+/** Mirrors the browser choice so the server renders the same menu order on the first paint. */
+export const WORKSPACE_COOKIE = "codefit-workspace";
+export function preferenceSeed(cookieValue: string | undefined) {
+  const type = learnerTypes.find((item) => item.id === cookieValue);
+  return type ? JSON.stringify({ version: 3, type: type.id }) : null;
 }
