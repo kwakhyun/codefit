@@ -207,7 +207,7 @@ export function useLearningLab({
           JSON.stringify(readHandoffDraft(latest.current.value).training?.prediction) !==
           JSON.stringify(snapshot.training?.prediction)
         ) {
-          setError("실행 중 예측 기록이 바뀌었습니다. 현재 예측으로 다시 실행해 주세요.");
+          setError("실행 중 예상 기록이 바뀌었습니다. 현재 예상으로 다시 실행해 주세요.");
           return;
         }
         if (update((t) => ({ ...t, observation: results[0], observationSource: source })))
@@ -273,7 +273,7 @@ export function useLearningLab({
         ) !== coachingEvidenceText(snapshotTraining, evidence)
       ) {
         setError(
-          "질문을 기다리는 동안 예측이나 실행 기록이 바뀌었습니다. 현재 기록으로 다시 요청해 주세요.",
+          "질문을 기다리는 동안 예상이나 실행 기록이 바뀌었습니다. 현재 기록으로 다시 요청해 주세요.",
         );
         return;
       }

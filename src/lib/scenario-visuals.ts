@@ -214,6 +214,10 @@ const scenarioById: Record<string, SceneKey> = {
   "sys-lru": "cache",
   "fe-cart": "cart",
   "be-go-cancel": "cancel",
+  // Later problems reuse a scene only where its four captions describe the same situation;
+  // the rest show no illustration, like AI-generated problems.
+  "fe-page-range": "page",
+  "mobile-offline-queue": "request",
   "handoff-latest": "search",
   "handoff-cart": "cart",
   "handoff-page": "page",

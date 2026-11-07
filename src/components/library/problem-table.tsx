@@ -87,9 +87,17 @@ export function ProblemTable({ library, initialView, bookmarking, bookmark }: Pr
                 <div>
                   <h3>{p.title}</h3>
                   {p.source === "ai" && (
-                    <span className="ai-tag">
-                      <Sparkles size={10} />
-                      AI
+                    <span
+                      className="ai-tag"
+                      title="학습자 요청으로 AI가 만든 공개 문제입니다. 기본 문제와 달리 별도 검수를 거치지 않았습니다."
+                    >
+                      <Sparkles size={10} aria-hidden="true" />
+                      AI 생성
+                    </span>
+                  )}
+                  {progress?.status !== "solved" && library.checks[p.id] && (
+                    <span className="check-tag">
+                      {library.checks[p.id] === "tests" ? "예시 테스트 통과" : "직접 확인함"}
                     </span>
                   )}
                 </div>

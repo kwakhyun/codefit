@@ -734,3 +734,30 @@
 .timeline-item > svg {
   color: light-dark(var(--light-muted), #747474);
 }
+
+/* Row status tags and filter counts. */
+.problem-link > div {
+  flex-wrap: wrap;
+}
+.ai-tag,
+.check-tag {
+  white-space: nowrap;
+}
+.check-tag {
+  font-size: var(--text-caption);
+  padding: 1px 6px;
+  border: 1px solid var(--success);
+  border-radius: var(--radius-small);
+  color: var(--success);
+}
+.type-filters .toggle-count {
+  margin-left: 6px;
+  font: var(--text-caption) var(--mono);
+  opacity: 0.8;
+}
+.hidden-problems-note {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: var(--text-small);
+  line-height: 1.8;
+}

@@ -537,3 +537,67 @@
     min-height: 44px;
   }
 }
+
+/* Coding problems at phone width: 문제 / 코드 / 결과 tabs instead of a nested scroll box,
+   with the main actions kept at the bottom of the screen. Panes stay mounted. */
+@media (max-width: 760px) {
+  .mobile-pane-tabs {
+    display: flex;
+    gap: 4px;
+    margin: 0 0 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .mobile-pane-tabs > button {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: var(--control-size);
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-size: var(--text-ui);
+  }
+  .mobile-pane-tabs > button[aria-selected="true"] {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+  .mobile-pane-tabs > button:focus-visible {
+    outline: 2px solid var(--action);
+    outline-offset: 2px;
+  }
+  .mobile-pane-tabs small {
+    font-size: var(--text-caption);
+  }
+  .workbench.mobile-tabs .problem-content {
+    max-height: none;
+    min-height: 0;
+  }
+  .workbench.mobile-tabs[data-pane="problem"] > .editor-pane,
+  .workbench.mobile-tabs:is([data-pane="code"], [data-pane="result"]) > .problem-pane,
+  .workbench.mobile-tabs[data-pane="code"] .workspace-report-section,
+  .workbench.mobile-tabs[data-pane="result"]
+    :is(.editor-topbar, .draft-recovery, .workspace-code-section) {
+    display: none;
+  }
+  .workbench.mobile-tabs[data-pane="code"] .monaco-shell {
+    height: max(390px, calc(100dvh - 340px));
+  }
+  .mobile-action-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+  .mobile-action-bar > button {
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: var(--control-size);
+  }
+}

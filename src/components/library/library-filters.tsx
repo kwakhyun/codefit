@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { LibraryController } from "@/hooks/use-library-controller";
 
 import { LANGUAGES, LEVELS } from "@/lib/catalog";
+import { countedOptions } from "@/lib/library-state";
 import { ChevronDown, RotateCcw } from "lucide-react";
 interface LibraryFiltersProps {
   library: LibraryController;
@@ -25,6 +26,7 @@ export function LibraryFilters({ library }: LibraryFiltersProps) {
     resetFilters,
     sort,
     setSort,
+    facets,
   } = library;
   const [expanded, setExpanded] = useState(false);
   const selected = [
@@ -60,40 +62,65 @@ export function LibraryFilters({ library }: LibraryFiltersProps) {
             label: "난이도 필터",
             value: level,
             set: setLevel,
-            options: [
-              { value: "all", label: "모든 난이도" },
-              ...LEVELS.map((value) => ({ value, label: `난이도 ${value}` })),
-            ],
+            options: countedOptions(
+              facets,
+              "level",
+              [
+                { value: "all", label: "모든 난이도" },
+                ...LEVELS.map((value) => ({ value, label: `난이도 ${value}` })),
+              ],
+              level,
+            ),
           },
           {
             label: "언어 필터",
             value: language,
             set: setLanguage,
-            options: [
-              { value: "all", label: "모든 언어" },
-              ...Object.entries(LANGUAGES).map(([value, item]) => ({ value, label: item.label })),
-            ],
+            // Only languages that have problems under the current conditions are offered.
+            options: countedOptions(
+              facets,
+              "language",
+              [
+                { value: "all", label: "모든 언어" },
+                ...Object.entries(LANGUAGES).map(([value, item]) => ({
+                  value,
+                  label: item.label,
+                })),
+              ],
+              language,
+              true,
+            ),
           },
           {
             label: "풀이 상태 필터",
             value: status,
             set: setStatus,
-            options: [
-              { value: "all", label: "모든 상태" },
-              { value: "new", label: "미해결" },
-              { value: "in-progress", label: "진행 중" },
-              { value: "solved", label: "해결 완료" },
-            ],
+            options: countedOptions(
+              facets,
+              "status",
+              [
+                { value: "all", label: "모든 상태" },
+                { value: "new", label: "미해결" },
+                { value: "in-progress", label: "진행 중" },
+                { value: "solved", label: "해결 완료" },
+              ],
+              status,
+            ),
           },
           {
             label: "문제 출처 필터",
             value: source,
             set: setSource,
-            options: [
-              { value: "all", label: "모든 출처" },
-              { value: "curated", label: "기본 문제" },
-              { value: "ai", label: "AI 생성" },
-            ],
+            options: countedOptions(
+              facets,
+              "source",
+              [
+                { value: "all", label: "모든 출처" },
+                { value: "curated", label: "기본 문제" },
+                { value: "ai", label: "AI 생성" },
+              ],
+              source,
+            ),
           },
         ].map((filter) => (
           <Select

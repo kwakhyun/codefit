@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { seedProblems } from "../data/problems";
-import { defaultFilters, libraryUrl, problemUrl, readFilters, safeReturnTo } from "./library-state";
+import {
+  countedOptions,
+  defaultFilters,
+  libraryUrl,
+  problemUrl,
+  readFilters,
+  safeReturnTo,
+} from "./library-state";
 import type { AttemptSummary, ProgressSummary } from "./problem";
 import { publicProblem } from "./problem";
 import { recommendProblem, trainingSummary } from "./training";
@@ -127,4 +134,33 @@ it("keeps the explicit catalog view through filters and a problem round trip", (
 it("keeps sample training return navigation local", () => {
   expect(safeReturnTo("/handoff?source=sample")).toBe("/handoff?source=sample");
   expect(safeReturnTo("/handoff?source=sample&next=https://evil.test")).toBe("/");
+});
+
+it("labels filter options with counts and hides empty languages unless selected", () => {
+  const facets = {
+    level: { 하: 3 },
+    kind: {},
+    language: { lua: 2, javascript: 1 },
+    source: { curated: 3 },
+    status: { new: 3 },
+  };
+  const languages = [
+    { value: "all", label: "모든 언어" },
+    { value: "javascript", label: "JavaScript" },
+    { value: "lua", label: "Lua" },
+    { value: "julia", label: "Julia" },
+    { value: "r", label: "R" },
+  ];
+  expect(countedOptions(facets, "language", languages, "r", true)).toEqual([
+    { value: "all", label: "모든 언어" },
+    { value: "javascript", label: "JavaScript (1)" },
+    { value: "lua", label: "Lua (2)" },
+    { value: "r", label: "R (0)" },
+  ]);
+  expect(
+    countedOptions(facets, "level", [{ value: "중", label: "난이도 중" }], "all").map(
+      (o) => o.label,
+    ),
+  ).toEqual(["난이도 중 (0)"]);
+  expect(countedOptions(undefined, "language", languages, "all", true)).toBe(languages);
 });

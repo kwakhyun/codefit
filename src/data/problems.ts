@@ -1,4 +1,5 @@
 import { handoffProblems } from "./handoff-problems";
+import { practiceSeeds } from "./practice-problems";
 import type { Problem } from "../lib/problem";
 
 type Seed = Omit<Problem, "createdAt" | "source">;
@@ -448,7 +449,8 @@ const seeds: Seed[] = [
   },
 ];
 export const seedProblems: Problem[] = [
-  ...seeds.map((p, index): Problem => ({
+  // Appended problems keep the original creation order (and list order) of earlier seeds.
+  ...[...seeds, ...practiceSeeds].map((p, index): Problem => ({
     ...p,
     source: "curated",
     createdAt: new Date(Date.UTC(2026, 8, 1, 0, index)).toISOString(),

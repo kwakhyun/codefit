@@ -75,7 +75,13 @@ export function ProblemLibrary({
     kind,
     setKind,
     currentPage,
+    pageSize,
+    facets,
+    hiddenCount,
+    showHidden,
+    restoring,
   } = library;
+  const kindCount = (value: string) => facets?.kind[value] ?? 0;
   return (
     <>
       {isHome ? (
@@ -89,13 +95,13 @@ export function ProblemLibrary({
       ) : (
         <div className="page-title">
           <span className="eyebrow">
-            {initialView === "bookmarks" ? "나중에 풀 문제" : "분야별 코딩 연습"}
+            {initialView === "bookmarks" ? "북마크" : "분야별 코딩 연습"}
           </span>
           <h1>
             {initialView === "bookmarks"
               ? "북마크한 문제"
               : initialDomain === "all"
-                ? "전체 문제 탐색"
+                ? "모든 분야의 코딩 문제"
                 : `${domainLabel(initialDomain as DomainId)} 코딩 문제`}
           </h1>
           <p>
@@ -155,7 +161,7 @@ export function ProblemLibrary({
                 </strong>
                 <span className="stat-note">
                   <span className="status-dot" />
-                  함께 푸는 공개 문제
+                  AI가 만든 공개 문제 · 별도 검수 없음
                 </span>
               </div>
             </div>
@@ -227,6 +233,7 @@ export function ProblemLibrary({
                       }}
                     >
                       {KIND_LABELS[k]}
+                      {facets && <small className="toggle-count">{kindCount(k)}</small>}
                     </ToggleButton>
                   ))}
                 </div>
@@ -241,7 +248,7 @@ export function ProblemLibrary({
               <div className="table-footer">
                 <span>
                   {total > 0
-                    ? `${(currentPage - 1) * 8 + 1}–${Math.min(currentPage * 8, total)}`
+                    ? `${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, total)}`
                     : "0"}{" "}
                   <span className="muted">/ {total}개 문제</span>
                 </span>
@@ -256,18 +263,30 @@ export function ProblemLibrary({
                   </Button>
                   <span>
                     {currentPage}{" "}
-                    <span className="muted">/ {Math.max(1, Math.ceil(total / 8))}</span>
+                    <span className="muted">/ {Math.max(1, Math.ceil(total / pageSize))}</span>
                   </span>
                   <Button
                     className="icon-button"
                     aria-label="다음 페이지"
-                    disabled={currentPage * 8 >= total}
+                    disabled={currentPage * pageSize >= total}
                     onClick={() => setPage(currentPage + 1)}
                   >
                     <ChevronRight size={16} />
                   </Button>
                 </div>
               </div>
+              {hiddenCount > 0 && (
+                <p className="hidden-problems-note">
+                  내 목록에서 숨긴 AI 생성 문제 {hiddenCount}개는 이 목록과 개수에서 빠져 있습니다.{" "}
+                  <Button
+                    className="text-button"
+                    onClick={() => void showHidden()}
+                    disabled={restoring}
+                  >
+                    모두 다시 표시
+                  </Button>
+                </p>
+              )}
             </section>
             <div className="library-bottom-note">
               <span>

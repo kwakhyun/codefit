@@ -341,7 +341,7 @@ test("audit: original code, stable labels, missing-note focus and handoff docume
   });
   await openHandoff(page);
   await stage(page, 0);
-  await expect(page.getByLabel("예측할 원본 코드")).toContainText(base.starterCode);
+  await expect(page.getByLabel("예상할 원본 코드")).toContainText(base.starterCode);
   await stage(page, 3);
   await setCode(page, base.solution);
   await page.getByRole("button", { name: "AI 풀이 검토", exact: true }).click();
@@ -358,7 +358,7 @@ test("audit: original code, stable labels, missing-note focus and handoff docume
   expect(content).toContain(base.solution);
   expect(content).toContain(notes.decision);
   await stage(page, 0);
-  await expect(page.getByLabel("예측할 원본 코드")).toContainText(base.starterCode);
+  await expect(page.getByLabel("예상할 원본 코드")).toContainText(base.starterCode);
   await stage(page, 3);
   await accessible(page);
   if (testInfo.project.name === "chromium")

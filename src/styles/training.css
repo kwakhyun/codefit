@@ -190,3 +190,38 @@
 .toast-error > svg {
   color: var(--danger);
 }
+
+/* Learning history: today's summary and the unsolved filter. */
+.training-overview .today-summary {
+  margin: 6px 0 0;
+  font-size: var(--text-small);
+  line-height: 1.8;
+}
+.history-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+.history-filters button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+  color: var(--muted);
+  font-size: var(--text-ui);
+}
+.history-filters button.selected {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+.history-filters button:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 2px;
+}
+.history-filter-note {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: var(--text-small);
+}

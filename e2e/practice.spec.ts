@@ -23,16 +23,19 @@ test("anonymous entry, paged search, URL restoration, and home accessibility", a
   page.on("pageerror", (e) => errors.push(e.message));
   await home(page);
   await expect(page.locator('input[type="password"]')).toHaveCount(0);
-  await expect(page.locator(".problem-row")).toHaveCount(8);
+  await expect(page.locator(".problem-row")).toHaveCount(12);
   await accessible(page);
   await page.getByRole("button", { name: "다음 페이지" }).click();
   await expect(page).toHaveURL(/page=2/);
-  await expect(page.locator(".problem-row")).toHaveCount(8);
+  await expect(page.locator(".problem-row")).toHaveCount(12);
   await page.getByRole("textbox", { name: "문제 검색" }).fill("TCP");
   await expect(page.locator(".problem-row")).toHaveCount(1);
   await page.locator(".problem-link").click();
   await expect(page).toHaveURL(/\/problems\/net-framing/);
-  await page.locator(".workspace-breadcrumb").getByRole("link", { name: "문제 보관함" }).click();
+  await page
+    .locator(".workspace-breadcrumb")
+    .getByRole("link", { name: "분야별 코딩 연습" })
+    .click();
   await expect(page.getByRole("textbox", { name: "문제 검색" })).toHaveValue("TCP");
   expect(errors).toEqual([]);
 });
@@ -156,7 +159,23 @@ test("mobile navigation, search and workspace have no horizontal overflow", asyn
   await page.getByRole("button", { name: /메뉴 열기/ }).click();
   await expect(page.getByRole("link", { name: "내 학습 기록" })).toBeVisible();
   await page.keyboard.press("Escape");
-  await editor(page);
+  await page.goto("/problems/be-pagination");
+  // Phone-width coding problems switch panes instead of nesting scroll areas.
+  const panes = page.getByRole("tablist", { name: "작업 화면" });
+  await expect(panes.getByRole("tab", { name: "문제", exact: true })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  await expect(page.locator(".monaco-editor")).toBeHidden();
+  await panes.getByRole("tab", { name: "코드", exact: true }).click();
+  await expect(page.locator(".monaco-editor").first()).toBeVisible();
+  await setCode(page, "def paginate(items, page=1, size=20):\n    return 'kept across tabs'");
+  await panes.getByRole("tab", { name: "결과", exact: true }).click();
+  await expect(page.getByRole("region", { name: "직접 확인" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "AI 검토 요청" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await panes.getByRole("tab", { name: "코드", exact: true }).click();
+  expect(await readCode(page)).toContain("kept across tabs");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 

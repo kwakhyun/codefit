@@ -54,7 +54,7 @@ test("new code learners get one consistent first recommendation; public navigati
     "/problems/handoff-cart?from=%2Fhandoff",
   );
   await next.getByRole("link").click();
-  await expect(page.getByRole("heading", { name: "1. 예측하기" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "1. 예상하기" })).toBeVisible();
   await page.goto("/learn");
   const navigation = page.getByRole("navigation", { name: "작업 공간 메뉴" });
   await navigation.getByRole("link", { name: "AI 코드 이해 훈련", exact: true }).focus();
@@ -77,7 +77,7 @@ test("mobile filters preserve selection when folded and reset cleanly", async ({
   await expect(page.getByRole("combobox", { name: "난이도 필터", exact: true })).toBeHidden();
   await toggle.click();
   await page.getByRole("combobox", { name: "난이도 필터", exact: true }).click();
-  await page.getByRole("option", { name: "난이도 하", exact: true }).click();
+  await page.getByRole("option", { name: /^난이도 하 \(\d+\)$/ }).click();
   await expect(page).toHaveURL(/level=/);
   await toggle.click();
   await expect(page.locator(".filter-summary")).toContainText("난이도 하");
@@ -112,7 +112,11 @@ test("all public page families remain readable on mobile and have accessible nav
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(url);
     await expect(page.locator("h1")).toBeVisible();
-    if (url.includes("problems")) await expect(page.locator(".monaco-editor")).toBeVisible();
+    if (url.includes("problems")) {
+      // Phone-width coding problems open on the 문제 tab; the editor is on the 코드 tab.
+      await page.getByRole("tab", { name: "코드", exact: true }).click();
+      await expect(page.locator(".monaco-editor")).toBeVisible();
+    }
     expect(
       (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
         .violations,

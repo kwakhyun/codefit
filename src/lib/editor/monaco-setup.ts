@@ -1,44 +1,7 @@
 import { loader, type BeforeMount } from "@monaco-editor/react";
+import { REACT_EDITOR_TYPES } from "./react-editor-types";
 
 loader.config({ paths: { vs: "/monaco/vs" } });
-const REACT_EDITOR_TYPES = [
-  "declare namespace JSX {",
-  "  interface IntrinsicElements {",
-  "    [elementName: string]: any;",
-  "  }",
-  "}",
-  "",
-  'declare module "react" {',
-  "  export type ReactNode = unknown;",
-  "  export type SetStateAction<S> = S | ((previous: S) => S);",
-  "  export type Dispatch<A> = (value: A) => void;",
-  "  export interface SyntheticEvent<T = Element> {",
-  "    currentTarget: T;",
-  "    preventDefault(): void;",
-  "  }",
-  "  export interface FormEvent<T = Element> extends SyntheticEvent<T> {}",
-  "  export interface ChangeEvent<T = Element> extends SyntheticEvent<T> {",
-  "    target: T;",
-  "  }",
-  "  export function useState<S>(initial: S | (() => S)): [S, Dispatch<SetStateAction<S>>];",
-  "  export function useEffect(effect: () => void | (() => void), dependencies?: readonly unknown[]): void;",
-  "  export function useMemo<T>(factory: () => T, dependencies: readonly unknown[]): T;",
-  "  export function useCallback<T extends (...args: any[]) => any>(callback: T, dependencies: readonly unknown[]): T;",
-  "  export function useRef<T>(initial: T): { current: T };",
-  "  export function useReducer<R extends (state: any, action: any) => any>(",
-  "    reducer: R,",
-  "    initialState: Parameters<R>[0],",
-  "  ): [ReturnType<R>, Dispatch<Parameters<R>[1]>];",
-  "  export function useId(): string;",
-  "  export function useDeferredValue<T>(value: T): T;",
-  "}",
-  "",
-  'declare module "react/jsx-runtime" {',
-  "  export const Fragment: any;",
-  "  export function jsx(type: any, props: any, key?: any): any;",
-  "  export function jsxs(type: any, props: any, key?: any): any;",
-  "}",
-].join("\n");
 
 let isMonacoConfigured = false;
 export function configureMonaco(monaco: Parameters<BeforeMount>[0]) {
@@ -140,6 +103,9 @@ export function configureMonaco(monaco: Parameters<BeforeMount>[0]) {
     target: monaco.languages.typescript.ScriptTarget.ES2022,
     module: monaco.languages.typescript.ModuleKind.ESNext,
     moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+    // ts.ModuleDetectionKind.Force: each practice file is its own module, so declarations in
+    // one problem (or in the example-test transpile model) never collide with another file.
+    moduleDetection: 3,
   };
 
   monaco.languages.typescript.javascriptDefaults.setCompilerOptions({

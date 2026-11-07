@@ -16,6 +16,7 @@ import { Select } from "@/components/ui/select";
 import { GuestLogin } from "@/components/account/guest-login";
 import type { AccountState } from "@/lib/auth-types";
 import type { AiUsage } from "@/lib/ai-telemetry";
+import { allowanceSummary, memberAllowance } from "@/lib/ai-access";
 import type { PublicProblem } from "@/lib/problem";
 import { ArrowRight, Check, Database, LoaderCircle, Sparkles, Terminal } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -124,11 +125,11 @@ export function Generator({
               ? `오늘 ${usage.remaining.generate} / ${usage.allowance.generate}회 남음`
               : "생성 가능 횟수 확인 중…"}
           </strong>
-          <small>매일 한국 시간 자정에 초기화 · 비로그인 2회, 로그인 6회</small>
+          <small>매일 한국 시간 자정에 초기화 · {allowanceSummary("generate")}</small>
           {!account.user && (
             <GuestLogin
               returnTo={`/?domain=${initialDomain}&generate=1`}
-              label="로그인하고 하루 6회 이용하기"
+              label={`로그인하고 하루 ${memberAllowance("generate")}회 이용하기`}
             />
           )}
         </div>
@@ -241,7 +242,7 @@ export function Generator({
         </fieldset>
         {!aiReady && (
           <p className="inline-warning">
-            현재 AI 문제 생성을 사용할 수 없습니다. 보관함에 있는 문제는 계속 풀 수 있습니다.
+            현재 AI 문제 생성을 사용할 수 없습니다. 분야별 코딩 연습의 문제는 계속 풀 수 있습니다.
           </p>
         )}
         {error && (
@@ -251,7 +252,7 @@ export function Generator({
         )}
         <div className="generation-note">
           <Database size={15} />
-          <span>생성한 문제는 공개 보관함에 저장됩니다.</span>
+          <span>생성한 문제는 분야별 코딩 연습에 공개 문제로 저장됩니다.</span>
         </div>
         {busy && (
           <div className="generation-progress" role="status">

@@ -94,7 +94,7 @@ export function HandoffFields({
 
 export function HandoffGuide({ starterCode }: { starterCode: string }) {
   return (
-    <section className="handoff-guide" aria-label="인수인계 훈련 안내">
+    <section className="handoff-guide" aria-label="코드 이해 훈련 안내">
       <span className="eyebrow">AI CODE HANDOFF</span>
       <h2>코드 분석과 인수인계 메모</h2>
       <p>

@@ -58,7 +58,7 @@ test("code training leads from observed output to a current test and explanation
   await expect(page.locator(".lab-purpose")).toContainText("이전 장바구니");
   await expect(page.locator(".lab-source details")).toHaveAttribute("open", "");
   await page.getByRole("radio", { name: "원본 2, 반환값 3" }).check();
-  await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await page.getByRole("button", { name: "예상을 남기고 원본 실행" }).click();
   await expect(page.getByLabel("원본 실행 반환값")).toHaveText("[3,3]");
   await expect(page.locator(".lab-optional-tools")).not.toHaveAttribute("open", "");
   await expect(page.getByRole("button", { name: "내 예상에 맞는 AI 질문 받기" })).not.toBeVisible();

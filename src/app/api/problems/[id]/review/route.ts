@@ -2,6 +2,7 @@ import { missingHandoffFields, readHandoffDraft, handoffMissingMessage } from "@
 import type { JobLease } from "@/lib/server/store-contract";
 import { requestFingerprint } from "@/lib/server/write-conflicts";
 import { reviewCode } from "@/lib/server/ai";
+import { exampleTestsFor } from "@/lib/example-tests";
 import { getStore } from "@/lib/server/database";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
 import { aiLimit, requireProblem } from "@/lib/server/problem-access";
@@ -25,8 +26,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
           .max(30000)
           .refine((code) => code.trim().length >= 5, "검토할 코드를 5자 이상 작성해 주세요."),
         requestId: z.uuid(),
+        // The browser's example-test run on exactly this code, stored with the attempt as a
+        // learner-reported result. It never changes the AI review or the solved status.
+        exampleTests: z
+          .object({ passed: z.number().int().min(0), total: z.number().int().min(1) })
+          .optional(),
       }),
     );
+    const tests = exampleTestsFor(problem);
+    const exampleTests =
+      input.exampleTests &&
+      tests?.length === input.exampleTests.total &&
+      input.exampleTests.passed <= input.exampleTests.total
+        ? input.exampleTests
+        : undefined;
     if (problem.handoff) {
       const missing = missingHandoffFields(readHandoffDraft(input.code).notes);
       if (missing.length) throw new HttpError(400, handoffMissingMessage(missing));
@@ -49,9 +62,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       throw new HttpError(409, "이 풀이를 검토하고 있습니다. 잠시 후 기록을 확인해 주세요.");
     lease = job.lease;
     refund = await aiLimit(request, owner, "review");
-    const review = await reviewCode(problem, input.code, (run) =>
+    const reviewed = await reviewCode(problem, input.code, (run) =>
       store.queries.recordAiRun(owner, run),
     );
+    const review = exampleTests ? { ...reviewed, exampleTests } : reviewed;
     const attempt = await store.saveAttempt(owner, id, input.code, review, lease);
     refund = undefined;
     return json({ attempt, progress: await store.progressFor(owner, id) });

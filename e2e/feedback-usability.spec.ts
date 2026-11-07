@@ -127,7 +127,7 @@ test("slow original execution shows elapsed time and cancellation preserves pred
   await page.goto("/problems/handoff-cart");
   await page.getByRole("radio", { name: "원본 2, 반환값 3" }).check();
   await page.getByLabel("왜 그렇게 생각했나요?").fill("배열 복사와 객체 참조를 구분하겠습니다.");
-  await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await page.getByRole("button", { name: "예상을 남기고 원본 실행" }).click();
   const waiting = page.getByText(/실행 환경을 준비하고 브라우저에서 코드를 실행합니다/);
   await expect(waiting).toContainText("12초를 넘기면 중단합니다");
   await expect(waiting).toContainText(/[1-9]초 경과/);

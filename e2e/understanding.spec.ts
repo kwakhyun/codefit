@@ -22,7 +22,7 @@ async function predict(page: Page) {
   await page.goto("/problems/handoff-cart?from=%2Fhandoff");
   await page.getByRole("radio", { name: "원본 2, 반환값 3" }).check();
   await page.getByLabel("왜 그렇게 생각했나요?").fill(reason);
-  await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await page.getByRole("button", { name: "예상을 남기고 원본 실행" }).click();
   await expect(page.locator(".lab-comparison")).toContainText("[3,3]");
 }
 async function saved(page: Page) {
@@ -57,13 +57,13 @@ test("prediction → real execution → repair → independent transfer, keyboar
   await page.goto("/problems/handoff-cart?from=%2Fhandoff");
   await expect(page.locator(".monaco-editor")).toHaveCount(0);
   await accessible(page);
-  await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await page.getByRole("button", { name: "예상을 남기고 원본 실행" }).click();
   await expect(page.getByRole("radio").first()).toBeFocused();
   await page.keyboard.press("Space");
   await page.getByLabel("왜 그렇게 생각했나요?").fill(reason);
   await expect(page.locator(".lab-error")).toHaveCount(0);
   if (info.project.name === "chromium") await capture(page, "understanding-predict");
-  await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await page.getByRole("button", { name: "예상을 남기고 원본 실행" }).click();
   await expect(page.locator(".lab-comparison")).toContainText("[3,3]");
   await expect(page.locator("#lab-stage-title")).toBeFocused();
   await expect(page.locator(".lab-comparison")).toContainText("예상과 다른 결과");
@@ -102,7 +102,7 @@ test("async requests run deterministically; infinite code fails without freezing
   await page
     .getByLabel("왜 그렇게 생각했나요?")
     .fill("나중에 시작한 요청의 결과만 보여 줄 것으로 예상합니다.");
-  await page.getByRole("button", { name: "예측을 남기고 원본 실행" }).click();
+  await page.getByRole("button", { name: "예상을 남기고 원본 실행" }).click();
   await expect(page.locator(".lab-comparison")).toContainText('["new","old"]');
   await stage(page, 2);
   await readCode(page);
@@ -448,7 +448,7 @@ test("late coaching cannot attach to replaced observation with the same predicti
   await page.evaluate(() => window.dispatchEvent(new Event("codefit:backup-imported")));
   await expect(page.locator(".lab-comparison")).toContainText("[2,3]");
   release();
-  await expect(page.locator(".lab-error")).toContainText("예측이나 실행 기록이 바뀌었습니다");
+  await expect(page.locator(".lab-error")).toContainText("예상이나 실행 기록이 바뀌었습니다");
   await expect(page.getByLabel("AI 맞춤 질문")).toHaveCount(0);
   expect((await saved(page)).training?.observation?.actual).toBe("[2,3]");
   expect((await saved(page)).training?.prediction.reason).toBe(reason);

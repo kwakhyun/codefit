@@ -131,7 +131,7 @@ it("keeps V1 backwards compatible and protects training with the same code revis
   const packed = writeHandoffDraft("function code() {}", notes, t);
   expect(readHandoffDraft(packed).training).toEqual(t);
   expect(formatHandoffDraft(packed)).toContain("[3,3]");
-  expect(handoffDocument("test", packed)).toContain("예측 이유:");
+  expect(handoffDocument("test", packed)).toContain("예상 이유:");
   const malformed = packed.replace('"version":1', '"version":999');
   expect(readHandoffDraft(malformed).implementation).toBe(malformed);
   expect(

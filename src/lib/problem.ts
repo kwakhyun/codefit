@@ -86,7 +86,19 @@ export const reviewSchema = z.object({
   strengths: z.array(z.string().max(500)).max(4),
   improvements: z.array(z.string().max(700)).max(5),
 });
-export type Review = z.infer<typeof reviewSchema> & { score: number; passed: boolean };
+export type Review = z.infer<typeof reviewSchema> & {
+  score: number;
+  passed: boolean;
+  /** Learner-reported browser run of the example tests on exactly the submitted code. */
+  exampleTests?: { passed: number; total: number };
+};
+/** A separate status from "solved": example tests passed in the browser, or a self-check. */
+export interface ProblemCheck {
+  kind: "tests" | "self";
+  passed: number;
+  total: number;
+  updatedAt: string;
+}
 export function validateReview(
   value: z.infer<typeof reviewSchema>,
   problem: Pick<Problem, "requirements">,
@@ -139,6 +151,16 @@ export interface ProblemDetail {
   hints: string[];
   solution: { code: string; explanation: string } | null;
   attempts: Attempt[];
+  check?: ProblemCheck | null;
+  /** A public AI-generated problem this owner hid from their own list. */
+  hidden?: boolean;
+}
+/** Learning completed today (Korean calendar), counted from server records. */
+interface TodaySummary {
+  coding: number;
+  understanding: number;
+  missions: number;
+  lessons: number;
 }
 export interface Workspace {
   bootstrap?: { library?: { href: string; value: LibraryPage }; detail?: ProblemDetail };
@@ -160,14 +182,24 @@ export interface Workspace {
     activeDays: number;
     independentSolved: number;
     week: { label: string; active: boolean }[];
+    today?: TodaySummary;
   };
   aiReady: boolean;
   storage: string;
   legacyCount: number;
 }
+/** Matching problem counts per filter value, each computed with the other filters applied. */
+export type LibraryFacets = Record<
+  "level" | "kind" | "language" | "source" | "status",
+  Record<string, number>
+>;
 export interface LibraryPage {
   problems: ProblemSummary[];
   progress: Record<string, ProgressSummary>;
+  checks: Record<string, ProblemCheck["kind"]>;
+  facets: LibraryFacets;
+  /** Public AI-generated problems this owner hid from the list. */
+  hidden: number;
   total: number;
   page: number;
   pageSize: number;

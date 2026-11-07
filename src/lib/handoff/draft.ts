@@ -116,9 +116,9 @@ export function formatHandoffDraft(value: string) {
 export function formatTraining(t: TrainingDraft) {
   return [
     "[코드 이해 훈련]",
-    `예측 선택: ${t.prediction.choice || "미선택"}`,
-    `예측 이유: ${t.prediction.reason || "미작성"}`,
-    `예측 확정: ${t.prediction.locked ? "예" : "아니요"}`,
+    `예상 선택: ${t.prediction.choice || "미선택"}`,
+    `예상 이유: ${t.prediction.reason || "미작성"}`,
+    `예상 확정: ${t.prediction.locked ? "예" : "아니요"}`,
     `원본 관찰: ${t.observation?.actual ?? "미실행"}`,
     ...(t.run?.results.map((r) => `테스트 ${r.id} (${r.status}): ${r.actual}`) ?? []),
     ...(t.coach ? [`AI 질문: ${t.coach.question}`] : []),

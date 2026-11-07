@@ -220,6 +220,18 @@ export function CodeEditor({
           {LANGUAGES[language].label}
           <span>UTF-8</span>
         </span>
+        <p className="editor-shortcuts">
+          <span className="sr-only">편집기 단축키: </span>
+          <span>
+            <kbd>Ctrl/⌘+S</kbd> 저장
+          </span>
+          <span title="편집기 안에서 Tab 키가 들여쓰기 대신 다음 요소로 이동합니다. macOS는 Ctrl+Shift+M입니다.">
+            <kbd>Ctrl+M</kbd> Tab 이동 전환
+          </span>
+          <span>
+            <kbd>Alt+F1</kbd> 접근성 도움말
+          </span>
+        </p>
         <span>
           줄 {cursor.line}, 열 {cursor.column}
           <span>공백: 2</span>

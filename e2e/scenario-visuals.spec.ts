@@ -40,12 +40,12 @@ test("home and all mission cards have loaded representative artwork", async ({ p
     }
   }
 });
-test("all curated problems expose four illustrated stages without missing assets", async ({
-  page,
-}) => {
+test("illustrated curated problems expose four stages without missing assets", async ({ page }) => {
   test.setTimeout(180_000);
-  for (const problem of seedProblems.filter((p) => !p.handoff)) {
-    expect(scenarioFor(problem.id), problem.id).toBeTruthy();
+  // Problems added later reuse a scene only where it fits; the others show no illustration.
+  const illustrated = seedProblems.filter((p) => !p.handoff && scenarioFor(p.id));
+  expect(illustrated.length).toBeGreaterThanOrEqual(14);
+  for (const problem of illustrated) {
     await page.goto(`/problems/${problem.id}`);
     await expect(page.locator(".scenario-visual")).toHaveAttribute("data-stage", "0");
     await loadedImages(page);

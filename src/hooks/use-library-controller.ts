@@ -103,6 +103,23 @@ export function useLibraryController({
   const total = result?.value.total || 0;
   const pageProblems = result?.value.problems || [];
   const progress = result?.value.progress || {};
+  const checks = result?.value.checks || {};
+  const facets = result?.value.facets;
+  const hiddenCount = result?.value.hidden || 0;
+  const pageSize = result?.value.pageSize || 12;
+  const [restoring, setRestoring] = useState(false);
+  /** Shows every AI-generated problem this learner hid from the list again. */
+  async function showHidden() {
+    setRestoring(true);
+    try {
+      await api("/api/library/hidden", { method: "DELETE" });
+      setRetry((value) => value + 1);
+    } catch (error) {
+      setLoadError(errorMessage(error));
+    } finally {
+      setRestoring(false);
+    }
+  }
   const solved = data?.stats.solved || 0;
   const inProgress = data?.stats.inProgress || 0;
   const saved = data?.stats.bookmarked || 0;
@@ -118,17 +135,15 @@ export function useLibraryController({
   );
   const resume = data?.resume || undefined;
   const recommended = data?.recommended || undefined;
-  const training = data?.training || trainingSummary([]);
+  const training: Workspace["training"] = data?.training || trainingSummary([]);
   const title =
     initialView === "bookmarks"
       ? "북마크"
       : initialView === "history"
         ? "학습 기록"
-        : initialView === "browse"
-          ? "전체 문제 탐색"
-          : initialDomain === "all"
-            ? "문제 보관함"
-            : domainLabel(initialDomain);
+        : initialView === "browse" || initialDomain === "all"
+          ? "분야별 코딩 연습"
+          : domainLabel(initialDomain);
   function setBookmarked(problemId: string, bookmarked: boolean) {
     setResult((current) => {
       const previous = current?.value.progress[problemId];
@@ -184,6 +199,12 @@ export function useLibraryController({
     aiCount,
     total,
     progress,
+    checks,
+    facets,
+    hiddenCount,
+    pageSize,
+    showHidden,
+    restoring,
     loading,
     loadError,
     retry: () => setRetry((value) => value + 1),

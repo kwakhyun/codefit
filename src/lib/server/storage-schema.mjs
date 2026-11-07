@@ -93,6 +93,21 @@ CREATE TABLE IF NOT EXISTS generation_usage (
   expires BIGINT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS generation_usage_owner_day ON generation_usage(owner,day);
+CREATE TABLE IF NOT EXISTS problem_checks (
+  owner TEXT NOT NULL,
+  problem_id TEXT NOT NULL REFERENCES problems(id),
+  kind TEXT NOT NULL CHECK(kind IN ('tests','self')),
+  passed INTEGER NOT NULL,
+  total INTEGER NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(owner, problem_id)
+);
+CREATE TABLE IF NOT EXISTS hidden_problems (
+  owner TEXT NOT NULL,
+  problem_id TEXT NOT NULL REFERENCES problems(id),
+  created_at TEXT NOT NULL,
+  PRIMARY KEY(owner, problem_id)
+);
 `;
 
 // Applied under the store's migration lock. Defaults preserve existing rows.
