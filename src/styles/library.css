@@ -401,6 +401,15 @@
   color: light-dark(var(--light-muted), #c0c0c0);
   white-space: nowrap;
 }
+.kind-implementation {
+  color: var(--action);
+}
+.kind-debugging {
+  color: var(--warning);
+}
+.kind-refactoring {
+  color: var(--ai);
+}
 
 .badge {
   display: inline-flex;
@@ -475,6 +484,9 @@
   border: 1px solid light-dark(var(--light-line), #525252);
   padding: 2px 3px;
   border-radius: 0;
+  color: var(--ai);
+  border-color: light-dark(var(--light-line), #504369);
+  background: light-dark(var(--light-canvas), #19151f);
 }
 
 .table-footer {
@@ -714,6 +726,9 @@
 .timeline-item > svg {
   color: light-dark(var(--light-muted), #747474);
 }
+.domain-active svg {
+  color: var(--action);
+}
 
 /* Row status tags and filter counts. */
 .problem-link > div {
@@ -740,4 +755,44 @@
   color: var(--muted);
   font-size: var(--text-small);
   line-height: 1.8;
+}
+
+.problem-row:hover {
+  background: var(--surface-hover);
+}
+
+.type-filters button.selected:hover {
+  color: light-dark(var(--light-text), #dbeafe);
+}
+
+.success-text,
+.problem-status.solved {
+  color: var(--success);
+}
+
+.warning-text,
+.problem-status.in-progress {
+  color: var(--warning);
+}
+
+.stat-progress i {
+  background: var(--success);
+}
+
+.level-하 {
+  background: light-dark(var(--light-panel), #101e18);
+  border-color: light-dark(var(--light-line), #2d5443);
+  color: var(--success);
+}
+
+.level-중 {
+  background: light-dark(var(--light-amber-soft), #211b10);
+  border-color: light-dark(var(--light-line), #5b4826);
+  color: var(--warning);
+}
+
+.level-상 {
+  background: light-dark(var(--light-red-soft), #251515);
+  border-color: light-dark(var(--light-line), #603737);
+  color: var(--danger);
 }

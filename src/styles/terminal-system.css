@@ -908,13 +908,17 @@ html {
   border-color: light-dark(var(--light-line), #536078);
 }
 .modal-heading {
-  padding: 18px 24px;
+  padding: 14px 20px;
   background: var(--surface-raised);
+  gap: 16px;
+  margin-bottom: 0;
 }
 .modal-heading > .mono {
   font-family: var(--sans);
   font-size: var(--text-ui);
   letter-spacing: 0;
+  min-width: 0;
+  line-height: 1.6;
 }
 .ui-select-options [role="option"] {
   border-radius: var(--radius-small);
@@ -1092,6 +1096,8 @@ html {
 /* Text toggles share balanced gutters; icon-only controls keep their square target. */
 .ui-button.ui-toggle:not(.icon-button) {
   padding-inline: 16px;
+  padding-block: 10px;
+  line-height: 1.5;
 }
 
 /* Dark artwork keeps its original colors; light canvases use crisp image edges. */
@@ -1190,4 +1196,72 @@ html {
 
 .history-track-link + .history-coding-title {
   margin-top: 44px;
+}
+
+/* Status text must remain separated from the content it describes. */
+:is(.learn-page, .project-main, .handoff-progress) > .ui-status {
+  margin-block: 16px;
+}
+
+.ui-disclosure[open] > .ui-disclosure-summary + :is(p, div, ul, ol) {
+  margin-block-start: 16px;
+}
+
+/* The prediction helper belongs above the answer group, not against its border. */
+.lab-prediction fieldset > .learn-fineprint {
+  margin-block: 12px 20px;
+}
+
+:is(.audit-method, .security-exercises details, .project-example-disclosure)
+  > .ui-disclosure-summary {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 36px 0 0;
+  list-style: none;
+}
+
+:is(.audit-method, .security-exercises details, .project-example-disclosure)
+  > .ui-disclosure-summary::-webkit-details-marker {
+  display: none;
+}
+
+:is(.audit-method, .security-exercises details, .project-example-disclosure)
+  > .ui-disclosure-summary::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  background: var(--muted);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transition: transform var(--motion-fast);
+}
+
+:is(.audit-method, .security-exercises details, .project-example-disclosure)[open]
+  > .ui-disclosure-summary::after {
+  transform: rotate(180deg);
+}
+
+.audit-method > .ui-disclosure-summary > span {
+  margin-left: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.audit-method, .security-exercises details, .project-example-disclosure)
+    > .ui-disclosure-summary::after {
+    transition: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .modal-heading {
+    padding: 12px 16px;
+    gap: 12px;
+  }
 }

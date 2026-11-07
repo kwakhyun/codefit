@@ -574,6 +574,7 @@
   border: 1px solid light-dark(var(--light-line), #444444);
   border-radius: 0;
   font-size: var(--text-caption) !important;
+  color: var(--warning) !important;
 }
 
 .review-criteria {
@@ -684,6 +685,8 @@
   padding: 16px;
   border: 1px solid light-dark(var(--light-line), #4c4c4c);
   border-radius: 0;
+  background: light-dark(var(--light-panel), #141414);
+  border-color: light-dark(var(--light-line), #555555);
 }
 
 .hint-card > div {
@@ -710,6 +713,8 @@
 
 .hint-card.locked {
   border-style: dashed;
+  background: light-dark(var(--light-panel), #080808);
+  border-color: light-dark(var(--light-line), #333333);
 }
 
 .hint-card.locked > div,
@@ -1120,4 +1125,36 @@
   color: var(--muted);
   font-size: var(--text-small);
   line-height: 1.8;
+}
+
+.topbar,
+.editor-loading {
+  background: var(--black);
+}
+
+.editor-topbar,
+.editor-filebar,
+.editor-statusbar,
+.review-action {
+  background: light-dark(var(--light-panel), #101010);
+}
+
+.eyebrow .status-dot {
+  background: light-dark(var(--light-hover), #a0a0a0);
+}
+
+.hint-card:not(.locked) {
+  border-left: 3px solid var(--action);
+}
+
+.hint-card:not(.locked) .mono {
+  color: var(--action);
+}
+
+.save-indicator.failed {
+  color: var(--danger);
+}
+
+.save-indicator .lucide-check {
+  color: var(--success);
 }

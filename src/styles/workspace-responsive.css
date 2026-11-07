@@ -607,3 +607,20 @@
   font-family: var(--sans);
   letter-spacing: 0;
 }
+
+.monaco-shell,
+.solution-code,
+.submitted-code pre,
+.font-preview {
+  background: var(--black);
+}
+
+.problem-tabs button[aria-selected="true"] {
+  border-bottom-color: var(--action);
+  color: var(--action-soft);
+}
+
+.bookmark-button.active,
+.workspace-heading-actions .icon-button.active {
+  color: var(--warning);
+}

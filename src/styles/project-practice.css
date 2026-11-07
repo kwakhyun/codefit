@@ -34,6 +34,16 @@
   flex-wrap: wrap;
   gap: 12px;
 }
+
+/* Segmented choices: one track with a raised thumb for the selected option. */
+.type-filters,
+.segmented {
+  gap: 2px;
+  padding: 3px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: light-dark(var(--light-raised), #0b0f15);
+}
 .practice-origin > :is(button, a) {
   display: inline-flex;
   gap: 8px;
@@ -53,6 +63,10 @@
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, var(--surface));
   border: 1px solid var(--accent);
+}
+.class-loading-card:hover {
+  transform: none;
+  border-color: var(--line);
 }
 .practice-entry-card,
 .practice-connect,
@@ -715,4 +729,119 @@ details.project-example-disclosure {
   flex-wrap: wrap;
   gap: 0 20px;
   font-size: var(--text-ui);
+}
+
+.practice-reading-guide li + li,
+.question-writing-guide li + li {
+  margin-top: 6px;
+}
+
+.practice-study-source .practice-glossary,
+.practice-study-source .practice-reading-guide {
+  gap: 10px;
+}
+
+.practice-stepbar + .practice-origin {
+  align-items: stretch;
+}
+
+.practice-stepbar + .practice-origin > button {
+  text-align: left;
+  line-height: 1.6;
+}
+
+@media (max-width: 650px) {
+  .project-page .project-panel,
+  .practice-exercise,
+  .practice-complete,
+  .project-renew {
+    padding: 20px;
+  }
+  .question-context,
+  .practice-service-scene,
+  .practice-learning-goal {
+    padding: 16px;
+  }
+}
+
+.practice-reading-guide > strong,
+.practice-glossary > strong {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.practice-reading-guide > ol,
+.practice-glossary > dl {
+  margin-block: 10px 0;
+}
+
+.ui-button.analysis-activity-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+}
+
+.ui-button.analysis-activity-dismiss:hover {
+  background: var(--line);
+  color: var(--text);
+}
+
+@media (pointer: coarse) {
+  .ui-button.analysis-activity-dismiss {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
+.type-filters > .ui-button:hover:not(.selected),
+.segmented > .ui-button:hover:not(.selected) {
+  border-color: transparent;
+  color: var(--text);
+}
+
+.type-filters > .ui-button.selected,
+.segmented > .ui-button.selected {
+  border-color: transparent;
+  background: light-dark(var(--light-panel), #283448);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow:
+    0 1px 3px light-dark(rgb(15 23 42 / 12%), rgb(0 0 0 / 40%)),
+    0 0 0 1px light-dark(rgb(15 23 42 / 4%), rgb(255 255 255 / 6%));
+}
+
+/* Practice source and practice kind are one choice each, so they share the segmented track
+   used by the problem type filter instead of two separately outlined buttons. */
+.practice-origin.segmented {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.practice-origin.segmented > :is(button, a):hover:not([aria-pressed="true"], [aria-current]) {
+  background: transparent;
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .practice-origin.segmented {
+    width: 100%;
+  }
+}
+
+.project-page .ui-native-select {
+  background-color: light-dark(var(--light-panel), #080b10);
 }

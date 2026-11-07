@@ -435,3 +435,20 @@
 .app-footer > a:hover {
   color: var(--text);
 }
+
+.nav-item.active {
+  background: light-dark(var(--light-blue-soft), #182333);
+  border-color: light-dark(var(--light-line), #344b68);
+  color: var(--action-soft);
+}
+
+.nav-item.active svg,
+.nav-item.active small {
+  color: var(--action-soft);
+}
+
+.domain-active {
+  background: light-dark(var(--light-raised), #242424);
+  color: var(--white);
+  border-left-color: var(--action);
+}

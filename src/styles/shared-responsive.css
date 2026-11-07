@@ -33,3 +33,15 @@
     min-height: 44px;
   }
 }
+
+.secondary-button {
+  background: var(--surface);
+  border-color: light-dark(var(--light-line), #48515f);
+  color: light-dark(var(--light-text), #d0d0d0);
+}
+
+.primary-button {
+  background: var(--action);
+  border-color: var(--action);
+  color: light-dark(var(--light-on-accent), #080808);
+}

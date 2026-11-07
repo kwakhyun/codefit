@@ -204,3 +204,21 @@
     font-size: var(--text-body);
   }
 }
+
+.type-filters button.selected,
+.segmented > button.selected {
+  background: light-dark(var(--light-blue-soft), #152334);
+  color: var(--action-soft);
+}
+
+.difficulty-options > button.selected {
+  border-color: var(--level-color);
+}
+
+@media (max-width: 650px) {
+  .type-filters .ui-button.ui-toggle:not(.icon-button),
+  .segmented .ui-button.ui-toggle:not(.icon-button),
+  .difficulty-options .ui-button.ui-toggle:not(.icon-button) {
+    padding-inline: 8px;
+  }
+}

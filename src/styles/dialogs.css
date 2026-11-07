@@ -22,10 +22,12 @@
   justify-content: space-between;
   padding: 12px 18px;
   border-bottom: 1px solid light-dark(var(--light-line), #414141);
-  background: light-dark(var(--light-raised), #272727);
+  background: light-dark(var(--light-canvas), #191c22);
   position: sticky;
   top: 0;
   z-index: 2;
+  color: var(--text);
+  border-bottom-color: var(--line);
 }
 
 .modal-heading > .mono {
@@ -156,6 +158,7 @@
 
 .difficulty-options > button.selected {
   box-shadow: none;
+  background: light-dark(var(--light-raised), #242424);
 }
 
 .difficulty-options strong {
@@ -260,6 +263,9 @@
   border-radius: 0;
   padding: 13px;
   margin-bottom: 15px;
+  background: light-dark(var(--light-blue-soft), #131c29);
+  border-color: light-dark(var(--light-line), #344b68);
+  color: var(--action-soft);
 }
 
 .generation-progress > svg {
@@ -279,6 +285,7 @@
   display: block;
   margin-top: 5px;
   line-height: 1.8;
+  color: light-dark(var(--light-muted), #b0b0b0);
 }
 
 .inline-error {
@@ -289,6 +296,10 @@
   border-radius: 0;
   margin: 16px 0;
   overflow-wrap: anywhere;
+  border-left-width: 3px;
+  background: light-dark(var(--light-canvas), #211314);
+  border-color: light-dark(var(--light-line), #704044);
+  color: light-dark(var(--light-red), #ffb4b4);
 }
 
 .inline-warning {
@@ -369,6 +380,7 @@
 
 .font-setting input {
   width: 100%;
+  accent-color: var(--action);
 }
 
 .font-preview {
@@ -510,4 +522,63 @@ dl.shortcut-help {
 
 .toast > svg {
   flex-shrink: 0;
+  color: var(--success);
+}
+
+.generation-activity {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.modal-heading > .mono,
+.modal-heading .icon-button {
+  color: var(--text);
+}
+
+.modal-heading .icon-button:hover {
+  background: light-dark(var(--light-raised), #30343c);
+  color: var(--text);
+}
+
+.difficulty-options > button.selected strong {
+  color: var(--white);
+}
+
+.modal::backdrop {
+  background: #000000cc;
+  backdrop-filter: none;
+}
+
+.text-button:hover:not(:disabled),
+.icon-button.active {
+  color: var(--action);
+}
+
+.difficulty-options > button[data-difficulty="하"] {
+  --level-color: var(--success);
+}
+
+.difficulty-options > button[data-difficulty="중"] {
+  --level-color: var(--warning);
+}
+
+.difficulty-options > button[data-difficulty="상"] {
+  --level-color: var(--danger);
+}
+
+.difficulty-options > button strong,
+.difficulty-options > button.selected strong {
+  color: var(--level-color);
+}
+
+.difficulty-options strong span {
+  color: light-dark(var(--light-muted), #b0b0b0);
+}
+
+.inline-warning,
+.review-stale {
+  background: light-dark(var(--light-amber-soft), #211c12);
+  border-color: light-dark(var(--light-line), #66502d);
+  color: var(--warning);
 }

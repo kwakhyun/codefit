@@ -88,6 +88,13 @@
     transparent 92%
   );
 }
+.class-thumbnail img,
+.class-track-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .service-home-hero {
   display: grid;
   grid-template-columns: 1.25fr 1fr;
@@ -501,4 +508,24 @@
   .topbar .persona-change > svg {
     flex: none;
   }
+}
+
+.class-thumbnail .theme-picture,
+.class-track-preview .theme-picture {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.class-tracks .class-track-preview {
+  margin-bottom: 4px;
+}
+
+.class-thumbnail,
+.class-track-preview {
+  width: 100%;
+  aspect-ratio: 1.9;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--line);
 }

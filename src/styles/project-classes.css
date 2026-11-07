@@ -243,3 +243,36 @@
 .class-versions a {
   display: block;
 }
+
+.class-edit .class-actions {
+  margin-top: 4px;
+}
+
+@media (max-width: 650px) {
+  .class-list-card {
+    padding: 20px;
+  }
+}
+
+/* Keep text rhythm explicit inside project cards and disclosure content. */
+.class-card-link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.class-delete-button {
+  align-self: flex-end;
+}
+
+@media (max-width: 650px) {
+  .class-card-link {
+    gap: 16px;
+  }
+}

@@ -725,3 +725,9 @@
     display: none;
   }
 }
+
+.problem-row,
+.modal,
+.review-console {
+  background: var(--surface);
+}

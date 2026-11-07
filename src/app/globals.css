@@ -14,7 +14,6 @@
 @import "../styles/library-responsive.css" layer(components);
 @import "../styles/workspace-responsive.css" layer(components);
 @import "../styles/dialogs-responsive.css" layer(components);
-@import "../styles/palette.css" layer(components);
 @import "../styles/training.css" layer(components);
 @import "../styles/ai-usage.css" layer(components);
 @import "../styles/account.css" layer(components);
@@ -39,10 +38,8 @@
 @import "../styles/workbench.css" layer(components);
 @import "../styles/terminal-system.css" layer(components);
 @import "../styles/ai-learning.css" layer(components);
-@import "../styles/reading-rhythm.css" layer(components);
 @import "../styles/workspace-homes.css" layer(components);
 @import "../styles/skeleton.css" layer(components);
 @import "../styles/project-practice.css" layer(components);
 @import "../styles/project-ai-workshop.css" layer(components);
 @import "../styles/desktop-layout.css" layer(components);
-@import "../styles/workspace-spacing.css" layer(components);

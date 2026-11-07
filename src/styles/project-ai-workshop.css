@@ -175,6 +175,9 @@
   gap: 12px;
   min-width: 0;
 }
+.practice-prediction fieldset {
+  margin-block: 0;
+}
 .project-ai-topic legend {
   margin-bottom: 18px;
   line-height: 1.8;
@@ -195,6 +198,11 @@
   border-radius: 12px;
   line-height: 1.6;
 }
+@media (max-width: 650px) {
+  .practice-origin > :is(a, button) {
+    padding: 10px 14px;
+  }
+}
 .project-ai-return {
   display: grid;
   gap: 12px;
@@ -207,6 +215,21 @@
   margin: 0;
   color: var(--muted);
   line-height: 1.7;
+}
+.question-writing > :is(p, label, textarea, details) {
+  margin-block: 0;
+}
+.class-toolbar label {
+  display: block;
+  margin-bottom: 10px;
+}
+.analysis-overview p,
+.question-learning-goal p,
+.question-context section > p {
+  margin-block: 0;
+}
+.class-versions > :is(h2, h3) + p {
+  margin-top: 12px;
 }
 @media (max-width: 1100px) {
   .project-ai-input {
@@ -277,4 +300,34 @@
 /* Project form: optional marker stays on the label line; helper text sits close to its field. */
 .project-form .ui-label:has(> span) {
   display: block;
+}
+
+.class-versions > p + ul {
+  margin-top: 20px;
+}
+
+.practice-origin.segmented > :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 500;
+  text-decoration: none;
+}
+.practice-switch-links a:hover {
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .practice-origin.segmented > :is(button, a) {
+    flex: 1 1 0;
+    padding-inline: 8px;
+  }
 }

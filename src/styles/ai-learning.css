@@ -266,6 +266,11 @@
   border-radius: 5px;
   line-height: 1.5;
 }
+.class-loading-lines span {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--line);
+}
 .ai-lesson-card > strong {
   display: flex;
   align-items: center;
@@ -768,6 +773,17 @@
 .ai-sources li {
   font-size: 14px;
 }
+
+/* Problem rows: tags become quiet filled chips and the bookmark is a plain icon target. */
+.row-tags > span {
+  border: 0;
+  border-radius: 6px;
+  padding: 2px 7px;
+  background: light-dark(var(--light-raised), #202938);
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 12px;
+}
 .ai-lesson-body,
 .ai-lesson-card {
   border-radius: var(--radius-panel);
@@ -874,6 +890,50 @@
 }
 .ai-catalog-note h2 + p {
   margin-top: 12px;
+}
+:is(
+    .handoff-progress,
+    .handoff-quality,
+    .handoff-measurement,
+    .handoff-readiness,
+    .lab-experiment,
+    .lab-experiment-results,
+    .lab-experiment-proposal,
+    .lab-experiment-reflection,
+    .lab-empty,
+    .lab-input-context,
+    .project-summary,
+    .project-evidence,
+    .training-result,
+    .training-explanation,
+    .security-results,
+    .security-finding,
+    .security-exercises,
+    .audit-method,
+    .cors-result,
+    .zap-finding,
+    .learn-check,
+    .learn-completed,
+    .learn-limits,
+    .learn-concept,
+    .help-content,
+    .settings-content,
+    .review-result,
+    .hint-card,
+    .solution-locked,
+    .tab-empty
+  )
+  > :is(p, h2, h3, h4)
+  + :is(p, div, details, ul, ol, pre, button, a, label) {
+  margin-block-start: 16px;
+}
+
+/* Section titles need more room than compact labels and metadata. */
+:is(.ai-group-title, .section-heading, .learn-section-title) h2 + p {
+  margin-block-start: 12px;
+}
+.ui-disclosure > p + p {
+  margin-block-start: 12px;
 }
 .ai-lesson-sidebar button {
   padding-inline: 16px;
@@ -1038,6 +1098,11 @@
   color: var(--muted);
   font-size: 13px;
 }
+
+/* Explanations following evidence boxes are separate reading blocks. */
+:is(.checkpoint-evidence, .checkpoint-expected, .lab-comparison, .training-feedback) + p {
+  margin-block-start: 16px;
+}
 .ai-review-list ul {
   display: grid;
   gap: 6px;
@@ -1139,4 +1204,20 @@
   .ai-sources > summary::after {
     transition: none;
   }
+}
+
+.project-page .project-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.class-loading-lines span:last-child {
+  width: 65%;
+}
+
+.class-loading-lines {
+  display: grid;
+  gap: 10px;
+  width: 100%;
 }
