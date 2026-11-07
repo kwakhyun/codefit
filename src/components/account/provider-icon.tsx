@@ -10,7 +10,6 @@ export function ProviderIcon({ provider }: { provider: OAuthProvider }) {
       height={20}
       alt=""
       aria-hidden="true"
-      unoptimized
     />
   );
 }

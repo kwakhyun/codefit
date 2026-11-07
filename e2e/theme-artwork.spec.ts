@@ -35,7 +35,9 @@ for (const route of ["/", "/project-check", "/learn", "/handoff", "/login"]) {
       .poll(() =>
         art.evaluate(
           (img: HTMLImageElement) =>
-            img.complete && img.naturalWidth > 0 && img.currentSrc.includes("/images/light/"),
+            img.complete &&
+            img.naturalWidth > 0 &&
+            decodeURIComponent(img.currentSrc).includes("/images/light/"),
         ),
       )
       .toBe(true);
@@ -46,7 +48,9 @@ for (const route of ["/", "/project-check", "/learn", "/handoff", "/login"]) {
       .poll(() =>
         art.evaluate(
           (img: HTMLImageElement) =>
-            img.complete && img.naturalWidth > 0 && !img.currentSrc.includes("/images/light/"),
+            img.complete &&
+            img.naturalWidth > 0 &&
+            !decodeURIComponent(img.currentSrc).includes("/images/light/"),
         ),
       )
       .toBe(true);
@@ -84,14 +88,19 @@ test("all ten generated assets load and home artwork uses its matching light sou
     await img.scrollIntoViewIfNeeded();
     await expect
       .poll(() =>
-        img.evaluate(
-          (image: HTMLImageElement) =>
+        img.evaluate((image: HTMLImageElement) => {
+          // Optimized images carry the file path in the url parameter of /_next/image.
+          const file = (value: string) => {
+            const url = new URL(value, location.href);
+            return url.searchParams.get("url") ?? url.pathname;
+          };
+          return (
             image.complete &&
             image.naturalWidth > 0 &&
-            image.currentSrc.endsWith(
-              image.getAttribute("src")!.replace("/images/", "/images/light/"),
-            ),
-        ),
+            file(image.currentSrc) ===
+              file(image.getAttribute("src")!).replace("/images/", "/images/light/")
+          );
+        }),
       )
       .toBe(true);
   }

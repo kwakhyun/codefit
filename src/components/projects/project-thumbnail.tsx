@@ -55,7 +55,13 @@ export function ProjectThumbnail({ id, url, scope }: { id: string; url: string; 
           onError={() => setFailed(true)}
         />
       ) : (
-        <ThemedImage src="/images/experience/project.webp" alt="" width={800} height={420} />
+        <ThemedImage
+          src="/images/experience/project.webp"
+          alt=""
+          width={800}
+          height={420}
+          sizes="(max-width: 640px) 100vw, (max-width: 1023px) 50vw, 560px"
+        />
       )}
     </div>
   );

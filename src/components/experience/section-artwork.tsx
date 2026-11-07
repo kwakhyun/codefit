@@ -17,8 +17,7 @@ export function SectionArtwork({
         height={640}
         alt=""
         loading={eager ? "eager" : "lazy"}
-        sizes="(max-width: 720px) 90vw, 440px"
-        unoptimized
+        sizes="(max-width: 700px) 228px, 320px"
       />
     </div>
   );
