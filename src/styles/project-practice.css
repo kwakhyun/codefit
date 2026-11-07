@@ -700,3 +700,38 @@
     gap: 6px;
   }
 }
+
+/* One progress line ("상황 1/3 · 단계 2/3") replaces the row of step buttons. */
+.practice-progress-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin: 12px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-raised);
+}
+.practice-progress-line > span {
+  color: var(--muted);
+}
+.practice-progress-line > .ui-button {
+  margin-left: auto;
+  min-height: 44px;
+}
+/* Choosing a repository does not navigate; the "열기" button does. */
+.practice-record-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.practice-record-row > select {
+  flex: 1 1 220px;
+}
+.practice-continue {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 12px;
+}

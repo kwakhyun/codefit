@@ -1,8 +1,19 @@
 "use client";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, FolderOpen, Pencil, Trash2, RotateCcw, LoaderCircle } from "lucide-react";
+import {
+  ArrowRight,
+  FolderOpen,
+  Pencil,
+  Trash2,
+  RotateCcw,
+  LoaderCircle,
+  WifiOff,
+} from "lucide-react";
 import { ApiError, api, dateLabel, errorMessage } from "@/lib/client-api";
+import { useConfirmation } from "@/components/ui/use-confirmation";
+import { useProjectOverview } from "@/hooks/use-project-overview";
+import { displayName, projectDeletion } from "@/lib/project-check/display";
 import type { CheckListItem, CheckOverview } from "@/lib/project-check/types";
 import type { ClassMetadata, ProjectClassDetail } from "@/lib/project-check/project-class";
 import {
@@ -27,121 +38,21 @@ import { ProjectReview } from "./project-review";
 import {
   analysisSnapshot,
   analysisServerSnapshot,
+  refreshAnalysis,
   subscribeAnalysis,
 } from "@/lib/project-analysis-tasks";
 import { CancelAnalysis } from "@/components/project-check/cancel-analysis";
-function nameOf(item: CheckListItem) {
-  return item.classMetadata?.name || item.analysis.title;
-}
+const nameOf = (item: CheckListItem) => displayName(item);
 export function ProjectClasses() {
   const id = useSearchParams().get("class");
-  const [overview, setOverview] = useState<CheckOverview>();
-  const [error, setError] = useState("");
-  const [revision, setRevision] = useState(0);
-  const pageCount = useRef(1);
-  const moreRequest = useRef<AbortController | null>(null);
-  const [loading, setLoading] = useState(true);
-  const currentScope = useRef<string | undefined>(undefined);
-  useEffect(() => {
-    moreRequest.current?.abort();
-    const abort = new AbortController();
-    async function load() {
-      const first = await api<CheckOverview>("/api/project-check", {
-        scope: null,
-        signal: abort.signal,
-      });
-      const count =
-        currentScope.current && currentScope.current !== first.scope ? 1 : pageCount.current;
-      const checks = [...first.checks];
-      let cursor = first.nextCursor;
-      for (let page = 1; page < count && cursor; page++) {
-        const next = await api<CheckOverview>(
-          `/api/project-check?cursor=${encodeURIComponent(cursor)}`,
-          { scope: first.scope, signal: abort.signal },
-        );
-        checks.push(
-          ...next.checks.filter((item) => !checks.some((existing) => existing.id === item.id)),
-        );
-        cursor = next.nextCursor;
-      }
-      return { ...first, checks, nextCursor: cursor };
-    }
-    load()
-      .then((value) => {
-        if (!abort.signal.aborted) {
-          if (currentScope.current && currentScope.current !== value.scope) pageCount.current = 1;
-          currentScope.current = value.scope;
-          setOverview(value);
-          setError("");
-        }
-      })
-      .catch((e) => {
-        if (!abort.signal.aborted) setError(errorMessage(e));
-      })
-      .finally(() => {
-        if (!abort.signal.aborted) setLoading(false);
-      });
-    return () => {
-      abort.abort();
-      moreRequest.current?.abort();
-    };
-  }, [revision]);
-  useEffect(() => {
-    const refresh = () => {
-      setLoading(true);
-      setRevision((v) => v + 1);
-    };
-    window.addEventListener("focus", refresh);
-    window.addEventListener("codefit:backup-imported", refresh);
-    window.addEventListener("codefit:analysis-changed", refresh);
-    return () => {
-      window.removeEventListener("focus", refresh);
-      window.removeEventListener("codefit:backup-imported", refresh);
-      window.removeEventListener("codefit:analysis-changed", refresh);
-    };
-  }, []);
-  async function more() {
-    if (!overview?.nextCursor || loading) return;
-    const controller = new AbortController();
-    moreRequest.current = controller;
-    setLoading(true);
-    try {
-      const page = await api<CheckOverview>(
-        `/api/project-check?cursor=${encodeURIComponent(overview.nextCursor)}`,
-        { scope: overview.scope, signal: controller.signal },
-      );
-      if (controller.signal.aborted) return;
-      if (page.scope !== overview.scope) {
-        setRevision((v) => v + 1);
-        return;
-      }
-      pageCount.current += 1;
-      setOverview((current) =>
-        current && current.scope === page.scope
-          ? {
-              ...page,
-              checks: [
-                ...current.checks,
-                ...page.checks.filter(
-                  (item) => !current.checks.some((previous) => previous.id === item.id),
-                ),
-              ],
-            }
-          : current,
-      );
-      setError("");
-    } catch (e) {
-      if (!controller.signal.aborted) setError(errorMessage(e));
-    } finally {
-      if (!controller.signal.aborted) setLoading(false);
-    }
-  }
+  const projects = useProjectOverview();
+  const { data: overview, error } = projects;
   return (
     <>
-      {error && (
+      {error && !overview && (
         <Card role="alert">
           <p>{error}</p>
-          <Button onClick={() => setRevision((v) => v + 1)}>다시 불러오기</Button>
+          <Button onClick={projects.refresh}>다시 불러오기</Button>
         </Card>
       )}
       {!overview && !error && <ScreenSkeleton variant="lesson" label="내 프로젝트 불러오는 중" />}
@@ -152,17 +63,18 @@ export function ProjectClasses() {
             id={id}
             scope={overview.scope}
             overview={overview}
-            onChanged={() => setRevision((v) => v + 1)}
+            onChanged={projects.refresh}
           />
         ) : (
           <ClassList
             key={overview.scope}
             overview={overview}
-            busy={loading}
-            more={more}
-            onChanged={() => setRevision((v) => v + 1)}
+            busy={projects.paging}
+            more={() => void projects.loadMore()}
+            onChanged={projects.refresh}
           />
         ))}
+      {overview && projects.pageError && <p role="alert">{projects.pageError}</p>}
     </>
   );
 }
@@ -178,20 +90,21 @@ function ClassList({
   onChanged: () => void;
 }) {
   const tasks = useSyncExternalStore(subscribeAnalysis, analysisSnapshot, analysisServerSnapshot);
-  const [deleting, setDeleting] = useState<CheckListItem | null>(null);
+  const { confirm, confirmation } = useConfirmation();
   const [removing, setRemoving] = useState(false);
   const [deleteError, setDeleteError] = useState("");
-  async function remove() {
-    if (!deleting || removing) return;
-    setRemoving(true);
+  async function remove(item: CheckListItem) {
+    if (removing) return;
     setDeleteError("");
+    const { message, options } = projectDeletion(nameOf(item));
+    if (!(await confirm(message, options))) return;
+    setRemoving(true);
     try {
-      const { ids } = await api<{ ids?: string[] }>(`/api/projects/${deleting.id}`, {
+      const { ids } = await api<{ ids?: string[] }>(`/api/projects/${item.id}`, {
         method: "DELETE",
         scope: overview.scope,
       });
-      forgetProjects(overview.scope, ids ?? [deleting.id]);
-      setDeleting(null);
+      forgetProjects(overview.scope, ids ?? [item.id]);
       onChanged();
     } catch (e) {
       setDeleteError(errorMessage(e));
@@ -244,7 +157,7 @@ function ClassList({
               maxLength={200}
               value={query}
               onChange={(e) => changeQuery(e.target.value)}
-              placeholder="클래스 이름, 학습 목표 또는 주소"
+              placeholder="프로젝트 이름, 학습 목표 또는 주소"
             />
           </div>
           <AppLink className="primary-button" href="/project-check?new=1#project-register">
@@ -303,30 +216,50 @@ function ClassList({
         </Card>
       ) : (
         <div className="class-grid">
-          {active.map((task) => (
-            <Card className="class-list-card class-loading-card" key={task.id}>
-              <span className="class-card-icon">
-                <LoaderCircle className="analysis-spinner" size={24} aria-hidden="true" />
-              </span>
-              <div role="status">
-                <Badge>{task.status === "pending" ? "분석 중" : "연결 확인 중"}</Badge>
-                <h2>{task.label}</h2>
-                <p>프로젝트를 읽고 학습 클래스를 준비하고 있습니다. 완료되면 이곳에 표시됩니다.</p>
-              </div>
-              <div className="class-loading-lines" aria-hidden="true">
-                <span />
-                <span />
-              </div>
-              <CancelAnalysis task={task} />
-            </Card>
-          ))}
+          {active.map((task) =>
+            task.status === "pending" ? (
+              <Card className="class-list-card class-loading-card" key={task.id}>
+                <span className="class-card-icon">
+                  <LoaderCircle className="analysis-spinner" size={24} aria-hidden="true" />
+                </span>
+                <div role="status">
+                  <Badge>분석 중</Badge>
+                  <h2>{task.label}</h2>
+                  <p>
+                    프로젝트를 읽고 질문과 학습을 준비하고 있습니다. 완료되면 이곳에 표시됩니다.
+                  </p>
+                </div>
+                <div className="class-loading-lines" aria-hidden="true">
+                  <span />
+                  <span />
+                </div>
+                <CancelAnalysis task={task} />
+              </Card>
+            ) : (
+              // Polling stopped: no spinner, and the one action is to check the status again.
+              <Card className="class-list-card class-loading-card" key={task.id}>
+                <span className="class-card-icon">
+                  <WifiOff size={24} aria-hidden="true" />
+                </span>
+                <div>
+                  <Badge>연결 끊김</Badge>
+                  <h2>{task.label}</h2>
+                  <p>
+                    응답을 받지 못해 진행 상태를 확인하지 못했습니다. 서버에서는 분석이 계속될 수
+                    있으며, 다시 확인해도 AI를 다시 호출하지 않습니다.
+                  </p>
+                </div>
+                <Button onClick={() => refreshAnalysis(task)}>분석 상태 다시 확인</Button>
+              </Card>
+            ),
+          )}
           {visible.map((item) => (
             <article className="class-list-card" key={item.id}>
               <AppLink className="class-card-link" href={`/projects?class=${item.id}`}>
                 <ProjectThumbnail id={item.id} url={item.page.url} scope={overview.scope} />
                 <div>
                   <Badge>
-                    {item.page.source === "repository" ? "코드 기반 클래스" : "서비스 점검 클래스"}
+                    {item.page.source === "repository" ? "저장소 프로젝트" : "웹사이트 프로젝트"}
                   </Badge>
                   <h2>{nameOf(item)}</h2>
                   <p>{item.classMetadata?.goal || "저장한 질문과 학습을 한곳에서 이어가세요."}</p>
@@ -335,46 +268,23 @@ function ClassList({
                   </small>
                 </div>
                 <span className="class-open">
-                  클래스 열기 <ArrowRight size={18} />
+                  프로젝트 열기 <ArrowRight size={18} aria-hidden="true" />
                 </span>
               </AppLink>
               <Button
                 className="class-delete-button"
-                aria-label={`${nameOf(item)} 클래스 삭제`}
-                onClick={() => {
-                  setDeleting(item);
-                  setDeleteError("");
-                }}
+                aria-label={`${nameOf(item)} 프로젝트 삭제`}
+                disabled={removing}
+                onClick={() => void remove(item)}
               >
-                <Trash2 size={17} /> 클래스 삭제
+                <Trash2 size={17} aria-hidden="true" /> 프로젝트 삭제
               </Button>
             </article>
           ))}
         </div>
       )}
-      <Modal
-        open={!!deleting}
-        busy={removing}
-        onClose={() => setDeleting(null)}
-        title="프로젝트 클래스를 삭제할까요?"
-      >
-        <div className="class-edit">
-          <p>
-            <strong>{deleting && nameOf(deleting)}</strong>의 점검, 답변, 실습과 학습 기록이 함께
-            삭제됩니다. 삭제한 기록은 복구할 수 없습니다.
-          </p>
-          <p>원본 저장소와 서비스는 삭제되지 않습니다.</p>
-          {deleteError && <p role="alert">{deleteError}</p>}
-          <div className="class-actions">
-            <Button disabled={removing} onClick={() => setDeleting(null)}>
-              취소
-            </Button>
-            <Button disabled={removing} onClick={() => void remove()}>
-              {removing ? "삭제 중…" : "클래스 삭제하기"}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      {confirmation}
+      {deleteError && <p role="alert">{deleteError}</p>}
       {cursor && (
         <Button disabled={pending} onClick={searching ? search.more : more}>
           {pending ? "불러오는 중…" : searching ? "검색 결과 더 보기" : "이전 프로젝트 더 보기"}
@@ -395,15 +305,17 @@ function ClassDetail({
   onChanged: () => void;
 }) {
   const router = useRouter();
+  // Review mode is part of the address so Back, reload and shared links keep it.
+  const review = useSearchParams().get("view") === "review";
+  const { confirm, confirmation } = useConfirmation();
   const [detail, setDetail] = useState<ProjectClassDetail>(),
     [error, setError] = useState(""),
     [reload, setReload] = useState(0),
-    [modal, setModal] = useState<"edit" | "delete" | null>(null),
+    [modal, setModal] = useState<"edit" | null>(null),
     [name, setName] = useState(""),
     [goal, setGoal] = useState(""),
     [editRevision, setEditRevision] = useState(0),
-    [busy, setBusy] = useState(false),
-    [review, setReview] = useState(false);
+    [busy, setBusy] = useState(false);
   useEffect(() => {
     if (busy) return;
     const abort = new AbortController();
@@ -442,9 +354,11 @@ function ClassDetail({
     }
   }
   async function remove() {
-    if (busy) return;
-    setBusy(true);
+    if (busy || !detail) return;
     setError("");
+    const { message, options } = projectDeletion(displayName(detail.check));
+    if (!(await confirm(message, options))) return;
+    setBusy(true);
     try {
       const { ids } = await api<{ ids?: string[] }>(`/api/projects/${id}`, {
         method: "DELETE",
@@ -474,7 +388,7 @@ function ClassDetail({
       </>
     );
   const { check, practice, workshop } = detail;
-  const title = check.classMetadata?.name || check.analysis.title;
+  const title = displayName(check);
   const codeDone = practice?.progress.code.filter((p) => p.completed).length ?? 0,
     serviceDone = practice?.progress.service.filter((p) => p.completed).length ?? 0,
     aiDone = workshop?.responses.filter(Boolean).length ?? 0;
@@ -483,11 +397,12 @@ function ClassDetail({
       image: "/images/experience/project.webp",
       title: "프로젝트 점검",
       description: check.review
-        ? "내 설명과 피드백을 다시 확인하세요."
-        : "설계 질문에 답하며 내가 아는 부분을 확인하세요.",
+        ? "평가를 받았습니다. 내 설명과 피드백을 다시 확인하세요."
+        : "설계 질문에 답하고 평가를 받으면 완료됩니다.",
       href: `/project-check?check=${id}`,
-      done: check.review?.answers.filter((a) => a.trim()).length ?? 0,
-      total: check.analysis.questions.length,
+      // Completion is a saved evaluation, not the number of answered questions.
+      done: check.review ? 1 : 0,
+      total: 1,
       ready: true,
     },
     ...(check.page.repository
@@ -514,7 +429,7 @@ function ClassDetail({
           },
           {
             image: "/images/personas/persona-ai.webp",
-            title: "AI 활용 학습",
+            title: "내 프로젝트 AI 워크숍",
             description:
               workshop && !workshop.plan.topics.length
                 ? "이 코드에서는 추가로 제안할 AI 학습 주제를 찾지 못했습니다."
@@ -534,7 +449,7 @@ function ClassDetail({
     <>
       <AppLink href="/projects">← 내 프로젝트 목록</AppLink>
       <Card className="class-hero">
-        <span className="eyebrow">나의 프로젝트 학습 클래스</span>
+        <span className="eyebrow">내 프로젝트</span>
         <h2>{title}</h2>
         <p>{check.classMetadata?.goal || check.analysis.summary}</p>
         <small>
@@ -570,17 +485,17 @@ function ClassDetail({
             <Pencil size={17} />
             정보 수정
           </Button>
-          <Button onClick={() => setReview((v) => !v)} aria-pressed={review}>
-            <RotateCcw size={17} />
+          <Button
+            onClick={() =>
+              router.push(review ? `/projects?class=${id}` : `/projects?class=${id}&view=review`)
+            }
+            aria-pressed={review}
+          >
+            <RotateCcw size={17} aria-hidden="true" />
             {review ? "학습 목록으로" : "복습하기"}
           </Button>
-          <Button
-            onClick={() => {
-              setModal("delete");
-              setError("");
-            }}
-          >
-            <Trash2 size={17} />
+          <Button disabled={busy} onClick={() => void remove()}>
+            <Trash2 size={17} aria-hidden="true" />
             삭제
           </Button>
         </div>
@@ -604,7 +519,11 @@ function ClassDetail({
                     aria-label={`${track.title} 진행률`}
                   />
                   <span>
-                    {track.done}/{track.total} 완료
+                    {track.total === 1
+                      ? track.done
+                        ? "평가 완료"
+                        : "평가 전"
+                      : `${track.done}/${track.total} 완료`}
                   </span>
                 </>
               )}
@@ -637,21 +556,27 @@ function ClassDetail({
       {check.page.repository && <ProjectVersions key={`${scope}:${id}`} id={id} scope={scope} />}
       {!check.page.repository && (
         <p>
-          서비스 화면 분석에는 코드 실습이 포함되지 않습니다. 소스 저장소를 새로 연결하면 코드와 AI
-          학습도 만들 수 있어요.
+          서비스 화면 분석에는 코드 실습이 포함되지 않습니다. 소스 저장소를 새로 연결하면 코드
+          실습과 AI 워크숍도 만들 수 있어요.
         </p>
       )}
-      {check.page.repository && (
-        <RenewProject check={check} scope={scope} destination="/projects" queryKey="class" />
-      )}
+      <RenewProject
+        check={check}
+        scope={scope}
+        usage={overview.usage.analysis}
+        aiReady={overview.aiReady}
+        destination="/projects"
+        queryKey="class"
+      />
+      {confirmation}
       {error && !modal && <p role="alert">{error}</p>}
       <Modal
         open={!!modal}
         onClose={() => !busy && setModal(null)}
         busy={busy}
-        title={modal === "delete" ? "프로젝트 클래스를 삭제할까요?" : "클래스 정보 수정"}
+        title="프로젝트 정보 수정"
       >
-        {modal === "edit" ? (
+        {modal === "edit" && (
           <form
             className="class-edit"
             onSubmit={(e) => {
@@ -659,7 +584,7 @@ function ClassDetail({
               void save();
             }}
           >
-            <FieldLabel htmlFor="class-name">클래스 이름</FieldLabel>
+            <FieldLabel htmlFor="class-name">프로젝트 이름</FieldLabel>
             <Input
               id="class-name"
               required
@@ -693,23 +618,6 @@ function ClassDetail({
               </Button>
             )}
           </form>
-        ) : (
-          <div className="class-edit">
-            <p>
-              <strong>{title}</strong>의 점검, 답변, 실습, AI 학습과 진행 기록이 함께 삭제됩니다. 이
-              작업은 되돌릴 수 없습니다.
-            </p>
-            <p>원본 저장소와 서비스는 삭제되지 않습니다.</p>
-            {error && <p role="alert">{error}</p>}
-            <div className="class-actions">
-              <Button disabled={busy} onClick={() => setModal(null)}>
-                취소
-              </Button>
-              <Button disabled={busy} onClick={remove}>
-                {busy ? "삭제 중…" : "클래스 영구 삭제"}
-              </Button>
-            </div>
-          </div>
         )}
       </Modal>
     </>

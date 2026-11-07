@@ -162,9 +162,7 @@ export function ExerciseRunner({
         ))}
       </nav>
       <Card className={`practice-exercise${service ? " practice-service" : ""}`} key={index}>
-        <span className="eyebrow">
-          {service ? "서비스 원리 실습" : "실제 코드 읽기"} · {index + 1}/3
-        </span>
+        <span className="eyebrow">{service ? "서비스 동작 실습" : "코드 이해 훈련"}</span>
         <h2 ref={heading} tabIndex={-1}>
           {task.title}
         </h2>
@@ -187,22 +185,24 @@ export function ExerciseRunner({
             </div>
           </div>
         )}
-        <nav className="practice-stages" aria-label="문제 학습 단계">
-          {stages.map((item, i) => (
+        {/* One progress line instead of a second row of step buttons; going back stays possible. */}
+        <div className="practice-progress-line">
+          <strong>
+            상황 {index + 1}/{tasks.length} · 단계 {stage + 1}/{stages.length}
+          </strong>
+          <span>
+            {stages[stage].title} — {stageDescriptions[stage]}
+          </span>
+          {stage > 0 && (
             <Button
-              key={item.title}
-              disabled={busy || draft.conflict || (i > 0 && !response)}
-              aria-current={stage === i ? "step" : undefined}
-              onClick={() => setStage(i)}
+              className="text-button"
+              disabled={busy || draft.conflict}
+              onClick={() => setStage(stage - 1)}
             >
-              <span className="practice-stage-number">{i + 1}</span>
-              <span>
-                <strong>{item.title}</strong>
-                <small>{stageDescriptions[i]}</small>
-              </span>
+              ← {stages[stage - 1].title} 단계로
             </Button>
-          ))}
-        </nav>
+          )}
+        </div>
         <div className="practice-stage-heading">
           <h3 ref={stageHeading} tabIndex={-1}>
             {stage + 1}. {stages[stage].title}

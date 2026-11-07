@@ -118,7 +118,7 @@ for (const width of [1280, 390]) {
     });
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/projects");
-    await page.getByRole("link", { name: /클래스 열기/ }).click();
+    await page.getByRole("link", { name: /프로젝트 열기/ }).click();
     await expect(
       page.getByRole("heading", { name: fixtureCheck.analysis.title, exact: true }),
     ).toBeVisible();
@@ -136,14 +136,14 @@ for (const width of [1280, 390]) {
       "/projects?class=77777777-7777-4777-8777-777777777777",
     );
     await page.getByRole("button", { name: "정보 수정" }).click();
-    const editDialog = page.getByRole("dialog", { name: "클래스 정보 수정" });
+    const editDialog = page.getByRole("dialog", { name: "프로젝트 정보 수정" });
     await editDialog.click({ position: { x: 3, y: 3 } });
     await expect(editDialog).toBeVisible();
     await page.mouse.click(1, 1);
     await expect(editDialog).not.toBeVisible();
     await expect(page.getByRole("button", { name: "정보 수정" })).toBeFocused();
     await page.getByRole("button", { name: "정보 수정" }).click();
-    await page.getByRole("textbox", { name: "클래스 이름" }).fill("내 예약 서비스 클래스");
+    await page.getByRole("textbox", { name: "프로젝트 이름" }).fill("내 예약 서비스 클래스");
     await page
       .getByRole("textbox", { name: "학습 목표와 메모" })
       .fill("중복 요청과 권한 변경을 확인합니다.");
@@ -158,8 +158,9 @@ for (const width of [1280, 390]) {
     await page
       .getByRole("textbox", { name: "지금 떠오르는 설명" })
       .fill("서버에서 권한을 다시 확인합니다.");
+    // Review mode is in the address, so a reload returns to it.
+    await expect(page).toHaveURL(/view=review/);
     await page.reload();
-    await page.getByRole("button", { name: "복습하기", exact: true }).click();
     await expect(page.getByRole("textbox", { name: "지금 떠오르는 설명" })).toHaveValue(
       "서버에서 권한을 다시 확인합니다.",
     );
@@ -167,7 +168,6 @@ for (const width of [1280, 390]) {
     await expect(page.getByText("아직 저장한 답변이 없습니다.", { exact: false })).toBeVisible();
     await page.getByRole("button", { name: "다음 복습" }).click();
     await page.reload();
-    await page.getByRole("button", { name: "복습하기", exact: true }).click();
     await expect(page.getByText("2 / 11", { exact: true })).toBeVisible();
     for (let i = 0; i < 4; i++) {
       await page.getByRole("button", { name: "이전 답변과 비교" }).click();
@@ -192,10 +192,12 @@ for (const width of [1280, 390]) {
     );
     await page.screenshot({ path: `artifacts/project-classes-${width}.png`, fullPage: true });
     await page.getByRole("button", { name: "삭제", exact: true }).click();
-    await page.getByRole("button", { name: "취소", exact: true }).click();
+    const deletion = page.getByRole("dialog", { name: "프로젝트 삭제" });
+    await expect(deletion).toContainText("코드 대화");
+    await deletion.getByRole("button", { name: "취소", exact: true }).click();
     expect(await store.queries.projectChecks.get(owner, id)).not.toBeNull();
     await page.getByRole("button", { name: "삭제", exact: true }).click();
-    await page.getByRole("button", { name: "클래스 영구 삭제" }).click();
+    await deletion.getByRole("button", { name: "프로젝트 영구 삭제" }).click();
     await expect(page).toHaveURL(/\/projects$/);
     await expect(page.getByRole("link", { name: "첫 프로젝트 연결하기" })).toBeVisible();
     expect(await store.queries.projectChecks.get(owner, id)).toBeNull();

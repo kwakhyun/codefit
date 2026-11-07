@@ -18,7 +18,7 @@ test("search survives a trip to class details", async ({ page }) => {
   await page.goto("/projects");
   const search = page.getByRole("searchbox", { name: "내 프로젝트 찾기" });
   await search.fill(check.analysis.title.slice(0, 2));
-  await page.getByRole("link", { name: /클래스 열기/ }).click();
+  await page.getByRole("link", { name: /프로젝트 열기/ }).click();
   await page.getByRole("link", { name: /내 프로젝트 목록/ }).click();
   await expect(search).toHaveValue(check.analysis.title.slice(0, 2));
 });
@@ -38,7 +38,6 @@ test("concurrent tabs retain both versions of a review note", async ({ context, 
   await other.getByText("다른 탭에서 작성한 메모 1개").click();
   await expect(other.getByText("첫 번째 탭의 메모", { exact: true })).toBeVisible();
   await other.reload();
-  await other.getByRole("button", { name: "복습하기", exact: true }).click();
   await expect(other.getByRole("textbox", { name: "지금 떠오르는 설명" })).toHaveValue(
     "두 번째 탭의 메모",
   );
@@ -130,7 +129,6 @@ test("storage failures keep the draft visible and explain that it is unsaved", a
   await note.fill("두 번째 문제 메모");
   await expect(page.getByText(/복습 위치와 메모는 이 브라우저에 저장됩니다/)).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "복습하기", exact: true }).click();
   await expect(note).toHaveValue("두 번째 문제 메모");
   await page.getByRole("button", { name: "이전", exact: true }).click();
   await expect(note).toHaveValue("아직 저장되지 않은 메모");

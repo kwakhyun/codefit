@@ -1,12 +1,15 @@
 "use client";
 import { useGenerationRevision } from "@/hooks/use-generation-revision";
+import { useProjectOverview } from "@/hooks/use-project-overview";
 import { startProjectAnalysis } from "@/lib/project-analysis-tasks";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { LearningStatus } from "@/lib/project-check/learning-generation";
 import { generateLearning } from "@/lib/project-check/generate-learning";
 import { RenewProject } from "@/components/project-check/renew-project";
+import { AllowanceCost } from "@/components/project-check/allowance-cost";
 import { api, errorMessage } from "@/lib/client-api";
+import { displayName } from "@/lib/project-check/display";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import type { GeneratedPractice, PracticeMode } from "@/lib/project-check/generated-practice";
 import { practiceContent } from "@/lib/project-check/practice-draft";
@@ -24,46 +27,22 @@ import { CircleAlert } from "lucide-react";
 import { RequestStatus } from "@/components/project-check/request-status";
 import { ExerciseRunner } from "./exercise-runner";
 
+/** Set before opening a freshly analysed repository so its page continues to practice generation. */
+const autoGenerateKey = (scope: string, id: string) =>
+  `codefit-practice-autogenerate:${scope}:${id}`;
+
 export function ProjectPracticeApp() {
   const params = useSearchParams();
   const id = params.get("check"),
     mode: PracticeMode = params.get("mode") === "service" ? "service" : "code";
-  const [data, setData] = useState<CheckOverview>();
-  const [error, setError] = useState("");
-  const [revision, setRevision] = useState(0);
-  useEffect(() => {
-    const controller = new AbortController();
-    api<CheckOverview>("/api/project-check", { scope: null, signal: controller.signal })
-      .then((value) => {
-        if (!controller.signal.aborted) {
-          setData(value);
-          setError("");
-        }
-      })
-      .catch((e) => {
-        if (!controller.signal.aborted) setError(errorMessage(e));
-      });
-    return () => controller.abort();
-  }, [revision, id]);
-  useEffect(() => {
-    const refresh = () => {
-      setRevision((n) => n + 1);
-    };
-    window.addEventListener("focus", refresh);
-    window.addEventListener("codefit:backup-imported", refresh);
-    window.addEventListener("codefit:analysis-changed", refresh);
-    return () => {
-      window.removeEventListener("focus", refresh);
-      window.removeEventListener("codefit:backup-imported", refresh);
-      window.removeEventListener("codefit:analysis-changed", refresh);
-    };
-  }, []);
+  const projects = useProjectOverview();
+  const { data, error } = projects;
   return (
     <>
-      {error && (
+      {error && !data && (
         <Card role="alert">
           <p>{error}</p>
-          <Button onClick={() => setRevision((n) => n + 1)}>다시 불러오기</Button>
+          <Button onClick={projects.refresh}>다시 불러오기</Button>
         </Card>
       )}
       {!data && !error && <ScreenSkeleton variant="lesson" label="내 프로젝트 연습 불러오는 중" />}
@@ -73,7 +52,9 @@ export function ProjectPracticeApp() {
           data={data}
           id={id}
           mode={mode}
-          onUsage={() => setRevision((n) => n + 1)}
+          onUsage={projects.refresh}
+          paging={projects.paging}
+          onMore={() => void projects.loadMore()}
         />
       )}
     </>
@@ -84,12 +65,20 @@ function PracticeWorkspace({
   id,
   mode,
   onUsage,
+  paging,
+  onMore,
 }: {
   data: CheckOverview;
   id: string | null;
   mode: PracticeMode;
   onUsage: () => void;
+  paging: boolean;
+  onMore: () => void;
 }) {
+  const analysisCostId = useId();
+  const generateCostId = useId();
+  const [choice, setChoice] = useState("");
+  const [continueToPractice, setContinueToPractice] = useState(true);
   const [check, setCheck] = useState<Check>();
   const [saved, setSaved] = useState<GeneratedPractice | null>();
   const [progress, setProgress] = useState({ completed: 0, canRecover: false });
@@ -99,9 +88,6 @@ function PracticeWorkspace({
   const [description, setDescription] = useState("");
   const [reload, setReload] = useState(0);
   const generationRevision = useGenerationRevision();
-  const [checks, setChecks] = useState(data.checks);
-  const [cursor, setCursor] = useState(data.nextCursor);
-  const [paging, setPaging] = useState(false);
   const active = useRef(false);
   const alive = useRef(true);
   useEffect(() => {
@@ -128,37 +114,27 @@ function PracticeWorkspace({
           setSaved(practice.result);
           setProgress(practice);
           setError("");
+          // A repository analysed on this page continues to practice generation once, as chosen.
+          let requested = false;
+          try {
+            requested = sessionStorage.getItem(autoGenerateKey(data.scope, id)) === "1";
+            sessionStorage.removeItem(autoGenerateKey(data.scope, id));
+          } catch {}
+          if (requested && !practice.result && record.page.repository) void run(true);
         }
       })
       .catch((e) => {
         if (!controller.signal.aborted) setError(errorMessage(e));
       });
     return () => controller.abort();
+    // run reads the current state when the load finishes; it is not a reason to reload.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, data.scope, endpoint, reload, generationRevision]);
   function select(value: string) {
     const target = new URL(window.location.href);
     if (value) target.searchParams.set("check", value);
     else target.searchParams.delete("check");
     window.history.pushState(null, "", target);
-  }
-  async function loadMore() {
-    if (!cursor || paging) return;
-    setPaging(true);
-    try {
-      const next = await api<CheckOverview>(
-        `/api/project-check?cursor=${encodeURIComponent(cursor)}`,
-        { scope: data.scope },
-      );
-      setChecks((current) => [
-        ...current,
-        ...next.checks.filter((c) => !current.some((p) => p.id === c.id)),
-      ]);
-      setCursor(next.nextCursor);
-    } catch (e) {
-      setError(errorMessage(e));
-    } finally {
-      setPaging(false);
-    }
   }
   async function run(generate: boolean) {
     if (active.current) return;
@@ -174,6 +150,10 @@ function PracticeWorkspace({
         setSaved(await generateLearning<GeneratedPractice>(endpoint, data.scope, setBusy));
       } else {
         requestId.current ??= crypto.randomUUID();
+        if (continueToPractice)
+          try {
+            sessionStorage.setItem(autoGenerateKey(data.scope, requestId.current), "1");
+          } catch {}
         const record = await startProjectAnalysis(
           { url, description, requestId: requestId.current, source: "repository" },
           data.scope,
@@ -201,7 +181,9 @@ function PracticeWorkspace({
       onUsage();
     }
   }
-  const repositories = checks.filter((c) => c.page.source === "repository");
+  const repositories = data.checks.filter((c) => c.page.source === "repository");
+  const cursor = data.nextCursor;
+  const analysisCost = continueToPractice ? 2 : 1;
   return (
     <div className="project-practice-workspace">
       <div className="practice-switch">
@@ -241,25 +223,37 @@ function PracticeWorkspace({
         <Card className="practice-connect">
           <h2>어떤 프로젝트로 연습할까요?</h2>
           {repositories.length > 0 && (
-            <>
+            // Choosing does not navigate by itself (WCAG 3.2.2); "열기" opens the project.
+            <form
+              className="practice-record-picker"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (choice) select(choice);
+              }}
+            >
               <FieldLabel htmlFor="practice-record">분석한 저장소에서 이어가기</FieldLabel>
-              <NativeSelect
-                id="practice-record"
-                value=""
-                disabled={!!busy}
-                onChange={(e) => select(e.target.value)}
-              >
-                <option value="">프로젝트 선택</option>
-                {repositories.map((c) => (
-                  <option value={c.id} key={c.id}>
-                    {c.analysis.title}
-                  </option>
-                ))}
-              </NativeSelect>
-            </>
+              <div className="practice-record-row">
+                <NativeSelect
+                  id="practice-record"
+                  value={choice}
+                  disabled={!!busy}
+                  onChange={(e) => setChoice(e.target.value)}
+                >
+                  <option value="">프로젝트 선택</option>
+                  {repositories.map((c) => (
+                    <option value={c.id} key={c.id}>
+                      {displayName(c)}
+                    </option>
+                  ))}
+                </NativeSelect>
+                <Button type="submit" disabled={!choice || !!busy}>
+                  열기
+                </Button>
+              </div>
+            </form>
           )}
           {cursor && (
-            <Button disabled={paging || !!busy} onClick={loadMore}>
+            <Button disabled={paging || !!busy} onClick={onMore}>
               {paging ? "불러오는 중…" : "이전 프로젝트 더 보기"}
             </Button>
           )}
@@ -298,27 +292,33 @@ function PracticeWorkspace({
               placeholder="예: 사용자가 탈퇴하면 접근 권한이 어떻게 바뀌는지 알고 싶어요."
             />
             <p className="muted">
-              수집한 공개 코드와 설명을 OpenAI에 보내 연습을 만듭니다. 분석할 권한이 있는 프로젝트만
-              입력해 주세요.
+              수집한 공개 코드와 설명을 OpenAI에 보내 연습을 만듭니다. 분석할 권한이 있는 공개
+              저장소만 입력하고, 비밀키나 사용자 데이터는 넣지 마세요.
             </p>
-            <p className="muted">
-              비공개 저장소는 지원하지 않습니다. 비밀키나 사용자 데이터를 입력하지 마세요. 저장소
-              분석과 다음 단계의 연습 생성에 프로젝트 생성 횟수를 각각 1회 사용합니다. 현재{" "}
-              {data.usage.analysis.remaining}회 남음.
-            </p>
+            <FieldLabel className="practice-continue">
+              <Input
+                type="checkbox"
+                checked={continueToPractice}
+                disabled={!!busy}
+                onChange={(e) => setContinueToPractice(e.target.checked)}
+              />
+              분석이 끝나면 코드 이해 훈련과 서비스 동작 실습 생성까지 이어서 진행
+            </FieldLabel>
+            <AllowanceCost
+              id={analysisCostId}
+              label="분석 횟수"
+              cost={analysisCost}
+              remaining={data.usage.analysis.remaining}
+              resetsAt={data.usage.analysis.resetsAt}
+            />
             <Button
               type="submit"
               className="primary-button"
-              disabled={!!busy || !data.aiReady || data.usage.analysis.remaining < 2}
+              aria-describedby={analysisCostId}
+              disabled={!!busy || !data.aiReady || data.usage.analysis.remaining < analysisCost}
             >
-              저장소 분석하기
+              {continueToPractice ? "저장소 분석하고 연습 만들기" : "저장소 분석하기"}
             </Button>
-            {data.usage.analysis.remaining < 2 && (
-              <p role="status">
-                새 저장소 분석과 연습 생성에는 총 2회가 필요합니다. 이미 분석한 저장소를 선택하거나
-                한도 초기화 후 다시 이용해 주세요.
-              </p>
-            )}
             {!data.aiReady && (
               <p role="status" className="ui-notice">
                 <CircleAlert size={18} aria-hidden="true" />
@@ -365,22 +365,22 @@ function PracticeWorkspace({
               )}
               <p>
                 코드 흐름을 읽는 훈련 3개와 서비스 동작을 비교하는 실습 3개를 함께 만듭니다. 분석한
-                코드 버전을 기준으로 저장하며, 이후 저장소 변경 사항은 새 분석에서 반영합니다.
+                코드 버전을 기준으로 저장하며, 두 단계로 준비해 완료한 단계는 저장합니다. 답변
+                저장과 이어하기에는 AI 횟수를 사용하지 않습니다.
               </p>
-              <p>
-                프로젝트 생성 1회 사용 · 현재 {data.usage.analysis.remaining}회 남음. 답변 저장과
-                이어하기에는 AI 횟수를 사용하지 않습니다.
-              </p>
-              <p>
-                두 단계로 준비하며 완료한 단계는 저장합니다. 연결이 끊겨도 다시 누르면 남은 단계부터
-                진행합니다.
-              </p>
-              <p className="muted">
-                수집한 공개 코드와 설명을 OpenAI에 보내 연습을 만듭니다. 분석할 권한이 있는
-                프로젝트만 입력해 주세요.
-              </p>
+              <p className="muted">수집한 공개 코드와 설명을 OpenAI에 보내 연습을 만듭니다.</p>
+              {!progress.canRecover && (
+                <AllowanceCost
+                  id={generateCostId}
+                  label="분석 횟수"
+                  cost={1}
+                  remaining={data.usage.analysis.remaining}
+                  resetsAt={data.usage.analysis.resetsAt}
+                />
+              )}
               <Button
                 className="primary-button"
+                aria-describedby={progress.canRecover ? undefined : generateCostId}
                 disabled={
                   !!busy ||
                   (!progress.canRecover && (!data.aiReady || data.usage.analysis.remaining < 1))
@@ -393,14 +393,6 @@ function PracticeWorkspace({
                     ? "저장된 단계부터 이어서 생성"
                     : "맞춤 연습 6개 만들기"}
               </Button>
-              {data.usage.analysis.remaining < 1 && !progress.canRecover && (
-                <p role="status">
-                  프로젝트 생성 횟수를 모두 사용했습니다.{" "}
-                  {data.usage.analysis.resetsAt
-                    ? `${new Date(data.usage.analysis.resetsAt).toLocaleString("ko-KR")} 이후 다시 이용할 수 있습니다.`
-                    : "한도가 초기화된 뒤 다시 이용해 주세요."}
-                </p>
-              )}
             </Card>
           ) : (
             <ExerciseRunner
@@ -420,6 +412,8 @@ function PracticeWorkspace({
             <RenewProject
               check={check}
               scope={data.scope}
+              usage={data.usage.analysis}
+              aiReady={data.aiReady}
               destination={`/project-practice?mode=${mode}`}
               disabled={!!busy}
             />
