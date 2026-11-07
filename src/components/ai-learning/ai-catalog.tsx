@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   catalogFilters,
@@ -10,6 +10,7 @@ import {
 import {
   ArrowRight,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   Search,
   Workflow,
@@ -25,27 +26,13 @@ import {
   Progress,
 } from "@/components/ui/primitives";
 import { AI_LESSONS, AI_TRACKS, AI_CONTENT_REVIEWED } from "@/lib/ai-learning/catalog";
-import { filterAiLessons } from "@/lib/ai-learning/progress";
+import { aiProgressNote, filterAiLessons, lessonsToReview } from "@/lib/ai-learning/progress";
+import { AI_PATHS, type LessonContext } from "@/lib/ai-learning/lesson-paths";
 import { useAiLearningProgress } from "@/hooks/use-ai-learning-progress";
 
 const icons = { workflow: Workflow, monitor: Monitor, search: Search, sparkles: Sparkles };
-const paths = [
-  {
-    title: "처음이라면",
-    description: "맥락 전달부터 도구 연결까지",
-    ids: ["prompt-context", "agent-workflow", "langchain", "langgraph"],
-  },
-  {
-    title: "내 컴퓨터에서 써보고 싶다면",
-    description: "설치 준비부터 채팅 화면까지",
-    ids: ["local-start", "local-connect", "local-ui"],
-  },
-  {
-    title: "내 문서로 답하는 AI를 만든다면",
-    description: "검색부터 답변 평가까지",
-    ids: ["llamaindex", "vector-search", "rag-eval"],
-  },
-];
+const hiddenAliases = ["랭체인", "랭그래프", "라마인덱스", "허깅페이스", "올라마"];
+type Lesson = (typeof AI_LESSONS)[number];
 
 export function AiCatalog() {
   const params = useSearchParams();
@@ -62,7 +49,8 @@ export function AiCatalog() {
       /* Navigation remains available without storage. */
     }
   }
-  const { records, ready, storageError } = useAiLearningProgress();
+  const status = useAiLearningProgress();
+  const { records, ready } = status;
   useEffect(() => {
     if (!ready) return;
     let frame = requestAnimationFrame(() => {
@@ -85,12 +73,66 @@ export function AiCatalog() {
   const resume = AI_LESSONS.filter(
     (lesson) => records[lesson.id] && !records[lesson.id]?.completed,
   ).sort((a, b) => (records[b.id]?.updatedAt || 0) - (records[a.id]?.updatedAt || 0))[0];
+  // Without a lesson in progress, recommend the first path before the rest of the catalog.
+  const pathNext = AI_PATHS[0].ids.find((id) => !records[id]?.completed);
   const next =
-    resume || AI_LESSONS.find((lesson) => !records[lesson.id]?.completed) || AI_LESSONS[0];
-  const visible = filterAiLessons(query, track, level);
-  const filtered = query.trim() !== "" || track !== "all" || level !== "all";
+    resume ||
+    AI_LESSONS.find((lesson) => lesson.id === pathNext) ||
+    AI_LESSONS.find((lesson) => !records[lesson.id]?.completed) ||
+    AI_LESSONS[0];
+  const nextContext: LessonContext =
+    !resume && next.id === pathNext ? { path: AI_PATHS[0].id } : {};
+  const review = lessonsToReview(records);
+  // Search and level filters show flat results; otherwise tracks open one at a time.
+  const searching = query.trim() !== "" || level !== "all";
+  const visible = filterAiLessons(query, "all", level);
+  const announced = useSettledValue(searching ? `${visible.length}개 수업을 찾았어요.` : "", 600);
   function reset() {
     change({ query: "", track: "all", level: "all" });
+  }
+  function lessonCard(lesson: Lesson, showTrack = false) {
+    const record = records[lesson.id];
+    return (
+      <Link
+        key={lesson.id}
+        className="ai-lesson-card"
+        href={catalogLessonUrl(lesson.id, returnTo)}
+        onNavigate={rememberPosition}
+      >
+        <div className="ai-card-meta">
+          <span>
+            {showTrack && `${AI_TRACKS.find((item) => item.id === lesson.track)!.title} · `}
+            {lesson.level}
+          </span>
+          <span>
+            <Clock3 size={14} aria-hidden="true" />
+            {lesson.minutes}분
+          </span>
+        </div>
+        <h3>{lesson.title}</h3>
+        <p>{lesson.summary}</p>
+        <div className="ai-tool-tags">
+          {lesson.tools
+            .filter((tool) => !hiddenAliases.includes(tool))
+            .map((tool) => (
+              <span key={tool}>{tool}</span>
+            ))}
+        </div>
+        <strong>
+          {record?.completed ? (
+            <>
+              <CheckCircle2 size={16} aria-hidden="true" />
+              완료 · 복습하기
+            </>
+          ) : record ? (
+            "이어서 학습하기"
+          ) : (
+            "수업 시작하기"
+          )}
+          <ArrowRight size={16} aria-hidden="true" />
+        </strong>
+      </Link>
+    );
   }
   return (
     <>
@@ -111,14 +153,16 @@ export function AiCatalog() {
           </p>
           <Link
             className="primary-button"
-            href={catalogLessonUrl(next.id, returnTo)}
+            href={catalogLessonUrl(next.id, returnTo, nextContext)}
             onNavigate={rememberPosition}
           >
             {completed === AI_LESSONS.length
               ? "첫 수업 복습하기"
               : resume
                 ? "이어서 학습하기"
-                : "첫 수업 시작하기"}{" "}
+                : completed
+                  ? "다음 수업 시작하기"
+                  : "첫 수업 시작하기"}{" "}
             <ArrowRight size={17} aria-hidden="true" />
           </Link>
         </div>
@@ -126,32 +170,61 @@ export function AiCatalog() {
           <strong>{ready ? `${completed} / ${AI_LESSONS.length}` : "기록 확인 중"}</strong>
           <span>수업 완료</span>
           <Progress aria-label="AI 수업 완료 수" value={completed} max={AI_LESSONS.length} />
-          <small>
-            {storageError
-              ? "브라우저 저장이 차단되어 현재 탭에서만 기록됩니다."
-              : "이 브라우저에 학습 위치와 완료 기록을 저장합니다. 계정이나 다른 기기와 동기화하지 않습니다."}
-          </small>
+          <small>{aiProgressNote(status)}</small>
         </div>
       </section>
+      {review.length > 0 && (
+        <section className="ai-review-list" aria-labelledby="ai-review-title">
+          <h2 id="ai-review-title">다시 볼 수업</h2>
+          <p>확인 문제를 처음에 틀린 수업이에요. 해설을 다시 읽고 확인 문제를 풀어 보세요.</p>
+          <ul>
+            {review.map((lesson) => (
+              <li key={lesson.id}>
+                <Link href={catalogLessonUrl(lesson.id, returnTo)} onNavigate={rememberPosition}>
+                  {lesson.title}
+                </Link>
+                <span>{records[lesson.id]?.completed ? "완료" : "푸는 중"}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <section className="ai-paths" aria-label="추천 학습 순서">
-        {paths.map((path) => (
-          <div key={path.title}>
-            <h2>{path.title}</h2>
-            <p>{path.description}</p>
-            <ol>
-              {path.ids.map((id) => {
-                const lesson = AI_LESSONS.find((item) => item.id === id)!;
-                return (
-                  <li key={id}>
-                    <Link href={catalogLessonUrl(id, returnTo)} onNavigate={rememberPosition}>
-                      {lesson.title}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        ))}
+        {AI_PATHS.map((path) => {
+          const done = path.ids.filter((id) => records[id]?.completed).length;
+          return (
+            <div key={path.id}>
+              <h2>{path.title}</h2>
+              <p>
+                {path.description}
+                <span className="ai-path-count">
+                  {" "}
+                  · {done}/{path.ids.length} 완료
+                </span>
+              </p>
+              <ol>
+                {path.ids.map((id) => {
+                  const lesson = AI_LESSONS.find((item) => item.id === id)!;
+                  const finished = records[id]?.completed;
+                  return (
+                    <li key={id} data-completed={finished || undefined}>
+                      {finished && (
+                        <CheckCircle2 size={15} className="ai-path-check" aria-hidden="true" />
+                      )}
+                      <Link
+                        href={catalogLessonUrl(id, returnTo, { path: path.id })}
+                        onNavigate={rememberPosition}
+                      >
+                        {lesson.title}
+                        {finished && <span className="sr-only"> (완료)</span>}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          );
+        })}
       </section>
       <section id="ai-catalog" className="ai-catalog-controls" aria-labelledby="ai-catalog-title">
         <div className="ai-section-heading">
@@ -183,112 +256,99 @@ export function AiCatalog() {
             </NativeSelect>
           </FieldLabel>
         </div>
-        <div className="ai-category-filters" role="group" aria-label="학습 카테고리">
-          <Button aria-pressed={track === "all"} onClick={() => change({ track: "all" })}>
-            전체 <span>{AI_LESSONS.length}</span>
-          </Button>
-          {AI_TRACKS.map((item) => (
-            <Button
-              key={item.id}
-              aria-pressed={track === item.id}
-              onClick={() => change({ track: item.id })}
-            >
-              {item.title}
-              <span>{AI_LESSONS.filter((lesson) => lesson.track === item.id).length}</span>
-            </Button>
-          ))}
-        </div>
         <div className="ai-results-count">
-          <p role="status" aria-live="polite">
-            {visible.length}개 수업{filtered ? "을 찾았어요" : "을 자유롭게 시작할 수 있어요"}
+          <p>
+            {searching
+              ? `${visible.length}개 수업을 찾았어요`
+              : `${AI_TRACKS.length}개 분야, ${AI_LESSONS.length}개 수업 · 분야를 눌러 수업을 펼쳐 보세요`}
           </p>
-          {filtered && <Button onClick={reset}>검색과 필터 초기화</Button>}
+          <span className="sr-only" role="status">
+            {announced}
+          </span>
+          {searching && <Button onClick={reset}>검색과 필터 초기화</Button>}
         </div>
       </section>
-      {visible.length === 0 && (
+      {searching && visible.length === 0 && (
         <div className="ai-empty">
           <Search aria-hidden="true" />
           <h2>일치하는 수업이 없어요</h2>
-          <p>도구 이름을 짧게 입력하거나 카테고리와 수준을 바꿔 보세요.</p>
+          <p>도구 이름을 짧게 입력하거나 학습 수준을 바꿔 보세요.</p>
           <Button onClick={reset}>전체 수업 보기</Button>
         </div>
       )}
-      {AI_TRACKS.map((category) => {
-        const lessons = visible.filter((lesson) => lesson.track === category.id);
-        if (!lessons.length) return null;
-        const Icon = icons[category.icon];
-        return (
-          <section
-            className="ai-course-group"
-            key={category.id}
-            aria-labelledby={`category-${category.id}`}
-          >
-            <div className="ai-group-title">
-              <Icon aria-hidden="true" />
-              <div>
-                <h2 id={`category-${category.id}`}>{category.title}</h2>
-                <p>{category.description}</p>
-              </div>
-            </div>
+      {searching ? (
+        visible.length > 0 && (
+          <section className="ai-search-results" aria-label="검색 결과">
             <div className="ai-lesson-grid">
-              {lessons.map((lesson) => {
-                const record = records[lesson.id];
-                return (
-                  <Link
-                    key={lesson.id}
-                    className="ai-lesson-card"
-                    href={catalogLessonUrl(lesson.id, returnTo)}
-                    onNavigate={rememberPosition}
-                  >
-                    <div className="ai-card-meta">
-                      <span>{lesson.level}</span>
-                      <span>
-                        <Clock3 size={14} aria-hidden="true" />
-                        {lesson.minutes}분
-                      </span>
-                    </div>
-                    <h3>{lesson.title}</h3>
-                    <p>{lesson.summary}</p>
-                    <div className="ai-tool-tags">
-                      {lesson.tools
-                        .filter(
-                          (tool) =>
-                            !["랭체인", "랭그래프", "라마인덱스", "허깅페이스", "올라마"].includes(
-                              tool,
-                            ),
-                        )
-                        .map((tool) => (
-                          <span key={tool}>{tool}</span>
-                        ))}
-                    </div>
-                    <strong>
-                      {record?.completed ? (
-                        <>
-                          <CheckCircle2 size={16} aria-hidden="true" />
-                          완료 · 복습하기
-                        </>
-                      ) : record ? (
-                        "이어서 학습하기"
-                      ) : (
-                        "수업 시작하기"
-                      )}
-                      <ArrowRight size={16} aria-hidden="true" />
-                    </strong>
-                  </Link>
-                );
-              })}
+              {visible.map((lesson) => lessonCard(lesson, true))}
             </div>
           </section>
-        );
-      })}
+        )
+      ) : (
+        <section className="ai-track-overview" aria-label="분야별 수업">
+          {AI_TRACKS.map((category) => {
+            const lessons = AI_LESSONS.filter((lesson) => lesson.track === category.id);
+            const done = lessons.filter((lesson) => records[lesson.id]?.completed).length;
+            const open = track === category.id;
+            const Icon = icons[category.icon];
+            return (
+              <div className="ai-track" data-open={open} key={category.id}>
+                <h3 id={`category-${category.id}`}>
+                  <Button
+                    className="ai-track-toggle"
+                    aria-expanded={open}
+                    aria-controls={`track-${category.id}`}
+                    onClick={(event) => {
+                      const button = event.currentTarget;
+                      change({ track: open ? "all" : category.id });
+                      requestAnimationFrame(() => button.scrollIntoView({ block: "nearest" }));
+                    }}
+                  >
+                    <Icon aria-hidden="true" />
+                    <span className="ai-track-copy">
+                      <span className="ai-track-title">{category.title}</span>
+                      <span className="ai-track-description">{category.description}</span>
+                    </span>
+                    <span className="ai-track-count">
+                      {lessons.length}개 수업
+                      {done > 0 && (
+                        <>
+                          {" "}
+                          · <CheckCircle2 size={14} aria-hidden="true" /> {done}개 완료
+                        </>
+                      )}
+                    </span>
+                    <ChevronDown className="ai-track-chevron" size={18} aria-hidden="true" />
+                  </Button>
+                </h3>
+                {open && (
+                  <div id={`track-${category.id}`} className="ai-lesson-grid">
+                    {lessons.map((lesson) => lessonCard(lesson))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </section>
+      )}
       <aside className="ai-catalog-note">
         <h2>설치 없이 먼저 이해하고, 필요할 때 직접 써보세요</h2>
         <p>
-          기본 32개 수업은 교육용 사례와 모의 결과로 진행합니다. 수업 안에서 모델 호출이나 도구
-          설치는 하지 않습니다. 수업의 공식 문서에서 설치 방법, 지원 환경과 이용 조건을 확인할 수
-          있습니다.
+          기본 {AI_LESSONS.length}개 수업은 교육용 사례와 모의 결과로 진행합니다. 수업 안에서 모델
+          호출이나 도구 설치는 하지 않습니다. 수업의 공식 문서에서 설치 방법, 지원 환경과 이용
+          조건을 확인할 수 있습니다.
         </p>
       </aside>
     </>
   );
+}
+
+/** Announce a value only after it stops changing, e.g. a result count while typing. */
+function useSettledValue(value: string, delay: number) {
+  const [settled, setSettled] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return settled;
 }

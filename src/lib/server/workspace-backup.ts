@@ -26,6 +26,7 @@ import {
 } from "../project-check/types";
 import { learningSchema, validLearning } from "../learn/progress";
 import { missionById } from "../learn/catalog";
+import { aiLessonFromKey, validAiProgress } from "./ai-learning-progress";
 import { trainingInput } from "../project-learning/types";
 import { readCurriculumSnapshot, createCurriculumSnapshot } from "./project-curriculum";
 import { validateGroundedAssessment } from "./project-assessment";
@@ -212,6 +213,13 @@ export function prepareBackup(backup: Backup) {
     throw new Error("Duplicate or inconsistent backup records");
   if (backup.version === 2) return { learning: [], projects: [] };
   const learning = backup.learning.map((item) => {
+    // AI lesson records (`ai:<lesson>`) were added to v3 files later; older files have none.
+    const aiLesson = aiLessonFromKey(item.id);
+    if (item.id.startsWith("ai:")) {
+      const record = aiLesson && validAiProgress(aiLesson, JSON.parse(item.content));
+      if (!record) throw new Error("Invalid AI lesson record");
+      return { ...item, content: JSON.stringify(record) };
+    }
     const mission = missionById(item.id);
     const record = learningSchema.parse(JSON.parse(item.content));
     if (!mission || !validLearning(mission, record)) throw new Error("Invalid lesson record");

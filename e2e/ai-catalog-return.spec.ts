@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { AI_CONTENT } from "../src/lib/ai-learning/content";
+import { AI_CONTENT, correctQuizIndex } from "../src/lib/ai-learning/content";
+import { AI_TRACKS } from "../src/lib/ai-learning/catalog";
 
 for (const width of [1280, 390]) {
   test(`AI catalog keeps filters and position at ${width}px`, async ({ page }) => {
@@ -8,7 +9,7 @@ for (const width of [1280, 390]) {
     await page.getByRole("searchbox", { name: "기술이나 도구 검색" }).fill("랭그래프");
     const select = page.getByRole("combobox", { name: "학습 수준" });
     await select.selectOption("기초");
-    await page.getByRole("button", { name: /^LangChain과 LangGraph/ }).click();
+    // Search and level results are flat, without opening a track.
     const card = page.locator(".ai-lesson-card");
     await expect(card).toHaveCount(1);
     await expect(select).toHaveCSS("background-position", "calc(100% - 14px) 50%");
@@ -21,7 +22,7 @@ for (const width of [1280, 390]) {
     await page.getByRole("button", { name: "선택하며 실습하기", exact: true }).click();
     await page.getByRole("radio").first().check();
     await page.getByRole("button", { name: "확인 문제 풀기" }).click();
-    await page.getByRole("radio").nth(AI_CONTENT.langgraph.quiz.answer).check();
+    await page.getByRole("radio").nth(correctQuizIndex(AI_CONTENT.langgraph.quiz)).check();
     await page.getByRole("button", { name: "답 확인하기" }).click();
     await page
       .locator(".ai-completion")
@@ -46,7 +47,8 @@ for (const width of [1280, 390]) {
       .poll(() => page.evaluate((saved) => Math.abs(window.scrollY - saved), y))
       .toBeLessThan(24);
     await page.getByRole("button", { name: "검색과 필터 초기화" }).click();
-    await expect(card).toHaveCount(32);
+    await expect(page.locator(".ai-track")).toHaveCount(AI_TRACKS.length);
+    await expect(card).toHaveCount(0);
     await expect(page.getByRole("searchbox")).toHaveValue("");
     await expect(select).toHaveValue("all");
     await select.scrollIntoViewIfNeeded();
@@ -61,6 +63,16 @@ for (const width of [1280, 390]) {
     await expect(select).toHaveValue("입문");
   });
 }
+
+test("an opened track stays open after returning from its lesson", async ({ page }) => {
+  await page.goto("/learn/ai");
+  const toggle = page.getByRole("button", { name: /^내 컴퓨터에서 AI 실행하기/ });
+  await toggle.click();
+  await expect(page).toHaveURL(/track=local/);
+  await page.locator('.ai-lesson-card[href^="/learn/ai/local-connect?"]').click();
+  await page.getByRole("link", { name: "전체 수업으로 돌아가기" }).click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+});
 
 test("direct lesson ignores unsafe return URL", async ({ page }) => {
   await page.goto("/learn/ai/langgraph?returnTo=https%3A%2F%2Fevil.example");

@@ -247,7 +247,10 @@ function TopicDetail({
         </p>
         <div className="project-ai-lessons">
           {topic.lessonIds.map((id) => (
-            <AppLink key={id} href={`/learn/ai/${id}?project=${check.id}&topic=${index}`}>
+            <AppLink
+              key={id}
+              href={`/learn/ai/${id}?project=${check.id}&topic=${index}&lessons=${topic.lessonIds.join(",")}`}
+            >
               {AI_LESSONS.find((l) => l.id === id)!.title} →
             </AppLink>
           ))}
