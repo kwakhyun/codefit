@@ -283,7 +283,7 @@ export function ProblemWorkspace({
           {problem.source === "ai" && (
             <p className="ai-problem-note">
               학습자 요청으로 AI가 만든 공개 문제입니다. 기본 문제와 달리 별도 검수를 거치지
-              않았습니다. 내용이 이상하면 오른쪽 숨기기 버튼으로 내 목록에서 뺄 수 있습니다.
+              않았습니다. 내용이 이상하면 ‘내 목록에서 숨기기’ 버튼으로 목록에서 뺄 수 있습니다.
             </p>
           )}
         </div>
