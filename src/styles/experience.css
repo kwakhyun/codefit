@@ -82,6 +82,11 @@
   text-align: left;
   font-size: 14px;
 }
+/* Same as .persona-change strong: keep the label at the 800 weight it rendered with before the
+   variable font, which would draw the computed 900. */
+.journey-options button strong {
+  font-weight: 800;
+}
 .journey-options button > svg:last-child {
   margin-left: auto;
   flex-shrink: 0;

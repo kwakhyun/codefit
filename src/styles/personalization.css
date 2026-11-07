@@ -131,6 +131,9 @@
 }
 .persona-change strong {
   color: light-dark(var(--light-green), #a0edc9);
+  /* `bolder` inside this semibold label asks for 900. The variable Noto Sans KR face draws it;
+     the previous per-weight @font-face list ended at 800, so it rendered at 800. Keep that. */
+  font-weight: 800;
 }
 .persona-modal.modal {
   width: min(1050px, calc(100vw - 32px));
