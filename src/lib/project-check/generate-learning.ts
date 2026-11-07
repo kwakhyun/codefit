@@ -11,7 +11,9 @@ export async function generateLearning<T>(
 ): Promise<T> {
   const match = endpoint.match(/\/project-check\/([^/]+)\/(practice|workshop)$/);
   const label =
-    match?.[2] === "workshop" ? "내 프로젝트 AI 워크숍 생성" : "코드 이해 훈련과 서비스 동작 실습 생성";
+    match?.[2] === "workshop"
+      ? "내 프로젝트 AI 워크숍 생성"
+      : "코드 이해 훈련과 서비스 동작 실습 생성";
   const href =
     match?.[2] === "workshop"
       ? `/learn/ai/project?check=${match[1]}`
