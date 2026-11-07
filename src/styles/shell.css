@@ -7,6 +7,10 @@
 :root:has(.lab-shell[data-route="problem"]) {
   --floating-safe-area: 0px;
 }
+/* Editor focus mode hides the sidebar; centred notices follow the full width. */
+:root:has(.lab-shell.focus-mode) {
+  --shell-sidebar-width: 0px;
+}
 .sidebar {
   width: var(--shell-sidebar-width);
   flex-shrink: 0;
