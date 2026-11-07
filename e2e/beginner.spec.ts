@@ -236,146 +236,37 @@ test("late AI question preserves new writing and retry IDs; APIs validate scope 
     ).status(),
   ).toBe(400);
 });
-test("feature banner rotates, pauses for keyboard and honors reduced motion", async ({
-  page,
-}, info) => {
-  await page.clock.install();
-  await page.goto("/");
-  await page.evaluate(() => document.fonts.ready);
-  const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
-  await expect(page.locator(".workspace-avatar")).toHaveCount(0);
-  await expect(page.getByLabel("현재 이용 상태")).toContainText("로그인 없이 이용 중");
-  await expect(page.getByRole("button", { name: /배너 자동 전환/ })).toHaveCount(0);
-
-  await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 6");
-  await expect(banner.locator(".feature-rotation-label")).toHaveCount(0);
-  const progress = () =>
-    banner
-      .locator(".feature-time-track > span")
-      .evaluate((el) => Number((el as HTMLElement).style.transform.match(/scaleX\(([^)]+)\)/)![1]));
-  expect(await progress()).toBeLessThan(0.2);
-  await expect(banner.locator(".feature-time-track")).toHaveCSS("height", "1px");
-  await page.clock.fastForward(10000);
-  await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 6");
-  expect(await progress()).toBeLessThan(0.2);
-  await banner.getByRole("button", { name: "배너 자동 넘김 시작하기", exact: true }).focus();
-  await page.keyboard.press("Enter");
-  await page.mouse.move(0, 0);
-  await expect(
-    banner.getByRole("button", { name: "배너 자동 넘김 멈추기", exact: true }),
-  ).toBeVisible();
-  await page.clock.fastForward(3000);
-  expect(await progress()).toBeGreaterThanOrEqual(0.35);
-  expect(await progress()).toBeLessThan(0.5);
-  expect(await progress()).toBeGreaterThanOrEqual(0.35);
-  await banner.hover();
-  await page.clock.fastForward(10000);
-  expect(await progress()).toBeGreaterThanOrEqual(0.35);
-  await page.mouse.move(0, 0);
-  await page.clock.fastForward(5100);
-  await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "2 / 6");
-  await banner.getByRole("button", { name: "다음 기능", exact: true }).focus();
-  await page.clock.fastForward(20000);
-  await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "2 / 6");
-  await page.keyboard.press("Enter");
-  await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "3 / 6");
-  await expect(banner.locator(".feature-rotation-label")).toHaveCount(0);
-  const activeStyle = await banner.getByRole("group").evaluate((el) => ({
-    animation: getComputedStyle(el).animationName,
-    duration: getComputedStyle(el).animationDuration,
-    background: getComputedStyle(el).backgroundColor,
-  }));
-  expect(activeStyle).toEqual({
-    animation: "feature-enter",
-    duration: "0.22s",
-    background: "rgb(20, 20, 22)",
-  });
-  const resumeRotation = banner.getByRole("button", {
-    name: "배너 자동 넘김 시작하기",
-    exact: true,
-  });
-  await resumeRotation.focus();
-  await page.keyboard.press("Enter");
-  await page.mouse.move(0, 0);
-  await page.clock.fastForward(8100);
-  await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "4 / 6");
-  await banner.getByRole("button", { name: "배너 자동 넘김 멈추기", exact: true }).click();
-  await page.mouse.move(0, 0);
-  await page.clock.fastForward(10000);
-  await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "4 / 6");
-  await banner.getByRole("button", { name: "1번 기능: 서비스 원리 배우기" }).click();
-  for (const width of [320, 390, 768, 1440]) {
-    await page.setViewportSize({ width, height: 900 });
-    await page.clock.runFor(250);
-    const heights: number[] = [];
-    for (let i = 0; i < 6; i++) {
-      await banner.locator(".feature-dots button").nth(i).click();
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-        true,
-      );
-      await expect(banner.getByRole("group")).toHaveCount(1);
-      const button = banner.getByRole("group").locator(".primary-button");
-      await expect(button).toHaveCSS(
-        "background-color",
-        [
-          "rgb(228, 228, 232)",
-          "rgb(228, 228, 232)",
-          "rgb(228, 228, 232)",
-          "rgb(228, 228, 232)",
-          "rgb(228, 228, 232)",
-          "rgb(228, 228, 232)",
-        ][i],
-      );
-      const art = banner.getByRole("group").locator(".feature-art img");
-      await expect(art).toBeVisible();
-      await expect
-        .poll(() => art.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
-        .toBe(true);
-      await page.clock.runFor(250);
-      heights.push((await banner.boundingBox())!.height);
-
-      if (width === 1440) {
-        await expect(banner.getByRole("group")).toHaveCSS("opacity", "1");
-        await accessible(page);
-      }
-    }
-    expect(
-      Math.max(...heights) - Math.min(...heights),
-      `${width}px: ${heights.join(", ")}`,
-    ).toBeLessThanOrEqual(1);
-  }
-  await banner.getByRole("button", { name: "1번 기능: 서비스 원리 배우기" }).click();
-  await page.clock.runFor(250);
-  await expect(banner.getByRole("group")).toHaveCSS("opacity", "1");
-  await accessible(page);
-  if (info.project.name === "chromium")
-    await page.screenshot({ path: "artifacts/beginner-banner.png", fullPage: true });
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.reload();
-  await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 6");
-  await page.clock.fastForward(30000);
-  await expect(banner.getByRole("group")).toHaveAttribute("aria-label", "1 / 6");
-  await expect(banner.getByRole("button", { name: /배너 자동 전환/ })).toHaveCount(0);
-});
-
-test("banner entrypoints open lessons, labs, code understanding and generation", async ({
+test("first-visit feature overview stays still and shows the guest account state", async ({
   page,
 }) => {
-  const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
-  for (const [index, title, url] of [
-    [1, "서비스 원리 배우기", /\/learn$/],
-    [2, "서비스 오류 해결 연습하기", /\/learn#labs$/],
-    [3, "AI 코드 이해 훈련", /\/handoff$/],
+  await page.clock.install();
+  await page.goto("/");
+  const overview = page.getByRole("region", { name: "이런 기능도 있어요" });
+  await expect(page.getByLabel("현재 이용 상태")).toContainText("로그인 없이 이용 중");
+  await expect(overview.locator("li")).toHaveCount(6);
+  const before = await overview.innerText();
+  await page.clock.fastForward(30000);
+  // Nothing rotates: the same six entries remain in place.
+  expect(await overview.innerText()).toBe(before);
+  await expect(overview.getByRole("button", { name: /배너 자동/ })).toHaveCount(0);
+});
+
+test("feature overview entrypoints open lessons, code understanding and generation", async ({
+  page,
+}) => {
+  const overview = page.getByRole("region", { name: "이런 기능도 있어요" });
+  for (const [title, url] of [
+    ["서비스 원리 배우기", /\/learn$/],
+    ["AI 코드 이해 훈련", /\/handoff$/],
+    ["분야별 코딩 연습", /\/\?view=browse$/],
   ] as const) {
     await page.goto("/");
-    await banner.getByRole("button", { name: `${index}번 기능: ${title}`, exact: true }).click();
-    await banner.getByRole("link", { name: title, exact: true }).click();
+    await overview.getByRole("link", { name: new RegExp(`^${title}`) }).click();
     await expect(page).toHaveURL(url);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   }
   await page.goto("/");
-  await banner.getByRole("button", { name: "4번 기능: AI 문제 만들기", exact: true }).click();
-  const create = banner.getByRole("button", { name: "AI 문제 만들기", exact: true });
+  const create = overview.getByRole("button", { name: /^AI 문제 생성/ });
   await create.click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(

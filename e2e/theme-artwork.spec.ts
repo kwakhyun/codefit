@@ -61,7 +61,7 @@ for (const route of ["/", "/project-check", "/learn", "/handoff", "/login"]) {
   });
 }
 
-test("all ten generated assets load and every banner uses its matching light source", async ({
+test("all ten generated assets load and home artwork uses its matching light source", async ({
   page,
   request,
 }) => {
@@ -74,12 +74,14 @@ test("all ten generated assets load and every banner uses its matching light sou
   }
   await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
   await page.goto("/");
-  const banner = page.getByRole("region", { name: "코드핏 핵심 기능" });
-  const tabs = banner.locator(".feature-topic-rail button");
-  await expect(tabs).toHaveCount(7);
-  for (let i = 0; i < 7; i++) {
-    await tabs.nth(i).click();
-    const img = banner.locator(".feature-slide.is-active img");
+  // The first-visit workspace cards are the home artwork since the feature carousel was removed.
+  const cards = page
+    .getByRole("region", { name: "나에게 맞는 시작점" })
+    .locator(".persona-art img");
+  await expect(cards).toHaveCount(3);
+  for (let i = 0; i < 3; i++) {
+    const img = cards.nth(i);
+    await img.scrollIntoViewIfNeeded();
     await expect
       .poll(() =>
         img.evaluate(
