@@ -162,7 +162,12 @@ test("stale tabs retain drafts, recheck conflicts, isolate guests and recover of
   );
   await context.setOffline(true);
   await page.getByLabel("왜 그렇게 생각했나요?").fill("연결이 끊겨도 생각을 기록합니다");
-  await expect(page.getByText("오프라인 · 브라우저 보관", { exact: true })).toBeVisible();
+  // The visible label follows every autosave state; only problems reach the live region.
+  const offline = "오프라인 · 브라우저 보관";
+  const saveLabel = page.locator(".learn-save-state");
+  await expect(saveLabel).toBeVisible();
+  await expect(saveLabel).toHaveText(offline);
+  await expect(page.getByRole("status").filter({ hasText: offline })).toHaveCount(1);
   await context.setOffline(false);
   await expect
     .poll(async () => JSON.parse((await saved(page, "where-data-lives"))?.code || "{}").reason)
@@ -258,8 +263,9 @@ test("feature overview entrypoints open lessons, code understanding and generati
 }) => {
   const overview = page.getByRole("region", { name: "이런 기능도 있어요" });
   for (const [title, url] of [
-    ["서비스 원리 배우기", /\/learn$/],
-    ["AI 코드 이해 훈련", /\/handoff$/],
+    // Overview links open the sample tab that /learn and /handoff keep in `?source=`.
+    ["서비스 원리 배우기", /\/learn\?source=sample$/],
+    ["AI 코드 이해 훈련", /\/handoff\?source=sample$/],
     ["분야별 코딩 연습", /\/\?view=browse$/],
   ] as const) {
     await page.goto("/");

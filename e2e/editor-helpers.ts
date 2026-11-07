@@ -20,6 +20,12 @@ async function readyEditor(page: Page) {
 }
 export async function editor(page: Page) {
   await page.goto("/problems/be-pagination");
+  // At 760px and below coding problems open on the 문제 pane; the editor lives under 코드.
+  if ((page.viewportSize()?.width ?? Infinity) <= 760)
+    await page
+      .getByRole("tablist", { name: "작업 화면" })
+      .getByRole("tab", { name: "코드", exact: true })
+      .click();
   await expect(page.locator(".monaco-editor").first()).toBeVisible();
   await readyEditor(page);
 }
