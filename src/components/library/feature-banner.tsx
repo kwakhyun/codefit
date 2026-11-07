@@ -28,13 +28,13 @@ const features: { title: string; description: string; href: string; icon: Lucide
   {
     title: "AI 코드 이해 훈련",
     description: "실행 결과를 예상하고, 코드를 고친 뒤 동작을 내 말로 설명해요.",
-    href: "/handoff",
+    href: "/handoff?source=sample",
     icon: Terminal,
   },
   {
     title: "서비스 원리 배우기",
     description: "예제 서비스를 조작하며 저장, 통신, 접근 권한이 동작하는 원리를 배워요.",
-    href: "/learn",
+    href: "/learn?source=sample",
     icon: BookOpen,
   },
   {

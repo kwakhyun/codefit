@@ -128,8 +128,9 @@ export function SettingsDialog({ open, onClose }: { open: boolean; onClose: () =
         )}
         <p className="import-note">이미 있는 문제와 작성 코드는 유지하고 새 기록을 추가합니다.</p>
         <p className="import-note">
-          내 코딩 기록, 서비스 원리 미션과 프로젝트 평가·학습 기록을 함께 백업합니다. 프로젝트
-          주소와 작성한 답변도 파일에 포함됩니다. 기존 백업 파일도 가져올 수 있습니다.
+          내 코딩 기록, 서비스 원리 미션, AI 실무 배우기 수업 진도와 프로젝트 평가·학습 기록을 함께
+          백업합니다. 프로젝트 주소와 작성한 답변도 파일에 포함됩니다. 기존 백업 파일도 가져올 수
+          있습니다.
         </p>
         <p className="import-note">
           기록이 많으면 작은 조각을 담은 파일 하나로 내보냅니다. 가져오기가 중단되면 같은 파일을

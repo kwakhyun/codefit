@@ -378,6 +378,7 @@ function Workspace({
                 scope={overview.scope}
                 destination="/learn/ai/project"
                 disabled={!!busy}
+                usage={overview.usage.analysis}
               />
             </>
           ) : (

@@ -157,7 +157,10 @@ export class ProjectCheckService {
     );
     if (claim.state === "done") return JSON.parse(claim.result) as ProjectWorkshop;
     if (claim.state === "pending")
-      throw new HttpError(409, "내 프로젝트 AI 워크숍을 준비하고 있습니다. 잠시 후 다시 불러와 주세요.");
+      throw new HttpError(
+        409,
+        "내 프로젝트 AI 워크숍을 준비하고 있습니다. 잠시 후 다시 불러와 주세요.",
+      );
     let charges: { key: string; expires: number }[] = [];
     try {
       await this.consume(owner, network, "analysis");
@@ -306,7 +309,7 @@ export class ProjectCheckService {
             label:
               kind === "practice"
                 ? "코드 이해 실습을 저장했습니다. 서비스 동작 실습을 만들고 있습니다."
-                : "현재 AI 활용 학습을 저장했습니다. 새로운 활용 방법을 정리하고 있습니다.",
+                : "내 프로젝트 AI 워크숍의 현재 활용 주제를 저장했습니다. 새로운 활용 방법을 정리하고 있습니다.",
           };
         }
       }

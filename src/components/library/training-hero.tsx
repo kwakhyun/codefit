@@ -11,6 +11,7 @@ import { LearningPreferencePicker } from "./learning-preference";
 import { useLearningPreference } from "@/hooks/use-learning-preference";
 import { useAiLearningProgress } from "@/hooks/use-ai-learning-progress";
 import { AI_LESSONS, AI_TRACKS } from "@/lib/ai-learning/catalog";
+import { aiProgressNote } from "@/lib/ai-learning/progress";
 import { DOMAINS } from "@/lib/catalog";
 import { DomainIcon } from "@/components/ui/problem-badges";
 import { problemUrl } from "@/lib/library-state";
@@ -218,7 +219,7 @@ function WorkspaceArt({ image }: { image: string }) {
   );
 }
 function AiWorkshop({ image, title }: { image: string; title: string }) {
-  const { records, ready, storageError } = useAiLearningProgress();
+  const { records, ready, storageError, synced, offline, signedIn } = useAiLearningProgress();
   const completed = AI_LESSONS.filter((l) => records[l.id]?.completed).length;
   const recent = AI_LESSONS.filter((l) => records[l.id] && !records[l.id]?.completed).sort(
     (a, b) => (records[b.id]?.updatedAt || 0) - (records[a.id]?.updatedAt || 0),
@@ -262,23 +263,24 @@ function AiWorkshop({ image, title }: { image: string; title: string }) {
             {recent ? "이어서 배우기" : next ? "이 수업 시작하기" : "수업 다시 보기"}{" "}
             <ArrowRight size={17} />
           </Link>
-          <small>
-            {storageError
-              ? "현재 탭에서만 기록돼요. 브라우저 저장을 사용할 수 없습니다."
-              : "학습 위치는 이 브라우저에 저장돼요."}
-          </small>
+          <small>{aiProgressNote({ storageError, synced, offline, signedIn })}</small>
         </section>
         <section className="ai-home-routes">
           <h2>해보고 싶은 작업을 골라보세요</h2>
           {[
             [
-              "agent-workflow",
+              "agent-workflow?path=beginner",
               "01",
               "AI에게 반복 업무 맡기기",
               "에이전트 → 도구 연결 → 워크플로우",
             ],
-            ["llamaindex", "02", "내 문서에서 답 찾기", "문서 검색 → RAG → 답변 평가"],
-            ["local-start", "03", "내 컴퓨터에서 AI 쓰기", "실행 준비 → 연결 → 채팅 화면"],
+            ["llamaindex?path=rag", "02", "내 문서에서 답 찾기", "문서 검색 → RAG → 답변 평가"],
+            [
+              "local-start?path=local",
+              "03",
+              "내 컴퓨터에서 AI 쓰기",
+              "실행 준비 → 연결 → 채팅 화면",
+            ],
           ].map(([id, n, name, desc]) => (
             <Link key={id} href={`/learn/ai/${id}`}>
               <span>{n}</span>
