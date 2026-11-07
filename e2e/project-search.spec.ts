@@ -72,8 +72,8 @@ test("deleting a search result preserves the query and refreshes matching record
   const search = page.getByRole("searchbox", { name: "내 프로젝트 찾기" });
   await search.fill("예약");
   await expect(page.locator(".class-search-status")).toContainText("검색 결과 1개");
-  await page.getByRole("button", { name: /클래스 삭제$/ }).click();
-  await page.getByRole("button", { name: "클래스 삭제하기" }).click();
+  await page.getByRole("button", { name: /프로젝트 삭제$/ }).click();
+  await page.getByRole("button", { name: "프로젝트 영구 삭제" }).click();
   await expect(page.getByText("검색 결과가 없습니다.", { exact: false })).toBeVisible();
   await expect(search).toHaveValue("예약");
   await page.reload();

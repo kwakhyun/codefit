@@ -81,8 +81,9 @@ test("mock analysis survives navigation and reload without a duplicate generatio
     .getByLabel("서비스 또는 공개 저장소 링크", { exact: true })
     .fill("https://example.com/");
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
-  const activity = page.getByRole("complementary", { name: "프로젝트 분석 상태" });
-  await expect(activity.getByText("프로젝트 분석 중", { exact: true })).toBeVisible();
+  const activity = page.getByRole("complementary", { name: "진행 중인 작업" });
+  // The form shows the running job itself; the floating notice follows on other screens.
+  await expect(page.getByRole("complementary", { name: "AI 요청 상태" })).toBeVisible();
   await page.goto("/learn");
   await page.reload();
   await expect(activity.getByText("프로젝트 분석 중", { exact: true })).toBeVisible();

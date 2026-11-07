@@ -4,8 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { api, ApiError, errorMessage } from "@/lib/client-api";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import { z } from "zod";
-export type UpdateOverview = (update: (current: CheckOverview) => CheckOverview) => void;
-export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview) {
+export function useProjectHistory(data: CheckOverview) {
   const params = useSearchParams();
   const selected = params.get("check");
   const newProject = params.get("new") === "1";
@@ -14,9 +13,6 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
   const [detail, setDetail] = useState<{ id: string; check?: Check; error?: string }>();
   const [missing, setMissing] = useState(false);
   const [retry, setRetry] = useState(0);
-  const [paging, setPaging] = useState(false);
-  const [pageError, setPageError] = useState("");
-  const pageRequest = useRef<AbortController | null>(null);
   useEffect(() => {
     // Restore once on entry. Later URL changes (including Back to a new draft)
     // are explicit navigation and must never be replaced by an older selection.
@@ -42,16 +38,17 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
     }
   }, [selected, selectionKey, newProject]);
   useEffect(() => {
-    // A refreshed first page invalidates any in-flight older-page request.
-    pageRequest.current?.abort();
-    pageRequest.current = null;
-    return () => pageRequest.current?.abort();
-  }, [data.scope, data.nextCursor, data.checks]);
+    // Only events that can change the open record re-read it; list refreshes do not.
+    const reread = () => setRetry((n) => n + 1);
+    window.addEventListener("codefit:backup-imported", reread);
+    return () => window.removeEventListener("codefit:backup-imported", reread);
+  }, []);
   useEffect(() => {
     if (!selected) return;
     const controller = new AbortController();
     api<Check>(`/api/project-check/${encodeURIComponent(selected)}`, {
       scope: data.scope,
+      track: false,
       signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15_000)]),
     })
       .then((check) => {
@@ -81,7 +78,7 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
         );
       });
     return () => controller.abort();
-  }, [selected, selectionKey, data.scope, retry, data.checks]);
+  }, [selected, selectionKey, data.scope, retry]);
   function select(id: string | null, replace = false) {
     setMissing(false);
     try {
@@ -100,36 +97,6 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
     if (url.href === window.location.href) return;
     window.history[replace ? "replaceState" : "pushState"](null, "", url);
   }
-  async function loadMore() {
-    if (!data.nextCursor || pageRequest.current) return;
-    const controller = new AbortController();
-    pageRequest.current = controller;
-    setPaging(true);
-    setPageError("");
-    try {
-      const result = await api<CheckOverview>(
-        `/api/project-check?cursor=${encodeURIComponent(data.nextCursor)}`,
-        {
-          scope: data.scope,
-          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15_000)]),
-        },
-      );
-      if (controller.signal.aborted) return;
-      onChange((current) => ({
-        ...current,
-        checks: [
-          ...current.checks,
-          ...result.checks.filter((c) => !current.checks.some((known) => known.id === c.id)),
-        ],
-        nextCursor: result.nextCursor,
-      }));
-    } catch (e) {
-      if (!controller.signal.aborted) setPageError(errorMessage(e));
-    } finally {
-      if (pageRequest.current === controller) pageRequest.current = null;
-      setPaging(false);
-    }
-  }
   return {
     selected,
     check: detail?.id === selected ? detail.check : undefined,
@@ -143,8 +110,5 @@ export function useProjectHistory(data: CheckOverview, onChange: UpdateOverview)
     updateDetail: (check: Check) => {
       setDetail({ id: check.id, check });
     },
-    loadMore,
-    paging,
-    pageError,
   };
 }

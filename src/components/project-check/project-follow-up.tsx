@@ -10,7 +10,12 @@ import {
   Status,
 } from "@/components/ui/primitives";
 import { useEffect, useRef, useState } from "react";
-import { projectReportText, verificationTemplate } from "@/lib/project-check/report";
+import {
+  projectReportMarkdown,
+  projectReportText,
+  verificationTemplate,
+} from "@/lib/project-check/report";
+import { ExportButtons } from "./export-buttons";
 import { api, errorMessage } from "@/lib/client-api";
 import { practiceSchema, type Check, type ProjectPractice } from "@/lib/project-check/types";
 import { VerificationRecord } from "./verification-record";
@@ -43,6 +48,13 @@ export function ProjectFollowUp({
     return saved;
   });
   const [busy, setBusy] = useState(false);
+  const [dirty, setDirty] = useState(() => {
+    try {
+      return !!sessionStorage.getItem(key);
+    } catch {
+      return false;
+    }
+  });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const active = useRef(false);
@@ -62,6 +74,7 @@ export function ProjectFollowUp({
       ),
     };
     setPractice(next);
+    setDirty(true);
     setMessage("아직 서버에 저장하지 않은 변경이 있습니다.");
     try {
       sessionStorage.setItem(key, JSON.stringify(next));
@@ -83,6 +96,7 @@ export function ProjectFollowUp({
       });
       if (!alive.current) return;
       setPractice(saved);
+      setDirty(false);
       onSaved(saved);
       try {
         sessionStorage.removeItem(key);
@@ -94,16 +108,6 @@ export function ProjectFollowUp({
       active.current = false;
       if (alive.current) setBusy(false);
     }
-  }
-  function download() {
-    const url = URL.createObjectURL(
-      new Blob([projectReportText(check, practice)], { type: "text/plain;charset=utf-8" }),
-    );
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "codefit-project-review.txt";
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   async function revise() {
     if (active.current) return;
@@ -134,10 +138,20 @@ export function ProjectFollowUp({
     }
   }
   if (!check.review) return null;
+  // Revisions belong to one root: the timeline counts the root (0) and each revision.
+  const used = Math.max(
+    check.revisionNumber ?? 0,
+    (check.revisionTimeline?.length ?? 1) - 1,
+    check.revisions?.length ?? 0,
+  );
+  const revisionLimit =
+    used >= 3
+      ? "같은 질문은 3번까지 보완할 수 있어 모두 사용했습니다. 바뀐 내용은 아래 ‘프로젝트 관리’에서 다시 점검해 새 프로젝트로 설명해 보세요."
+      : "";
   return (
     <Card as="section" id="project-follow-up" className="project-panel">
-      <span className="eyebrow">내 프로젝트에서 이어서 확인</span>
-      <h2>피드백을 실제 확인 기록으로 남기세요</h2>
+      <span className="eyebrow">확인하고 보완하기</span>
+      <h2>확인 기록과 수정 요청</h2>
       <p>
         이번 답변의 부족한 부분과 연결된 과제입니다. 내 프로젝트에서 직접 확인한 조건, 기대 결과와
         실제 결과를 적어 보세요. 모르는 부분은 미확인으로 남겨도 됩니다.
@@ -150,9 +164,17 @@ export function ProjectFollowUp({
         <span>
           확인 결과 작성 {practice.tasks.filter((t) => t.status === "observed").length} / 5
         </span>
-        <Button className="secondary-button" onClick={download}>
-          확인 계획과 AI 수정 요청 내보내기
-        </Button>
+        <ExportButtons
+          label="확인 계획과 AI 수정 요청 내보내기"
+          fileName="codefit-project-review"
+          markdown={() => projectReportMarkdown(check, practice, dirty)}
+          text={() => projectReportText(check, practice)}
+          note={
+            dirty
+              ? "서버에 저장하지 않은 확인 기록 초안도 함께 내보냅니다. 공유 전에 내용을 확인하세요."
+              : "질문, 답변, 평가, 확인 계획과 저장한 확인 기록을 내보냅니다."
+          }
+        />
       </div>
       {[...check.review.assessment.feedback]
         .sort((a, b) => Number(!!b.blockingIssue) - Number(!!a.blockingIssue) || a.level - b.level)
@@ -257,14 +279,15 @@ export function ProjectFollowUp({
       </p>
       <Button
         className="primary-button"
-        disabled={busy || (check.revisionNumber ?? 0) >= 3 || (check.revisions?.length ?? 0) >= 3}
+        disabled={busy || !!revisionLimit}
+        aria-describedby="project-revise-help"
         onClick={() => void revise()}
       >
         같은 질문에 보완 답변 작성 →
       </Button>
-      <p className="project-help">
-        질문을 다시 생성하지 않습니다. 보완 답변의 AI 평가를 요청할 때 평가 1회를 사용합니다. 동일
-        질문은 최대 3번 보완할 수 있습니다.
+      <p id="project-revise-help" className="project-help">
+        {revisionLimit ||
+          `질문을 다시 생성하지 않으며 준비에는 AI를 사용하지 않습니다. 보완 답변의 평가를 요청할 때 평가 횟수 1회를 사용합니다. 같은 질문은 최대 3번 보완할 수 있으며 ${used}번 사용했습니다.`}
       </p>
     </Card>
   );

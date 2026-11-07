@@ -227,8 +227,9 @@ for (const kind of ["practice", "workshop"]) {
       await page.screenshot({ path: `artifacts/generation-${kind}.png`, fullPage: true });
       const close = activity.getByRole("button", { name: /알림 닫기/ });
       const size = await close.boundingBox();
-      expect(size!.width).toBeLessThanOrEqual(40);
-      expect(size!.height).toBeLessThanOrEqual(40);
+      // Touch target of at least 44px.
+      expect(size!.width).toBeGreaterThanOrEqual(44);
+      expect(size!.height).toBeGreaterThanOrEqual(44);
       await activity.getByRole("link", { name: "결과 확인하기 →" }).click();
       await expect(page).toHaveURL(
         kind === "practice" ? /project-practice\?check=/ : /learn\/ai\/project\?check=/,

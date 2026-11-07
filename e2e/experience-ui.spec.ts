@@ -96,6 +96,9 @@ test("security filters keep the full export and notes progress reflects only wri
 }) => {
   let scans = 0;
   await page.route("**/api/security-check", (route) => {
+    // The allowance preview reads GET; only POST runs a check.
+    if (route.request().method() === "GET")
+      return route.fulfill({ json: { window: "1시간", limit: 5, remaining: 5, resetsAt: null } });
     scans++;
     return route.fulfill({
       json: {
@@ -121,7 +124,11 @@ test("security filters keep the full export and notes progress reflects only wri
   await expect(results.getByRole("article")).toHaveCount(1);
   await expect(results.getByRole("article")).toContainText("설정 1");
   const download = page.waitForEvent("download");
-  await results.getByRole("button", { name: "결과와 AI 수정 요청 저장" }).click();
+  // One export control for results and notes.
+  await page
+    .getByRole("group", { name: "확인 기록 파일로 저장" })
+    .getByRole("button", { name: "텍스트로 저장" })
+    .click();
   const exported = await readFile((await (await download).path())!, "utf8");
   for (let i = 0; i < 3; i++) expect(exported).toContain(`근거 ${i}`);
   await page.locator(".security-exercises summary").first().click();

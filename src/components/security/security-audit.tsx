@@ -48,7 +48,18 @@ function saveChallenge(key: string | null, value: OwnershipChallenge | null) {
     else sessionStorage.removeItem(key);
   } catch {}
 }
-export function SecurityAudit({ scope, url }: { scope: string; url: string }) {
+export function SecurityAudit({
+  scope,
+  url,
+  zap,
+  onZap,
+}: {
+  scope: string;
+  url: string;
+  /** Kept by the parent so changing the address does not discard an imported report. */
+  zap: { origin: string; findings: ZapFinding[] } | null;
+  onZap: (value: { origin: string; findings: ZapFinding[] } | null) => void;
+}) {
   // The parent remounts this component when the origin changes.
   const [storageKey] = useState(() => challengeKey(scope, url));
   const [challenge, setStoredChallenge] = useState(() => loadChallenge(storageKey));
@@ -61,7 +72,14 @@ export function SecurityAudit({ scope, url }: { scope: string; url: string }) {
   const [approved, setApproved] = useState(false);
   const [error, setError] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);
-  const [findings, setFindings] = useState<ZapFinding[] | null>(null);
+  const findings = zap?.findings ?? null;
+  const currentOrigin = (() => {
+    try {
+      return new URL(url.trim()).origin;
+    } catch {
+      return "";
+    }
+  })();
   const [importError, setImportError] = useState("");
   const [checkedUrl, setCheckedUrl] = useState(url);
   if (checkedUrl !== url) {
@@ -249,7 +267,8 @@ export function SecurityAudit({ scope, url }: { scope: string; url: string }) {
           </section>
         )}
       </Disclosure>
-      <Disclosure className="audit-method">
+      {/* Reopened after an address change remounts this panel with a kept import. */}
+      <Disclosure className="audit-method" open={zap ? true : undefined}>
         <DisclosureSummary>
           <strong>OWASP ZAP 보고서 가져오기</strong>
           <span>실제 스캐너 결과 → 수정 우선순위 → 재검사 기록</span>
@@ -278,25 +297,36 @@ export function SecurityAudit({ scope, url }: { scope: string; url: string }) {
           type="file"
           accept=".json,application/json"
           disabled={!url.trim()}
+          aria-describedby="zap-report-help"
           onChange={async (e) => {
             const file = e.target.files?.[0];
             const revision = ++uploadRevision.current;
-            setFindings(null);
+            onZap(null);
             setImportError("");
             if (!file) return;
             try {
               if (file.size > 4_000_000) throw new Error("보고서는 4MB 이하로 내보내 주세요.");
               const parsed = parseZapReport(await file.text(), url);
-              if (revision === uploadRevision.current) setFindings(parsed);
+              if (revision === uploadRevision.current)
+                onZap({ origin: currentOrigin, findings: parsed });
             } catch (e) {
               if (revision === uploadRevision.current) setImportError(errorMessage(e));
             }
           }}
         />
-        <p>
+        <p id="zap-report-help">
+          {!url.trim() && (
+            <strong>위 입력란에 서비스 주소를 먼저 입력하면 파일을 고를 수 있습니다. </strong>
+          )}
           요청·응답 원문, 공격 문자열과 URL 쿼리는 가져오지 않습니다. 남은 설명과 경로도 공유 전에
-          확인하세요. 페이지를 떠나면 가져온 결과는 사라집니다.
+          확인하세요. 주소를 바꿔도 이 화면에 남지만, 페이지를 떠나면 가져온 결과는 사라집니다.
         </p>
+        {zap && zap.origin !== currentOrigin && (
+          <p className="security-stale-notice">
+            <strong>이전 주소 기준 결과입니다.</strong> 아래 알림은 {zap.origin}의 보고서에서
+            가져왔습니다. 지금 주소를 확인하려면 해당 보고서를 다시 가져오세요.
+          </p>
+        )}
         {importError && (
           <Status role="alert" className="security-error">
             {importError}
@@ -310,7 +340,9 @@ export function SecurityAudit({ scope, url }: { scope: string; url: string }) {
             </Status>
             <Button
               className="secondary-button"
-              onClick={() => download("codefit-zap-review.txt", zapReviewText(url, findings))}
+              onClick={() =>
+                download("codefit-zap-review.txt", zapReviewText(zap?.origin || url, findings))
+              }
             >
               수정 요청과 재검사 기록표 저장
             </Button>

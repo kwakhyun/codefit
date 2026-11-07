@@ -87,21 +87,17 @@ export function runGeneration<T>(
   running.set(key, result);
   return result;
 }
-/** Only expensive generation requests are tracked; normal saves stay quiet. */
+/**
+ * Only long-running AI requests are tracked; saves, the non-AI preparation of a 보완 답변 and
+ * short checks (security headers, ownership files) stay quiet. Answer evaluation runs in the
+ * background and is tracked by its screen with the label "답변 평가".
+ */
 export function generationRequest(url: string, method: string, body: unknown) {
-  const input = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
-  const project = url.match(/^\/api\/project-check\/([^/]+)\/(dialogue|follow-up)$/);
-  if (project && method === "POST")
-    return {
-      label: project[2] === "dialogue" ? "코드 설명 피드백 생성" : "프로젝트 후속 점검 생성",
-      href: `/project-check?check=${project[1]}`,
-    };
-  if (url === "/api/project-check" && method === "PATCH" && typeof input.id === "string")
-    return { label: "프로젝트 답변 피드백 생성", href: `/project-check?check=${input.id}` };
+  void body;
   if (method !== "POST") return null;
+  const dialogue = url.match(/^\/api\/project-check\/([^/]+)\/dialogue$/);
+  if (dialogue) return { label: "코드 대화", href: `/project-check?check=${dialogue[1]}` };
   if (url === "/api/generate") return { label: "맞춤 연습 문제 생성", href: "/?view=browse" };
-  if (url.startsWith("/api/security-check"))
-    return { label: "서비스 보안 점검", href: "/security-check" };
   if (/^\/api\/(problems|learn)\/[^/]+\/(review|coach|lab)$/.test(url))
     return {
       label: "학습 피드백 생성",

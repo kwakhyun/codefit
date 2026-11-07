@@ -105,7 +105,10 @@ for (const width of [1440, 390]) {
     await page.getByRole("button", { name: "5. 설계 선택" }).click();
     await page.getByRole("button", { name: "이 답변으로 이해도 확인" }).click();
     await expect(page.getByLabel("영역별 설명 수준")).toBeVisible();
-    await expect(page.getByRole("link", { name: "확인 계획 보기 →", exact: true })).toBeVisible();
+    // One action per stage: after evaluation the result card leads to 확인하고 보완하기.
+    await expect(
+      page.getByRole("link", { name: "내 프로젝트에서 확인하고 보완하기 →", exact: true }),
+    ).toBeVisible();
     await page
       .locator(".project-results")
       .screenshot({ path: `artifacts/guided-feedback-${width}.png` });
@@ -168,12 +171,8 @@ for (const width of [1440, 390]) {
       );
     });
     expect(gutters.every((value) => value >= 12)).toBe(true);
-    expect(
-      await page
-        .locator(".practice-stages > button")
-        .first()
-        .evaluate((element) => getComputedStyle(element).justifyContent),
-    ).toBe("flex-start");
+    // One progress line replaces the second row of step buttons.
+    await expect(page.locator(".practice-progress-line")).toContainText("상황 1/3 · 단계 1/3");
     for (const theme of ["light", "dark"]) {
       await page.evaluate((value) => {
         document.documentElement.dataset.theme = value;

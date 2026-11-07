@@ -80,13 +80,22 @@ for (const width of [1440, 390]) {
     });
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(`/project-check?check=${check.id}`);
-    const evidence = page.getByRole("region", { name: "점검 근거와 수정 요청" });
+    // Code evidence lives in the collapsed analysis material, after the journey sections.
+    await page.locator("#project-analysis-material > summary").click();
+    const evidence = page.getByRole("region", { name: "질문별 코드 근거" });
     await expect(evidence).toContainText("1 / 5개 질문");
     await expect(evidence).toContainText("파일 목록도 일부만 수집");
     await expect(evidence).toContainText("실행하지 않음");
-    const item = evidence.locator(".evidence-review-item").first();
-    await item.locator(":scope > summary").click();
-    await expect(item.locator("pre")).toContainText("return save(booking)");
+    const evidenceItem = evidence.locator(".evidence-review-item").first();
+    await evidenceItem.locator(":scope > summary").click();
+    await expect(evidenceItem.locator("pre")).toContainText("return save(booking)");
+    // Fix requests are made in one place: 확인하고 보완하기.
+    await expect(evidence.locator(".repair-request")).toHaveCount(0);
+    const item = page
+      .locator("#project-follow-up .project-feedback")
+      .filter({ hasText: check.analysis.questions[0].area })
+      .first();
+    if ((await item.getAttribute("open")) === null) await item.locator(":scope > summary").click();
     await item.getByText("이 항목의 AI 수정 요청 보기", { exact: true }).click();
     await item.getByRole("button", { name: "수정 요청 복사", exact: true }).click();
     const copied = await page.evaluate(
@@ -104,7 +113,9 @@ for (const width of [1440, 390]) {
       }),
     );
     await item.getByRole("button", { name: "수정 요청 복사", exact: true }).click();
-    await expect(item.getByRole("status")).toContainText("아래 요청 내용을 선택해 복사");
+    await expect(item.locator(".repair-request").getByRole("status")).toContainText(
+      "아래 요청 내용을 선택해 복사",
+    );
     await expect(item.getByLabel("AI에 전달할 수정 요청")).toHaveValue(copied!);
 
     const followUp = page.locator("#project-follow-up");

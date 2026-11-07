@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, dateLabel, errorMessage } from "@/lib/client-api";
 import type { CheckListItem } from "@/lib/project-check/types";
+import { displayName } from "@/lib/project-check/display";
 import { ScreenSkeleton } from "@/components/ui/skeleton";
 import { AppLink, Button, Card } from "@/components/ui/primitives";
 type Versions = { checks: CheckListItem[]; nextCursor: string | null };
@@ -13,15 +14,22 @@ export function ProjectVersions({ id, scope }: { id: string; scope: string }) {
   const active = useRef<AbortController | null>(null);
   const [retry, setRetry] = useState(0);
   useEffect(() => {
+    let timer: number | undefined;
     const refresh = () => {
       active.current?.abort();
       setBusy(true);
       setRetry((value) => value + 1);
     };
-    window.addEventListener("focus", refresh);
+    // A burst of focus events (window switching) becomes one refresh.
+    const focus = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(refresh, 400);
+    };
+    window.addEventListener("focus", focus);
     window.addEventListener("codefit:backup-imported", refresh);
     return () => {
-      window.removeEventListener("focus", refresh);
+      window.clearTimeout(timer);
+      window.removeEventListener("focus", focus);
       window.removeEventListener("codefit:backup-imported", refresh);
     };
   }, []);
@@ -31,6 +39,7 @@ export function ProjectVersions({ id, scope }: { id: string; scope: string }) {
     async function refresh() {
       const first = await api<Versions>(`/api/projects/${id}/versions`, {
         scope,
+        track: false,
         signal: controller.signal,
       });
       const checks = [...first.checks];
@@ -38,7 +47,7 @@ export function ProjectVersions({ id, scope }: { id: string; scope: string }) {
       for (let index = 1; index < loadedPages.current && cursor; index++) {
         const next = await api<Versions>(
           `/api/projects/${id}/versions?cursor=${encodeURIComponent(cursor)}`,
-          { scope, signal: controller.signal },
+          { scope, track: false, signal: controller.signal },
         );
         checks.push(...next.checks.filter((item) => !checks.some((old) => old.id === item.id)));
         cursor = next.nextCursor;
@@ -103,10 +112,10 @@ export function ProjectVersions({ id, scope }: { id: string; scope: string }) {
         {page?.checks.map((item) => (
           <li key={item.id}>
             {item.id === id ? (
-              <span aria-current="page">현재 클래스 — {dateLabel(item.createdAt)}</span>
+              <span aria-current="page">현재 프로젝트 — {dateLabel(item.createdAt)}</span>
             ) : (
               <AppLink href={`/projects?class=${item.id}`}>
-                {item.classMetadata?.name || item.analysis.title} — {dateLabel(item.createdAt)}
+                {displayName(item)} — {dateLabel(item.createdAt)}
               </AppLink>
             )}
           </li>

@@ -70,13 +70,34 @@ export class ProjectCheckStore {
       row.state === "failed" && row.result ? failureSchema.safeParse(tryParse(row.result)) : null;
     return { status: "failed" as const, ...(failure?.success ? failure.data : {}) };
   }
-  /** Keeps a user-safe reason on the failed lease so background polling can show it. */
-  async recordFailure(lease: JobLease, error: unknown) {
-    if (lease.kind !== "project-analysis" || !(error instanceof HttpError)) return;
+  /** Background review: the stored answers and assessment once done, or a user-safe failure. */
+  async reviewStatus(owner: string, id: string) {
+    const [row] = await this.query(
+      "SELECT state,expires,result FROM jobs WHERE owner=? AND id=? AND kind=?",
+      [owner, `project-review-${id}`, `project-review:${id}`],
+    );
+    if (!row) return null;
+    if (row.state === "done")
+      return { status: "done" as const, review: publicReview(String(row.result)) };
+    if (row.state === "pending" && Number(row.expires) > Date.now())
+      return { status: "pending" as const };
+    const failure =
+      row.state === "failed" && row.result ? failureSchema.safeParse(tryParse(row.result)) : null;
+    return { status: "failed" as const, ...(failure?.success ? failure.data : {}) };
+  }
+  /**
+   * Keeps a user-safe reason on the failed lease so background polling can show it. `reason`
+   * comes from the shared HTTP error mapping for errors that are not HttpError (e.g. provider).
+   */
+  async recordFailure(lease: JobLease, error: unknown, reason?: { error: string; code: number }) {
+    if (lease.kind !== "project-analysis" && !lease.kind.startsWith("project-review:")) return;
+    const value =
+      error instanceof HttpError ? { error: error.message, code: error.status } : reason;
+    if (!value) return;
     await this.query(
       "UPDATE jobs SET result=? WHERE id=? AND owner=? AND kind=? AND token=? AND state='failed'",
       [
-        JSON.stringify({ error: error.message.slice(0, 500), code: error.status }),
+        JSON.stringify({ error: value.error.slice(0, 500), code: value.code }),
         lease.id,
         lease.owner,
         lease.kind,
@@ -160,13 +181,33 @@ export class ProjectCheckStore {
     );
     if (!rows.length) return null;
     const check = this.readCheck(rows[0]);
-    if (check.revisionOf) return check;
-    const revisions = (await this.revisionRows(owner, id)).map((row) => ({
-      id: String(row.id),
-      createdAt: String(row.created_at),
-      revisionNumber: Number(row.revision_number),
-    }));
-    return revisions.length ? { ...check, revisions } : check;
+    // Revisions belong to their root; an orphaned revision (deleted root) has no timeline.
+    const rootId = check.revisionOf ?? id;
+    const timeline = await this.revisionTimeline(owner, rootId);
+    if (check.revisionOf)
+      return timeline.some((item) => item.id === rootId)
+        ? { ...check, revisionTimeline: timeline }
+        : check;
+    const revisions = timeline
+      .filter((item) => item.id !== id)
+      .map(({ id, createdAt, revisionNumber }) => ({ id, createdAt, revisionNumber }));
+    return revisions.length ? { ...check, revisions, revisionTimeline: timeline } : check;
+  }
+  /** The root answer and every revision with its score, oldest first, for switching and comparing. */
+  private async revisionTimeline(owner: string, rootId: string) {
+    const score = (alias: string) => this.field(`${alias}.result`, "assessment.score");
+    const rows = await this.query(
+      `SELECT j.id,${this.field("j.result", "createdAt")} AS created_at,${this.field("j.result", "revisionNumber")} AS revision_number,${score("r")} AS score FROM jobs j LEFT JOIN jobs r ON r.id='project-review-' || j.id AND r.owner=j.owner AND r.kind='project-review:' || j.id AND r.state='done' WHERE j.owner=? AND j.kind='project-analysis' AND j.state='done' AND (j.id=? OR ${this.field("j.result", "revisionOf")}=?) ORDER BY j.expires,j.id`,
+      [owner, rootId, rootId],
+    );
+    return rows
+      .map((row) => ({
+        id: String(row.id),
+        createdAt: String(row.created_at),
+        revisionNumber: String(row.id) === rootId ? 0 : Number(row.revision_number ?? 0),
+        ...(row.score !== null && row.score !== undefined ? { score: Number(row.score) } : {}),
+      }))
+      .sort((a, b) => a.revisionNumber - b.revisionNumber);
   }
   private revisionRows(owner: string, rootId: string) {
     return this.query(
@@ -415,15 +456,29 @@ export class ProjectCheckStore {
     if (!rows.length) throw new StaleJob();
   }
   async practiceCharges(owner: string, network: string) {
+    return this.allowanceCharges(owner, network, "analysis");
+  }
+  /** The personal (and guest network) windows a failed request may return through refundPractice. */
+  async allowanceCharges(owner: string, network: string, kind: "analysis" | "review") {
     const rows = await this.query("SELECT key,expires FROM limits WHERE key IN (?,?)", [
-      `project:analysis:${owner}`,
-      `project:guest-network:analysis:${network}`,
+      `project:${kind}:${owner}`,
+      `project:guest-network:${kind}:${network}`,
     ]);
     return rows
       .map((row) => ({ key: String(row.key), expires: Number(row.expires) }))
-      .filter((row) =>
-        owner.startsWith("user:") ? row.key === `project:analysis:${owner}` : true,
-      );
+      .filter((row) => (owner.startsWith("user:") ? row.key === `project:${kind}:${owner}` : true));
+  }
+  /** A read-only view of one fixed window, e.g. the hourly security check allowance. */
+  async limitUsage(key: string, limit: number) {
+    const [row] = await this.query("SELECT count,expires FROM limits WHERE key=? AND expires>?", [
+      key,
+      Date.now(),
+    ]);
+    return {
+      limit,
+      remaining: Math.max(0, limit - Number(row?.count || 0)),
+      resetsAt: row ? new Date(Number(row.expires)).toISOString() : null,
+    };
   }
   async refundPractice(lease: JobLease, charges: { key: string; expires: number }[]) {
     // Only the failed lease may refund its own window. Global/short-term limits

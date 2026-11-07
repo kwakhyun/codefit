@@ -112,12 +112,13 @@ test("link to questions, draft restore, keyboard navigation, assessment and dele
   ).toEqual([]);
   if (info.project.name === "chromium")
     await page.screenshot({ path: "docs/images/project-check-result.png", fullPage: true });
-  await page.getByRole("button", { name: "이 점검 기록 삭제" }).click();
-  await page
-    .getByRole("dialog", { name: "기록 삭제 확인" })
-    .getByRole("button", { name: "삭제하기", exact: true })
-    .click();
-  await expect(page.getByRole("heading", { name: "어떤 서비스를 만드셨나요?" })).toBeVisible();
+  await page.getByRole("button", { name: "프로젝트 삭제", exact: true }).click();
+  const deletion = page.getByRole("dialog", { name: "프로젝트 삭제" });
+  // The confirmation lists everything the deletion removes, not only questions and reviews.
+  await expect(deletion).toContainText("코드 대화");
+  await expect(deletion).toContainText("AI 워크숍");
+  await deletion.getByRole("button", { name: "프로젝트 영구 삭제", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "어떤 프로젝트를 살펴볼까요?" })).toBeVisible();
 });
 test("quota, failed assessment retry and account isolation preserve the right drafts", async ({
   page,
@@ -130,7 +131,8 @@ test("quota, failed assessment retry and account isolation preserve the right dr
     if (route.request().method() === "PATCH") {
       attempts++;
       submitted.push(route.request().postDataJSON().answers);
-      return route.fulfill({ status: 502, json: { error: "AI 응답을 받지 못했습니다." } });
+      // A server-reported failure is definite: the answers unlock for editing or a retry.
+      return route.fulfill({ status: 500, json: { error: "AI 응답을 받지 못했습니다." } });
     }
     return route.fulfill({ json: data });
   });
@@ -139,21 +141,25 @@ test("quota, failed assessment retry and account isolation preserve the right dr
   await page.getByLabel("내 설계 설명").fill("나만의 설계 메모");
   await page.getByRole("button", { name: "5. 설계 선택" }).click();
   await page.getByRole("button", { name: "이 답변으로 이해도 확인" }).click();
-  await expect(page.locator(".project-error")).toHaveText("AI 응답을 받지 못했습니다.");
-  await expect(page.getByLabel("내 설계 설명")).toHaveAttribute("readonly", "");
-  await page.getByRole("button", { name: "같은 답변으로 다시 요청" }).click();
+  await expect(page.locator(".project-recovery[role=alert]")).toContainText(
+    "AI 응답을 받지 못했습니다.",
+  );
+  await expect(page.getByLabel("내 설계 설명")).not.toHaveAttribute("readonly", "");
+  await page.getByRole("button", { name: "답변 수정하기" }).click();
+  await expect(page.getByLabel("내 설계 설명")).toBeFocused();
+  await page.getByRole("button", { name: "이 답변으로 이해도 확인" }).click();
   await expect.poll(() => attempts).toBe(2);
   expect(submitted[0]).toEqual(submitted[1]);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "다시 평가 요청" })).toBeEnabled();
   data = {
     ...overview(),
     scope: "user:another-account",
     usage: { ...data.usage, analysis: { limit: 2, remaining: 0, resetsAt: null } },
   };
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-  await expect(page.getByRole("heading", { name: "어떤 서비스를 만드셨나요?" })).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "새 분석 한도를 모두 사용했습니다" }),
-  ).toBeDisabled();
+  await expect(page.getByRole("heading", { name: "어떤 프로젝트를 살펴볼까요?" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "분석 횟수를 모두 사용했습니다" })).toBeDisabled();
   await expect(page.getByText("나만의 설계 메모")).toHaveCount(0);
 });
 

@@ -83,3 +83,78 @@ export function securityNotesText(notes: string[], url: string, report: Security
     ),
   ].join("\n");
 }
+
+/** Origin of an address, or "" when it is not a valid URL. */
+export function securityOrigin(url: string) {
+  try {
+    return new URL(url.trim()).origin;
+  } catch {
+    return "";
+  }
+}
+/** Before/after for two checks of the same origin: which observations changed status. */
+export function compareSecurityReports(previous: SecurityReport, current: SecurityReport) {
+  const before = new Map(previous.findings.map((f) => [f.id, f]));
+  const after = new Map(current.findings.map((f) => [f.id, f]));
+  const changed = current.findings
+    .filter((f) => before.has(f.id) && before.get(f.id)!.status !== f.status)
+    .map((f) => ({ id: f.id, title: f.title, before: before.get(f.id)!.status, after: f.status }));
+  return {
+    changed,
+    added: current.findings.filter((f) => !before.has(f.id)),
+    removed: previous.findings.filter((f) => !after.has(f.id)),
+    unchanged: current.findings.filter((f) => before.get(f.id)?.status === f.status).length,
+  };
+}
+const quote = (text: string) =>
+  text
+    .trim()
+    .split("\n")
+    .map((line) => `> ${line}`)
+    .join("\n");
+/** The same record as Markdown; learner notes are quoted so they never render as structure. */
+export function securityNotesMarkdown(notes: string[], url: string, report: SecurityReport | null) {
+  const lines = ["# 서비스 보안 점검 기록", ""];
+  if (report) {
+    lines.push(
+      "## 공개 페이지 보안 설정 점검",
+      "",
+      `- 대상: <${report.url}>`,
+      ...securityReportRoute(report).map((line) => `- ${line}`),
+      `- 점검 시각: ${report.checkedAt}`,
+      "- 범위: 최종 응답의 헤더와 HTML 메타 태그. 공격, 로그인, API 권한 검증은 수행하지 않았습니다. 취약점이 없다는 증명이 아닙니다.",
+      "",
+      "| 상태 | 항목 | 근거 | 다음 행동 |",
+      "| --- | --- | --- | --- |",
+      ...report.findings.map(
+        (f) =>
+          `| ${securityStatus[f.status]} | ${f.title} | ${f.evidence.replaceAll("|", "\\|")} | ${f.action.replaceAll("|", "\\|")} |`,
+      ),
+      "",
+      "> AI 코딩 도구에 요청할 때: 위 관찰을 구현과 대조하고 필요한 설정만 수정하세요. 기존 인증과 외부 연동을 유지하고 변경 전후 테스트를 제시하세요. 관찰되지 않은 취약점을 단정하지 마세요.",
+      "",
+    );
+  } else
+    lines.push(
+      "공개 페이지 보안 점검 결과 없음 (자동 점검을 실행하지 않았거나 결과를 비웠습니다.)",
+      "",
+    );
+  lines.push(
+    "## 수동 확인 기록",
+    "",
+    "사용자가 작성한 메모이며 자동 검증 결과가 아닙니다.",
+    "",
+    `- 작성 중인 서비스 링크: ${url || "미입력"}`,
+  );
+  securityExercises.forEach((item, index) => {
+    lines.push(
+      "",
+      `### ${index + 1}. ${item.title}`,
+      "",
+      `- 기대 결과: ${item.expected}`,
+      "",
+      notes[index]?.trim() ? quote(notes[index]) : "내 확인 결과: 미작성",
+    );
+  });
+  return lines.join("\n") + "\n";
+}

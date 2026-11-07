@@ -32,10 +32,15 @@ test("analysis drafts survive reload and retry the same request, without an extr
     }
     return route.fulfill({ json: data });
   });
+  // The acceptance was lost and the server has no such request: a definite, retryable failure.
+  await page.route("**/api/project-check/*/status", (route) =>
+    route.fulfill({ status: 404, json: { error: "이 계정에서 분석 요청을 찾지 못했습니다." } }),
+  );
+  const failed = page.locator(".project-recovery").getByText("분석하지 못했어요");
   await page.goto("/project-check");
   await enterProject(page);
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
-  await expect(page.getByRole("button", { name: "저장된 분석 결과 확인" })).toBeVisible();
+  await expect(failed).toBeVisible();
   await page.reload();
   await expect(page.getByLabel("서비스 링크", { exact: true })).toHaveValue("https://example.com/");
   await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue(
@@ -45,7 +50,7 @@ test("analysis drafts survive reload and retry the same request, without an extr
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
   await expect.poll(() => ids.length).toBe(2);
   expect(ids[1]).toBe(ids[0]);
-  await expect(page.getByRole("button", { name: "저장된 분석 결과 확인" })).toBeVisible();
+  await expect(failed).toBeVisible();
   await page.getByLabel("서비스와 구현 방식 설명").fill("새롭게 설명한 서비스입니다.");
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
   await expect.poll(() => ids.length).toBe(3);
@@ -54,15 +59,19 @@ test("analysis drafts survive reload and retry the same request, without an extr
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue("");
   await expect(page.getByLabel("서비스 링크", { exact: true })).toHaveValue("");
-  await expect(page.getByRole("button", { name: "저장된 분석 결과 확인" })).toHaveCount(0);
+  await expect(failed).toHaveCount(0);
 });
 
-test("lost analysis responses can be recovered without another AI request even at zero quota", async ({
+test("lost analysis responses are recovered from status polling, also after a reload, without another AI request", async ({
   page,
 }) => {
   let data = overview();
   let id = "";
   let posts = 0;
+  let state = "pending";
+  await page.route("**/api/project-check/*/status", (route) =>
+    route.fulfill({ json: { status: state } }),
+  );
   await page.route("**/api/project-check", (route) => {
     if (route.request().method() === "POST") {
       posts++;
@@ -85,11 +94,10 @@ test("lost analysis responses can be recovered without another AI request even a
   await page.goto("/project-check");
   await enterProject(page);
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
-  await expect(
-    page.getByRole("button", { name: "새 분석 한도를 모두 사용했습니다" }),
-  ).toBeDisabled();
+  await expect(page.getByRole("complementary", { name: "AI 요청 상태" })).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "저장된 분석 결과 확인" }).click();
+  await expect(page.getByRole("complementary", { name: "AI 요청 상태" })).toBeVisible();
+  state = "done";
   await expect(page.getByRole("heading", { name: "예약 서비스 설계 점검" })).toBeVisible();
   expect(posts).toBe(1);
   expect(
@@ -140,22 +148,25 @@ test("review recovery keeps submitted answers and the current question without a
     }
     return route.fulfill({ json: data });
   });
-  await page.route(`**/api/project-check/${check.id}`, (route) =>
-    route.fulfill({ json: { ...check, review: { answers, assessment: fixtureAssessment } } }),
+  await page.route(`**/api/project-check/${check.id}`, (route) => route.fulfill({ json: check }));
+  await page.route(`**/api/project-check/${check.id}/review`, (route) =>
+    route.fulfill({
+      json: { status: "done", review: { answers, assessment: fixtureAssessment } },
+    }),
   );
   await page.goto(`/project-check?check=${check.id}`);
   await page.getByLabel("내 설계 설명").fill("계정에 따라 서버에서 접근 권한을 확인합니다.");
   await page.getByRole("button", { name: "5. 설계 선택" }).click();
   await page.getByRole("button", { name: "이 답변으로 이해도 확인" }).click();
-  await expect(page.getByRole("button", { name: "저장된 평가 결과 확인" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "평가 상태 다시 확인" })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("button", { name: "5. 설계 선택" })).toHaveAttribute(
     "aria-current",
     "step",
   );
   await expect(page.getByLabel("내 설계 설명")).toHaveAttribute("readonly", "");
-  await expect(page.getByRole("button", { name: "같은 답변으로 다시 요청" })).toBeDisabled();
-  await page.getByRole("button", { name: "저장된 평가 결과 확인" }).click();
+  await expect(page.getByRole("button", { name: "이 답변으로 이해도 확인" })).toBeDisabled();
+  await page.getByRole("button", { name: "평가 상태 다시 확인" }).click();
   await expect(page.getByRole("heading", { name: "설계 설명 점수 50 / 100" })).toBeVisible();
   expect(calls).toBe(1);
   expect(answers[0]).toBe("계정에 따라 서버에서 접근 권한을 확인합니다.");
@@ -261,6 +272,9 @@ test("waiting feedback, unavailable speech, mobile layout and storage failures r
     };
   });
   await page.clock.install();
+  await page.route("**/api/project-check/*/status", (route) =>
+    route.fulfill({ status: 404, json: { error: "이 계정에서 분석 요청을 찾지 못했습니다." } }),
+  );
   let release!: () => void;
   const pending = new Promise<void>((resolve) => {
     release = resolve;
@@ -297,7 +311,7 @@ test("waiting feedback, unavailable speech, mobile layout and storage failures r
     "응답이 늦어지고 있습니다",
   );
   release();
-  await expect(page.getByRole("button", { name: "저장된 분석 결과 확인" })).toBeVisible();
+  await expect(page.locator(".project-recovery").getByText("분석하지 못했어요")).toBeVisible();
   await expect(page.getByLabel("서비스와 구현 방식 설명")).toHaveValue(
     "직접 만든 예약 서비스입니다.",
   );
@@ -315,13 +329,8 @@ test("metadata-backed analysis keeps the rendering limit visible after opening s
   );
   await page.route(`**/api/project-check/${check.id}`, (route) => route.fulfill({ json: check }));
   await page.goto(`/project-check?check=${check.id}`);
-  await expect(page.locator(".project-summary .project-help")).toContainText(
-    "사이트에 등록된 공개 소개 정보를 참고했습니다",
-  );
-  await expect(page.locator(".project-summary .project-help")).toContainText(
-    "자바스크립트 실행 후 나타나는 화면은 확인하지 않았습니다",
-  );
-  await expect(page.locator(".project-summary .project-help")).not.toContainText(
-    "작성한 설명을 주로 참고했습니다",
-  );
+  const scopeNote = page.locator("#project-analysis-material .project-help").first();
+  await expect(scopeNote).toContainText("사이트에 등록된 공개 소개 정보를 참고했습니다");
+  await expect(scopeNote).toContainText("자바스크립트 실행 후 나타나는 화면은 확인하지 않았습니다");
+  await expect(scopeNote).not.toContainText("작성한 설명을 주로 참고했습니다");
 });

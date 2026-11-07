@@ -41,13 +41,13 @@ for (const hasHistory of [true, false]) {
       return route.fulfill({ json: data });
     });
     await page.goto("/project-check");
-    const notice = page.getByRole("region", { name: "새 분석 한도 안내" });
-    await expect(notice).toContainText("프로젝트 생성 2회를 모두 사용했습니다");
-    await expect(notice).toContainText("분석과 실습, AI 학습");
-    await expect(notice).toContainText("답변 평가는 2회 남아 있습니다");
+    const notice = page.getByRole("region", { name: "분석 횟수 안내" });
+    await expect(notice).toContainText("분석 횟수 2회를 모두 사용했습니다");
+    await expect(notice).toContainText("분석, 실습 생성, AI 워크숍 생성");
+    await expect(notice).toContainText("평가 횟수는 2회 남아 있습니다");
     await expect(page.locator("#project-analysis-limit")).toContainText("9월 21일");
     await expect(
-      page.getByRole("button", { name: "새 분석 한도를 모두 사용했습니다", exact: true }),
+      page.getByRole("button", { name: "분석 횟수를 모두 사용했습니다", exact: true }),
     ).toBeDisabled();
     await page
       .getByLabel("서비스 또는 공개 저장소 링크", { exact: true })
@@ -72,7 +72,7 @@ for (const hasHistory of [true, false]) {
       await page.getByRole("button", { name: "+ 다음 프로젝트 초안 작성" }).click();
     } else {
       await notice.getByRole("link", { name: "로그인 없이 서비스 원리 연습하기 →" }).click();
-      await expect(page).toHaveURL(/\/learn$/);
+      await expect(page).toHaveURL(/\/learn\?source=sample$/);
       await page.goBack();
     }
     await expect(page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true })).toHaveValue(

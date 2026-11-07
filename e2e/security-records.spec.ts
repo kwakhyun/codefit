@@ -20,6 +20,9 @@ test("security notes survive practice navigation and reload, export without a sc
 }, info) => {
   let scans = 0;
   await page.route("**/api/security-check", (route) => {
+    // The allowance preview reads GET; only POST runs a check.
+    if (route.request().method() === "GET")
+      return route.fulfill({ json: { window: "1시간", limit: 5, remaining: 5, resetsAt: null } });
     scans++;
     return route.fulfill({ json: report });
   });
@@ -46,7 +49,10 @@ test("security notes survive practice navigation and reload, export without a sc
   for (let i = 0; i < 3; i++)
     await expect(page.locator(".security-exercises textarea").nth(i)).toHaveValue(notes[i]);
   const downloading = page.waitForEvent("download");
-  await page.getByRole("button", { name: "확인 기록 파일로 저장" }).click();
+  await page
+    .getByRole("group", { name: "확인 기록 파일로 저장" })
+    .getByRole("button", { name: "텍스트로 저장" })
+    .click();
   const text = await readFile((await (await downloading).path())!, "utf8");
   for (const note of notes) expect(text).toContain(note);
   expect(text).toContain("자동 검증 결과가 아닙니다");
@@ -68,8 +74,8 @@ test("security notes survive practice navigation and reload, export without a sc
     .screenshot({ path: `artifacts/security-records-${info.project.name}.png` });
   await page.getByRole("button", { name: "임시 기록 지우기" }).click();
   await page
-    .getByRole("dialog", { name: "기록 삭제 확인" })
-    .getByRole("button", { name: "삭제하기", exact: true })
+    .getByRole("dialog", { name: "임시 기록 지우기" })
+    .getByRole("button", { name: "모두 지우기", exact: true })
     .click();
   await expect(page.locator(".security-exercises textarea").first()).toHaveValue("");
   await page.reload();
@@ -118,7 +124,7 @@ test("blocked tab storage warns and still allows exporting the notes", async ({ 
     "임시 보관하지 못했습니다",
   );
   const downloading = page.waitForEvent("download");
-  await page.getByRole("button", { name: "확인 기록 파일로 저장" }).click();
+  await page.getByRole("button", { name: "Markdown으로 저장" }).click();
   expect(await readFile((await (await downloading).path())!, "utf8")).toContain(
     "파일로 보관할 테스트 결과",
   );

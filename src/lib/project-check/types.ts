@@ -207,6 +207,8 @@ export interface Check extends Omit<StoredCheck, "analysis" | "page"> {
   };
   review?: { answers: string[]; assessment: Assessment; practice?: ProjectPractice };
   revisions?: { id: string; createdAt: string; revisionNumber: number }[];
+  /** Root answer (revisionNumber 0) and its revisions with scores; present on both. */
+  revisionTimeline?: { id: string; createdAt: string; revisionNumber: number; score?: number }[];
 }
 interface CheckUsage {
   limit: number;

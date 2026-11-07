@@ -13,14 +13,20 @@ import {
   DisclosureSummary,
   Textarea,
 } from "@/components/ui/primitives";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { AppLink as Link } from "@/components/ui/primitives";
 import { SecurityAudit } from "./security-audit";
-import { api, errorMessage } from "@/lib/client-api";
-import { useSecurityDraft } from "@/hooks/use-security-draft";
+import { api, dateLabel, errorMessage } from "@/lib/client-api";
+import { SECURITY_HISTORY_LIMIT, useSecurityDraft } from "@/hooks/use-security-draft";
+import { AllowanceCost } from "@/components/project-check/allowance-cost";
+import { ExportButtons } from "@/components/project-check/export-buttons";
+import type { ZapFinding } from "@/lib/zap-report";
 import {
+  compareSecurityReports,
   securityExercises,
+  securityNotesMarkdown,
   securityNotesText,
+  securityOrigin,
   securityReportRoute,
   securityStatus,
   type SecurityReport,
@@ -85,36 +91,68 @@ export function SecurityCheck() {
   );
 }
 
-/** Ownership challenges belong to an origin, so path or trailing-slash edits keep the same one. */
-function auditOrigin(url: string) {
-  try {
-    return new URL(url.trim()).origin;
-  } catch {
-    return "";
-  }
-}
-
 function SecurityWorkspace({ scope }: { scope: string }) {
   const { confirm, confirmation } = useConfirmation();
   const { draft, saveDraft, storageError, clear } = useSecurityDraft(scope);
   const { url, report, notes } = draft;
+  const history = draft.history ?? [];
   const [filter, setFilter] = useState<"all" | "observed" | "review" | "unknown">("all");
   const fade = useFadeTransition<HTMLElement>(`${filter}:${report?.checkedAt || "empty"}`);
   const [authorized, setAuthorized] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [usage, setUsage] = useState<{
+    window: string;
+    limit: number;
+    remaining: number;
+    resetsAt: string | null;
+  }>();
+  // A ZAP import stays when the address changes; its own origin is shown with it.
+  const [zap, setZap] = useState<{ origin: string; findings: ZapFinding[] } | null>(null);
+  const costId = useId();
   const request = useRef<AbortController | null>(null);
   useEffect(() => () => request.current?.abort(), []);
-  function download() {
-    const objectUrl = URL.createObjectURL(
-      new Blob([securityNotesText(notes, url, report)], { type: "text/plain;charset=utf-8" }),
-    );
-    const anchor = document.createElement("a");
-    anchor.href = objectUrl;
-    anchor.download = "codefit-security-check.txt";
-    anchor.click();
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  function loadUsage() {
+    api<NonNullable<typeof usage>>("/api/security-check", { scope, track: false })
+      .then((value) => {
+        if (typeof value?.remaining === "number" && typeof value.limit === "number")
+          setUsage(value);
+      })
+      .catch(() => {});
   }
+  useEffect(loadUsage, [scope]);
+  const checkedInput = draft.checkedInput ?? report?.url ?? "";
+  const stale = !!report && checkedInput.trim() !== url.trim();
+  const previous = report
+    ? history.find(
+        (item) =>
+          securityOrigin(item.report.url) === securityOrigin(report.url) &&
+          item.report.checkedAt !== report.checkedAt,
+      )
+    : undefined;
+  const diff = report && previous ? compareSecurityReports(previous.report, report) : null;
+  /** Shows a kept result; the current one goes back to the history so nothing is lost. */
+  function showResult(index: number) {
+    saveDraft((value) => {
+      const kept = value.history ?? [];
+      const chosen = kept[index];
+      if (!chosen) return value;
+      const rest = kept.filter((_, i) => i !== index);
+      return {
+        ...value,
+        report: chosen.report,
+        checkedInput: chosen.input,
+        history: value.report
+          ? [
+              { input: value.checkedInput ?? value.report.url, report: value.report },
+              ...rest,
+            ].slice(0, SECURITY_HISTORY_LIMIT)
+          : rest,
+      };
+    });
+    setFilter("all");
+  }
+  const exhausted = !!usage && usage.remaining < 1;
   return (
     <div className="security-workspace">
       {confirmation}
@@ -128,20 +166,33 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           setBusy(true);
           setFilter("all");
           setError("");
-          saveDraft((value) => ({ ...value, report: null }));
+          const input = url.trim();
           try {
             const result = await api<SecurityReport>("/api/security-check", {
               method: "POST",
               scope,
-              body: { url: url.trim(), authorized },
+              body: { url: input, authorized },
               signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20000)]),
             });
-            if (!controller.signal.aborted) saveDraft((value) => ({ ...value, report: result }));
+            if (!controller.signal.aborted)
+              // The previous result moves into this tab's history for comparison.
+              saveDraft((value) => ({
+                ...value,
+                report: result,
+                checkedInput: input,
+                history: value.report
+                  ? [
+                      { input: value.checkedInput ?? value.report.url, report: value.report },
+                      ...(value.history ?? []),
+                    ].slice(0, SECURITY_HISTORY_LIMIT)
+                  : (value.history ?? []),
+              }));
           } catch (e) {
             if (!controller.signal.aborted) setError(errorMessage(e));
           } finally {
             request.current = null;
             setBusy(false);
+            loadUsage();
           }
         }}
       >
@@ -152,7 +203,7 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           placeholder="https://my-service.com/"
           value={url}
           onChange={(e) => {
-            saveDraft((value) => ({ ...value, url: e.target.value, report: null }));
+            saveDraft((value) => ({ ...value, url: e.target.value }));
           }}
           required
           maxLength={2000}
@@ -160,8 +211,10 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           aria-describedby="security-scope"
         />
         <p id="security-scope">
-          로그인 없이 이용할 수 있습니다. 주소에 토큰과 개인정보를 넣지 마세요. 한 시간에 최대
-          5회이며 요청이 많으면 더 제한될 수 있습니다.
+          로그인 없이 이용할 수 있습니다. 주소에 토큰과 개인정보를 넣지 마세요.
+          {usage
+            ? ` ${usage.window} 기준 ${usage.limit}회까지 점검할 수 있으며, 요청이 많으면 더 제한될 수 있습니다.`
+            : ""}
         </p>
         <FieldLabel className="security-consent">
           <Input
@@ -173,7 +226,20 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           />
           본인이 관리하거나 점검 허락을 받은 서비스입니다.
         </FieldLabel>
-        <Button className="primary-button" disabled={!authorized || busy || !url.trim()}>
+        {usage && (
+          <AllowanceCost
+            id={costId}
+            label="점검 횟수"
+            cost={1}
+            remaining={usage.remaining}
+            resetsAt={usage.resetsAt}
+          />
+        )}
+        <Button
+          className="primary-button"
+          disabled={!authorized || busy || !url.trim() || exhausted}
+          aria-describedby={usage ? costId : undefined}
+        >
           {busy ? "공개 응답 확인 중… 최대 20초" : "공개 페이지 보안 점검"}
         </Button>
         {busy && <Status role="status">입력한 페이지의 응답 헤더와 HTML을 읽고 있습니다.</Status>}
@@ -185,6 +251,12 @@ function SecurityWorkspace({ scope }: { scope: string }) {
       </form>
       {report && (
         <section ref={fade} className="security-results" aria-label="보안 점검 결과">
+          {stale && (
+            <p className="security-stale-notice">
+              <strong>이전 주소 기준 결과입니다.</strong> 아래 결과는 {checkedInput}을(를) 점검한
+              것입니다. 지금 입력한 주소는 아직 점검하지 않았습니다.
+            </p>
+          )}
           <div className="section-heading">
             <div>
               <h2>관찰한 설정과 다음 행동</h2>
@@ -194,10 +266,39 @@ function SecurityWorkspace({ scope }: { scope: string }) {
               ))}
               <p>{new Date(report.checkedAt).toLocaleString("ko-KR")} 기준</p>
             </div>
-            <Button className="secondary-button" onClick={download}>
-              결과와 AI 수정 요청 저장
-            </Button>
           </div>
+          {diff && previous && (
+            <Disclosure className="security-compare" open>
+              <DisclosureSummary>
+                같은 주소의 이전 점검과 비교 ({dateLabel(previous.report.checkedAt)} →{" "}
+                {dateLabel(report.checkedAt)})
+              </DisclosureSummary>
+              {diff.changed.length ? (
+                <ul>
+                  {diff.changed.map((item) => (
+                    <li key={item.id}>
+                      <strong>{item.title}</strong>: {securityStatus[item.before]} →{" "}
+                      {securityStatus[item.after]}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>상태가 바뀐 항목이 없습니다.</p>
+              )}
+              {!!diff.added.length && (
+                <p>새로 관찰한 항목: {diff.added.map((item) => item.title).join(", ")}</p>
+              )}
+              {!!diff.removed.length && (
+                <p>
+                  이번에 나타나지 않은 항목: {diff.removed.map((item) => item.title).join(", ")}
+                </p>
+              )}
+              <p className="project-help">
+                같은 상태로 남은 항목 {diff.unchanged}개. 응답 헤더의 차이이며 취약점의 해결이나
+                발생을 확정하지 않습니다.
+              </p>
+            </Disclosure>
+          )}
           <Status role="status">
             설정 관찰 {report.findings.filter((f) => f.status === "observed").length}개 / 보완 검토{" "}
             {report.findings.filter((f) => f.status === "review").length}개 / 추가 확인{" "}
@@ -243,7 +344,30 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           </div>
         </section>
       )}
-      <SecurityAudit key={auditOrigin(url)} scope={scope} url={url} />
+      {history.length > 0 && (
+        <section className="security-history" aria-labelledby="security-history-title">
+          <h2 id="security-history-title">이 탭의 최근 점검 결과</h2>
+          <p className="project-help">
+            최근 {SECURITY_HISTORY_LIMIT}개까지 현재 탭에 보관합니다. 결과를 열면 지금 결과와 자리를
+            바꿉니다.
+          </p>
+          <ul>
+            {history.map((item, index) => (
+              <li key={`${item.report.checkedAt}:${index}`}>
+                <span>
+                  <strong>{securityOrigin(item.report.url) || item.report.url}</strong>{" "}
+                  {dateLabel(item.report.checkedAt)} · 보완 검토{" "}
+                  {item.report.findings.filter((f) => f.status === "review").length}개
+                </span>
+                <Button className="text-button" disabled={busy} onClick={() => showResult(index)}>
+                  이 결과 보기
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <SecurityAudit key={securityOrigin(url)} scope={scope} url={url} zap={zap} onZap={setZap} />
       <section className="security-exercises">
         <h2>내 테스트 환경에서 이어가는 모의해킹 준비</h2>
         <div className="notes-progress">
@@ -272,15 +396,29 @@ function SecurityWorkspace({ scope }: { scope: string }) {
           </Status>
         )}
         <div className="security-record-actions">
-          <Button className="secondary-button" onClick={download}>
-            확인 기록 파일로 저장
-          </Button>
+          <ExportButtons
+            label="확인 기록 파일로 저장"
+            fileName="codefit-security-check"
+            markdown={() => securityNotesMarkdown(notes, url, report)}
+            text={() => securityNotesText(notes, url, report)}
+            note="주소, 지금 보이는 점검 결과와 AI 수정 요청, 작성 중인 메모(서버에 저장되지 않는 초안)를 함께 저장합니다."
+          />
           <Button
             className="text-button"
             disabled={busy}
             onClick={async (event) => {
               event.currentTarget.focus();
-              if (await confirm("이 탭에 보관한 주소, 점검 결과와 메모를 모두 지울까요?")) {
+              if (
+                await confirm("이 탭에 보관한 보안 점검 기록을 모두 지웁니다.", {
+                  title: "임시 기록 지우기",
+                  confirmLabel: "모두 지우기",
+                  details: [
+                    "입력한 주소",
+                    `점검 결과 ${(report ? 1 : 0) + history.length}개`,
+                    "확인 메모",
+                  ],
+                })
+              ) {
                 clear();
                 setAuthorized(false);
                 setError("");

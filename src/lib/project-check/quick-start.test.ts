@@ -9,21 +9,20 @@ it("one link creates analysis then both training tracks without a consent gate",
     .fn()
     .mockResolvedValueOnce(overview)
     .mockRejectedValueOnce(new ApiError("missing", 404))
-    .mockResolvedValueOnce(check)
     .mockResolvedValueOnce(null)
     .mockResolvedValueOnce({ status: "done", result: {} });
   const progress = vi.fn();
-  expect(await prepareProjectLearning(input, progress, request as typeof api)).toEqual(check);
+  const analyze = vi.fn().mockResolvedValue(check);
+  expect(
+    await prepareProjectLearning(input, progress, request as typeof api, undefined, analyze),
+  ).toEqual(check);
   expect(progress).toHaveBeenCalledWith(check);
+  // The analysis is the shared background job, not a request tied to this page.
+  expect(analyze).toHaveBeenCalledWith(
+    { requestId: input.id, url: input.url, description: "", source: "repository" },
+    input.scope,
+  );
   expect(request.mock.calls.filter(([, options]) => options?.method === "POST")).toEqual([
-    [
-      "/api/project-check",
-      {
-        method: "POST",
-        scope: input.scope,
-        body: { requestId: input.id, url: input.url, description: "", source: "repository" },
-      },
-    ],
     [
       "/api/project-check/check/practice",
       { method: "POST", scope: input.scope, body: { stepwise: true } },
@@ -60,7 +59,7 @@ it("stops before paid requests on account changes or insufficient allowance", as
     .mockResolvedValueOnce({ ...overview, usage: { analysis: { remaining: 1 } } })
     .mockRejectedValueOnce(new ApiError("missing", 404));
   await expect(prepareProjectLearning(input, vi.fn(), limited as typeof api)).rejects.toThrow(
-    "분석 2회",
+    "분석 횟수 2회",
   );
   expect(limited.mock.calls.some(([, options]) => options?.method === "POST")).toBe(false);
 });

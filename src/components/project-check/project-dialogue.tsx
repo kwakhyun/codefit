@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   Button,
   Disclosure,
@@ -24,6 +24,7 @@ export function ProjectCodeDialogue({
   onUsage,
   readOnly = false,
   remaining,
+  disabledReason = "",
 }: {
   check: Check;
   index: number;
@@ -32,8 +33,11 @@ export function ProjectCodeDialogue({
   enabled: boolean;
   readOnly?: boolean;
   remaining?: number;
+  /** Why a new turn cannot start (allowance, AI availability), shown next to the button. */
+  disabledReason?: string;
   onUsage?: () => Promise<void>;
 }) {
+  const reasonId = useId();
   const [dialogue, setDialogue] = useState<ProjectDialogue | null>(null);
   const [lastUseOpen, setLastUseOpen] = useState(false);
   const [reply, setReply] = useState("");
@@ -46,7 +50,11 @@ export function ProjectCodeDialogue({
   useEffect(() => {
     alive.current = true;
     const controller = new AbortController();
-    api<ProjectDialogue | null>(`${url}?question=${index}`, { scope, signal: controller.signal })
+    api<ProjectDialogue | null>(`${url}?question=${index}`, {
+      scope,
+      track: false,
+      signal: controller.signal,
+    })
       .then((value) => {
         if (alive.current) {
           setDialogue(value);
@@ -67,7 +75,10 @@ export function ProjectCodeDialogue({
   async function reload() {
     setError("");
     try {
-      const saved = await api<ProjectDialogue | null>(`${url}?question=${index}`, { scope });
+      const saved = await api<ProjectDialogue | null>(`${url}?question=${index}`, {
+        scope,
+        track: false,
+      });
       if (alive.current) setDialogue(saved);
     } catch (e) {
       if (alive.current) setError(errorMessage(e));
@@ -113,10 +124,10 @@ export function ProjectCodeDialogue({
       <Modal
         open={lastUseOpen}
         onClose={() => setLastUseOpen(false)}
-        title="남은 평가 1회를 어디에 사용할까요?"
+        title="남은 평가 횟수 1회를 어디에 사용할까요?"
       >
         <p>
-          코드 대화에 사용하면 전체 답변 평가는 이용 횟수가 다시 채워진 뒤에 받을 수 있습니다. 지금
+          코드 대화에 사용하면 전체 답변 평가는 평가 횟수가 다시 채워진 뒤에 받을 수 있습니다. 지금
           작성한 답변은 유지됩니다.
         </p>
         <div className="ui-dialog-actions">
@@ -132,12 +143,11 @@ export function ProjectCodeDialogue({
         </div>
       </Modal>
       <DisclosureSummary>
-        {readOnly ? "저장된 코드 대화 보기" : "이 답변을 코드와 함께 확인하기"}{" "}
-        {!readOnly && <span>선택</span>}
+        {readOnly ? "저장된 코드 대화 보기" : "코드 대화"} {!readOnly && <span>선택</span>}
       </DisclosureSummary>
       {!readOnly && (
         <p className="project-help">
-          지금 적은 답변에서 코드와 맞는 부분과 더 확인할 부분을 알려드려요. 대화 한 번에 답변 평가
+          지금 적은 답변에서 코드와 맞는 부분과 더 확인할 부분을 알려드려요. 대화 한 번에 평가 횟수
           1회를 사용합니다. 질문마다 최대 3번 대화할 수 있습니다.
         </p>
       )}
@@ -187,14 +197,25 @@ export function ProjectCodeDialogue({
           className="secondary-button"
           onClick={() => (remaining === 1 ? setLastUseOpen(true) : void send())}
           disabled={loading || busy || !enabled || !(dialogue ? reply : answer).trim()}
+          aria-describedby={reasonId}
         >
           {busy
             ? "코드와 비교하는 중…"
-            : `${dialogue ? "이어서 답하기" : "코드와 비교해 피드백 받기"} · 평가 1회`}
+            : `${dialogue ? "이어서 답하기" : "코드와 비교해 피드백 받기"} · 평가 횟수 1회`}
         </Button>
       )}
-      {!readOnly && !dialogue && !answer.trim() && (
-        <p className="project-help">먼저 위의 ‘내 설계 설명’을 작성해 주세요.</p>
+      {!readOnly && !finished && (
+        <p id={reasonId} className="project-help">
+          {!enabled
+            ? disabledReason || "지금은 코드 대화를 시작할 수 없습니다."
+            : !(dialogue ? reply : answer).trim()
+              ? dialogue
+                ? "위 질문에 대한 답을 적어 주세요."
+                : "먼저 위의 ‘내 설계 설명’을 작성해 주세요."
+              : remaining !== undefined
+                ? `남은 평가 횟수 ${remaining}회`
+                : ""}
+        </p>
       )}
       {busy && <RequestStatus label="코드 근거를 확인하고 있습니다" />}
       {error && <Status role="alert">{error}</Status>}

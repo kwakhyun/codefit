@@ -115,13 +115,13 @@ test("detail refreshes on focus without replacing edit drafts or accepting stale
   });
   await page.goto(`/projects?class=${fixtureCheck.id}`);
   await page.getByRole("button", { name: "정보 수정" }).click();
-  await page.getByRole("textbox", { name: "클래스 이름" }).fill("작성 중인 이름");
+  await page.getByRole("textbox", { name: "프로젝트 이름" }).fill("작성 중인 이름");
   revision = 1;
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await expect(
     page.getByRole("heading", { name: "다른 탭에서 수정한 이름", includeHidden: true }),
   ).toBeAttached();
-  await expect(page.getByRole("textbox", { name: "클래스 이름" })).toHaveValue("작성 중인 이름");
+  await expect(page.getByRole("textbox", { name: "프로젝트 이름" })).toHaveValue("작성 중인 이름");
   await page.getByRole("button", { name: "변경사항 저장" }).click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
     "다른 탭에서 수정되었습니다",

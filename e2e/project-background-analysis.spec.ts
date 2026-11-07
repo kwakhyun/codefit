@@ -40,12 +40,20 @@ for (const width of [1440, 390]) {
       .getByLabel("서비스 또는 공개 저장소 링크", { exact: true })
       .fill("https://example.com/");
     await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
-    const activity = page.getByRole("complementary", { name: "프로젝트 분석 상태" });
-    await expect(activity.getByText("프로젝트 분석 중", { exact: true })).toBeVisible();
+    const activity = page.getByRole("complementary", { name: "진행 중인 작업" });
+    // Small screens start with a collapsed chip; expand it to read the job.
+    const expand = async () => {
+      const toggle = activity.locator(".analysis-activity-toggle");
+      if ((await toggle.getAttribute("aria-expanded")) === "false") await toggle.click();
+    };
+    // The form shows this job with its own stop action, so the floating notice stays out.
+    await expect(page.getByRole("complementary", { name: "AI 요청 상태" })).toBeVisible();
+    await expect(activity).toHaveCount(0);
     // A full document navigation is stricter than a client-side route change.
     await page.goto("/learn");
     await expect(activity).toBeVisible();
     await page.reload();
+    await expand();
     await expect(activity.getByText("프로젝트 분석 중", { exact: true })).toBeVisible();
     expect(posts).toBe(1);
     state = "done";
@@ -124,10 +132,11 @@ test("failed analysis remains visible, status retry does not start another paid 
     ),
   );
   await page.goto("/learn");
-  const activity = page.getByRole("complementary", { name: "프로젝트 분석 상태" });
-  await expect(activity.getByText("분석 상태 확인이 필요해요", { exact: true })).toBeVisible();
-  await activity.getByRole("button", { name: "상태 확인", exact: true }).click();
-  await expect(activity.getByText("분석 상태 확인이 필요해요", { exact: true })).toBeVisible();
+  const activity = page.getByRole("complementary", { name: "진행 중인 작업" });
+  // A reported failure is not shown as a lost connection; its one action opens the form.
+  await expect(activity.getByText("분석하지 못했어요", { exact: true })).toBeVisible();
+  await expect(activity.getByRole("button", { name: "분석 상태 다시 확인" })).toHaveCount(0);
+  await expect(activity.getByRole("link", { name: "새 분석 화면 열기 →" })).toBeVisible();
   await activity.getByRole("button", { name: "example.com 분석 알림 닫기" }).click();
   await expect(activity).toHaveCount(0);
 });

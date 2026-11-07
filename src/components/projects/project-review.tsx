@@ -2,6 +2,7 @@
 import { useProjectReview } from "@/hooks/use-project-review";
 import type { ProjectClassDetail } from "@/lib/project-check/project-class";
 import { Button, Card, FieldLabel, Textarea } from "@/components/ui/primitives";
+import { useConfirmation } from "@/components/ui/use-confirmation";
 import { PracticeSources } from "@/components/project-practice/practice-sources";
 export function ProjectReview({ detail, scope }: { detail: ProjectClassDetail; scope: string }) {
   const items = [
@@ -37,6 +38,7 @@ export function ProjectReview({ detail, scope }: { detail: ProjectClassDetail; s
   // Content keys keep drafts attached to their question when new courses are added.
   const keys = items.map((item) => JSON.stringify([item.title, item.prompt, item.choices]));
   const { saved, update, reset, failed, saving } = useProjectReview(scope, detail.check.id);
+  const { confirm, confirmation } = useConfirmation();
   const index = Math.max(0, keys.indexOf(saved.active));
   const item = items[index];
   const key = keys[index];
@@ -144,15 +146,31 @@ export function ProjectReview({ detail, scope }: { detail: ProjectClassDetail; s
           이전
         </Button>
         {index < items.length - 1 ? (
-          <Button disabled={!revealed} onClick={() => move(index + 1)}>
-            다음 복습
+          // Skipping is allowed: revealing the answer is a choice, not a gate.
+          <Button onClick={() => move(index + 1)}>
+            {revealed ? "다음 복습" : "건너뛰고 다음"}
           </Button>
         ) : (
-          <Button disabled={!revealed} onClick={() => reset(keys[0])}>
+          <Button
+            onClick={async () => {
+              if (
+                await confirm(
+                  "이 프로젝트의 복습 메모와 선택, 복습 위치를 모두 지우고 처음부터 다시 시작합니다. 프로젝트 점검 답변과 실습 기록은 바뀌지 않습니다.",
+                  {
+                    title: "복습 기록 비우기",
+                    confirmLabel: "복습 기록 비우기",
+                    details: [`작성한 복습 메모와 선택 ${Object.keys(saved.entries).length}개`],
+                  },
+                )
+              )
+                reset(keys[0]);
+            }}
+          >
             복습 기록을 비우고 다시 시작
           </Button>
         )}
       </div>
+      {confirmation}
     </Card>
   );
 }

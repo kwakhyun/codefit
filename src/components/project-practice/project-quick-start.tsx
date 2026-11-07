@@ -1,12 +1,13 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { ArrowRight, Check, Code2, GitBranch, Workflow, ClipboardCheck } from "lucide-react";
 import { api, errorMessage } from "@/lib/client-api";
-import type { Check as ProjectCheck } from "@/lib/project-check/types";
-import { prepareProjectLearning } from "@/lib/project-check/quick-start";
+import type { Check as ProjectCheck, CheckOverview } from "@/lib/project-check/types";
+import { prepareProjectLearning, QUICK_START_COST } from "@/lib/project-check/quick-start";
 import { useProjectDraft } from "@/hooks/use-project-draft";
 import { AppLink, Button, Card, FieldLabel, Input } from "@/components/ui/primitives";
 import { RequestStatus } from "@/components/project-check/request-status";
+import { AllowanceCost } from "@/components/project-check/allowance-cost";
 export function ProjectQuickStart({
   scope,
   embedded = false,
@@ -19,7 +20,19 @@ export function ProjectQuickStart({
   const [stage, setStage] = useState("");
   const [error, setError] = useState("");
   const [result, setResult] = useState<{ check: ProjectCheck; ready: boolean }>();
+  const [usage, setUsage] = useState<CheckOverview["usage"]["analysis"]>();
+  const costId = useId();
   const lock = useRef(false);
+  useEffect(() => {
+    // The cost preview needs the current allowance; it never blocks recovering a saved result.
+    const controller = new AbortController();
+    api<CheckOverview>("/api/project-check", { scope, track: false, signal: controller.signal })
+      .then((value) => {
+        if (!controller.signal.aborted && value.scope === scope) setUsage(value.usage.analysis);
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [scope, result?.ready]);
   async function start(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (lock.current) return;
@@ -91,7 +104,17 @@ export function ProjectQuickStart({
               setError("");
             }}
           />
-          <Button type="submit" className="primary-button" disabled={!!busy || !draft.url.trim()}>
+          <Button
+            type="submit"
+            className="primary-button"
+            aria-describedby={costId}
+            disabled={
+              !!busy ||
+              !draft.url.trim() ||
+              // A saved analysis can always be resumed; only a new one needs the full cost.
+              (!result && !draft.requestId && !!usage && usage.remaining < QUICK_START_COST)
+            }
+          >
             {busy
               ? "준비 중…"
               : result?.ready
@@ -102,10 +125,23 @@ export function ProjectQuickStart({
             <ArrowRight size={18} />
           </Button>
         </div>
+        {usage ? (
+          <AllowanceCost
+            id={costId}
+            label="분석 횟수"
+            cost={QUICK_START_COST}
+            remaining={usage.remaining}
+            resetsAt={usage.resetsAt}
+          />
+        ) : (
+          <p id={costId} className="allowance-cost">
+            분석 횟수 {QUICK_START_COST}회 사용
+          </p>
+        )}
         <div className="quick-start-note">
           <p>
-            로그인 없이 시작할 수 있어요. 공개 코드 일부를 OpenAI로 보내 분석하며, 새 프로젝트는
-            분석 2회를 사용합니다.
+            로그인 없이 시작할 수 있어요. 공개 코드 일부를 OpenAI로 보내 분석합니다. 분석은
+            백그라운드에서 계속되므로 다른 화면으로 이동해도 됩니다.
           </p>
           <details>
             <summary>분석 범위 안내</summary>
@@ -147,14 +183,14 @@ export function ProjectQuickStart({
               코드 이해 훈련
             </AppLink>
             <AppLink href={`/project-practice?check=${result.check.id}&mode=service`}>
-              서비스 원리 실습
+              서비스 동작 실습
             </AppLink>
           </div>
         </div>
       )}
       <div className="quick-start-alternatives">
         <AppLink href="/project-check">서비스 주소로 점검하기 →</AppLink>
-        <AppLink href="/projects">내 프로젝트 클래스 →</AppLink>
+        <AppLink href="/projects">내 프로젝트 →</AppLink>
         {!embedded && <AppLink href="/handoff?source=sample">연결 없이 샘플로 체험 →</AppLink>}
       </div>
     </Card>

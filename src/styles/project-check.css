@@ -1281,3 +1281,186 @@
     animation: none;
   }
 }
+
+/* Floating activity: a toggle chip that collapses the list; 44px touch targets. */
+.analysis-activity {
+  align-content: end;
+}
+.analysis-activity-list {
+  display: grid;
+  gap: 10px;
+}
+.analysis-activity-list[hidden] {
+  display: none;
+}
+.ui-button.analysis-activity-toggle {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 6px 20px #0002;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+.analysis-activity .ui-button.analysis-activity-dismiss {
+  top: 4px;
+  right: 4px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+}
+.analysis-activity-item[data-state="input"] .analysis-activity-status > svg,
+.analysis-activity-item[data-state="failed"] .analysis-activity-status > svg {
+  color: var(--danger, var(--accent));
+}
+@media (max-width: 650px) {
+  .analysis-activity {
+    left: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(340px, calc(100vw - 24px));
+    max-height: min(50vh, 420px);
+  }
+  .analysis-activity[data-collapsed="true"] {
+    width: auto;
+    max-width: calc(100vw - 24px);
+  }
+}
+
+/* Section index: the locked step is plain text, not a link. */
+.analysis-journey > .analysis-journey-locked {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+}
+.analysis-journey > .analysis-journey-locked > span {
+  font: 700 0.8rem var(--mono);
+}
+
+/* Shared paid-action preview: "n회 사용 · 남은 m회 · 초기화 시각". */
+.allowance-cost {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 12px 0 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.allowance-cost[data-insufficient] strong {
+  flex-basis: 100%;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Export: Markdown first, plain text as a secondary option. */
+.export-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.export-buttons-label {
+  font-weight: 600;
+}
+.export-buttons > small {
+  flex-basis: 100%;
+}
+
+/* Revision switcher and score timeline. */
+.revision-timeline {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+.revision-timeline ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ui-button.revision-timeline-item {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: left;
+}
+.ui-button.revision-timeline-item[aria-current] {
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+.revision-timeline-item small {
+  color: var(--muted);
+}
+
+/* Analysis material: one collapsed panel after the journey sections. */
+.analysis-material > summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+}
+.analysis-material > summary span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.analysis-material > section,
+.analysis-material > .evidence-review {
+  margin-top: 20px;
+}
+
+/* New analysis: one disclosure for details, cost right above the button. */
+.project-form-details {
+  margin-top: 16px;
+}
+.project-form-details ul {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding-left: 1.2em;
+}
+.project-analysis-progress {
+  display: grid;
+  gap: 12px;
+}
+.project-recovery[data-state] .project-error {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.guest-records-notice {
+  padding: 12px 14px;
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-small);
+  background: var(--surface-raised);
+}
+
+/* Project settings: re-check and the danger zone at the end of the page. */
+.project-settings {
+  display: grid;
+  gap: 20px;
+}
+.project-danger-zone {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 18px;
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+}
+.project-danger-zone h3 {
+  margin: 0;
+}
