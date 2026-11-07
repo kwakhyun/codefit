@@ -25,6 +25,8 @@ export async function api<T>(
     keepalive?: boolean;
     background?: boolean;
     quietGeneration?: boolean;
+    /** false keeps autosave, polling and other background calls out of the global progress bar. */
+    track?: boolean;
     // null explicitly discovers the current session without a stale workspace header.
     scope?: string | null;
   },
@@ -45,7 +47,7 @@ export async function api<T>(
       },
     );
   }
-  const finish = trackRequest();
+  const finish = options?.track === false ? () => {} : trackRequest();
   try {
     const timeout =
       options?.method === "POST" && /^\/api\/project-check\/[^/?]+\/practice$/.test(url)
