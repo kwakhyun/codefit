@@ -67,23 +67,6 @@
   margin: 12px 0;
 }
 
-.reauth-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: var(--text-ui);
-  margin: 20px 0;
-}
-
-.reauth-field input {
-  background: light-dark(var(--light-panel), #080808);
-  color: light-dark(var(--light-text), #eee);
-  border: 1px solid light-dark(var(--light-line), #606060);
-  padding: 12px;
-
-  font-size: var(--text-input);
-}
-
 .training-overview {
   display: flex;
   align-items: center;

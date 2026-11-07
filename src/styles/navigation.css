@@ -1,25 +1,4 @@
 /* Home sections, filters and header controls shared by every route. */
-.home-heading {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 28px;
-  flex-direction: column;
-}
-.home-heading h1 {
-  font-size: clamp(27px, 3vw, 38px);
-  line-height: 1.45;
-  letter-spacing: -0.045em;
-  margin-top: 8px;
-  font-weight: 750;
-}
-.home-heading p {
-  font-size: var(--text-reading);
-  color: var(--muted);
-  line-height: 1.8;
-}
 .resume-card {
   display: flex;
   align-items: center;
@@ -99,23 +78,6 @@
   font-size: 20px;
   margin-bottom: 16px;
 }
-.domain-disclosure {
-  margin: 22px 0 12px;
-}
-.domain-disclosure > summary {
-  cursor: pointer;
-  min-height: 44px;
-  padding: 12px;
-  color: var(--muted);
-  font-size: var(--text-ui);
-}
-.domain-disclosure > summary span {
-  margin-left: 8px;
-  font: var(--text-caption) var(--mono);
-}
-.domain-disclosure[open] > summary {
-  color: var(--text);
-}
 .mobile-filter-toggle,
 .filter-summary {
   display: none;
@@ -135,15 +97,6 @@
   }
   .resume-card h2 {
     font-size: 18px;
-  }
-  .home-heading {
-    margin-bottom: 20px;
-  }
-  .home-heading .eyebrow {
-    letter-spacing: 0.02em;
-  }
-  .home-heading p {
-    font-size: var(--text-ui);
   }
   .history-track-link {
     padding: 18px;
@@ -236,19 +189,6 @@
 }
 
 /* Visual roles: the canvas stays black; panels and controls have distinct surface levels. */
-.training-path-foundation {
-  --path-color: light-dark(var(--light-green), #8fdfbb);
-  --path-surface: light-dark(var(--light-green-soft), #183129);
-}
-.training-path-analysis {
-  --path-color: light-dark(var(--light-blue), #c9baff);
-  --path-surface: light-dark(var(--light-blue-soft), #2a2340);
-}
-.training-path-practice {
-  --path-color: light-dark(var(--light-blue), #a5ceff);
-  --path-surface: light-dark(var(--light-blue-soft), #182b43);
-}
-.training-paths > a:focus-visible,
 .learn-card:focus-visible,
 .problem-row:focus-within {
   background: var(--surface-hover);
@@ -287,45 +227,7 @@
 .problem-tabs button[aria-selected="true"]::after {
   background: var(--action);
 }
-@media (max-width: 760px) {
-  .training-paths > a {
-    grid-template-columns: 42px minmax(0, 1fr);
-    column-gap: 16px;
-    padding: 20px;
-  }
-  .training-paths > a > svg {
-    grid-column: 1;
-    grid-row: 1 / 4;
-    width: 42px;
-    height: 42px;
-    padding: 10px;
-    margin: 0;
-  }
-  .training-paths > a > span,
-  .training-paths > a > strong,
-  .training-paths > a > p {
-    grid-column: 2;
-    min-width: 0;
-  }
-  .training-paths strong {
-    font-size: 18px;
-    margin: 6px 0;
-  }
-  .training-paths p {
-    margin: 0;
-  }
-  .home-heading {
-    gap: 8px;
-  }
-  .home-heading h1 {
-    font-size: 27px;
-  }
-  .home-heading p {
-    font-size: var(--text-ui);
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .training-paths > a,
   .learn-card {
     transition: none;
   }

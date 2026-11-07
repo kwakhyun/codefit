@@ -27,11 +27,6 @@
 .scenario-thumbnail .scenario-art {
   width: 176px;
 }
-.training-paths > a > .scenario-art {
-  width: 144px;
-  margin: -8px auto 14px;
-  grid-column: 1 / -1;
-}
 .scenario-visual {
   display: grid;
   grid-template-columns: 120px minmax(0, 1fr);
@@ -95,17 +90,6 @@
   border-color: light-dark(var(--light-strong-line), #6689b5);
 }
 @media (max-width: 760px) {
-  .training-paths > a {
-    grid-template-columns: 88px minmax(0, 1fr);
-    column-gap: 16px;
-  }
-  .training-paths > a > .scenario-art {
-    width: 88px;
-    grid-column: 1;
-    grid-row: 1 / 4;
-    align-self: center;
-    margin: 0;
-  }
   .scenario-thumbnail .scenario-art {
     width: 148px;
   }

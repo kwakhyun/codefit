@@ -114,50 +114,10 @@
 .project-page .project-form > label:not(.project-consent) {
   margin-top: 16px;
 }
-.feature-banner,
-.feature-slide {
+.feature-banner {
   background: var(--surface);
 }
 .feature-banner {
-  border-radius: 12px;
-}
-.feature-banner-top {
-  padding: 12px 24px;
-}
-.feature-slide {
-  min-height: 218px;
-  padding: 24px;
-  grid-template-columns: minmax(0, 1fr) 210px;
-  gap: 28px;
-}
-.feature-copy h2 {
-  font-size: 25px;
-  line-height: 1.5;
-  margin-block: 10px 12px;
-}
-.feature-copy p {
-  line-height: 1.75;
-  margin-bottom: 20px;
-}
-.feature-art {
-  height: 190px;
-  width: 100%;
-  margin: 0;
-  mask-image: none;
-}
-.feature-banner-controls {
-  padding: 12px 20px;
-}
-.feature-topic-rail button {
-  background: transparent;
-  border-color: var(--line);
-}
-.visual-path-card > .section-artwork img {
-  max-height: 160px;
-  object-fit: contain;
-}
-.persona-next-steps a.visual-path-card {
-  background: var(--surface);
   border-radius: 12px;
 }
 .learn-page :is(h2, h3) {
@@ -234,30 +194,6 @@
   }
   .project-panel {
     padding: 22px 18px;
-  }
-  .feature-slide {
-    grid-template-columns: minmax(0, 1fr) 88px;
-    gap: 16px;
-    padding: 20px;
-    min-height: 250px;
-  }
-  .feature-art {
-    height: 100px;
-    align-self: start;
-    width: 88px;
-    margin: 12px 0 0;
-  }
-  .feature-copy h2 {
-    font-size: 21px;
-  }
-  .feature-copy p {
-    font-size: 14px;
-  }
-  .feature-copy .primary-button {
-    white-space: normal;
-  }
-  .feature-banner-controls {
-    padding: 12px;
   }
 }
 .project-task-toolbar {

@@ -161,30 +161,6 @@ p {
   }
 }
 
-/* AI lesson categories on phones: one swipeable row instead of a fixed-height box that
-   scrolled inside the scrolling page and cut chips off mid-row. */
-@media (max-width: 640px) {
-  .ai-category-filters {
-    flex-wrap: nowrap;
-    max-height: none;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 4px 0 8px;
-    border: 0;
-    border-radius: 0;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
-  }
-  .ai-category-filters::-webkit-scrollbar {
-    display: none;
-  }
-  .ai-category-filters button {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    scroll-snap-align: start;
-  }
-}
-
 /* History shortcuts are cards like the resume card above them, grouped closer together. */
 .ui-link.history-track-link {
   margin-bottom: 12px;
@@ -193,42 +169,4 @@ p {
 }
 .history-track-link + .history-coding-title {
   margin-top: 44px;
-}
-
-/* Mobile page chrome: pages with the shared site header now match the home and editor bar —
-   flush to the top, icon-only logo, workspace and theme actions, and an edge-to-edge divider. */
-@media (max-width: 760px) {
-  :is(.learn-page, .handoff-page, .project-practice-page, .project-classes-page, .account-page):has(
-    > .site-header:first-child
-  ) {
-    padding-top: 0;
-  }
-  .site-header.site-header {
-    min-height: 68px;
-    padding: 12px 0;
-    gap: 8px;
-    flex-wrap: nowrap;
-    /* The outset paints the divider to the viewport edges without adding scrollable width. */
-    border-image: linear-gradient(var(--line), var(--line)) 0 0 100% 0 / 0 0 1px 0 / 0 100vw;
-  }
-  .site-header .brand-wordmark {
-    display: none;
-  }
-  .site-header.site-header > .site-preference {
-    display: flex;
-    margin-left: auto;
-  }
-  .site-header > .theme-toggle {
-    margin-left: 0;
-  }
-  .site-header .persona-change {
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    min-height: 44px;
-    padding: 0;
-  }
-  .site-header .persona-change > span {
-    display: none;
-  }
 }

@@ -114,12 +114,6 @@
   .help-content .eyebrow {
     font-size: var(--text-caption);
   }
-  .settings-info {
-    font-size: var(--text-caption);
-  }
-  .settings-info strong {
-    font-size: var(--text-caption);
-  }
   .settings-content > p {
     font-size: var(--text-body);
   }
@@ -193,10 +187,6 @@
   }
   .settings-content > p {
     font-size: var(--text-body);
-  }
-  .settings-info,
-  .settings-info strong {
-    font-size: var(--text-ui);
   }
   .settings-content > .secondary-button {
     font-size: var(--text-ui);

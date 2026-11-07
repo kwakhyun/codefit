@@ -612,26 +612,6 @@
   border-radius: var(--radius-panel);
 }
 
-.content-loader {
-  min-height: 65vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 19px;
-  color: light-dark(var(--light-muted), #bcbcbc);
-}
-
-.content-loader p {
-  color: var(--muted);
-  font-size: var(--text-ui);
-}
-
-.content-loader > .mono {
-  font-size: var(--text-small);
-  letter-spacing: 1px;
-}
-
 .terminal-icon {
   display: flex;
   align-items: center;

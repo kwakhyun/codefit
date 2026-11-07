@@ -383,30 +383,6 @@
   white-space: nowrap;
 }
 
-.settings-info {
-  flex-wrap: wrap;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border-top: 1px solid light-dark(var(--light-line), #424242);
-  padding: 16px 0;
-  font-size: var(--text-small);
-}
-
-.settings-info > span {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  color: light-dark(var(--light-muted), #a7a7a7);
-}
-
-.settings-info strong {
-  font-size: var(--text-small);
-  font-weight: 400;
-  color: light-dark(var(--light-muted), #cccccc);
-}
-
 .settings-content > p {
   font-size: var(--text-body);
   line-height: 1.9;

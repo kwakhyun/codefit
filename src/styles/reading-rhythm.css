@@ -56,9 +56,6 @@
 :is(.checkpoint-evidence, .checkpoint-expected, .lab-comparison, .training-feedback) + p {
   margin-block-start: 16px;
 }
-:is(.persona-other-records, .persona-security-start) > p + :is(a, button, div) {
-  margin-block-start: 20px;
-}
 
 /* The prediction helper belongs above the answer group, not against its border. */
 .lab-prediction fieldset > .learn-fineprint {

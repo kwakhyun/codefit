@@ -237,22 +237,6 @@
 .generation-allowance small {
   color: light-dark(var(--light-muted), #a8a8b2);
 }
-.generator-login {
-  padding: 24px;
-}
-.generator-login h2 {
-  font-size: 24px;
-  line-height: 1.5;
-}
-.generator-login p {
-  color: light-dark(var(--light-muted), #aaaab5);
-  font-size: var(--text-body);
-  line-height: 1.8;
-}
-.generator-login .primary-button {
-  margin-top: 20px;
-  width: 100%;
-}
 .sidebar-workspace a {
   color: inherit;
 }
@@ -341,10 +325,6 @@
 }
 .learn-progress + .guest-login {
   margin-bottom: 24px;
-}
-.generator-login .guest-login,
-.project-guest .guest-login {
-  margin: 20px 0;
 }
 @media (max-width: 480px) {
   .guest-login {

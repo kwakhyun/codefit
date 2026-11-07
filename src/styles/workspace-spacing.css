@@ -38,15 +38,6 @@
 .question-context .project-evidence > .repository-evidence {
   margin-top: 0;
 }
-.analysis-next-action {
-  align-items: flex-start;
-}
-.analysis-next-action > a {
-  align-self: center;
-}
-.analysis-next-action p {
-  margin-top: 8px;
-}
 .practice-prediction fieldset {
   margin-block: 0;
 }
@@ -71,9 +62,6 @@
 .practice-page-intro > p {
   margin-block: 0;
 }
-.desktop-content .practice-page-intro p {
-  margin-top: 0;
-}
 @media (max-width: 650px) {
   .type-filters .ui-button.ui-toggle:not(.icon-button),
   .segmented .ui-button.ui-toggle:not(.icon-button),
@@ -90,14 +78,6 @@
   .practice-service-scene,
   .practice-learning-goal {
     padding: 16px;
-  }
-  .analysis-next-action > a {
-    align-self: stretch;
-    justify-content: center;
-    text-align: center;
-  }
-  .practice-stages > button {
-    min-height: 68px;
   }
   .practice-origin > :is(a, button) {
     padding: 10px 14px;

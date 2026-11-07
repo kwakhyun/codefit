@@ -75,9 +75,6 @@
     margin: 0;
     width: var(--control-size);
   }
-  .new-label {
-    display: none;
-  }
   .connection-banner {
     padding-inline: 16px;
   }

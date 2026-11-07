@@ -185,16 +185,13 @@ body {
   padding: 12px 16px;
 }
 .section-artwork,
-.visual-intro > .section-artwork,
-.feature-art,
-.visual-path-card > .section-artwork {
+.visual-intro > .section-artwork {
   border: 0;
   background: transparent;
   box-shadow: none;
   border-radius: 0;
 }
 .section-artwork img,
-.feature-art img,
 .auth-artwork img,
 .persona-art img,
 .scenario-art,
@@ -209,30 +206,16 @@ body {
 }
 /* Mask the artwork itself, not the empty letterbox around a contained image. */
 .section-artwork img,
-.visual-path-card > .section-artwork img,
-.visual-intro > .section-artwork img,
-.illustrated-panel > .section-artwork img {
+.visual-intro > .section-artwork img {
   aspect-ratio: 3 / 2;
   height: auto;
-  object-fit: cover;
-}
-.visual-path-card > .section-artwork img {
-  width: min(100%, 360px);
-  max-height: none;
-  margin-inline: auto;
-}
-.feature-art img {
   object-fit: cover;
 }
 .feature-banner {
   border-radius: var(--radius-panel);
   border-color: var(--line);
 }
-.feature-topic-rail .ui-button {
-  border-radius: var(--radius-control);
-}
-.visual-intro h1,
-.home-heading h1 {
+.visual-intro h1 {
   letter-spacing: -0.035em;
 }
 .eyebrow {
@@ -339,29 +322,9 @@ body {
   padding: 18px;
   border: 1px solid var(--line);
 }
-.first-action {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 24px;
-  padding: 24px;
-  margin: 24px 0;
-  border: 1px solid light-dark(var(--light-strong-line), #666670);
-  border-left: 3px solid var(--action);
-}
-.first-action p {
-  margin-top: 10px;
-  max-width: 65ch;
-}
-.first-action small {
-  display: block;
-  margin-top: 12px;
-  color: var(--muted);
-}
 [role="tabpanel"],
 .project-questions,
-.project-feedback-list,
-.learn-step-panel {
+.project-feedback-list {
   animation: terminal-enter var(--motion-enter) ease-out;
 }
 @keyframes terminal-enter {
@@ -378,14 +341,6 @@ body {
   }
 }
 @media (max-width: 700px) {
-  .first-action {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 20px;
-  }
-  .first-action .ui-link {
-    justify-self: start;
-  }
   .ui-button {
     min-height: 40px;
   }
@@ -410,16 +365,14 @@ body {
   .ui-select-options:popover-open,
   [role="tabpanel"],
   .project-questions,
-  .project-feedback-list,
-  .learn-step-panel {
+  .project-feedback-list {
     animation: none;
   }
 }
 
 /* Illustration panels blend into their parent; evidence captures retain every pixel. */
 .persona-cards label.persona-card.ui-label,
-.ui-link.learn-card,
-.ui-link.visual-path-card {
+.ui-link.learn-card {
   border-radius: var(--radius-control);
   border-color: var(--line);
   background: var(--surface);
@@ -467,7 +420,6 @@ body {
 }
 .project-usage,
 .guest-login,
-.sidebar-account,
 .journey-options .ui-button {
   border-radius: var(--radius-control);
 }
@@ -493,8 +445,7 @@ body {
 }
 
 .ui-link.nav-item.active,
-.ui-link.nav-item.domain-active,
-.site-navigation .ui-link[aria-current="page"] {
+.ui-link.nav-item.domain-active {
   background: light-dark(var(--light-blue-soft), #223754);
   border-color: transparent;
   color: light-dark(var(--light-blue), #d4e6ff);
@@ -502,15 +453,6 @@ body {
 }
 
 /* Overlapping grid cells reserve the tallest slide at every viewport width. */
-.feature-stage {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
-  background: var(--surface);
-}
-.feature-slide {
-  grid-area: 1 / 1;
-}
 
 html {
   -webkit-text-size-adjust: 100%;
@@ -537,16 +479,10 @@ html {
 .project-results,
 .project-form,
 .project-training,
-.library-content,
-.review-content,
-.learn-step-panel,
 .lab-observation,
 .lab-prediction-layout,
 .lab-learning-summary {
   animation: terminal-enter var(--motion-enter) ease-out;
-}
-.feature-slide.is-active {
-  animation-duration: var(--motion-enter);
 }
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -567,8 +503,6 @@ html {
   border-color: var(--action);
   box-shadow: inset 0 0 0 1px var(--action);
 }
-.persona-next-steps a.visual-path-card:hover,
-.feature-topic-rail .ui-button[aria-current],
 .learn-steps .ui-button[aria-current],
 .project-question-nav .ui-button[aria-current],
 .learn-option:has(input:checked) {
@@ -577,37 +511,18 @@ html {
   color: light-dark(var(--light-text), #e5efff);
   box-shadow: none;
 }
-.feature-topic-rail .ui-button[aria-current] span {
-  color: light-dark(var(--light-text), #e5efff);
-}
 .learn-option {
   background: var(--surface);
   border-color: var(--line);
 }
-.feature-banner-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) repeat(3, 44px);
-  gap: 8px;
-}
-.feature-dots.feature-topic-rail {
-  grid-column: 1 / -1;
-  width: 100%;
-}
-.feature-banner-controls > [data-playback] {
-  grid-column: 2;
-}
 .project-panel.ui-status + .project-layout {
   margin-top: 24px;
 }
-.training-welcome,
-.empty-state,
-.library-loading {
+.empty-state {
   animation: terminal-enter var(--motion-enter) ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
-  .training-welcome,
-  .empty-state,
-  .library-loading {
+  .empty-state {
     animation: none;
   }
 }
@@ -650,12 +565,6 @@ html {
   margin: 8px 0 0;
   font-size: 15px;
   line-height: 1.8;
-}
-.observation-checkpoint .checkpoint-next {
-  margin-top: 20px;
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--muted);
 }
 .observation-checkpoint .primary-button {
   display: flex;
@@ -711,15 +620,7 @@ html {
   border: 0;
   background: transparent;
 }
-/* Flex avoids stale intrinsic grid-button heights after Safari viewport changes. */
-.feature-topic-rail .ui-button {
-  display: flex;
-  align-items: center;
-}
 /* Reserve two label lines so feature navigation does not jump on resize or selection. */
-.feature-topic-rail .ui-button {
-  min-height: 58px;
-}
 .repair-next-step {
   margin-top: 24px;
   padding-top: 20px;
@@ -737,13 +638,6 @@ html {
 /* Space between complete sections belongs to the parent, not the last text node. */
 .guest-login:not(.guest-login-compact) {
   margin-block: 24px;
-}
-.persona-other-records > p {
-  margin-top: 20px;
-  line-height: 1.8;
-}
-.persona-security-start > p {
-  margin-block: 12px 20px;
 }
 .security-audit > p {
   margin-block: 12px 24px;
@@ -984,7 +878,6 @@ html {
 .ui-card,
 .ui-disclosure,
 .ui-link.learn-card,
-.ui-link.visual-path-card,
 .persona-cards label.persona-card.ui-label,
 .project-panel,
 .lab-purpose,
@@ -1015,23 +908,11 @@ html {
   padding: 4px 9px;
 }
 .eyebrow,
-.feature-tag,
 .journey-label {
   font-family: var(--sans);
   font-size: var(--text-small);
   letter-spacing: 0;
   line-height: 1.6;
-}
-.home-heading {
-  gap: 14px;
-  margin-bottom: 32px;
-}
-.home-heading h1 {
-  font-size: clamp(28px, 3vw, 42px);
-  line-height: 1.35;
-}
-.home-heading p {
-  font-size: 17px;
 }
 .visual-intro {
   border-color: var(--line);
@@ -1041,128 +922,29 @@ html {
   font-size: 16px;
 }
 .feature-banner {
-  --feature-accent: light-dark(var(--light-blue), #a3cbff);
   --feature: light-dark(var(--light-blue), #a3cbff);
   overflow: hidden;
 }
-.feature-banner.mint {
-  --feature-accent: light-dark(var(--light-cyan), #9bddcf);
-  --feature: light-dark(var(--light-cyan), #9bddcf);
-}
-.feature-banner.amber {
-  --feature-accent: light-dark(var(--light-amber), #edc38b);
-  --feature: light-dark(var(--light-amber), #edc38b);
-}
-.feature-banner.violet {
-  --feature-accent: light-dark(var(--light-purple), #cfbcff);
-  --feature: light-dark(var(--light-purple), #cfbcff);
-}
-.feature-banner-top {
-  padding: 18px 28px;
-  font-family: var(--sans);
-}
-.feature-slide {
-  grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
-  gap: 32px;
-  padding: clamp(24px, 3vw, 40px);
-  background: var(--surface);
-  align-items: center;
-}
-.feature-copy h2 {
-  font-size: clamp(26px, 2.6vw, 36px);
-  line-height: 1.4;
-  margin: 14px 0 18px;
-}
-.feature-copy p {
-  font-size: 16px;
-  line-height: 1.85;
-  max-width: 56ch;
-  margin-bottom: 24px;
-}
-.feature-art {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 3 / 2;
-  margin: 0;
-}
-.feature-art img {
-  object-fit: contain;
-}
-.feature-topic-rail .ui-button {
-  padding: 12px 16px;
-  background: var(--surface-raised);
-  border-color: transparent;
-  font-size: 14px;
-  line-height: 1.6;
-  box-shadow: none;
-}
-.feature-banner-controls {
-  padding: 18px 24px;
-}
-.section-artwork img,
-.feature-art img {
+.section-artwork img {
   mask-image:
     linear-gradient(to right, transparent, black 10%, black 90%, transparent),
     linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-}
-.visual-path-card > .section-artwork {
-  min-height: 0;
-}
-.persona-next-steps a.visual-path-card {
-  padding: 24px;
-}
-.persona-next-steps a.visual-path-card strong {
-  font-size: 20px;
-  line-height: 1.5;
-}
-.persona-next-steps a.visual-path-card p {
-  font-size: 16px;
-  margin-top: 12px;
-}
-.persona-other-records {
-  margin-top: 40px;
-}
-.section-heading-art {
-  width: 100px;
-}
-.persona-project-resume,
-.persona-security-start,
-.first-action {
-  padding: clamp(24px, 3vw, 36px);
-}
-.persona-project-resume {
-  background: light-dark(var(--light-blue-soft), #182437);
-  border-color: light-dark(var(--light-line), #344d70);
-}
-.persona-project-resume h2 {
-  font-size: clamp(24px, 2.4vw, 32px);
-}
-.persona-project-resume > p {
-  font-size: 16px;
-  line-height: 1.8;
-}
-.persona-project-resume > small {
-  font-size: 14px;
-  margin-top: 16px;
 }
 .nav-item {
   min-height: 46px;
   padding-block: 12px;
 }
-.nav-item,
-.site-navigation a {
+.nav-item {
   font-size: 15px;
 }
 .nav-item svg {
   width: 20px;
   height: 20px;
 }
-.project-panel h2,
-.security-panel h2 {
+.project-panel h2 {
   font-size: 26px;
 }
 .project-panel,
-.security-panel,
 .learn-observations {
   line-height: 1.8;
 }
@@ -1216,58 +998,18 @@ html {
   border-radius: 6px;
 }
 @media (max-width: 700px) {
-  .feature-slide {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-    padding: 24px;
-  }
-  .feature-art {
-    order: 2;
-    width: min(100%, 270px);
-    margin: 0 auto;
-    aspect-ratio: 3 / 2;
-    height: auto;
-  }
-  .feature-copy h2 {
-    font-size: 26px;
-  }
-  .feature-copy p {
-    font-size: 16px;
-  }
-  .feature-topic-rail .ui-button {
-    padding: 10px 12px;
-  }
-  .feature-banner-top,
-  .feature-banner-controls {
-    padding: 16px;
-  }
   .ui-button {
     min-height: 44px;
-  }
-  .home-heading p {
-    font-size: 16px;
   }
   .visual-intro .visual-intro-copy h1 {
     font-size: 28px;
   }
-  .persona-next-steps a.visual-path-card {
-    padding: 20px;
-  }
-  .project-panel,
-  .security-panel {
+  .project-panel {
     padding: 24px 20px;
   }
 }
 
-.training-welcome > .persona-project-resume {
-  margin-bottom: 32px;
-}
-
 /* One starting point, then personalisation and supplementary practice. */
-.training-welcome > section > .feature-banner {
-  margin-bottom: 32px;
-}
 .project-resume-strip.ui-card {
   display: flex;
   align-items: center;
@@ -1288,17 +1030,6 @@ html {
   color: var(--muted);
   font-size: 15px;
   line-height: 1.7;
-}
-.training-welcome > .persona-picker {
-  padding: 28px;
-  margin: 0 0 36px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
-  background: var(--surface);
-}
-.training-welcome .persona-storage {
-  max-width: 80ch;
-  line-height: 1.8;
 }
 .project-page .project-task-intro {
   grid-template-columns: minmax(0, 1fr) 220px;
@@ -1341,9 +1072,6 @@ html {
   }
   .project-usage button {
     margin-left: 0;
-  }
-  .training-welcome > .persona-picker {
-    padding: 20px 16px;
   }
   .project-resume-strip.ui-card {
     padding: 20px;
