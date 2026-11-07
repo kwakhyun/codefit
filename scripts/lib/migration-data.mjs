@@ -31,6 +31,8 @@ const tables = {
   ],
   learning_progress: ["owner", "lesson_id", "content", "revision", "updated_at"],
   attempts: ["id", "owner", "problem_id", "code", "review", "assisted", "created_at"],
+  problem_checks: ["owner", "problem_id", "kind", "passed", "total", "updated_at"],
+  hidden_problems: ["owner", "problem_id", "created_at"],
   legacy: ["owner", "content", "created_at"],
   ai_runs: ["id", "owner", "operation", "created_at", "content"],
 };
