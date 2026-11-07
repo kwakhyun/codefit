@@ -2,8 +2,8 @@ import { exerciseChoiceId, type AiLessonId } from "./catalog";
 import { EXTENDED_CONTENT } from "./extended-content";
 
 /** Saved progress refers to choices by id, so display order and wording can change safely. */
-export type AiExerciseChoice = { id: string; label: string; result: string; explanation: string };
-export type AiQuizChoice = { id: string; text: string };
+type AiExerciseChoice = { id: string; label: string; result: string; explanation: string };
+type AiQuizChoice = { id: string; text: string };
 export type AiQuiz = {
   question: string;
   choices: AiQuizChoice[];

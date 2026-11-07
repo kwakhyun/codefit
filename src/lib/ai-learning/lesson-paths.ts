@@ -27,7 +27,7 @@ export const AI_PATHS = [
   description: string;
   ids: readonly AiLessonId[];
 }[];
-export type AiPathId = (typeof AI_PATHS)[number]["id"];
+type AiPathId = (typeof AI_PATHS)[number]["id"];
 
 /**
  * Where a lesson was opened from: a recommended path (`?path=`), or a project workshop topic

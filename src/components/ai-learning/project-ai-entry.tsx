@@ -5,7 +5,7 @@ import { ArrowRight, GitBranch } from "lucide-react";
 import { AppLink, Button, FieldLabel, Input } from "@/components/ui/primitives";
 import { useProjectDraft } from "@/hooks/use-project-draft";
 import { api, dateLabel, errorMessage } from "@/lib/client-api";
-import { allowanceSummary } from "@/lib/ai-access";
+import { allowanceSummary, allowanceWindow, memberAllowance } from "@/lib/ai-access";
 import type { CheckOverview } from "@/lib/project-check/types";
 import { requestWorkshopAnalysis, WORKSHOP_NEW_REPOSITORY_COST } from "./workshop-autostart";
 export function ProjectAiEntry() {
@@ -106,8 +106,11 @@ function EntryForm({ overview }: { overview: CheckOverview }) {
           <span>
             새 저장소로 내 프로젝트 AI 워크숍을 만들려면 분석 횟수 {WORKSHOP_NEW_REPOSITORY_COST}
             회가 필요하고, 지금 {remaining}회 남았어요.{" "}
-            {resetsAt ? `${dateLabel(resetsAt)}에 다시 채워집니다. ` : ""}이미 분석한 프로젝트로
-            이어가거나 전체 수업을 이용해 주세요.
+            {resetsAt ? `${dateLabel(resetsAt)}에 다시 채워집니다. ` : ""}
+            {overview.signedIn
+              ? ""
+              : `로그인하면 ${allowanceWindow("analysis")} 기준 ${memberAllowance("analysis")}회까지 이용할 수 있어요. `}
+            이미 분석한 프로젝트로 이어가거나 전체 수업을 이용해 주세요.
           </span>
         </div>
       ) : (

@@ -99,7 +99,7 @@ export function validLearning(m: Mission, r: LearningRecord) {
   );
 }
 export function learningSummary(m: Mission, r: LearningRecord) {
-  return `${m.title}\n예측: ${m.choices[r.prediction] || "작성 전"}\n이유: ${r.reason}\n\n관찰\n${simulate(m, r.actions).trace.join("\n")}\n\n수정 요청\n${requestFields.map((f) => `${f.label}\n${r.request[f.key]}`).join("\n")}\n\n선택한 수정: ${m.fixes.find((f) => f.id === r.fix)?.title || "없음"}\n확인한 검사: ${r.checked.join(", ")}\n\n배운 점: ${r.reflection}`;
+  return `${m.title}\n예상: ${m.choices[r.prediction] || "작성 전"}\n이유: ${r.reason}\n\n관찰\n${simulate(m, r.actions).trace.join("\n")}\n\n수정 요청\n${requestFields.map((f) => `${f.label}\n${r.request[f.key]}`).join("\n")}\n\n선택한 수정: ${m.fixes.find((f) => f.id === r.fix)?.title || "없음"}\n확인한 검사: ${r.checked.join(", ")}\n\n배운 점: ${r.reflection}`;
 }
 export function coachSnapshot(m: Mission, r: LearningRecord) {
   return JSON.stringify({

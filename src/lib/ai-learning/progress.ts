@@ -138,7 +138,7 @@ export function sameAiProgress(a?: AiProgress, b?: AiProgress) {
 }
 
 /** Reads a map of lesson records, e.g. from the browser cache or a request body. */
-export function parseAiLessons(value: unknown): AiProgressMap {
+function parseAiLessons(value: unknown): AiProgressMap {
   const entries: AiProgressMap = {};
   if (!value || typeof value !== "object" || Array.isArray(value)) return entries;
   for (const [id, record] of Object.entries(value)) {
