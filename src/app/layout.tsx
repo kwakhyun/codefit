@@ -6,7 +6,7 @@ import { RouteFeedback } from "@/components/ui/route-feedback";
 import { GuideWidget } from "@/components/guide/guide-widget";
 import { LearningPreferenceSeed } from "@/hooks/use-learning-preference";
 import { preferenceSeed, WORKSPACE_COOKIE } from "@/lib/learning-preference";
-import { accountUser } from "@/lib/server/auth";
+import { shellAccount } from "@/lib/server/shell-account";
 import { SITE_NAME, siteOrigin, TITLE_TEMPLATE } from "@/lib/site";
 import { themeInitScript } from "@/lib/theme-init";
 import { cookies, headers } from "next/headers";
@@ -37,10 +37,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // The menu order matches the browser's workspace choice on the first paint.
   const seed = preferenceSeed(jar.get(WORKSPACE_COOKIE)?.value);
   // Streams into the sidebar; the page does not wait for the session lookup.
-  const account = accountUser(requestHeaders).then(
-    (user) => (user ? { name: user.name } : null),
-    () => null,
-  );
+  const account = shellAccount(requestHeaders).catch(() => null);
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
