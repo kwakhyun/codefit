@@ -16,6 +16,8 @@ for (const width of [1440, 390]) {
       }),
     );
     await page.goto("/project-check");
+    // The saved checks are folded under "점검 기록" until opened.
+    await page.locator(".project-history-list > summary").click();
     const toggle = page.locator(".project-history-items .ui-toggle").first();
     await expect(toggle).toBeVisible();
     const spacing = await toggle.evaluate((element) => {

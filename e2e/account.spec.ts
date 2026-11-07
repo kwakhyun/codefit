@@ -4,6 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { testAccount } from "../scripts/lib/test-account";
 import { resolve } from "node:path";
 import { editor, setCode } from "./editor-helpers";
+import { waitForUiTransitions } from "./ui-helpers";
 const base = E2E_BASE_URL;
 test("guests can practice, see login guidance, and can generate but cannot read member profiles", async ({
   page,
@@ -32,12 +33,14 @@ test("guests can practice, see login guidance, and can generate but cannot read 
     "href",
     "https://codefit-five.vercel.app/login",
   );
+  // The route change fades the page in; audit the settled colors, not a frame of the fade.
+  await waitForUiTransitions(page);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.goto("/profile");
   await expect(page).toHaveURL(/\/login\?returnTo=/);
   await page.getByRole("link", { name: "로그인 없이 연습하기" }).click();
   await expect(
-    page.getByRole("heading", { level: 1, name: /작동 원리를 직접 확인해 보세요/ }),
+    page.getByRole("heading", { level: 1, name: "내 프로젝트로 배우고, 직접 확인하세요" }),
   ).toBeVisible();
 });
 test("profile, account ownership, generation quota and logout work together", async ({

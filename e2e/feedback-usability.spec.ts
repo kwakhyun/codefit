@@ -21,7 +21,7 @@ test("first visit recommends project checks and previews project questions befor
   if (info.project.name === "chromium")
     await page.screenshot({ path: "artifacts/feedback-home-desktop.png", fullPage: true });
   await accessible(page);
-  await recommended.getByRole("link", { name: "내 서비스 점검하기" }).click();
+  await recommended.getByRole("link", { name: /^서비스 주소로 점검하기/ }).click();
   await page.getByText("입력 전에 질문과 피드백 예시 살펴보기", { exact: true }).click();
   const sample = page.getByRole("region", { name: "어떤 질문과 피드백을 받나요?" });
   await expect(sample).toContainText("실제 AI 분석 결과나 사용자 답변이 아닙니다");

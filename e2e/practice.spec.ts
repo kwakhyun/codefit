@@ -138,7 +138,11 @@ test("queued saves and an offline retry retain the latest code", async ({ page, 
     .toBe("print('offline draft survives')");
 });
 
-test("settings and quality page are accessible, with keyboard focus restored", async ({ page }) => {
+// The quality page was retired (navigation.spec checks its 404); the footer's information link
+// is the remaining page reached from every screen.
+test("settings and the footer information page are accessible, with keyboard focus restored", async ({
+  page,
+}) => {
   await home(page);
   const settings = page.getByRole("button", { name: "환경 설정" });
   await settings.click();
@@ -146,8 +150,13 @@ test("settings and quality page are accessible, with keyboard focus restored", a
   await accessible(page);
   await page.keyboard.press("Escape");
   await expect(settings).toBeFocused();
-  await page.getByRole("link", { name: "AI 검토 방식과 검증 결과", exact: true }).click();
-  await expect(page.getByRole("heading", { name: /AI의 피드백도/ })).toBeVisible();
+  await page
+    .getByRole("contentinfo")
+    .getByRole("link", { name: "개인정보 안내", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "연습 기록과 계정 정보" }),
+  ).toBeVisible();
   await accessible(page);
 });
 

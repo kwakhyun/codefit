@@ -56,7 +56,12 @@ test("coaching focus preserves exact learner text, escapes HTML and restores leg
     })
     .toBe(reason);
   await page.reload();
-  await page.getByRole("button", { name: "비교 결과 다시 보기" }).click();
+  // A run lab reopens on its first unfinished step; the comparison is one step back.
+  await expect(page.getByRole("heading", { name: "3. 수정하기" })).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "코드 이해 훈련 단계" })
+    .getByRole("button", { name: /비교하기/ })
+    .click();
   await expect(focus).toContainText(learnerQuote);
   await expect(focus).toContainText(goal);
   await waitForUiTransitions(page);

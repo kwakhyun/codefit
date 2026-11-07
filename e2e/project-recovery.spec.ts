@@ -45,6 +45,14 @@ for (const kind of ["practice", "workshop"] as const) {
       calls++;
       return route.fulfill({ status: 503, json: { error: "복구 요청 확인" } });
     });
+    let detailResponses = 0,
+      statusResponses = 0;
+    page.on("response", (response) => {
+      const path = new URL(response.url()).pathname;
+      if (path === `/api/project-check/${id}`) detailResponses++;
+      else if (path === `/api/project-check/${id}/${kind}` && response.request().method() === "GET")
+        statusResponses++;
+    });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(
       kind === "practice"
@@ -53,7 +61,19 @@ for (const kind of ["practice", "workshop"] as const) {
     );
     await expect(page.getByRole("button", { name: "저장된 결과 복구" })).toBeEnabled();
     await page.getByRole("button", { name: "저장된 결과 복구" }).click();
-    await expect(page.getByText("복구 요청 확인", { exact: true })).toBeVisible();
+    // The floating activity repeats the reason; the page itself must show it too.
+    const reason = page.getByRole("main").getByText("복구 요청 확인", { exact: true });
+    await expect(reason).toBeVisible();
     expect(calls).toBe(1);
+    // The failed task also reloads the saved state (record + status) in the background. That
+    // reload must not clear the reason the page just showed.
+    await expect.poll(() => [detailResponses, statusResponses]).toEqual([2, 3]);
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
+    await expect(reason).toBeVisible();
   });
 }

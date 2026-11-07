@@ -18,25 +18,35 @@ test("a partial beginner draft resumes from course, home and history without lea
         (await (await page.request.get("/api/learn/where-data-lives")).json()).progress?.code,
     )
     .toContain("개인 초안");
-  await page.getByRole("link", { name: "서비스 원리 배우기", exact: true }).click();
+  // The menu and the breadcrumb share this name; the mission's own link opens the sample tab.
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: "서비스 원리 배우기", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/learn\?source=sample$/);
   const recommendation = page.getByRole("region", { name: "추천 입문 미션" });
   await expect(recommendation).toContainText("1/4단계");
   await recommendation.getByRole("link", { name: "이어서 연습하기" }).click();
   await expect(page.getByLabel("왜 그렇게 생각했나요?")).toHaveValue(
     "아직 예상을 제출하지 않은 개인 초안입니다.",
   );
+  // On the home screen the mission resume belongs to the service workspace.
+  const serviceHome = (target: typeof page) =>
+    target.getByRole("radio", { name: "서비스 점검실", exact: true }).click();
   for (const url of ["/", "/?view=history"]) {
     await page.goto(url);
+    if (url === "/") await serviceHome(page);
     const resume = page.getByRole("region", { name: "입문 학습 이어하기" });
     await expect(resume).toContainText("데이터는 어디에 저장될까요?");
     await expect(resume.getByRole("link")).toHaveAttribute("href", "/learn/where-data-lives");
   }
   const other = await browser.newContext();
   const guest = await other.newPage();
+  await guest.goto(new URL("/", page.url()).href);
   const loaded = guest.waitForResponse(
     (response) => response.url().endsWith("/api/learn") && response.ok(),
   );
-  await guest.goto(new URL("/", page.url()).href);
+  await serviceHome(guest);
   await loaded;
   await expect(guest.getByText("입문 학습 기록을 확인하고 있습니다…")).toHaveCount(0);
   await expect(guest.getByRole("region", { name: "입문 학습 이어하기" })).toHaveCount(0);
@@ -46,12 +56,13 @@ test("a partial beginner draft resumes from course, home and history without lea
 test("new code learners get one consistent first recommendation; public navigation works", async ({
   page,
 }) => {
-  await page.goto("/handoff");
+  // The recommendation belongs to the sample tab, and its link returns there.
+  await page.goto("/handoff?source=sample");
   const next = page.getByRole("region", { name: "추천 코드 이해 훈련" });
   await expect(next).toContainText("장바구니 상태 인수인계");
   await expect(next.getByRole("link")).toHaveAttribute(
     "href",
-    "/problems/handoff-cart?from=%2Fhandoff",
+    "/problems/handoff-cart?from=%2Fhandoff%3Fsource%3Dsample",
   );
   await next.getByRole("link").click();
   await expect(page.getByRole("heading", { name: "1. 예상하기" })).toBeVisible();

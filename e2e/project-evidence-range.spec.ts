@@ -128,7 +128,9 @@ for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto(`/project-practice?mode=code&check=${check.id}`);
     await page.getByRole("button", { name: "맞춤 연습 6개 만들기", exact: true }).click();
-    await expect(page.getByText("두 번째 단계 연결 실패", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("main").getByText("두 번째 단계 연결 실패", { exact: true }),
+    ).toBeVisible();
     await page.getByRole("button", { name: "저장된 단계부터 이어서 생성" }).click();
     expect(generationRequests).toBe(3);
     const code = page.locator(".practice-sources .repository-code");

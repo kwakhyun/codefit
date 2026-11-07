@@ -37,10 +37,13 @@ test("project-specific plans preserve real-result blanks and export useful hando
   await page.route(`**/api/project-check/${check.id}`, (route) => route.fulfill({ json: check }));
   await page.goto(`/project-check?check=${check.id}`);
   const panel = page.locator("#project-follow-up");
-  await expect(
-    panel.getByRole("heading", { name: fixtureVerificationPlan.goal }).first(),
-  ).toBeVisible();
-  const task = panel.locator("details").first();
+  const task = panel.locator("details.project-feedback").first();
+  await expect(task).toHaveAttribute("open", "");
+  // Each task folds the AI's project-specific plan under its own disclosure.
+  await task.getByText("단계별 확인 방법 보기", { exact: true }).click();
+  const plan = task.locator(".verification-plan");
+  await expect(plan).toContainText(fixtureVerificationPlan.goal);
+  await expect(plan).toContainText(fixtureVerificationPlan.steps[0].expected);
   await task.getByRole("button", { name: "빈 기록에 확인 양식 채우기" }).click();
   await expect(task.getByRole("textbox")).toHaveValue(/실제 결과: \[직접 확인 후 작성\]/);
   await expect(task.getByRole("combobox")).toHaveValue("planned");
@@ -104,7 +107,8 @@ test("owned CORS workflow separates proof from execution and invalidates target 
   await page.getByText("소유권 확인 후 CORS 테스트", { exact: true }).click();
   const panel = page.getByRole("region", { name: "심화 보안 점검" });
   await expect(panel.locator(".security-consent")).toHaveCSS("display", "flex");
-  await expect(panel.getByRole("checkbox")).toHaveCSS("width", "16px");
+  // The consent checkbox keeps its fixed 20px target instead of stretching like text inputs.
+  await expect(panel.getByRole("checkbox")).toHaveCSS("width", "20px");
   await panel.getByRole("checkbox").check();
   await panel.getByRole("button", { name: "소유권 확인 파일 발급" }).click();
   await expect(panel.getByText("1. 파일을 배포하세요")).toBeVisible();

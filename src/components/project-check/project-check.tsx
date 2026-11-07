@@ -6,7 +6,7 @@ import { useConfirmation } from "@/components/ui/use-confirmation";
 import { LoadingState } from "@/components/ui/loading-state";
 import { Status, Card, Button } from "@/components/ui/primitives";
 import { GuestLogin } from "@/components/account/guest-login";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { RefreshCw, CircleAlert } from "lucide-react";
 import { useProjectHistory } from "@/hooks/use-project-history";
@@ -25,7 +25,9 @@ export function ProjectCheckApp() {
   const { data, error, loading } = overview;
   const knownScope = useRef<string | undefined>(undefined);
   const scope = data?.scope;
-  useEffect(() => {
+  // A layout effect: it must clear the previous account's selection before the new account's
+  // workspace restores its own saved selection in a passive effect.
+  useLayoutEffect(() => {
     if (!scope) return;
     // Another account's record must not stay selected after switching accounts.
     if (knownScope.current && knownScope.current !== scope) {

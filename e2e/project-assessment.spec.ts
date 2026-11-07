@@ -48,9 +48,15 @@ test("grounded feedback exposes exact evidence with keyboard and mobile layout",
   );
   await page.goto(`/project-check?check=${fixtureCheck.id}`);
   await expect(page.getByRole("heading", { name: "설계 설명 점수 10 / 100" })).toBeVisible();
+  // The per-question feedback opens with the result, and items below level 3 start expanded.
+  const list = page.locator(".project-feedback-list");
+  await expect(list).toHaveAttribute("open", "");
   await page.getByText("질문별 AI 피드백 5개 보기", { exact: true }).focus();
   await page.keyboard.press("Enter");
-  await page.locator(".project-feedback-item > summary").first().click();
+  await expect(list).not.toHaveAttribute("open", "");
+  await page.keyboard.press("Enter");
+  await expect(list).toHaveAttribute("open", "");
+  await expect(page.locator(".project-feedback-item").first()).toHaveAttribute("open", "");
   const toggle = page.getByText("평가에 사용한 내 설명 보기", { exact: true }).first();
   await toggle.focus();
   await page.keyboard.press("Enter");
@@ -81,7 +87,8 @@ test("grounded feedback exposes exact evidence with keyboard and mobile layout",
   delete record.review!.assessment.rubricVersion;
   for (const f of record.review!.assessment.feedback) delete f.evidence;
   await page.reload();
-  await page.getByText("질문별 AI 피드백 5개 보기", { exact: true }).click();
+  await expect(list).toHaveAttribute("open", "");
+  await expect(page.locator(".project-feedback-item")).toHaveCount(5);
   await expect(page.getByText("평가에 사용한 내 설명 보기", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "설계 설명 점수 10 / 100" })).toBeVisible();
   await expect(page.getByText("먼저 바로잡을 설명", { exact: true })).toHaveCount(0);
@@ -116,8 +123,8 @@ test("grounded feedback exposes exact evidence with keyboard and mobile layout",
   };
   await page.reload();
   await expect(page.getByRole("heading", { name: "설계 설명 점수 5 / 100" })).toBeVisible();
-  await page.getByText("질문별 AI 피드백 5개 보기", { exact: true }).click();
-  await page.locator(".project-feedback-item > summary").first().click();
+  await expect(list).toHaveAttribute("open", "");
+  await expect(page.locator(".project-feedback-item").first()).toHaveAttribute("open", "");
   const issue = page.locator(".project-assessment-issue");
   await expect(issue.getByText("먼저 바로잡을 설명", { exact: true })).toBeVisible();
   await expect(issue.locator("blockquote")).toHaveText(quote);

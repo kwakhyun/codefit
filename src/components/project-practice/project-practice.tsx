@@ -98,8 +98,13 @@ function PracticeWorkspace({
   }, []);
   const requestId = useRef<string | null>(null);
   const endpoint = `/api/project-check/${id}/practice`;
+  // The load below also reruns when a generation finishes, including the one that just failed
+  // here. Only a recovered load error, another project or a manual reload clears the message.
+  const loadFailed = useRef(false);
+  const loadedKey = useRef("");
   useEffect(() => {
     if (!id) return;
+    const key = `${data.scope}:${id}:${reload}`;
     const controller = new AbortController();
     Promise.all([
       api<Check>(`/api/project-check/${id}`, { scope: data.scope, signal: controller.signal }),
@@ -113,7 +118,9 @@ function PracticeWorkspace({
           setCheck(record);
           setSaved(practice.result);
           setProgress(practice);
-          setError("");
+          if (loadFailed.current || loadedKey.current !== key) setError("");
+          loadFailed.current = false;
+          loadedKey.current = key;
           // A repository analysed on this page continues to practice generation once, as chosen.
           let requested = false;
           try {
@@ -124,7 +131,9 @@ function PracticeWorkspace({
         }
       })
       .catch((e) => {
-        if (!controller.signal.aborted) setError(errorMessage(e));
+        if (controller.signal.aborted) return;
+        loadFailed.current = true;
+        setError(errorMessage(e));
       });
     return () => controller.abort();
     // run reads the current state when the load finishes; it is not a reason to reload.
@@ -163,6 +172,7 @@ function PracticeWorkspace({
         select(record.id);
       }
     } catch (e) {
+      loadFailed.current = false;
       setError(errorMessage(e));
       if (generate) {
         try {

@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { fixtureCheck, fixtureAssessment } from "../src/lib/project-check/fixtures";
 import { publicCheck } from "../src/lib/server/project-check-store";
-import type { CheckOverview } from "../src/lib/project-check/types";
+import { checkListItem, type CheckOverview } from "../src/lib/project-check/types";
 import { testAccount } from "../scripts/lib/test-account";
 
 const overview = (): CheckOverview => ({
@@ -38,13 +38,19 @@ for (const signedIn of [false, true]) {
       ...overview(),
       signedIn,
       scope: `${signedIn ? "user" : "guest"}:resume-test`,
-      checks: [check, other],
+      checks: [checkListItem(check), checkListItem(other)],
     };
     let mutations = 0;
     await page.route("**/api/project-check", (route) => {
       if (route.request().method() !== "GET") mutations++;
       return route.fulfill({ json: data });
     });
+    // The list holds summaries; each saved record opens from its own detail request.
+    for (const record of [check, other])
+      await page.route(`**/api/project-check/${record.id}`, (route) => {
+        if (route.request().method() !== "GET") mutations++;
+        return route.fulfill({ json: record });
+      });
     await page.goto(`/project-check?check=${check.id}`);
     const result = page.getByRole("heading", { name: "설계 설명 점수 50 / 100" });
     await expect(result).toBeVisible();
@@ -66,10 +72,12 @@ for (const signedIn of [false, true]) {
       page.getByRole("heading", { name: other.analysis.title, exact: true }),
     ).toBeVisible();
     await page.getByRole("button", { name: "+ 새 프로젝트 점검", exact: true }).click();
-    await page.getByLabel("서비스 링크", { exact: true }).fill("https://next.example.com/");
+    await page
+      .getByLabel("서비스 또는 공개 저장소 링크", { exact: true })
+      .fill("https://next.example.com/");
     await page.goto("/learn");
     await page.goto("/project-check");
-    await expect(page.getByLabel("서비스 링크", { exact: true })).toHaveValue(
+    await expect(page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true })).toHaveValue(
       "https://next.example.com/",
     );
     await expect(page).not.toHaveURL(/check=/);
@@ -102,6 +110,11 @@ test("older records remain reachable by pagination, reload and browser history",
       { name, value: value.join("="), url: baseURL!, httpOnly: true, sameSite: "Lax" },
     ]);
     await page.goto("/project-check");
+    // Saved checks are folded under "점검 기록"; open it before reading the first page.
+    await page.locator(".project-history-list > summary").click();
+    await expect(page.locator(".project-history-items .ui-toggle")).toHaveCount(
+      first.checks.length,
+    );
     await expect(
       page.getByRole("button", { name: new RegExp(`${older.analysis.title}\\s+example`) }),
     ).toHaveCount(0);
@@ -125,7 +138,7 @@ test("older records remain reachable by pagination, reload and browser history",
     await expect(page).toHaveURL(new RegExp(`check=${older.id}`));
     await expect(page.getByLabel("내 설계 설명")).toHaveValue("두 번째 질문의 미제출 설명");
     await page.getByRole("button", { name: "+ 새 프로젝트 점검", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "어떤 서비스를 만드셨나요?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "어떤 프로젝트를 살펴볼까요?" })).toBeVisible();
     await page.goBack();
     await expect(page.getByLabel("내 설계 설명")).toHaveValue("두 번째 질문의 미제출 설명");
     await page.setViewportSize({ width: 390, height: 844 });
@@ -133,7 +146,11 @@ test("older records remain reachable by pagination, reload and browser history",
       true,
     );
     const summary = page.locator(".project-history-list > summary");
-    const historyWidth = (await page.locator(".project-history").boundingBox())!.width;
+    // The history is a padded card; its toggle row spans the card's full content width.
+    const historyWidth = await page.locator(".project-history").evaluate((element) => {
+      const style = getComputedStyle(element);
+      return element.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    });
     expect((await summary.boundingBox())!.width).toBeGreaterThanOrEqual(historyWidth - 2);
     await summary.focus();
     await page.keyboard.press("Enter");
@@ -151,10 +168,18 @@ test("older records remain reachable by pagination, reload and browser history",
       .click();
     await expect(page.getByRole("heading", { name: "어떤 프로젝트를 살펴볼까요?" })).toBeVisible();
     await page.goto(`/project-check?check=${older.id}`);
-    await expect(page.locator("main [role=alert]")).toContainText(
-      "이 계정에서 점검 기록을 찾을 수 없습니다",
-    );
-    await expect(page.getByRole("heading", { name: "어떤 프로젝트를 살펴볼까요?" })).toHaveCount(0);
+    // A deleted record's link explains itself and opens the saved list instead of a dead end.
+    await expect(
+      page
+        .getByRole("main")
+        .getByRole("status")
+        .filter({ hasText: "선택한 점검 기록을 찾지 못했습니다" }),
+    ).toBeVisible();
+    await expect(page).not.toHaveURL(/check=/);
+    await expect(page.locator(".project-history-list")).toHaveAttribute("open", "");
+    await expect(
+      page.getByRole("heading", { name: older.analysis.title, exact: true }),
+    ).toHaveCount(0);
   } finally {
     account.store.db.close();
   }
@@ -175,10 +200,26 @@ test("an uncertain analysis retries its ID but an explicit new check uses a new 
     data = { ...data, checks: [check, ...data.checks.filter((c) => c.id !== check.id)] };
     return route.fulfill({ json: check });
   });
+  // A lost response is followed by a status read, never by a second paid request; here the
+  // server reports it never recorded the request, so the learner may send it again.
+  let statusReads = 0;
+  await page.route("**/api/project-check/*/status", (route) => {
+    statusReads++;
+    return route.fulfill({
+      status: 404,
+      json: { error: "이 계정에서 분석 요청을 찾지 못했습니다." },
+    });
+  });
   await page.goto("/project-check");
-  await page.getByLabel("서비스 링크", { exact: true }).fill("https://example.com/");
+  await page
+    .getByLabel("서비스 또는 공개 저장소 링크", { exact: true })
+    .fill("https://example.com/");
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
-  await expect(page.locator("main [role=alert]")).toContainText("응답이 끊겼습니다");
+  await expect(page.locator(".project-recovery[data-state=failed]")).toContainText(
+    "분석하지 못했어요",
+  );
+  expect(ids).toHaveLength(1);
+  expect(statusReads).toBe(1);
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
   await expect(page.getByRole("heading", { name: "예약 서비스 설계 점검" })).toBeVisible();
   expect(ids[1]).toBe(ids[0]);
@@ -210,15 +251,20 @@ test("account discovery recovers after visiting home and switching the signed-in
     await login(a.cookie);
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: "작동 원리를 직접 확인해 보세요" }),
+      page.getByRole("heading", { level: 1, name: "내 프로젝트로 배우고, 직접 확인하세요" }),
     ).toBeVisible();
-    await page.locator('a[href="/project-check"]').first().click();
+    await page
+      .getByRole("navigation", { name: "작업 공간 메뉴" })
+      .getByRole("link", { name: "내 프로젝트 점검", exact: true })
+      .click();
+    await page.locator(".project-history-list > summary").click();
     await page.getByRole("button", { name: /예약 서비스 설계 점검/ }).click();
     await page.getByLabel("내 설계 설명").fill("첫 계정의 비공개 초안");
     await login(b.cookie);
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-    await expect(page.getByRole("heading", { name: "어떤 서비스를 만드셨나요?" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /예약 서비스 설계 점검/ })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "어떤 프로젝트를 살펴볼까요?" })).toBeVisible();
+    // Counted in the DOM, so a folded history list cannot hide the first account's record.
+    await expect(page.locator(".project-history-items .ui-toggle")).toHaveCount(0);
     await expect(page).not.toHaveURL(/check=/);
     await login(a.cookie);
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
