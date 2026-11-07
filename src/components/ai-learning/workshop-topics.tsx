@@ -2,7 +2,11 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AI_LESSONS } from "@/lib/ai-learning/catalog";
-import type { ProjectWorkshop, WorkshopPlan } from "@/lib/ai-learning/project-workshop";
+import {
+  workshopProgress,
+  type ProjectWorkshop,
+  type WorkshopPlan,
+} from "@/lib/ai-learning/project-workshop";
 import type { Check } from "@/lib/project-check/types";
 import { api, errorMessage } from "@/lib/client-api";
 import {
@@ -13,10 +17,20 @@ import {
   DisclosureSummary,
   FieldLabel,
   Input,
+  Progress,
   Textarea,
 } from "@/components/ui/primitives";
 import { PracticeSources } from "@/components/project-practice/practice-sources";
 type TopicDraft = { choice: number | null; note: string };
+type TopicProgress = ReturnType<typeof workshopProgress>["topics"][number];
+/** Text status for a topic button; never conveyed by color alone. */
+function topicStatus(topic: TopicProgress) {
+  if (!topic.answered) return "답변 전";
+  if (topic.firstCorrect === null)
+    return topic.currentCorrect ? "답변 저장 · 권장 선택과 같음" : "답변 저장";
+  if (topic.firstCorrect) return "처음 답변이 권장 선택과 같음";
+  return topic.currentCorrect ? "수정한 답변이 권장 선택과 같음" : "다시 볼 주제";
+}
 // Unsaved answers survive visiting the linked lessons; the server record stays authoritative.
 const draftKey = (checkId: string, index: number) =>
   `codefit.ai-workshop-draft:${checkId}:${index}`;
@@ -69,11 +83,28 @@ export function WorkshopTopics({
     .map((topic, index) => ({ topic, index }))
     .filter((t) => t.topic.kind === kind);
   const active = topics.find((t) => t.index === selected) || topics[0];
+  const progress = workshopProgress(saved);
   return (
     <div className="project-ai-plan">
       <Card className="project-ai-summary">
         <h2>내 프로젝트에서 배울 AI</h2>
         <p>{saved.plan.summary}</p>
+        {progress.total > 0 && (
+          <div className="project-ai-progress">
+            <strong>
+              {progress.answered}/{progress.total} 주제 완료
+            </strong>
+            <Progress
+              aria-label="내 프로젝트 AI 워크숍 주제 완료 수"
+              value={progress.answered}
+              max={progress.total}
+            />
+            <span className="muted">
+              처음 답변이 권장 선택과 같은 주제{" "}
+              {progress.topics.filter((t) => t.firstCorrect).length}개
+            </span>
+          </div>
+        )}
         <Disclosure>
           <DisclosureSummary>분석 범위와 확인하지 못한 내용</DisclosureSummary>
           <p className="muted">{saved.plan.limitations}</p>
@@ -83,7 +114,7 @@ export function WorkshopTopics({
           않습니다.
         </small>
       </Card>
-      <div className="project-ai-switch" role="group" aria-label="프로젝트 AI 학습 종류">
+      <div className="project-ai-switch" role="group" aria-label="내 프로젝트 AI 워크숍 주제 종류">
         {(
           [
             ["observed", "코드에서 확인한 AI"],
@@ -125,14 +156,12 @@ export function WorkshopTopics({
                 onClick={() => setSelected(index)}
               >
                 <span>
-                  {saved.responses[index]
-                    ? saved.responses[index]?.choice === topic.answer
-                      ? "✓ "
-                      : "답변 저장 · "
-                    : ""}
+                  {progress.topics[index].answered && <span aria-hidden="true">✓ </span>}
                   {topic.title}
                 </span>
-                <small>{topic.tool}</small>
+                <small>
+                  {topic.tool} · {topicStatus(progress.topics[index])}
+                </small>
               </Button>
             ))}
           </div>
@@ -294,10 +323,36 @@ function TopicDetail({
         {response && (
           <div className="practice-scenario">
             <h4>
-              {response.choice === topic.answer
-                ? "판단의 기준을 잘 짚었어요"
-                : "이 판단 기준을 다시 살펴보세요"}
+              {response.firstChoice === undefined
+                ? response.choice === topic.answer
+                  ? "판단의 기준을 잘 짚었어요"
+                  : "이 판단 기준을 다시 살펴보세요"
+                : response.firstChoice === topic.answer
+                  ? "처음 답변부터 판단의 기준을 잘 짚었어요"
+                  : response.choice === topic.answer
+                    ? "수정한 답변이 권장 선택과 같아요"
+                    : "이 판단 기준을 다시 살펴보세요"}
             </h4>
+            {response.firstChoice !== undefined && (
+              <dl className="project-ai-answers">
+                <div>
+                  <dt>처음 답변</dt>
+                  <dd>
+                    {topic.choices[response.firstChoice]}
+                    {response.firstChoice === topic.answer ? " · 권장 선택과 같음" : ""}
+                  </dd>
+                </div>
+                {response.firstChoice !== response.choice && (
+                  <div>
+                    <dt>수정한 답변</dt>
+                    <dd>
+                      {topic.choices[response.choice]}
+                      {response.choice === topic.answer ? " · 권장 선택과 같음" : ""}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            )}
             <p>{topic.feedback}</p>
             <p>권장 선택: {topic.choices[topic.answer]}</p>
           </div>
@@ -315,7 +370,10 @@ function TopicDetail({
           placeholder="무엇을 바꾸고 어떤 결과를 확인할지 적어보세요. 실행 전이라면 ‘확인 예정’으로 남겨주세요."
         />
         <p className="muted">
-          기록은 직접 저장해야 합니다. 실행 결과나 실제 적용 여부를 자동 검증하지 않습니다.
+          기록은 직접 저장해야 합니다. 실행 결과나 실제 적용 여부를 자동 검증하지 않습니다.{" "}
+          {response
+            ? "답변을 바꿔 저장해도 처음 답변은 따로 남습니다."
+            : "처음 저장한 답변은 따로 남아, 나중에 바꿔도 비교할 수 있습니다."}
         </p>
         <Button className="primary-button" onClick={save} disabled={busy || choice === null}>
           {busy ? "저장 중…" : response ? "답변과 기록 수정 저장" : "답변 확인하고 기록 저장"}

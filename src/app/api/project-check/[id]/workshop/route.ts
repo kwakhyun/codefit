@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { workshopSaveSchema } from "@/lib/ai-learning/project-workshop";
+import { workshopResponse, workshopSaveInputSchema } from "@/lib/ai-learning/project-workshop";
 import { projectMember } from "@/lib/server/project-member";
 import { getStore } from "@/lib/server/database";
 import { failure, HttpError, json, readBody } from "@/lib/server/http";
@@ -67,8 +67,15 @@ export async function POST(request: Request, context: Context) {
 export async function PATCH(request: Request, context: Context) {
   try {
     const { owner, id, store } = await contextFor(request, context);
-    const input = await readBody(request, workshopSaveSchema, 32000);
-    return json(await store.queries.projectChecks.saveWorkshop(owner, id, input));
+    const input = await readBody(request, workshopSaveInputSchema, 32000);
+    // The store rechecks the revision, so a concurrent save cannot change the first choice.
+    const saved = await store.queries.projectChecks.workshop(owner, id);
+    return json(
+      await store.queries.projectChecks.saveWorkshop(owner, id, {
+        ...input,
+        response: workshopResponse(saved, input),
+      }),
+    );
   } catch (error) {
     return failure(error);
   }

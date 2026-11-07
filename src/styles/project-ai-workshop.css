@@ -229,3 +229,38 @@
 .project-ai-summary details p {
   padding-top: 16px;
 }
+
+/* Overall topic progress and first vs revised answers. */
+.project-ai-progress {
+  display: grid;
+  gap: 6px;
+  margin-top: 4px;
+}
+.project-ai-progress progress {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--ai);
+}
+.project-ai-progress .muted {
+  font-size: var(--text-caption);
+}
+.project-ai-answers {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0;
+}
+.project-ai-answers dt {
+  font-size: var(--text-caption);
+  color: var(--muted);
+}
+.project-ai-answers dd {
+  margin: 2px 0 0;
+}
+.project-ai-entry-blocked {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-small);
+  font-size: 14px;
+}

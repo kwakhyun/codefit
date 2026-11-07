@@ -6,7 +6,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import type { LearningStatus } from "@/lib/project-check/learning-generation";
 import { generateLearning } from "@/lib/project-check/generate-learning";
 import { RenewProject } from "@/components/project-check/renew-project";
-import { api, ApiError, errorMessage } from "@/lib/client-api";
+import { api, ApiError, dateLabel, errorMessage } from "@/lib/client-api";
+import { allowanceSummary } from "@/lib/ai-access";
 import type { Check, CheckOverview } from "@/lib/project-check/types";
 import type { ProjectWorkshop } from "@/lib/ai-learning/project-workshop";
 import { useProjectDraft } from "@/hooks/use-project-draft";
@@ -27,6 +28,7 @@ import {
   requestWorkshopGeneration,
   takeWorkshopAnalysis,
   takeWorkshopGeneration,
+  WORKSHOP_NEW_REPOSITORY_COST,
 } from "./workshop-autostart";
 export function ProjectAiWorkshop() {
   const params = useSearchParams();
@@ -96,6 +98,10 @@ function Workspace({
   const [busy, setBusy] = useState("");
   const [reload, setReload] = useState(0);
   const generationRevision = useGenerationRevision();
+  const { remaining, resetsAt } = overview.usage.analysis;
+  const resetNote = resetsAt ? `${dateLabel(resetsAt)}에 분석 횟수가 다시 채워집니다. ` : "";
+  // A pending request may already have its analysis; only a new repository needs the full cost.
+  const short = overview.aiReady && remaining < WORKSHOP_NEW_REPOSITORY_COST && !draft.requestId;
   const [checks, setChecks] = useState(overview.checks);
   const [cursor, setCursor] = useState(overview.nextCursor);
   const lock = useRef(false);
@@ -163,9 +169,9 @@ function Workspace({
         if (!(e instanceof ApiError && e.status === 404)) throw e;
       }
       if (!record) {
-        if (overview.usage.analysis.remaining < 2)
+        if (overview.usage.analysis.remaining < WORKSHOP_NEW_REPOSITORY_COST)
           throw new Error(
-            "새 저장소 분석과 AI 학습 준비에는 분석 2회가 필요합니다. 기존 프로젝트를 선택하거나 한도 초기화 후 이용해 주세요.",
+            `새 저장소로 내 프로젝트 AI 워크숍을 만들려면 분석 횟수 ${WORKSHOP_NEW_REPOSITORY_COST}회가 필요합니다. ${resetNote}기존 프로젝트를 선택해 이어갈 수 있습니다.`,
           );
         record = await startProjectAnalysis(
           { requestId, url: draft.url, description: draft.description, source: "repository" },
@@ -244,7 +250,9 @@ function Workspace({
               다른 프로젝트 선택하거나 새로 분석하기
             </AppLink>
           )}
-          {id && <Button onClick={() => setReload((n) => n + 1)}>저장된 학습 다시 불러오기</Button>}
+          {id && (
+            <Button onClick={() => setReload((n) => n + 1)}>저장된 워크숍 다시 불러오기</Button>
+          )}
         </Card>
       )}
       {busy && <RequestStatus label={busy} />}
@@ -305,24 +313,38 @@ function Workspace({
               placeholder="예: 고객 문의를 분류하고 싶어요. 이미 연결한 AI의 오류 처리도 이해하고 싶어요."
             />
             <p className="muted">
-              공개 코드 일부와 설명을 OpenAI로 보내 분석합니다. 새 분석 1회와 다음 단계의 학습 생성
-              1회를 사용합니다. 현재 {overview.usage.analysis.remaining}회 남음. 비공개 저장소는
-              지원하지 않습니다.
+              공개 코드 일부와 설명을 OpenAI로 보내 분석합니다. 새 분석과 다음 단계의 AI 워크숍
+              생성에 분석 횟수 {WORKSHOP_NEW_REPOSITORY_COST}회를 사용합니다. 현재{" "}
+              {overview.usage.analysis.remaining}회 남음 ({allowanceSummary("analysis")}). 비공개
+              저장소는 지원하지 않습니다.
             </p>
             {storageError && <p role="status">입력 내용을 브라우저에 보관하지 못했습니다.</p>}
-            <Button className="primary-button" disabled={!!busy || !overview.aiReady} type="submit">
+            <Button
+              className="primary-button"
+              disabled={!!busy || !overview.aiReady || short}
+              type="submit"
+            >
               저장소 분석하고 다음으로 →
             </Button>
-            {!overview.aiReady && (
+            {!overview.aiReady ? (
               <p role="status" className="ui-notice">
                 <CircleAlert size={18} aria-hidden="true" />
-                AI 연결을 준비 중입니다. 기존 학습이나 일반 수업을 이용해 주세요.
+                AI 연결을 준비 중입니다. 기존 워크숍이나 일반 수업을 이용해 주세요.
               </p>
+            ) : (
+              short && (
+                <p role="status" className="ui-notice">
+                  <CircleAlert size={18} aria-hidden="true" />
+                  분석 횟수가 {WORKSHOP_NEW_REPOSITORY_COST}회보다 적게 남아 새 저장소를 분석할 수
+                  없습니다. {resetNote}‘분석한 프로젝트 선택’에서 기존 프로젝트를 골라 이어갈 수
+                  있습니다.
+                </p>
+              )
             )}
           </form>
         </Card>
       ) : !check || saved === undefined ? (
-        !error && <ScreenSkeleton variant="lesson" label="프로젝트 학습 불러오는 중" />
+        !error && <ScreenSkeleton variant="lesson" label="내 프로젝트 AI 워크숍 불러오는 중" />
       ) : (
         <>
           <div className="project-ai-source">
@@ -338,7 +360,10 @@ function Workspace({
           </div>
           {!check.page.repository ? (
             <Card>
-              <p>AI 기술 학습에는 소스 저장소 분석이 필요합니다. 공개 저장소를 연결해 주세요.</p>
+              <p>
+                내 프로젝트 AI 워크숍에는 소스 저장소 분석이 필요합니다. 공개 저장소를 연결해
+                주세요.
+              </p>
             </Card>
           ) : saved ? (
             <>
@@ -357,7 +382,7 @@ function Workspace({
             </>
           ) : (
             <Card className="project-ai-connect">
-              <h2>이 코드에 맞는 AI 학습을 준비해요</h2>
+              <h2>이 코드에 맞는 AI 워크숍을 준비해요</h2>
               {progress.completed > 0 && (
                 <p role="status">
                   {progress.completed}/2단계 저장됨
@@ -375,7 +400,7 @@ function Workspace({
                 누르면 남은 단계만 생성합니다.
               </p>
               <p className="muted">
-                수집한 공개 코드를 OpenAI로 보냅니다. 분석 1회 사용 ·{" "}
+                수집한 공개 코드를 OpenAI로 보냅니다. 분석 횟수 1회 사용 ·{" "}
                 {overview.usage.analysis.remaining}회 남음. 생성 후에는 추가 호출 없이 학습합니다.
               </p>
               <Button
@@ -391,16 +416,17 @@ function Workspace({
                   ? "저장된 결과 복구"
                   : error || progress.completed
                     ? "저장된 단계부터 이어서 생성"
-                    : "AI 활용 학습 만들기"}
+                    : "AI 워크숍 만들기"}
               </Button>
               {!progress.canRecover &&
                 (!overview.aiReady || overview.usage.analysis.remaining < 1) && (
                   <p role="status">
-                    지금은 새 학습을 생성할 수 없습니다. 저장된 학습이나 일반 수업을 이용해 주세요.
+                    지금은 새 워크숍을 만들 수 없습니다. {resetNote}일반 수업은 계속 이용할 수
+                    있습니다.
                   </p>
                 )}
               <Button disabled={!!busy} onClick={() => setReload((n) => n + 1)}>
-                저장된 학습 다시 불러오기
+                저장된 워크숍 다시 불러오기
               </Button>
             </Card>
           )}

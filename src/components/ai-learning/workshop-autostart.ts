@@ -24,3 +24,5 @@ export const takeWorkshopAnalysis = (url: string) => take(START_KEY, url);
 /** The confirmed analysis also covers the learning generation that follows it. */
 export const requestWorkshopGeneration = (checkId: string) => remember(GENERATE_KEY, checkId);
 export const takeWorkshopGeneration = (checkId: string) => take(GENERATE_KEY, checkId);
+/** Analysis count a new repository uses here: one analysis plus one workshop generation. */
+export const WORKSHOP_NEW_REPOSITORY_COST = 2;
