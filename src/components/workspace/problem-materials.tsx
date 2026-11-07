@@ -56,7 +56,7 @@ export function ProblemMaterials({
 }: ProblemMaterialsProps) {
   const fade = useFadeTransition<HTMLDivElement>(tab);
   return (
-    <section className="problem-pane" aria-label="문제 설명">
+    <section className="problem-pane" aria-label="문제 설명" id="workspace-problem">
       <div
         className="problem-tabs"
         role="tablist"

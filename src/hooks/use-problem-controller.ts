@@ -5,7 +5,7 @@ import type { ConfirmationAction, WorkspaceTab } from "@/components/workspace/ty
 
 import { useCodeDraft } from "@/hooks/use-code-draft";
 import { api, ApiError, errorMessage } from "@/lib/client-api";
-import type { Attempt, Progress, ProblemDetail } from "@/lib/problem";
+import type { Attempt, Progress, ProblemCheck, ProblemDetail } from "@/lib/problem";
 import { latestProgress } from "@/lib/progress";
 import { useCallback, useEffect, useRef, useState } from "react";
 type Detail = ProblemDetail;
@@ -136,6 +136,7 @@ export function useProblemController({
     busy,
     review,
     remaining: reviewsLeft,
+    resetsAt: reviewsResetAt,
   } = useCodeReview({
     id,
     scope,
@@ -211,6 +212,34 @@ export function useProblemController({
       setBookmarkBusy(false);
     }
   }
+  const updateCheck = useCallback((check: ProblemCheck | null) => {
+    setDetail((prev) => (prev ? { ...prev, check } : prev));
+  }, []);
+  const [hiding, setHiding] = useState(false);
+  /** Hides (or shows again) a public AI-generated problem in this learner's own list only. */
+  async function toggleHidden() {
+    if (!detail || hiding) return false;
+    const hide = !detail.hidden;
+    setHiding(true);
+    try {
+      await api(
+        hide ? "/api/library/hidden" : `/api/library/hidden?problem=${encodeURIComponent(id)}`,
+        hide ? { method: "POST", scope, body: { problemId: id } } : { method: "DELETE", scope },
+      );
+      setDetail((prev) => (prev ? { ...prev, hidden: hide } : prev));
+      setNotice(
+        hide
+          ? "이 문제를 내 문제 목록에서 숨겼습니다. 다른 학습자에게는 계속 보이며, 주소로는 계속 열 수 있습니다."
+          : "이 문제를 내 문제 목록에 다시 표시합니다.",
+      );
+      return true;
+    } catch (e) {
+      setError(errorMessage(e));
+      return false;
+    } finally {
+      setHiding(false);
+    }
+  }
   function replaceCode(value: string, message: string) {
     setUndoCode(getCode());
     changeCode(value);
@@ -246,6 +275,10 @@ export function useProblemController({
     discardDraft,
     busy,
     reviewsLeft,
+    reviewsResetAt,
+    updateCheck,
+    hiding,
+    toggleHidden,
     revealing,
     confirm,
     setConfirm,

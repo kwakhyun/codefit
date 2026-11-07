@@ -947,3 +947,177 @@
     white-space: normal;
   }
 }
+
+/* Example tests and self-check: browser results kept apart from the AI review. */
+.example-tests {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  background: light-dark(var(--light-panel), #101010);
+}
+.example-tests-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+.example-tests h3 {
+  margin: 0 0 6px;
+  font-size: var(--text-body);
+}
+.example-tests-heading p,
+.example-tests > small {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-small);
+  line-height: 1.8;
+}
+.example-tests > small {
+  display: block;
+  margin-top: 10px;
+}
+.example-tests > .ui-status {
+  margin: 12px 0 0;
+  font-size: var(--text-ui);
+}
+.example-tests-summary {
+  color: var(--success);
+}
+.example-test-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  border: 1px solid var(--line);
+}
+.example-test-list li + li {
+  border-top: 1px solid var(--line);
+}
+.example-test-list summary {
+  padding: 12px;
+  font-size: var(--text-ui);
+  line-height: 1.8;
+  cursor: pointer;
+}
+.example-tests .lab-runtime-details {
+  margin-top: 12px;
+}
+.self-check .secondary-button.active {
+  border-color: var(--success);
+  color: var(--success);
+}
+.example-tests :is(button, summary):focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 3px;
+}
+.problem-meta > .problem-check {
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-small);
+  color: var(--text);
+}
+.problem-meta > .problem-check.solved {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+/* Review readability: requirement text, met/unmet in words, and what to do next. */
+.review-criteria .criterion-state {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-small);
+  font-size: var(--text-caption);
+}
+.review-criteria .criterion-state.met {
+  color: var(--success);
+}
+.review-criteria .criterion-state.unmet {
+  color: var(--warning);
+}
+.review-criteria .review-requirement {
+  color: light-dark(var(--light-text), #d0d0d0);
+  font-size: var(--text-small);
+}
+.review-example-tests {
+  margin-top: 10px;
+  font-size: var(--text-small) !important;
+}
+.review-example-tests small {
+  color: var(--muted);
+}
+.review-next {
+  margin-top: 14px;
+}
+.review-next-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.review-next-links > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  text-align: left;
+}
+.review-next-links > a > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.review-next-links small {
+  font-size: var(--text-caption);
+  opacity: 0.85;
+}
+.review-next-loading,
+.review-next-done {
+  color: var(--muted);
+  font-size: var(--text-small);
+}
+.review-quota {
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  background: light-dark(var(--light-amber-soft), #241d10);
+  font-size: var(--text-small);
+  line-height: 1.8;
+}
+.review-quota p {
+  margin: 0 0 6px;
+}
+.review-quota .guest-login {
+  margin-top: 8px;
+}
+.retry-feedback {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: light-dark(var(--light-amber-soft), #241d10);
+  font-size: var(--text-small);
+  line-height: 1.8;
+}
+.retry-feedback > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.retry-feedback ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.retry-feedback li > span {
+  display: block;
+  color: var(--muted);
+}
+
+/* Phone-width tab layout for coding problems; hidden and inert in wider layouts. */
+.mobile-pane-tabs,
+.mobile-action-bar {
+  display: none;
+}
+.ai-problem-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: var(--text-small);
+  line-height: 1.8;
+}

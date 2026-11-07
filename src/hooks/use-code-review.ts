@@ -5,6 +5,7 @@ import { api, errorMessage } from "@/lib/client-api";
 import type { AiUsage } from "@/lib/ai-telemetry";
 import { missingHandoffFields, readHandoffDraft, handoffMissingMessage } from "@/lib/handoff/draft";
 import type { Attempt, Progress } from "@/lib/problem";
+import type { ExampleTestSummary } from "@/lib/example-tests";
 
 type ReviewResult = { attempt: Attempt; progress: Progress };
 
@@ -32,11 +33,16 @@ export function useCodeReview({
   const pending = useRef(false);
   const request = useRef<{ code: string; id: string } | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
+  // The review allowance counts 24 hours from its first use; this is when it frees up.
+  const [resetsAt, setResetsAt] = useState<string | null>(null);
   const refreshRemaining = useCallback(async () => {
     if (!aiReady) return;
     try {
-      const usage = await api<AiUsage>("/api/usage", { scope });
-      if (mounted.current) setRemaining(usage.remaining.review);
+      const usage = await api<AiUsage>("/api/usage", { scope, track: false });
+      if (mounted.current) {
+        setRemaining(usage.remaining.review);
+        setResetsAt(usage.resetsAt.review);
+      }
     } catch {
       /* The count is informational; a review past the limit still explains it. */
     }
@@ -45,7 +51,7 @@ export function useCodeReview({
     void Promise.resolve().then(refreshRemaining);
   }, [refreshRemaining]);
 
-  async function review(value: string) {
+  async function review(value: string, exampleTests?: ExampleTestSummary) {
     if (pending.current || value.trim().length < 5 || !aiReady) return;
     if (handoff) {
       const missing = missingHandoffFields(readHandoffDraft(value).notes);
@@ -65,7 +71,7 @@ export function useCodeReview({
       const result = await api<ReviewResult>(`/api/problems/${encodeURIComponent(id)}/review`, {
         method: "POST",
         scope,
-        body: { code: value, requestId: request.current.id },
+        body: { code: value, requestId: request.current.id, exampleTests },
       });
       if (!mounted.current) return;
       request.current = null;
@@ -78,5 +84,5 @@ export function useCodeReview({
       void refreshRemaining();
     }
   }
-  return { busy, review, remaining };
+  return { busy, review, remaining, resetsAt };
 }
