@@ -52,11 +52,18 @@ it("surfaces errors without retrying a paid operation", async () => {
   expect(operation).toHaveBeenCalledTimes(1);
   expect(m.generationSnapshot()[0]).toMatchObject({ status: "failed", message: "생성 실패" });
 });
-it("tracks generation and review but excludes ordinary saves and reads", async () => {
+it("tracks long-running AI work but excludes saves, reads, quick checks and non-AI steps", async () => {
   const { generationRequest: task } = await import("./generation-activity");
-  expect(task("/api/project-check", "PATCH", { id: "one" })?.href).toBe("/project-check?check=one");
+  // Answer evaluation is accepted in the background and tracked by its own screen.
+  expect(task("/api/project-check", "PATCH", { id: "one" })).toBeNull();
   expect(task("/api/generate", "POST", {})).not.toBeNull();
-  expect(task("/api/project-check/one/dialogue", "POST", {})).not.toBeNull();
+  expect(task("/api/project-check/one/dialogue", "POST", {})).toEqual({
+    label: "코드 대화",
+    href: "/project-check?check=one",
+  });
+  expect(task("/api/project-check/one/follow-up", "POST", {})).toBeNull();
+  expect(task("/api/security-check", "POST", {})).toBeNull();
+  expect(task("/api/security-check/audit", "POST", {})).toBeNull();
   expect(task("/api/project-check/one/practice", "PATCH", {})).toBeNull();
   expect(task("/api/project-check", "GET", {})).toBeNull();
 });

@@ -144,17 +144,17 @@ test("older records remain reachable by pagination, reload and browser history",
       path: `artifacts/project-history-mobile-${info.project.name}.png`,
       fullPage: true,
     });
-    await page.getByRole("button", { name: "이 점검 기록 삭제" }).click();
+    await page.getByRole("button", { name: "프로젝트 삭제", exact: true }).click();
     await page
-      .getByRole("dialog", { name: "기록 삭제 확인" })
-      .getByRole("button", { name: "삭제하기", exact: true })
+      .getByRole("dialog", { name: "프로젝트 삭제" })
+      .getByRole("button", { name: "프로젝트 영구 삭제", exact: true })
       .click();
-    await expect(page.getByRole("heading", { name: "어떤 서비스를 만드셨나요?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "어떤 프로젝트를 살펴볼까요?" })).toBeVisible();
     await page.goto(`/project-check?check=${older.id}`);
     await expect(page.locator("main [role=alert]")).toContainText(
       "이 계정에서 점검 기록을 찾을 수 없습니다",
     );
-    await expect(page.getByRole("heading", { name: "어떤 서비스를 만드셨나요?" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "어떤 프로젝트를 살펴볼까요?" })).toHaveCount(0);
   } finally {
     account.store.db.close();
   }

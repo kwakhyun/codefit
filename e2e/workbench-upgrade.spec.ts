@@ -45,10 +45,21 @@ test("project-specific plans preserve real-result blanks and export useful hando
   await expect(task.getByRole("textbox")).toHaveValue(/실제 결과: \[직접 확인 후 작성\]/);
   await expect(task.getByRole("combobox")).toHaveValue("planned");
   const downloading = page.waitForEvent("download");
-  await panel.getByRole("button", { name: "확인 계획과 AI 수정 요청 내보내기" }).click();
+  await panel
+    .getByRole("group", { name: "확인 계획과 AI 수정 요청 내보내기" })
+    .getByRole("button", { name: "텍스트로 저장" })
+    .click();
   const text = await readFile((await (await downloading).path())!, "utf8");
   expect(text).toContain(fixtureVerificationPlan.preparation);
   expect(text).toContain("확인 예정");
+  const markdownDownload = page.waitForEvent("download");
+  await panel.getByRole("button", { name: "Markdown으로 저장" }).click();
+  const markdown = await markdownDownload;
+  expect(markdown.suggestedFilename()).toBe("codefit-project-review.md");
+  const markdownText = await readFile((await markdown.path())!, "utf8");
+  expect(markdownText).toContain("## AI 코딩 도구에 전달할 요청");
+  // The filled template is an unsaved draft and the export says so.
+  expect(markdownText).toContain("저장하지 않은 확인 기록 초안");
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
@@ -118,6 +129,8 @@ test("owned CORS workflow separates proof from execution and invalidates target 
 test("ZAP import is local, scoped and export strips query secrets", async ({ page }) => {
   let scans = 0;
   await page.route("**/api/security-check**", (route) => {
+    // Reading the allowance (GET) is not a scan; nothing about the report may be sent.
+    if (route.request().method() === "GET") return route.abort();
     scans++;
     return route.abort();
   });
@@ -152,5 +165,11 @@ test("ZAP import is local, scoped and export strips query secrets", async ({ pag
   const text = await readFile((await (await downloading).path())!, "utf8");
   expect(text).not.toContain("SECRET");
   expect(text).toContain("GET https://example.com/path");
+  // Changing the address keeps the import and says which origin it came from.
+  await page.getByLabel("점검할 공개 서비스 링크").fill("https://other.example.com/");
+  await expect(page.getByText(/규칙별 알림 1개/)).toBeVisible();
+  await expect(page.locator(".security-audit .security-stale-notice")).toContainText(
+    "https://example.com",
+  );
   expect(scans).toBe(0);
 });

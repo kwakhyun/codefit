@@ -2,7 +2,6 @@
 import { useId, useState } from "react";
 import {
   Button,
-  Card,
   Disclosure,
   DisclosureSummary,
   FieldLabel,
@@ -54,12 +53,14 @@ export function RepairRequest({
   );
 }
 
+/** Code evidence per question. Only repository checks have code; fix requests live in 확인하고 보완하기. */
 export function ProjectEvidenceReview({ check }: { check: Check }) {
+  const repository = check.page.repository;
+  if (!repository) return null;
   const review = projectEvidenceReview(check);
   return (
-    <Card as="section" className="project-panel evidence-review" aria-label="점검 근거와 수정 요청">
-      <span className="eyebrow">확인된 근거부터 다음 행동으로</span>
-      <h2>근거를 확인하고 수정 요청 만들기</h2>
+    <section className="evidence-review" aria-label="질문별 코드 근거">
+      <h3>질문별 코드 근거</h3>
       <p>
         코드 위치가 확인돼도 실제 동작이나 안전성이 검증된 것은 아닙니다. 질문별로 확인한 자료와 더
         살펴볼 내용을 구분했습니다.
@@ -83,12 +84,12 @@ export function ProjectEvidenceReview({ check }: { check: Check }) {
         </div>
       </dl>
       <p className="project-help">
-        {check.page.repository
-          ? `${review.partialFiles}개 파일은 일부만 읽었습니다. ${check.page.repository.truncatedTree ? "파일 목록도 일부만 수집했습니다. " : ""}수집하지 않은 코드와 실행 경로는 미확인입니다.`
-          : "공개 화면과 작성자 설명을 읽었습니다. 저장소 소스 구현은 확인하지 않았습니다."}
+        {`${review.partialFiles}개 파일은 일부만 읽었습니다. ${repository.truncatedTree ? "파일 목록도 일부만 수집했습니다. " : ""}수집하지 않은 코드와 실행 경로는 미확인입니다.`}
         {review.missingCount > 0 &&
           ` ${review.missingCount}개 질문은 코드 근거를 추가로 확인해야 합니다.`}{" "}
-        아래 요청 작성과 복사에는 AI 호출을 사용하지 않습니다.
+        {check.review
+          ? "AI 코딩 도구에 보낼 수정 요청은 ‘확인하고 보완하기’에서 항목별로 만들 수 있습니다."
+          : "답변을 평가받으면 ‘확인하고 보완하기’에서 항목별 수정 요청을 만들 수 있습니다."}
       </p>
       {review.items.map((item) => (
         <Disclosure key={item.index} className="evidence-review-item">
@@ -97,12 +98,8 @@ export function ProjectEvidenceReview({ check }: { check: Check }) {
             <span className="evidence-review-label">{item.label}</span>
           </DisclosureSummary>
           <p>{item.question.question}</p>
-          {item.citation && check.page.repository ? (
-            <SourceEvidence
-              repository={check.page.repository}
-              evidence={item.question.evidence}
-              defaultOpen
-            />
+          {item.citation ? (
+            <SourceEvidence repository={repository} evidence={item.question.evidence} defaultOpen />
           ) : (
             <p className="project-help">
               {item.status === "unknown"
@@ -110,9 +107,8 @@ export function ProjectEvidenceReview({ check }: { check: Check }) {
                 : "설명이나 화면 자료만으로 구현을 확정할 수 없습니다. 실제 코드와 테스트를 대조하세요."}
             </p>
           )}
-          <RepairRequest check={check} questionIndex={item.index} />
         </Disclosure>
       ))}
-    </Card>
+    </section>
   );
 }

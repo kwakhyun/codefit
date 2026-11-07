@@ -29,19 +29,19 @@ export function GenerationActivity() {
     <section className="generation-activity" aria-label="생성 작업 상태">
       {tasks.map((task) => (
         <div className="analysis-activity-item" key={task.id}>
-          <div className="analysis-activity-status" role="status" aria-atomic="true">
+          <div className="analysis-activity-status">
             {task.status === "pending" ? (
-              <LoaderCircle className="analysis-spinner" size={18} />
+              <LoaderCircle className="analysis-spinner" size={18} aria-hidden="true" />
             ) : task.status === "done" ? (
-              <CheckCircle2 size={18} />
+              <CheckCircle2 size={18} aria-hidden="true" />
             ) : (
-              <CircleAlert size={18} />
+              <CircleAlert size={18} aria-hidden="true" />
             )}
             <div>
               <strong>{task.label}</strong>
               <span>
                 {task.status === "pending"
-                  ? "진행 중 · 완료되면 알려드려요"
+                  ? "진행 중 · 이 탭에서 다른 화면으로 이동해도 계속됩니다"
                   : task.status === "done"
                     ? "완료됐어요"
                     : "완료하지 못했어요"}
@@ -63,7 +63,7 @@ export function GenerationActivity() {
               aria-label={`${task.label} 알림 닫기`}
               onClick={() => dismissGeneration(task.id)}
             >
-              <X size={16} />
+              <X size={16} aria-hidden="true" />
             </Button>
           )}
         </div>

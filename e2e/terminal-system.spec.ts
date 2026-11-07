@@ -13,7 +13,7 @@ test("first visit offers a direct guest start and responsive menu controls retai
   await expect(page.locator(".sidebar-close")).toBeHidden();
   await start.getByRole("link", { name: "내 프로젝트 점검", exact: true }).click();
   await expect(page.getByLabel("서비스 링크", { exact: true })).toBeVisible();
-  await expect(page.locator(".guest-trial-notice")).toContainText("분석 2회");
+  await expect(page.locator(".guest-trial-notice")).toContainText("분석 횟수");
   await page.goto("/");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();

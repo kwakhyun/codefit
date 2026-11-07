@@ -13,11 +13,28 @@ import {
   Status,
 } from "@/components/ui/primitives";
 import { useEffect, useRef, useState } from "react";
-import { api, errorMessage } from "@/lib/client-api";
+import { dateLabel } from "@/lib/client-api";
+import { runGeneration } from "@/lib/generation-activity";
 import { VoiceInput } from "@/components/ui/voice-input";
-import { evidenceLabels, type Check } from "@/lib/project-check/types";
+import { evidenceLabels, type Check, type CheckOverview } from "@/lib/project-check/types";
+import { assessmentLevels } from "@/lib/project-check/display";
+import {
+  pollReview,
+  readReviewStatus,
+  requestReview,
+  ReviewOutcomeError,
+  type ReviewOutcome,
+} from "@/lib/project-check/review-request";
 import { RequestStatus } from "./request-status";
-function loadDraft(key: string, previous?: string[]) {
+import { AllowanceCost } from "./allowance-cost";
+/**
+ * editing: free to edit. pending: the server accepted the evaluation (locked, polling resumes
+ * after a reload). unknown: the response was lost (locked until the status is read).
+ * failed: the server reported a failure (editable; the same or edited answers can be sent).
+ */
+type ReviewState = "editing" | "pending" | "unknown" | "failed";
+type Draft = { answers: string[]; step: number; status: ReviewState; message?: string };
+function loadDraft(key: string, previous?: string[]): Draft {
   try {
     const value = JSON.parse(sessionStorage.getItem(key) || "null");
     if (
@@ -27,28 +44,34 @@ function loadDraft(key: string, previous?: string[]) {
     )
       return {
         answers: value.answers as string[],
-        submitted: value.submitted === true,
+        // Drafts saved before background evaluation only knew "submitted".
+        status: ["editing", "pending", "unknown", "failed"].includes(value.status)
+          ? (value.status as ReviewState)
+          : value.submitted === true
+            ? "unknown"
+            : "editing",
+        ...(typeof value.message === "string" ? { message: value.message.slice(0, 500) } : {}),
         step:
           Number.isInteger(value.step) && value.step >= 0 && value.step < 5
             ? (value.step as number)
             : 0,
       };
   } catch {}
-  return { answers: previous || ["", "", "", "", ""], submitted: false, step: 0 };
+  return { answers: previous || ["", "", "", "", ""], status: "editing", step: 0 };
 }
 export function ProjectQuestions({
   check,
   scope,
-  enabled,
+  aiReady,
+  review: usage,
   onReviewed,
   onUsage,
-  reviewRemaining,
 }: {
   check: Check;
   scope: string;
-  enabled: boolean;
+  aiReady: boolean;
+  review: CheckOverview["usage"]["review"];
   onUsage?: () => Promise<void>;
-  reviewRemaining?: number;
   onReviewed: (review: NonNullable<Check["review"]>) => Promise<void>;
 }) {
   const draftKey = `codefit-project:${scope}:${check.id}`;
@@ -56,15 +79,17 @@ export function ProjectQuestions({
   const currentDraft = useRef(draft);
   const { step } = draft;
   const fade = useFadeTransition<HTMLElement>(`${check.id}:${step}:${Boolean(check.review)}`);
-  const [busy, setBusy] = useState(false);
-  const [recovering, setRecovering] = useState(false);
+  // Only the request that hands the answers to the server cannot survive leaving the page.
+  const [requesting, setRequesting] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [notice, setNotice] = useState("");
   const active = useRef(false);
   const alive = useRef(true);
-  const [error, setError] = useState("");
   const [storageError, setStorageError] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const result = useRef<HTMLHeadingElement>(null);
+  const answerField = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -78,7 +103,7 @@ export function ProjectQuestions({
       } catch {}
     }
   }, [check.review, draftKey]);
-  function saveDraft(change: (value: typeof draft) => typeof draft) {
+  function saveDraft(change: (value: Draft) => Draft) {
     const next = change(currentDraft.current);
     currentDraft.current = next;
     setDraft(next);
@@ -99,53 +124,96 @@ export function ProjectQuestions({
   }, [hasReview]);
   const q = check.analysis.questions[step];
   const answers = check.review?.answers || draft.answers;
+  const locked = draft.status === "pending" || draft.status === "unknown";
   function move(next: number) {
     saveDraft((value) => ({ ...value, step: next }));
   }
-  async function recover() {
+  async function settle(outcome: ReviewOutcome) {
+    if (!alive.current) return;
+    if (outcome.state === "done") {
+      saveDraft((value) => ({ ...value, status: "editing", message: undefined }));
+      await onReviewed(outcome.review);
+      return;
+    }
+    if (outcome.state === "pending") {
+      saveDraft((value) => ({ ...value, status: "pending", message: undefined }));
+      follow();
+      return;
+    }
+    saveDraft((value) => ({ ...value, status: outcome.state, message: outcome.message }));
+    // A provider rejection may have returned the unit; show the current count either way.
+    await onUsage?.().catch(() => {});
+  }
+  /** Polls in the background; the global activity keeps showing it on other screens. */
+  function follow() {
+    setWaiting(true);
+    runGeneration(
+      {
+        id: `review:${check.id}`,
+        scope,
+        label: "답변 평가",
+        href: `/project-check?check=${check.id}`,
+      },
+      async () => {
+        const outcome = await pollReview(check.id, scope);
+        if (outcome.state !== "done") throw new ReviewOutcomeError(outcome);
+        return outcome;
+      },
+    )
+      .then((outcome) => settle(outcome))
+      .catch((error) =>
+        settle(
+          error instanceof ReviewOutcomeError
+            ? error.outcome
+            : { state: "unknown", message: String(error?.message || "") },
+        ),
+      )
+      .finally(() => {
+        if (alive.current) setWaiting(false);
+      });
+  }
+  const resumed = useRef(false);
+  useEffect(() => {
+    // A reload during evaluation resumes reading its status instead of losing the result.
+    if (resumed.current || check.review || currentDraft.current.status !== "pending") return;
+    resumed.current = true;
+    follow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [check.review]);
+  async function recheck() {
     if (active.current) return;
     active.current = true;
-    setRecovering(true);
-    setError("");
+    setChecking(true);
     setNotice("");
     try {
-      const saved = await api<Check>(`/api/project-check/${check.id}`, {
-        scope,
-        signal: AbortSignal.timeout(15_000),
-      });
-      if (!alive.current) return;
-      if (saved.review) await onReviewed(saved.review);
-      else
-        setNotice(
-          "아직 저장된 평가 결과가 없습니다. 처리가 끝나지 않았을 수 있으니 잠시 후 다시 확인해 주세요.",
-        );
-    } catch (e) {
-      if (alive.current) setError(errorMessage(e));
+      const outcome = await readReviewStatus(check.id, scope);
+      if (!outcome)
+        setNotice("상태를 읽지 못했습니다. 연결을 확인한 뒤 다시 눌러 주세요. 답변은 보관됩니다.");
+      else await settle(outcome);
     } finally {
       active.current = false;
-      if (alive.current) setRecovering(false);
+      if (alive.current) setChecking(false);
     }
   }
   async function submit() {
     if (active.current) return;
     active.current = true;
-    setBusy(true);
-    setError("");
+    setRequesting(true);
     setNotice("");
-    saveDraft((value) => ({ ...value, submitted: true }));
+    const sent = currentDraft.current.answers;
+    // Lock first: until the server answers, the outcome of this paid request is unknown.
+    saveDraft((value) => ({ ...value, status: "unknown", message: undefined }));
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    let outcome: ReviewOutcome;
     try {
-      const review = await api<NonNullable<Check["review"]>>("/api/project-check", {
-        method: "PATCH",
-        scope,
-        body: { id: check.id, answers: draft.answers },
-      });
-      if (alive.current) await onReviewed(review);
-    } catch (e) {
-      if (alive.current) setError(errorMessage(e));
+      outcome = await requestReview(check.id, sent, scope);
     } finally {
+      window.removeEventListener("beforeunload", warn);
       active.current = false;
-      if (alive.current) setBusy(false);
+      if (alive.current) setRequesting(false);
     }
+    await settle(outcome);
   }
   if (check.review)
     return (
@@ -165,17 +233,7 @@ export function ProjectQuestions({
           {check.review.assessment.feedback.map((item) => (
             <div key={item.questionIndex}>
               <span>{check.analysis.questions[item.questionIndex].area}</span>
-              <strong>
-                {
-                  [
-                    "설명 시작하기",
-                    "기능 짚어보기",
-                    "흐름 연결하기",
-                    "이유와 예외 설명",
-                    "확인 방법과 대안 비교",
-                  ][item.level]
-                }
-              </strong>
+              <strong>{assessmentLevels[item.level]}</strong>
               <small>{item.level} / 4단계</small>
             </div>
           ))}
@@ -183,12 +241,12 @@ export function ProjectQuestions({
         {check.previousReview && (
           <div className="project-next-step">
             <strong>
-              이전 답변 {check.previousReview.assessment.score}점 → 보완 답변{" "}
+              바로 이전 답변 {check.previousReview.assessment.score}점 → 이번 보완 답변{" "}
               {check.review.assessment.score}점
             </strong>
             <p className="project-help">
-              같은 질문의 설명을 비교합니다. AI 판단은 달라질 수 있으며 점수 변화가 실제 기능 개선을
-              증명하지는 않습니다.
+              모든 차수의 점수는 위의 보완 답변 기록에서 비교할 수 있습니다. AI 판단은 달라질 수
+              있으며 점수 변화가 실제 기능 개선을 증명하지는 않습니다.
             </p>
           </div>
         )}
@@ -320,9 +378,9 @@ export function ProjectQuestions({
         <Disclosure className="project-help">
           <DisclosureSummary>점수는 어떻게 정하나요?</DisclosureSummary>
           <p>
-            질문당 0~4단계입니다. 근거 없음 → 기능 식별 → 흐름 설명 → 이유와 실패 상황 → 구체적인
-            확인 방법과 대안 비교 순으로 평가하며 각 단계는 5점입니다. 다른 설계 방식도 타당한
-            설명이 있으면 인정합니다.
+            질문당 0~4단계입니다.{" "}
+            {assessmentLevels.map((label, i) => `${i}단계 ${label}`).join(" → ")} 순으로 평가하며 각
+            단계는 5점입니다. 다른 설계 방식도 타당한 설명이 있으면 인정합니다.
           </p>
           {check.review.assessment.rubricVersion === "evidence-v3" && (
             <p>
@@ -334,6 +392,18 @@ export function ProjectQuestions({
         </Disclosure>
       </Card>
     );
+  const unavailable = !aiReady
+    ? "지금은 AI 평가를 요청할 수 없습니다. 작성한 답변은 이 탭에 보관됩니다."
+    : usage.remaining < 1
+      ? `평가 횟수를 모두 사용했습니다. ${usage.resetsAt ? `${dateLabel(usage.resetsAt)}에 다시 채워집니다.` : "첫 사용부터 24시간이 지나면 다시 채워집니다."}`
+      : "";
+  const submitBlocked =
+    requesting || locked
+      ? "locked"
+      : unavailable ||
+        (!answers.some((a) => a.trim())
+          ? "한 질문 이상 답변하거나 모르는 이유를 적어 주세요."
+          : "");
   return (
     <Card
       ref={fade}
@@ -430,14 +500,17 @@ export function ProjectQuestions({
           </section>
           <FieldLabel htmlFor="project-answer">내 설계 설명</FieldLabel>
           <Textarea
+            ref={answerField}
             id="project-answer"
             rows={7}
             maxLength={1500}
             value={answers[step]}
-            readOnly={draft.submitted}
+            readOnly={locked || requesting}
             onChange={(e) =>
               saveDraft((value) => ({
                 ...value,
+                // Editing after a reported failure starts a new submission.
+                status: value.status === "failed" ? "editing" : value.status,
                 answers: value.answers.map((a, i) => (i === step ? e.target.value : a)),
               }))
             }
@@ -447,10 +520,11 @@ export function ProjectQuestions({
           <VoiceInput
             key={`${check.id}:${step}`}
             targetId="project-answer"
-            disabled={draft.submitted || busy || recovering}
+            disabled={locked || requesting}
             onTranscript={(text) =>
               saveDraft((value) => ({
                 ...value,
+                status: value.status === "failed" ? "editing" : value.status,
                 answers: value.answers.map((answer, i) =>
                   i === step ? `${answer}${answer ? " " : ""}${text}`.slice(0, 1500) : answer,
                 ),
@@ -458,8 +532,10 @@ export function ProjectQuestions({
             }
           />
           <p id="answer-help" className="project-help">
-            {answers[step].length} / 1500자 · 모르는 질문은 비워 두고 넘어갈 수 있습니다. 제출 전
-            답변은 현재 탭에 보관됩니다.
+            {answers[step].length} / 1500자 · 모르는 질문은 비워 두고 넘어갈 수 있습니다.{" "}
+            {locked
+              ? "평가 결과를 확인할 때까지 답변을 고정합니다."
+              : "제출 전 답변은 현재 탭에 보관됩니다."}
           </p>
           {check.page.repository && (
             <ProjectCodeDialogue
@@ -468,9 +544,10 @@ export function ProjectQuestions({
               index={step}
               answer={answers[step]}
               scope={scope}
-              enabled={enabled}
+              enabled={aiReady && usage.remaining > 0}
+              disabledReason={unavailable}
               onUsage={onUsage}
-              remaining={reviewRemaining}
+              remaining={usage.remaining}
             />
           )}
         </div>
@@ -480,40 +557,61 @@ export function ProjectQuestions({
           브라우저 보관 공간을 사용할 수 없습니다. 화면을 닫기 전에 답변을 복사해 주세요.
         </Status>
       )}
-      {draft.submitted && (
-        <div className="project-recovery">
+      {locked && !requesting && (
+        <div className="project-recovery" role="group" aria-label="평가 진행 상태">
           <p className="project-help">
-            제출한 답변을 보존했습니다. 응답을 받지 못했다면 먼저 저장된 결과를 확인하세요. 분석당
-            평가는 한 번만 저장됩니다.
+            {draft.status === "pending"
+              ? "평가가 접수되어 처리 중입니다. 화면을 새로고침하거나 다른 화면으로 이동해도 결과를 이어서 확인합니다."
+              : draft.message ||
+                "평가 요청의 응답을 받지 못했습니다. 서버에서 처리 중일 수 있으니 상태를 먼저 확인해 주세요."}
           </p>
-          {!busy && (
+          {draft.status === "unknown" && (
             <Button
               type="button"
               className="secondary-button"
-              disabled={recovering}
-              onClick={() => void recover()}
+              disabled={checking}
+              onClick={() => void recheck()}
             >
-              {recovering ? "저장된 결과 확인 중…" : "저장된 평가 결과 확인"}
+              {checking ? "평가 상태 확인 중…" : "평가 상태 다시 확인"}
             </Button>
           )}
           <p className="project-help">
-            결과 확인은 AI를 다시 호출하거나 이용 횟수를 차감하지 않습니다.
+            상태 확인은 AI를 다시 호출하거나 이용 횟수를 차감하지 않습니다. 분석당 평가는 한 번만
+            저장됩니다.
           </p>
         </div>
       )}
-      {notice && <Status role="status">{notice}</Status>}
-      {error && (
-        <Status role="alert" className="project-error">
-          {error}
-        </Status>
+      {draft.status === "failed" && (
+        <div className="project-recovery" role="alert">
+          <strong>평가를 완료하지 못했습니다</strong>
+          <p>{draft.message}</p>
+          <p className="project-help">
+            답변을 수정해 다시 요청하거나 같은 답변으로 다시 요청할 수 있습니다.
+          </p>
+          <Button
+            type="button"
+            className="secondary-button"
+            onClick={() => {
+              saveDraft((value) => ({ ...value, status: "editing", message: undefined }));
+              answerField.current?.focus();
+            }}
+          >
+            답변 수정하기
+          </Button>
+        </div>
       )}
-      {busy && <RequestStatus label="작성한 설명을 바탕으로 피드백을 준비하고 있습니다" />}
+      {notice && <Status role="status">{notice}</Status>}
+      {(requesting || (waiting && draft.status === "pending")) && (
+        <RequestStatus
+          label={
+            requesting
+              ? "답변을 서버에 전달하고 있습니다. 이 단계가 끝날 때까지 화면을 닫지 마세요"
+              : "작성한 설명을 바탕으로 피드백을 준비하고 있습니다"
+          }
+        />
+      )}
       <div className="project-question-actions">
-        <Button
-          className="secondary-button"
-          disabled={step === 0 || busy}
-          onClick={() => move(step - 1)}
-        >
+        <Button className="secondary-button" disabled={step === 0} onClick={() => move(step - 1)}>
           이전 질문
         </Button>
         {step < 4 ? (
@@ -523,21 +621,35 @@ export function ProjectQuestions({
         ) : (
           <Button
             className="primary-button"
-            disabled={busy || recovering || !enabled || !answers.some((a) => a.trim())}
-            onClick={submit}
+            disabled={!!submitBlocked}
+            aria-describedby="review-submit-cost review-submit-reason"
+            onClick={() => void submit()}
           >
-            {busy
+            {requesting || draft.status === "pending"
               ? "답변을 검토하고 있습니다…"
-              : draft.submitted
-                ? "같은 답변으로 다시 요청"
+              : draft.status === "failed"
+                ? "다시 평가 요청"
                 : "이 답변으로 이해도 확인"}
           </Button>
         )}
       </div>
+      {step === 4 && (
+        <>
+          <AllowanceCost
+            id="review-submit-cost"
+            label="평가 횟수"
+            cost={1}
+            remaining={usage.remaining}
+            resetsAt={usage.resetsAt}
+          />
+          <p id="review-submit-reason" className="project-help">
+            {submitBlocked && submitBlocked !== "locked" ? submitBlocked : ""}
+          </p>
+        </>
+      )}
       <p className="project-help">
-        AI 평가를 요청하면 이용 횟수 1회가 차감됩니다. 제출한 답변은 보관되며, 평가 후 같은 질문에
-        보완 답변을 추가할 수 있습니다.{" "}
-        {busy ? "검토 중에도 다른 질문과 작성한 답변을 살펴볼 수 있습니다." : ""}
+        제출한 답변은 보관되며, 평가 후 같은 질문에 보완 답변을 추가할 수 있습니다.
+        {locked ? " 평가 중에도 다른 질문과 작성한 답변을 살펴볼 수 있습니다." : ""}
       </p>
     </Card>
   );

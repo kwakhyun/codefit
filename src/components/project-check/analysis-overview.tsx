@@ -1,6 +1,16 @@
+"use client";
+import type { MouseEvent } from "react";
 import { Anchor } from "@/components/ui/primitives";
 import type { Check } from "@/lib/project-check/types";
 
+/** Opens a collapsed section before jumping to it, so the index always lands on content. */
+function openTarget(event: MouseEvent<HTMLAnchorElement>) {
+  const id = event.currentTarget.hash.slice(1);
+  const target = id ? document.getElementById(id) : null;
+  if (target instanceof HTMLDetailsElement) target.open = true;
+}
+
+/** Summary facts and the section index; the stage actions live in each section. */
 export function AnalysisOverview({ check }: { check: Check }) {
   const review = check.review;
   return (
@@ -9,7 +19,7 @@ export function AnalysisOverview({ check }: { check: Check }) {
       <dl className="analysis-facts">
         <div>
           <dt>분석 자료</dt>
-          <dd>{check.page.repository ? "공개 코드 발췌" : "공개 서비스 자료"}</dd>
+          <dd>{check.page.repository ? "공개 코드 발췌" : "공개 서비스 화면"}</dd>
         </div>
         <div>
           <dt>점검할 관점</dt>
@@ -17,47 +27,38 @@ export function AnalysisOverview({ check }: { check: Check }) {
         </div>
         <div>
           <dt>현재 단계</dt>
-          <dd>{review ? "피드백 확인과 보완" : "내 설명 작성"}</dd>
+          <dd>{review ? "확인하고 보완하기" : "설계 질문에 답하기"}</dd>
         </div>
       </dl>
       <nav className="analysis-journey" aria-label="프로젝트 점검 순서">
-        <Anchor href="#project-analysis-overview">
-          <span>01</span>
-          <strong>프로젝트 이해</strong>
-          <small>무엇을 분석했는지 확인</small>
-        </Anchor>
-        <Anchor href="#project-question-workspace" aria-current={!review ? "step" : undefined}>
-          <span>02</span>
-          <strong>{review ? "설명과 피드백" : "내 말로 설명"}</strong>
-          <small>한 번에 한 질문씩</small>
-        </Anchor>
         <Anchor
-          href={review ? "#project-follow-up" : "#project-question-workspace"}
-          aria-current={review ? "step" : undefined}
+          href="#project-question-workspace"
+          aria-current={!review ? "step" : undefined}
+          onClick={openTarget}
         >
+          <span>01</span>
+          <strong>{review ? "평가 결과" : "설계 질문에 답하기"}</strong>
+          <small>{review ? "질문별 피드백과 점수" : "한 번에 한 질문씩"}</small>
+        </Anchor>
+        {review ? (
+          <Anchor href="#project-follow-up" aria-current="step" onClick={openTarget}>
+            <span>02</span>
+            <strong>확인하고 보완하기</strong>
+            <small>확인 기록, 수정 요청, 보완 답변</small>
+          </Anchor>
+        ) : (
+          <span className="analysis-journey-locked">
+            <span>02</span>
+            <strong>확인하고 보완하기</strong>
+            <small>답변 평가 후 열립니다</small>
+          </span>
+        )}
+        <Anchor href="#project-analysis-material" onClick={openTarget}>
           <span>03</span>
-          <strong>직접 확인과 보완</strong>
-          <small>{review ? "확인 계획을 실제 기록으로" : "답변 후 확인 계획 받기"}</small>
+          <strong>분석 자료와 근거</strong>
+          <small>{check.page.repository ? "수집한 코드와 인용 위치" : "수집한 화면과 범위"}</small>
         </Anchor>
       </nav>
-      <div className="analysis-next-action">
-        <div>
-          <strong>
-            {review ? "설명한 내용에서 다음 확인으로" : "내가 아는 부분부터 시작하세요"}
-          </strong>
-          <p>
-            {review
-              ? "피드백에서 확인할 일을 고르고, 테스트 결과를 남겨 설명을 보완해 보세요."
-              : "정답을 외우는 점검이 아닙니다. 근거를 읽고, 아는 내용과 아직 확인할 내용을 나누어 적어보세요."}
-          </p>
-        </div>
-        <Anchor
-          className="primary-button"
-          href={review ? "#project-follow-up" : "#project-question-workspace"}
-        >
-          {review ? "확인 계획 보기" : "첫 질문 살펴보기"} →
-        </Anchor>
-      </div>
     </div>
   );
 }

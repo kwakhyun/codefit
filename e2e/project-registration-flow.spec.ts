@@ -46,8 +46,11 @@ for (const width of [832, 390]) {
     await expect(
       page.getByRole("heading", { name: check.analysis.title, exact: true }),
     ).toHaveCount(0);
+    // Guests meet the example first, then the address field; the type override is in 자세히.
     await page.keyboard.press("Tab");
-    await expect(page.getByLabel("어떤 주소인가요?", { exact: true })).toBeFocused();
+    await expect(page.locator(".project-example-disclosure > summary")).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(input).toBeFocused();
     await input.fill("https://github.com/example/new-project");
 
     // Collapsing old records must keep them reachable without erasing the new draft.
