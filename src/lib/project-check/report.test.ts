@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { projectReportText, verificationTemplate } from "./report";
+import { projectReportMarkdown, projectReportText, verificationTemplate } from "./report";
 import {
   fixtureAssessment,
   fixtureCheck,
@@ -45,4 +45,18 @@ it("keeps legacy assessments and unreviewed questions exportable", () => {
   const check = publicCheck(fixtureCheck);
   expect(projectReportText(check)).toContain("내 답변: 미작성");
   expect(verificationTemplate(check, 0)).toContain("실행 순서");
+});
+it("exports Markdown with quoted learner text and marks included drafts", () => {
+  const check = {
+    ...publicCheck(fixtureCheck),
+    review: {
+      answers: ["# 제목처럼 보이는 답변\n- 목록", "", "", "", ""],
+      assessment: fixtureAssessment,
+    },
+  };
+  const markdown = projectReportMarkdown(check, undefined, true);
+  expect(markdown).toContain("> # 제목처럼 보이는 답변\n> - 목록");
+  expect(markdown).toContain("저장하지 않은 확인 기록 초안이 포함");
+  expect(markdown).toContain("## AI 코딩 도구에 전달할 요청");
+  expect(projectReportMarkdown(check)).not.toContain("저장하지 않은");
 });
