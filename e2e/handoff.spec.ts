@@ -76,10 +76,18 @@ test("handoff discovery, no answer leak, mobile layout, keyboard navigation and 
     .getByRole("link", { name: "AI 코드 이해 훈련", exact: true })
     .click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "직접 분석하고 수정해 보세요",
+    "내 코드가 어떻게 동작하는지 이해해 보세요",
   );
+  // Project practice is the default tab; the prepared tasks are on the sample tab.
+  await page
+    .getByRole("group", { name: "연습 자료 선택" })
+    .getByRole("button", { name: "샘플로 체험" })
+    .click();
+  await expect(page).toHaveURL(/\/handoff\?source=sample$/);
   await expect(page.locator(".handoff-card")).toHaveCount(6);
-  await expect(page.getByRole("status")).toContainText("0/6개");
+  await expect(
+    page.getByRole("region", { name: "내 코드 이해 훈련 기록" }).getByRole("status"),
+  ).toContainText("0/6개");
   await accessible(page);
   if (testInfo.project.name === "chromium")
     await page.screenshot({ path: "artifacts/handoff-desktop.png", fullPage: true });
@@ -108,7 +116,8 @@ test("handoff discovery, no answer leak, mobile layout, keyboard navigation and 
     .locator(".workspace-breadcrumb")
     .getByRole("link", { name: "AI 코드 이해 훈련" })
     .click();
-  await expect(page).toHaveURL(/\/handoff$/);
+  await expect(page).toHaveURL(/\/handoff\?source=sample$/);
+  await expect(page.locator(".handoff-card")).toHaveCount(6);
   expect(errors).toEqual([]);
 });
 
@@ -240,7 +249,7 @@ test("private learning feedback shows a due transfer and survives backup roundtr
   page,
   browser,
 }) => {
-  await page.goto("/handoff");
+  await page.goto("/handoff?source=sample");
   const backup = await (await page.request.get("/api/export")).json();
   const code = writeHandoffDraft(base.solution, notes);
   backup.attempts = [
@@ -364,7 +373,7 @@ test("audit: original code, stable labels, missing-note focus and handoff docume
   if (testInfo.project.name === "chromium")
     await page.screenshot({ path: "artifacts/handoff-audit-workspace.png", fullPage: true });
   await expect.poll(async () => readHandoffDraft((await saved(page)) ?? "").notes).toEqual(notes);
-  await page.goto("/handoff");
+  await page.goto("/handoff?source=sample");
   await expect(page.getByRole("region", { name: "추천 코드 이해 훈련" })).toContainText(
     "작성 중인 과제 이어가기",
   );
@@ -374,7 +383,7 @@ test("audit: original code, stable labels, missing-note focus and handoff docume
 test("audit: revisiting the base preserves retention and latest variant feedback drives next practice", async ({
   page,
 }, testInfo) => {
-  await page.goto("/handoff");
+  await page.goto("/handoff?source=sample");
   const backup = await (await page.request.get("/api/export")).json();
   const now = Date.now(),
     day = 86400000;

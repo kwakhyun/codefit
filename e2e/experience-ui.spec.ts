@@ -18,7 +18,8 @@ test("first visit offers three workspaces and a complete feature overview", asyn
     "분야별 코딩 연습",
   ])
     await expect(overview.getByRole("link", { name: new RegExp(`^${name}`) })).toBeVisible();
-  await page.getByRole("radio", { name: "AI 워크숍", exact: true }).check();
+  // Choosing a workspace replaces the first-visit picker with that workspace's home.
+  await page.getByRole("radio", { name: "AI 워크숍", exact: true }).click();
   await expect(page.locator(".ai-home-grid")).toBeVisible();
   await expect(overview).toHaveCount(0);
 });
@@ -37,6 +38,8 @@ test("illustrated menus work on narrow screens and expose keyboard step previews
     "/login",
     "/?view=history",
   ]) {
+    // Some intros fold their artwork away on phones; the image is checked at desktop width.
+    await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(path);
     const img = page.locator(".visual-intro .section-artwork img, .auth-artwork img").first();
     await expect(img).toBeVisible();

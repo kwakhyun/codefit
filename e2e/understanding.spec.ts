@@ -71,6 +71,9 @@ test("prediction → real execution → repair → independent transfer, keyboar
   if (info.project.name === "chromium") await capture(page, "understanding-observe");
   await expect.poll(async () => (await saved(page)).training?.observation?.actual).toBe("[3,3]");
   await page.reload();
+  // A run lab reopens on its first unfinished step; the first prediction stays one click away.
+  await expect(page.getByRole("heading", { name: "3. 수정하기" })).toBeVisible();
+  await stage(page, 0);
   await expect(page.getByLabel("왜 그렇게 생각했나요?")).toHaveValue(reason);
   await expect(page.getByLabel("왜 그렇게 생각했나요?")).toHaveAttribute("readonly", "");
   await page.getByRole("button", { name: "비교 결과 다시 보기" }).click();

@@ -8,11 +8,13 @@ test("first visit offers a direct guest start and responsive menu controls retai
   page,
 }) => {
   await page.goto("/");
-  const start = page.getByRole("region", { name: "처음 방문한 분의 시작점" });
+  // The first-visit home starts with the repository quick start, which also links to the
+  // address-based project check.
+  const start = page.getByRole("region", { name: "저장소 링크로 점검과 연습 시작" });
   await expect(start).toBeVisible();
   await expect(page.getByRole("button", { name: "메뉴 열기", exact: true })).toBeHidden();
-  await start.getByRole("link", { name: "내 프로젝트 점검", exact: true }).click();
-  await expect(page.getByLabel("서비스 링크", { exact: true })).toBeVisible();
+  await start.getByRole("link", { name: /^서비스 주소로 점검하기/ }).click();
+  await expect(page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true })).toBeVisible();
   await expect(page.locator(".guest-trial-notice")).toContainText("분석 횟수");
   await page.goto("/");
   await page.setViewportSize({ width: 390, height: 844 });
@@ -74,8 +76,11 @@ test("a guest can submit five explanations and receive feedback in the same work
     }
   });
   await page.goto("/project-check");
-  await page.getByLabel("서비스 링크", { exact: true }).fill("https://example.com/");
-  await page.getByRole("checkbox").check();
+  await page
+    .getByLabel("서비스 또는 공개 저장소 링크", { exact: true })
+    .fill("https://example.com/");
+  // There is no separate consent checkbox; the form explains what is sent before the button.
+  await expect(page.getByRole("checkbox")).toHaveCount(0);
   await page.getByRole("button", { name: "내 프로젝트 질문 받기" }).click();
   for (let i = 0; i < 5; i++) {
     await page
@@ -106,7 +111,7 @@ test("pending data shows an indeterminate progress bar and clears when the respo
   await expect(progress).not.toHaveAttribute("value");
   release();
   await expect(progress).toBeHidden();
-  await expect(page.getByLabel("서비스 링크", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true })).toBeVisible();
 });
 
 test("typing with autosave never flashes the shared progress bar; ? opens help outside the editor", async ({
@@ -157,19 +162,42 @@ test("neutral surfaces and useful labels stay consistent; type and route changes
       return original.call(this, frames, options);
     };
   });
+  // The theme follows the system by default; check the dark palette's neutral surfaces.
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.route("**/api/project-check", (route) =>
+    route.fulfill({
+      json: {
+        scope: "guest:surfaces",
+        signedIn: false,
+        aiReady: true,
+        nextCursor: null,
+        checks: [],
+        usage: {
+          analysis: { limit: 2, remaining: 2, resetsAt: null },
+          review: { limit: 2, remaining: 2, resetsAt: null },
+        },
+      } satisfies CheckOverview,
+    }),
+  );
   await page.goto("/");
   await expect(page.locator("body")).toHaveCSS("background-color", "rgb(14, 18, 25)");
   await expect(page.getByText("저장소 연결됨", { exact: true })).toHaveCount(0);
   await expect(page.locator(".sidebar-version")).toHaveCount(0);
-  const start = page.getByRole("region", { name: "처음 방문한 분의 시작점" });
-  await expect(start.locator(".feature-overview")).toBeVisible();
-  await expect(start.getByRole("link", { name: "내 프로젝트 점검", exact: true })).toHaveCSS(
-    "background-color",
-    "rgb(147, 197, 253)",
-  );
+  const welcome = page.locator(".workspace-welcome");
+  await expect(welcome.locator(".feature-overview")).toBeVisible();
+  const start = welcome.getByRole("region", { name: "저장소 링크로 점검과 연습 시작" });
+  const submit = start.getByRole("button", { name: /점검과 연습 시작/ });
+  // Disabled primary actions turn neutral; the action color appears once the link is entered.
+  await expect(submit).toBeDisabled();
+  await expect(submit).toHaveCSS("background-color", "rgb(40, 52, 72)");
+  await start
+    .getByLabel("공개 소스 저장소 링크", { exact: true })
+    .fill("https://github.com/owner/repository");
+  await expect(submit).toBeEnabled();
+  await expect(submit).toHaveCSS("background-color", "rgb(147, 197, 253)");
   const before = await page.locator("html").getAttribute("data-main-fade");
   await page.getByRole("region", { name: "나에게 맞는 시작점" }).getByRole("radio").nth(2).click();
-  await expect(start).toHaveCount(0);
+  await expect(welcome).toHaveCount(0);
   await expect(page.locator("html")).not.toHaveAttribute("data-main-fade", before || "0");
   await expect(page.locator("html")).toHaveAttribute(
     "data-main-frames",
@@ -177,8 +205,11 @@ test("neutral surfaces and useful labels stay consistent; type and route changes
   );
   await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
   const afterType = await page.locator("html").getAttribute("data-main-fade");
-  await page.locator(".sidebar").getByRole("link", { name: "내 프로젝트 점검" }).click();
-  await expect(page.getByLabel("서비스 링크", { exact: true })).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "작업 공간 메뉴" })
+    .getByRole("link", { name: "내 프로젝트 점검", exact: true })
+    .click();
+  await expect(page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true })).toBeVisible();
   await expect(page.locator("html")).not.toHaveAttribute("data-main-fade", afterType!);
 });
 
@@ -192,7 +223,7 @@ test("reduced motion disables type transitions and typing never starts a view an
     0,
   );
   await page.goto("/project-check");
-  const input = page.getByLabel("서비스 링크", { exact: true });
+  const input = page.getByLabel("서비스 또는 공개 저장소 링크", { exact: true });
   await input.fill("https://example.com/");
   await expect(input).toBeFocused();
   await expect(input).toHaveValue("https://example.com/");
