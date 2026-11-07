@@ -86,7 +86,7 @@ test("project tasks persist, original answers survive revision, and screenshots 
     return r.fulfill({ json: revised });
   });
   await page.goto(`/project-check?check=${original.id}`);
-  await page.locator(".analysis-source-library > summary").click();
+  await page.locator("#project-analysis-material > summary").click();
   await page.getByText("질문 생성에 사용한 공개 화면 1곳 보기", { exact: true }).click();
   await expect(page.getByRole("img", { name: /분석 화면 — 분석 당시/ })).toBeVisible();
   const follow = page.locator("#project-follow-up");
@@ -124,7 +124,7 @@ test("project tasks persist, original answers survive revision, and screenshots 
     .fill("보완한 설명: 탈퇴한 계정의 접근 차단을 확인했습니다.");
   await page.getByRole("button", { name: /5\. 설계 선택/ }).click();
   await page.getByRole("button", { name: "이 답변으로 이해도 확인" }).last().click();
-  await expect(page.getByText(/이전 답변 50점 → 보완 답변 50점/)).toBeVisible();
+  await expect(page.getByText(/바로 이전 답변 50점 → 이번 보완 답변 50점/)).toBeVisible();
   expect(original.review!.answers[0]).toBe("처음 작성한 설명입니다.");
   expect(revised!.review!.answers[0]).toContain("보완한 설명");
 });

@@ -145,7 +145,9 @@ for (const width of [1280, 390]) {
       page.getByRole("heading", { name: "내 서비스에서는 언제 필요할까요?" }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "이 순서로 읽어보세요" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /2 비교하기/ })).toBeDisabled();
+    // One progress line replaces the step buttons; later steps open from the step actions.
+    await expect(page.locator(".practice-progress-line")).toContainText("상황 1/3 · 단계 1/3");
+    await expect(page.getByRole("button", { name: /단계로$/ })).toHaveCount(0);
     for (const theme of ["light", "dark"]) {
       await page.evaluate((value) => {
         document.documentElement.dataset.theme = value;
@@ -182,12 +184,13 @@ for (const width of [1280, 390]) {
     await expect(
       page.getByText("내가 적은 이유: 새 요청이므로 새 결과라고 예상했어요."),
     ).toBeVisible();
-    await page.getByRole("button", { name: /1 예상하기/ }).click();
+    await page.getByRole("button", { name: "← 예상하기 단계로" }).click();
     await expect(page.getByRole("radio", { name: "새 결과", exact: true })).toBeChecked();
     await expect(page.getByRole("textbox", { name: "왜 그렇게 생각했나요?" })).toHaveValue(
       "새 요청이므로 새 결과라고 예상했어요.",
     );
-    await page.getByRole("button", { name: /3 설명하기/ }).click();
+    await page.getByRole("button", { name: "저장한 예상과 코드 흐름 비교" }).click();
+    await page.getByRole("button", { name: "내 말로 설명하기" }).click();
     await page
       .getByRole("textbox", { name: /내 설명 또는 실제 확인 기록/ })
       .fill("기존 결과가 있으면 일찍 반환해요.");

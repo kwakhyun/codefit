@@ -251,6 +251,24 @@ export function NewProjectForm({
             브라우저에 초안을 보관하지 못했습니다. 화면을 닫기 전에 작성한 내용을 복사해 주세요.
           </Status>
         )}
+        {requestId && !analyzing && currentState === "done" && (
+          // Finished while this form was not open: one action opens the saved result.
+          <div className="project-recovery" data-state="done">
+            <p className="project-help">앞선 분석이 완료됐습니다.</p>
+            <Button
+              type="button"
+              className="secondary-button"
+              onClick={() => {
+                // The draft was for this analysis; opening its result finishes it.
+                saveDraft((value) => ({ ...value, requestId: null }));
+                draftApi.clearSavedDraft();
+                onSelect(requestId);
+              }}
+            >
+              분석 결과 열기
+            </Button>
+          </div>
+        )}
         {requestId && !analyzing && currentState !== "done" && currentState !== "cancelled" && (
           <div className="project-recovery" data-state={currentState ?? "unknown"}>
             {currentState === "input" || currentState === "failed" ? (

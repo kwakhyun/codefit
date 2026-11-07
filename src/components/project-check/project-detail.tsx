@@ -42,14 +42,18 @@ export function ProjectDetail({
   onUsage: () => Promise<void>;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
-  const [trainingOpen, setTrainingOpen] = useState(false);
+  // Open state belongs to one project: another project starts with the examples closed.
+  const [openFor, setOpenFor] = useState<string | null>(null);
+  const trainingOpen = openFor === check.id;
+  // Once opened for this project the examples stay mounted, so collapsing keeps unsaved answers.
+  const [trainingFor, setTrainingFor] = useState<string | null>(null);
   useEffect(() => {
     heading.current?.focus();
   }, [check.id]);
   useEffect(() => {
     const followHash = () => {
       if (window.location.hash !== "#training") return;
-      setTrainingOpen(true);
+      setOpenFor(check.id);
       // The panel mounts its content only when opened; bring it into view once it exists.
       window.setTimeout(() => document.getElementById("training")?.scrollIntoView(), 0);
     };
@@ -155,11 +159,15 @@ export function ProjectDetail({
         <Disclosure
           className="project-panel project-training"
           open={trainingOpen}
-          onToggle={(event) => setTrainingOpen(event.currentTarget.open)}
+          onToggle={(event) => {
+            const open = event.currentTarget.open;
+            setOpenFor(open ? check.id : null);
+            if (open) setTrainingFor(check.id);
+          }}
         >
           <DisclosureSummary>기초 개념을 예제로 연습하기 (선택)</DisclosureSummary>
           {/* Opening it is the request: a closed panel never reads or copies the examples. */}
-          {trainingOpen && (
+          {(trainingOpen || trainingFor === check.id) && (
             <ProjectLearning key={`training:${check.id}`} id={rootId} scope={data.scope} />
           )}
         </Disclosure>
