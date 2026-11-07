@@ -75,25 +75,6 @@
   color-scheme: dark;
 }
 
-/* Native controls inherit the selected scheme, including portalled dialogs. */
-.theme-select {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  color: var(--muted);
-  font-size: var(--text-small);
-}
-.theme-select select {
-  min-height: 44px;
-  max-width: 100%;
-  padding: 8px 30px 8px 10px;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-control);
-}
-
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     --art-blend: lighten;

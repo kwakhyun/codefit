@@ -1,0 +1,149 @@
+/* Element defaults (reset, typography, form fields). Layer "base": every component rule
+   overrides these regardless of specificity, so state rules that must beat component
+   classes (button:disabled, transitions) live in foundation.css instead. */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  font-family: var(--sans);
+  font-size: var(--text-body);
+  line-height: 1.65;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+  color: inherit;
+}
+
+button {
+  border: 0;
+  background: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+button svg,
+a svg {
+  flex-shrink: 0;
+}
+
+p,
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+
+/* Reading defaults survive the reset; component layouts can override them.
+   Keep these at element specificity so flex/grid cards retain their own rhythm. */
+:where(main, dialog, [role="dialog"]) :where(h1, h2, h3, h4) + p {
+  margin-block-start: 12px;
+}
+:where(main, dialog, [role="dialog"]) :where(p) + p {
+  margin-block-start: 12px;
+}
+:where(details[open]) > :where(summary) + :is(p, div, ul, ol) {
+  margin-block-start: 16px;
+}
+
+input,
+textarea,
+select {
+  color: var(--text);
+  background: light-dark(var(--light-panel), #141414);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: light-dark(var(--light-muted), #a0a0a0);
+}
+
+select {
+  cursor: pointer;
+}
+
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+pre,
+code,
+kbd {
+  font-family: var(--mono);
+}
+
+pre {
+  word-break: normal;
+  tab-size: 2;
+}
+
+kbd {
+  font-size: var(--text-caption);
+  border: 1px solid light-dark(var(--light-line), #3e3e3e);
+  background: light-dark(var(--light-canvas), #212121);
+  border-radius: var(--radius-control);
+  padding: 1px 5px;
+  color: light-dark(var(--light-muted), #adadad);
+  white-space: nowrap;
+}
+
+small {
+  font-size: var(--text-small);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
