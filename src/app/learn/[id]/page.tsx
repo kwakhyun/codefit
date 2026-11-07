@@ -10,7 +10,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const m = missionById((await params).id);
-  return { title: m ? `${m.title} | CODE:FIT` : "미션을 찾을 수 없습니다." };
+  return m
+    ? { title: m.title, description: m.summary }
+    : { title: "미션을 찾을 수 없습니다", robots: { index: false } };
 }
 export default async function MissionPage({
   params,
