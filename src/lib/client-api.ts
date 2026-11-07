@@ -48,6 +48,7 @@ export async function api<T>(
     );
   }
   const finish = options?.track === false ? () => {} : trackRequest();
+  let failed = false;
   try {
     const timeout =
       options?.method === "POST" && /^\/api\/project-check\/[^/?]+\/practice$/.test(url)
@@ -87,13 +88,30 @@ export async function api<T>(
       throw new ApiError(data.error || "요청에 실패했습니다.", response.status, data);
     if (typeof data?.scope === "string") setGenerationScope(data.scope);
     return data as T;
+  } catch (error) {
+    // Leaving a screen cancels its requests; only real failures count as failed.
+    failed = !options?.signal?.aborted;
+    throw error;
   } finally {
-    finish();
+    finish(!failed);
   }
 }
+export const OFFLINE_MESSAGE = "인터넷 연결이 끊겼습니다. 연결을 확인한 뒤 다시 시도해 주세요.";
+const CONNECTION_MESSAGE =
+  "서버에 연결하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.";
+// Chrome, Safari, Firefox and Node phrase the same fetch failure differently.
+const NETWORK_FAILURE =
+  /failed to fetch|load failed|networkerror|network request failed|fetch failed/i;
+/** User-facing Korean copy for any thrown value; raw browser messages never reach the screen. */
 export function errorMessage(error: unknown) {
   if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError"))
-    return "응답 대기 시간이 지났습니다. 보관함이나 검토 이력을 새로고침한 뒤 다시 시도해 주세요.";
+    return "응답 대기 시간이 지났습니다. 화면을 새로고침해 결과를 확인한 뒤 다시 시도해 주세요.";
+  if (error instanceof TypeError) {
+    if (typeof navigator !== "undefined" && navigator.onLine === false) return OFFLINE_MESSAGE;
+    return NETWORK_FAILURE.test(error.message)
+      ? CONNECTION_MESSAGE
+      : "요청을 처리하지 못했습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.";
+  }
   return error instanceof Error ? error.message : "연결 상태를 확인하고 다시 시도해 주세요.";
 }
 export const dateLabel = (iso: string) =>
