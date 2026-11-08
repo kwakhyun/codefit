@@ -55,6 +55,8 @@ test("prediction → real execution → repair → independent transfer, keyboar
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/problems/handoff-cart?from=%2Fhandoff");
+  // Scan the rendered prediction step, not the loading skeleton before it.
+  await expect(page.getByRole("button", { name: "예상을 남기고 원본 실행" })).toBeVisible();
   await expect(page.locator(".monaco-editor")).toHaveCount(0);
   await accessible(page);
   await page.getByRole("button", { name: "예상을 남기고 원본 실행" }).click();

@@ -2,6 +2,7 @@ import { E2E_BASE_URL } from "../scripts/lib/e2e-environment";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { readCode, setCode } from "./editor-helpers";
+import { waitForUiTransitions } from "./ui-helpers";
 import { readHandoffDraft, writeHandoffDraft } from "../src/lib/handoff/draft";
 import { handoffProblems } from "../src/data/handoff-problems";
 
@@ -44,6 +45,8 @@ async function saved(page: Page) {
     string | undefined;
 }
 async function accessible(page: Page) {
+  // Stage changes fade in; scan the settled screen.
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
