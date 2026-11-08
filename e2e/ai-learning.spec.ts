@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { waitForUiTransitions } from "./ui-helpers";
 import { AI_LESSONS, AI_TRACKS } from "../src/lib/ai-learning/catalog";
 import { AI_CONTENT, correctQuizIndex } from "../src/lib/ai-learning/content";
 
@@ -134,12 +135,17 @@ test("mobile layout, keyboard controls, accessibility and unavailable storage", 
   await page.goto("/learn/ai");
   await expect(page.locator(".ai-progress-summary")).toContainText("브라우저 저장이 차단되어");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await waitForUiTransitions(page);
   expect((await new AxeBuilder({ page }).include("#main-content").analyze()).violations).toEqual(
     [],
   );
   await page.screenshot({ path: `artifacts/ai-catalog-mobile-${info.project.name}.png` });
   await page.goto("/learn/ai/jev-decisions");
   await page.getByRole("button", { name: "선택하며 실습하기", exact: true }).click();
+  // The stage change moves focus to its heading on the next frame; focus the choice after that.
+  await expect
+    .poll(() => page.evaluate(() => document.activeElement?.tagName ?? ""))
+    .toMatch(/^H[1-6]$/);
   await page.getByRole("radio").first().focus();
   await page.keyboard.press("Space");
   await expect(page.getByRole("radio").first()).toBeChecked();
@@ -147,6 +153,7 @@ test("mobile layout, keyboard controls, accessibility and unavailable storage", 
   await expect(page.getByRole("radio").nth(1)).toBeChecked();
   await expect(page.locator(".ai-feedback")).toContainText("점수를 받아도");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await waitForUiTransitions(page);
   expect((await new AxeBuilder({ page }).include("#main-content").analyze()).violations).toEqual(
     [],
   );

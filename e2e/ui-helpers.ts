@@ -4,18 +4,19 @@ import { expect, type Page } from "@playwright/test";
 export async function waitForUiTransitions(page: Page) {
   await expect
     .poll(() =>
-      page.evaluate(
-        () =>
-          document.getAnimations().filter(
-            (animation) =>
-              (animation.playState === "running" || animation.pending) &&
-              animation.effect?.getTiming().iterations !== Infinity &&
-              // Closed disclosure children can retain a pending animation in Firefox.
-              (!(animation.effect instanceof KeyframeEffect) ||
-                !(animation.effect.target instanceof Element) ||
-                animation.effect.target.checkVisibility()),
-          ).length,
-      ),
+      page.evaluate(async () => {
+        // Let effects that start a fade on the next frames run before counting.
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        return document.getAnimations().filter(
+          (animation) =>
+            (animation.playState === "running" || animation.pending) &&
+            animation.effect?.getTiming().iterations !== Infinity &&
+            // Closed disclosure children can retain a pending animation in Firefox.
+            (!(animation.effect instanceof KeyframeEffect) ||
+              !(animation.effect.target instanceof Element) ||
+              animation.effect.target.checkVisibility()),
+        ).length;
+      }),
     )
     .toBe(0);
 }

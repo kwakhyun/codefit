@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { waitForUiTransitions } from "./ui-helpers";
 import { SqliteStore } from "../src/lib/server/sqlite-store";
 import { fixtureCheck, fixtureAssessment } from "../src/lib/project-check/fixtures";
 import { publicCheck } from "../src/lib/server/project-check-store";
@@ -97,6 +98,7 @@ test("project learning: first answers, recovery, practice gate, transfer and acc
         .first()
         .evaluate((el) => getComputedStyle(el).display),
     ).toBe("flex");
+    await waitForUiTransitions(page);
     expect(
       (
         await new AxeBuilder({ page })
@@ -167,6 +169,7 @@ test("project learning: first answers, recovery, practice gate, transfer and acc
     await expect(panel.getByText("확인 문제에서 도움을 사용했다고 표시했습니다.")).toBeVisible();
     await panel.getByText("다른 상황의 질문 답변과 해설", { exact: true }).click();
     await expect(panel.getByText(/브라우저 데이터 삭제 뒤의 관찰로/)).toBeVisible();
+    await waitForUiTransitions(page);
     const scan = await new AxeBuilder({ page })
       .include("#training")
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])

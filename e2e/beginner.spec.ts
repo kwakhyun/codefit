@@ -1,9 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { waitForUiTransitions } from "./ui-helpers";
 import { MISSIONS, ACTION_LABELS, actionLabel, type Mission } from "../src/lib/learn/catalog";
 import { verification } from "../src/lib/learn/simulation";
 import { emptyLearning, requestFields } from "../src/lib/learn/progress";
 async function accessible(page: Page) {
+  // Stage panels fade in; scan the settled screen.
+  await waitForUiTransitions(page);
   expect(
     (await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze())
       .violations,
