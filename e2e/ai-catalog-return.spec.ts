@@ -15,7 +15,10 @@ for (const width of [1280, 390]) {
     await expect(select).toHaveCSS("background-position", "calc(100% - 14px) 50%");
     await expect(select).toHaveCSS("padding-right", "44px");
     await card.scrollIntoViewIfNeeded();
-    let y = await page.evaluate(() => window.scrollY);
+    // The learner returns to the same card at the same place on screen, even when content
+    // above it loads with a different height.
+    const cardTop = () => card.evaluate((el) => el.getBoundingClientRect().top);
+    let y = await cardTop();
     const url = page.url();
     await card.click();
     await expect(page.locator(".ai-lesson-header h1")).toContainText("LangGraph");
@@ -32,20 +35,16 @@ for (const width of [1280, 390]) {
     await expect(card).toHaveCount(1);
     await expect(page.getByRole("searchbox")).toHaveValue("랭그래프");
     await expect(select).toHaveValue("기초");
-    await expect
-      .poll(() => page.evaluate((saved) => Math.abs(window.scrollY - saved), y))
-      .toBeLessThan(24);
+    await expect.poll(async () => Math.abs((await cardTop()) - y)).toBeLessThan(24);
     await card.scrollIntoViewIfNeeded();
-    y = await page.evaluate(() => window.scrollY);
+    y = await cardTop();
     await card.click();
     await expect(page.locator(".ai-lesson-header h1")).toContainText("LangGraph");
     await page.goBack();
     await expect(card).toHaveCount(1);
     await expect(page.locator(".ai-lesson-body")).toHaveCount(0);
     await expect(select).toHaveValue("기초");
-    await expect
-      .poll(() => page.evaluate((saved) => Math.abs(window.scrollY - saved), y))
-      .toBeLessThan(24);
+    await expect.poll(async () => Math.abs((await cardTop()) - y)).toBeLessThan(24);
     await page.getByRole("button", { name: "검색과 필터 초기화" }).click();
     await expect(page.locator(".ai-track")).toHaveCount(AI_TRACKS.length);
     await expect(card).toHaveCount(0);

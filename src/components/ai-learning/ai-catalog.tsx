@@ -42,9 +42,19 @@ export function AiCatalog() {
   function change(patch: Partial<typeof filters>) {
     window.history.replaceState(null, "", catalogUrl({ ...filters, ...patch }));
   }
-  function rememberPosition() {
+  /**
+   * Remember where the learner was. With a lesson card, store its offset in the viewport so the
+   * same card returns to the same place even if content above it loads with a different height.
+   */
+  function rememberPosition(lessonId?: string) {
     try {
-      sessionStorage.setItem(catalogScrollKey(returnTo), String(window.scrollY));
+      const card = lessonId
+        ? document.querySelector<HTMLElement>(`[data-lesson-id="${lessonId}"]`)
+        : null;
+      sessionStorage.setItem(
+        catalogScrollKey(returnTo),
+        JSON.stringify({ y: window.scrollY, id: lessonId, top: card?.getBoundingClientRect().top }),
+      );
     } catch {
       /* Navigation remains available without storage. */
     }
@@ -53,21 +63,53 @@ export function AiCatalog() {
   const { records, ready } = status;
   useEffect(() => {
     if (!ready) return;
+    let saved: { y: number; id?: string; top?: number } | null = null;
+    try {
+      const raw = sessionStorage.getItem(catalogScrollKey(returnTo));
+      const value = raw === null ? null : JSON.parse(raw);
+      // Older entries stored only the scroll position.
+      saved = typeof value === "number" ? { y: value } : value;
+    } catch {
+      /* Browser history still restores scroll when storage is unavailable. */
+    }
+    if (!saved || !Number.isFinite(saved.y) || saved.y < 0) return;
+    const position = saved;
+    const target = () => {
+      const card = position.id
+        ? document.querySelector<HTMLElement>(`[data-lesson-id="${position.id}"]`)
+        : null;
+      return card && typeof position.top === "number"
+        ? card.getBoundingClientRect().top + window.scrollY - position.top
+        : position.y;
+    };
+    const restore = () => window.scrollTo({ top: target(), behavior: "instant" });
+    // Content above the cards (the project entry, synced progress) can settle a moment later:
+    // keep the card in place until then, unless the learner starts scrolling.
+    const resize = new ResizeObserver(() => {
+      if (Math.abs(window.scrollY - target()) > 2) restore();
+    });
+    const stop = () => resize.disconnect();
+    const timer = window.setTimeout(stop, 1500);
+    const events = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
+    events.forEach((name) => window.addEventListener(name, stop, { once: true, passive: true }));
     let frame = requestAnimationFrame(() => {
       frame = requestAnimationFrame(() => {
+        // Consume the entry only once it is applied (a cancelled effect leaves it for the rerun).
         try {
-          const saved = sessionStorage.getItem(catalogScrollKey(returnTo));
-          const y = Number(saved);
-          if (saved !== null && Number.isFinite(y) && y >= 0) {
-            window.scrollTo({ top: y, behavior: "instant" });
-            sessionStorage.removeItem(catalogScrollKey(returnTo));
-          }
+          sessionStorage.removeItem(catalogScrollKey(returnTo));
         } catch {
-          /* Browser history still restores scroll when storage is unavailable. */
+          /* Nothing to clean up without storage. */
         }
+        restore();
+        resize.observe(document.body);
       });
     });
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+      stop();
+      events.forEach((name) => window.removeEventListener(name, stop));
+    };
   }, [ready, returnTo]);
   const completed = AI_LESSONS.filter((lesson) => records[lesson.id]?.completed).length;
   const resume = AI_LESSONS.filter(
@@ -96,8 +138,9 @@ export function AiCatalog() {
       <Link
         key={lesson.id}
         className="ai-lesson-card"
+        data-lesson-id={lesson.id}
         href={catalogLessonUrl(lesson.id, returnTo)}
-        onNavigate={rememberPosition}
+        onNavigate={() => rememberPosition(lesson.id)}
       >
         <div className="ai-card-meta">
           <span>
@@ -154,7 +197,7 @@ export function AiCatalog() {
           <Link
             className="primary-button"
             href={catalogLessonUrl(next.id, returnTo, nextContext)}
-            onNavigate={rememberPosition}
+            onNavigate={() => rememberPosition()}
           >
             {completed === AI_LESSONS.length
               ? "첫 수업 복습하기"
@@ -180,7 +223,10 @@ export function AiCatalog() {
           <ul>
             {review.map((lesson) => (
               <li key={lesson.id}>
-                <Link href={catalogLessonUrl(lesson.id, returnTo)} onNavigate={rememberPosition}>
+                <Link
+                  href={catalogLessonUrl(lesson.id, returnTo)}
+                  onNavigate={() => rememberPosition()}
+                >
                   {lesson.title}
                 </Link>
                 <span>{records[lesson.id]?.completed ? "완료" : "푸는 중"}</span>
@@ -213,7 +259,7 @@ export function AiCatalog() {
                       )}
                       <Link
                         href={catalogLessonUrl(id, returnTo, { path: path.id })}
-                        onNavigate={rememberPosition}
+                        onNavigate={() => rememberPosition()}
                       >
                         {lesson.title}
                         {finished && <span className="sr-only"> (완료)</span>}

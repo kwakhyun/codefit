@@ -41,19 +41,46 @@ export function ProjectAiEntry() {
           </Button>
         </div>
       ) : (
-        <div className="screen-skeleton project-ai-entry-skeleton" role="status" aria-busy="true">
-          <span className="skeleton-label">프로젝트 연결 준비 중</span>
-          <div className="skeleton-content" aria-hidden="true">
-            <div className="skeleton-shape skeleton-line is-short" />
-            <div className="skeleton-shape skeleton-field" />
-            <div className="skeleton-shape skeleton-line is-medium" />
-          </div>
-        </div>
+        <EntryShell />
       )}
       <AppLink href="/learn/ai/project">
         분석한 프로젝트에서 이어가기 <ArrowRight size={16} />
       </AppLink>
     </div>
+  );
+}
+/**
+ * The form's own layout while the allowance loads, so the catalog below does not move when
+ * the real form replaces it (a skeleton of a different height shifted the page and broke
+ * scroll restoration on return from a lesson).
+ */
+function EntryShell() {
+  return (
+    <form aria-busy="true" aria-label="내 프로젝트 저장소 연결 준비 중">
+      <FieldLabel htmlFor="ai-project-url-loading">
+        <GitBranch size={16} /> 내 프로젝트 저장소 링크
+      </FieldLabel>
+      <div className="project-ai-input">
+        <Input
+          id="ai-project-url-loading"
+          type="url"
+          disabled
+          placeholder="https://github.com/owner/repository"
+        />
+        <Button type="button" className="primary-button" disabled>
+          저장소 분석하고 배우기 <ArrowRight size={17} />
+        </Button>
+      </div>
+      <p className="muted">
+        프로젝트에서 사용 중인 AI 기술을 배우고, 새로 활용할 방법도 살펴보세요.
+      </p>
+      <p className="muted" role="status">
+        {/* Same sentence as the loaded form, so the line count matches while it loads. */}
+        공개 코드 일부를 OpenAI로 보내 분석합니다. 새 분석과 AI 워크숍 생성에 분석 횟수{" "}
+        {WORKSHOP_NEW_REPOSITORY_COST}회를 사용합니다 · 현재 <span aria-label="확인 중">–</span>회
+        남음 ({allowanceSummary("analysis")}).
+      </p>
+    </form>
   );
 }
 function EntryForm({ overview }: { overview: CheckOverview }) {
