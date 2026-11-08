@@ -207,3 +207,23 @@
     0 1px 3px light-dark(rgb(15 23 42 / 12%), rgb(0 0 0 / 40%)),
     0 0 0 1px light-dark(rgb(15 23 42 / 4%), rgb(255 255 255 / 6%));
 }
+
+/* Laptop-height screens (e.g. 1440×900) keep every menu destination visible without scrolling
+   the menu: tighter rows and captions, and a compact account block. Shorter screens still
+   scroll the menu on its own. */
+@media (min-width: 1024px) and (max-height: 960px) {
+  .sidebar .brand-logo {
+    margin-bottom: var(--space-5);
+  }
+  .sidebar .nav-caption {
+    margin: var(--space-3) 0 var(--space-1);
+  }
+  .sidebar .nav-item {
+    min-height: 36px;
+    padding-block: 7px;
+    margin-bottom: 2px;
+  }
+  .sidebar-workspace small {
+    display: none;
+  }
+}
